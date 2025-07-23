@@ -1,0 +1,2 @@
+D:/mscanner/android/app/.cxx/Debug/s5es2o2x/arm64-v8a/CMakeFiles/edit_cache.dir
+D:/mscanner/android/app/.cxx/Debug/s5es2o2x/arm64-v8a/CMakeFiles/rebuild_cache.dir

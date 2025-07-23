@@ -1,0 +1,72 @@
+plugins {
+    id "com.android.application"
+    id "org.jetbrains.kotlin.android" version "2.0.0"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader("UTF-8") { reader ->
+        localProperties.load(reader)
+    }
+}
+
+def flutterVersionCode = localProperties.getProperty("flutter.versionCode")
+if (flutterVersionCode == null) {
+    flutterVersionCode = "1"
+}
+
+def flutterVersionName = localProperties.getProperty("flutter.versionName")
+if (flutterVersionName == null) {
+    flutterVersionName = "1.0"
+}
+
+android {
+    namespace "com.thj.mscanner"
+    compileSdk 35 // ✅ 직접 설정하여 명확히 표시
+    ndkVersion flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17 // ✅ Java 17로 변경
+        targetCompatibility JavaVersion.VERSION_17 // ✅ Java 17로 변경
+    }
+    kotlinOptions {
+        jvmTarget = "17" // ✅ Kotlin도 Java 17 타겟
+    }
+
+    defaultConfig {
+        applicationId "com.thj.mscanner"
+        minSdk 23
+        targetSdk 35 // ✅ 직접 설정하여 명확히 표시
+        versionCode flutterVersionCode.toInteger()
+        versionName flutterVersionName
+    }
+
+    signingConfigs {
+        release {
+            def properties = new Properties()
+            properties.load(new FileInputStream(file("keystore.properties")))
+
+            storeFile file(properties["key.store.file"])
+            storePassword properties["key.store.password"]
+            keyAlias properties["key.alias.name"]
+            keyPassword properties["key.alias.password"]
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+        }
+    }
+}
+
+flutter {
+    source "../.."
+}
+
+dependencies {
+    implementation 'com.android.billingclient:billing:6.1.0' // 최신 버전
+    implementation "com.android.billingclient:billing-ktx:6.1.0"
+}

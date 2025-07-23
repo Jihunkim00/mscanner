@@ -1,0 +1,2 @@
+D:/mscanner/android/app/.cxx/RelWithDebInfo/6510b4e5/arm64-v8a/CMakeFiles/edit_cache.dir
+D:/mscanner/android/app/.cxx/RelWithDebInfo/6510b4e5/arm64-v8a/CMakeFiles/rebuild_cache.dir

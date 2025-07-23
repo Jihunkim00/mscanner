@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Theme applied to the Android Window while the process is starting when the OS's Dark Mode setting is off -->
+    <style name="LaunchTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- 스플래시 화면 배경 -->
+        <item name="android:windowBackground">@drawable/launch_background</item>
+        <!-- 풀스크린 모드 활성화 -->
+        <item name="android:fitsSystemWindows">true</item>
+        <item name="android:forceDarkAllowed">false</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+    </style>
+    <!-- 다크 모드용 스플래시 테마 -->
+    <style name="LaunchTheme.Dark" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@drawable/launch_background_dark</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+    <!-- 일반 테마: Flutter UI가 초기화된 후 적용됨 -->
+    <style name="NormalTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Flutter 화면 뒤의 기본 배경 -->
+        <item name="android:windowBackground">@color/white</item>
+    </style>
+</resources>

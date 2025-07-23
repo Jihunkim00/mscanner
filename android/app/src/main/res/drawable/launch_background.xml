@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 배경 색상 설정 -->
+    <item android:drawable="@color/white" />
+
+    <!-- 배경 이미지 (화면 전체 채우기) -->
+    <item>
+        <bitmap
+            android:gravity="centerCrop"
+            android:src="@drawable/background" />
+    </item>
+
+    <!-- 로고 이미지 (중앙 정렬) -->
+    <item>
+        <bitmap
+            android:gravity="center"
+            android:src="@drawable/splash_logo" />
+    </item>
+</layer-list>

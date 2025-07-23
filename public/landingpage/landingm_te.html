@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page Mobile</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700&family=Roboto+Condensed:wght@400;500;700&display=swap');
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #FBC205;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            width: 100%;
+        }
+
+        header img {
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+        }
+
+        header h1 {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 400;
+            font-size: 15px;
+            color: #333;
+            margin: 0;
+        }
+
+        .text-section {
+            margin: 20px auto;
+            max-width: 500px;
+        }
+
+        .text-section h1 {
+            font-family: 'Roboto Flex', sans-serif;
+            font-weight: 300;
+            font-size: 30px;
+            line-height: 1.2;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .text-section p {
+            font-family: 'Roboto Condensed', sans-serif;
+            font-weight: 500;
+            font-style: italic;
+            font-size: 20px;
+            line-height: 1.4;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .image-section {
+            position: relative;
+            margin: 30px auto;
+        }
+
+        .image-section img {
+            width: 200px;
+            height: auto;
+            z-index: 1;
+        }
+
+        .download-section {
+            margin: 20px 0;
+        }
+
+        .download-section a {
+            display: inline-block;
+            margin: 10px;
+            text-decoration: none;
+        }
+
+        .download-section img {
+            width: 150px;
+        }
+
+        footer {
+            margin-top: 20px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 12px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+<!-- Header -->
+<header>
+    <a href="https://mscanner.net/" style="display: flex; align-items: center; text-decoration: none;">
+        <img src="mscannericon.png" alt="App Icon">
+        <h1 style="margin-left: 10px;">Mscanner AI Travel Partner</h1>
+    </a>
+</header>
+
+<!-- Text Section -->
+<div class="text-section">
+    <h1>మీ ప్రయాణంలో అత్యుత్తమ రుచులను కనుగొనండి</h1>
+    <p>మెనూ ఫోటో తీసుకోండి, మేము అనువాదాల నుండి వ్యక్తిగత సిఫార్సుల వరకు అన్నీ సులభంగా నిర్వహిస్తాము!</p>
+</div>
+
+<!-- Image Section -->
+<div class="image-section">
+    <img src="phone.png" alt="App Preview">
+</div>
+
+<!-- Download Section -->
+<div class="download-section">
+    <a href="https://play.google.com/store/apps/details?id=com.thj.mscanner">
+        <img src="play_store.png" alt="Google Play">
+    </a>
+    <a href="https://apps.apple.com/us/app/mscanner-ai-trip-partner/id6670486593">
+        <img src="app_store.png" alt="App Store">
+    </a>
+</div>
+
+<!-- Footer -->
+<footer>
+    &copy; 2024 THJ Co. Ltd. All rights reserved.<br>
+    Contact: <a href="mailto:support@mscanner.net">support@mscanner.net</a>
+</footer>
+</body>
+</html>

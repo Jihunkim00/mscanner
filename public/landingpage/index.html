@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mscanner Ai Travel Partner...</title>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Detect language
+            const userLang = navigator.language || navigator.userLanguage;
+            let lang = 'en'; // Default language
+
+            if (userLang.startsWith('ko')) {
+                lang = 'kr';
+            } else if (userLang.startsWith('ja')) {
+                lang = 'ja';
+            } else if (userLang.startsWith('ru')) {
+                lang = 'ru';
+            } else if (userLang.startsWith('fr')) {
+                lang = 'fr';
+            } else if (userLang.startsWith('es')) {
+                lang = 'es';
+            } else if (userLang.startsWith('zh')) {
+                lang = 'ch';
+            } else if (userLang.startsWith('ar')) {
+                lang = 'ar';
+            } else if (userLang.startsWith('hi')) {
+                lang = 'hi';
+            } else if (userLang.startsWith('bn')) {
+                lang = 'bn';
+            } else if (userLang.startsWith('de')) {
+                lang = 'de';
+            } else if (userLang.startsWith('id')) {
+                lang = 'id';
+            } else if (userLang.startsWith('mr')) {
+                lang = 'mr';
+            } else if (userLang.startsWith('pt')) {
+                lang = 'pt';
+            } else if (userLang.startsWith('pt-BR')) {
+                lang = 'pt_br';
+            } else if (userLang.startsWith('te')) {
+                lang = 'te';
+            } else if (userLang.startsWith('th')) {
+                lang = 'th';
+            } else if (userLang.startsWith('tr')) {
+                lang = 'tr';
+            } else if (userLang.startsWith('ur')) {
+                lang = 'ur';
+            } else if (userLang.startsWith('vi')) {
+                lang = 'vi';
+            }
+
+            // Detect device type
+            const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+
+            // Construct URL
+            const filePrefix = isMobile ? 'landingm_' : 'landing_';
+            const targetFile = `${filePrefix}${lang}.html`;
+
+            // Redirect
+            window.location.replace(targetFile);
+        });
+    </script>
+</head>
+<body>
+<p>Mscanner Ai Travel Partner landing page, <a href="landing_en.html">click here</a>.</p>
+</body>
+</html>

@@ -1,0 +1,15 @@
+# Flutter 빌드 산출물
+build/
+.dart_tool/
+.packages
+pubspec.lock
+
+# IDE 설정
+.idea/
+.vscode/
+
+# 민감 정보
+.env
+
+# OS별 불필요 파일
+.DS_Store

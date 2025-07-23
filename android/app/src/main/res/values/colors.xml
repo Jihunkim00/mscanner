@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 일반 모드 배경색 -->
+    <color name="white">#FFFFFF</color>
+
+    <!-- 다크 모드 배경색 -->
+    <color name="splash_background_dark">#000000</color>
+</resources>
+

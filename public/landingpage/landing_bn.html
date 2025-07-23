@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>랜딩 페이지</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700&family=Roboto+Condensed:wght@400;500;700&display=swap');
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 100vh;
+        }
+        header {
+            background: #f9f9f9;
+            padding: 20px 100px;
+            display: flex;
+            align-items: center;
+        }
+        header img {
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+        }
+        header h1 {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 400;
+            font-size: 15px;
+            letter-spacing: normal;
+            color: #333;
+            margin: 0;
+        }
+        .container {
+            flex: 1;
+            display: flex;
+            flex-wrap: nowrap;
+            justify-content: space-between;
+            align-items: center;
+            padding: 50px 100px;
+            box-sizing: border-box;
+        }
+        .text-section {
+            flex: 1 1 50%;
+            padding: 50px;
+            padding-left: 100px;
+        }
+        .text-section h1 {
+           font-family: 'Roboto Flex', sans-serif;
+            font-weight: 700;
+            font-size: 46px;
+            line-height: 1.5; /* 줄 간격 조정 */
+            letter-spacing: normal;
+            color: #333;
+            margin-top: 20px;
+            margin-bottom: 80px;
+        }
+        .text-section p {
+            font-family: 'Roboto Condensed', sans-serif;
+            font-weight: 500;
+            font-style: italic;
+            font-size: 24px;
+            line-height: 2; /* 줄 간격 조정 */
+            letter-spacing: normal;
+            color: #666;
+            margin-bottom: 60px; /* 본문과 다운로드 간격 증가 */
+        }
+        .download-buttons p {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 300;
+            font-size: 20px;
+            line-height: 1.8; /* 다운로드 텍스트 줄 간격 조정 */
+            letter-spacing: normal;
+            color: #333;
+            text-align: left;
+            margin-top: 20px;
+        }
+        .download-buttons {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        .download-buttons .button-group {
+            display: flex;
+            align-items: center;
+            gap: 150px;
+        }
+        .download-buttons a {
+            text-decoration: none;
+        }
+        .download-buttons img {
+            width: 150px;
+            height: auto;
+        }
+        .qr-code-group {
+            display: flex;
+            justify-content: flex-start;
+            gap: 175px;
+            margin-top: 10px;
+            margin-left: 20px; /* QR 코드 부분의 왼쪽 마진 추가 */
+        }
+        .qr-code-group .qr-code img {
+            width: 120px;
+            height: 120px;
+        }
+        .image-section {
+            flex: 1 1 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .image-section img {
+            width: 250px;
+            height: auto;
+            margin-right: 200px;
+            margin-top: -212px;
+        }
+        footer {
+            background: #f9f9f9;
+            padding: 10px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        footer p {
+            margin: 0;
+        }
+        footer p.copyright {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 700;
+            font-size: 10px;
+            letter-spacing: normal;
+            color: #888;
+        }
+        footer p.contact {
+            font-family: 'Roboto Condensed', sans-serif;
+            font-weight: 400;
+            font-size: 14px;
+            letter-spacing: normal;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
+        footer p.contact img {
+            width: 14px;
+            height: 14px;
+            margin-right: 5px;
+        }
+        footer a {
+            color: #333;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+<!-- Header -->
+<header>
+    <a href="https://mscanner.net/" style="display: flex; align-items: center; text-decoration: none;">
+        <img src="mscannericon.png" alt="App Icon">
+        <h1 style="margin-left: 10px;">Mscanner AI Travel Partner</h1>
+    </a>
+</header>
+
+<!-- Main Content -->
+<div class="container">
+    <!-- Text Section -->
+    <div class="text-section">
+        <h1>আপনার যাত্রায় সেরা স্বাদ আবিষ্কার করুন</h1>
+        <p>
+            মেনুর একটি ছবি তুলুন, আর আমরা অনুবাদ থেকে ব্যক্তিগত সুপারিশ পর্যন্ত সবকিছু সহজেই পরিচালনা করব!
+
+        </p>
+        <!-- Download Prompt -->
+        <div class="download-buttons">
+            <div class="button-group">
+                <a href="https://play.google.com/store/apps/details?id=com.thj.mscanner">
+                    <img src="play_store.png" alt="Google Play" />
+                </a>
+                <a href="https://apps.apple.com/us/app/mscanner-ai-trip-partner/id6670486593">
+                    <img src="app_store.png" alt="App Store" />
+                </a>
+            </div>
+            <div class="qr-code-group">
+                <div class="qr-code">
+                    <img src="android_qr.png" alt="Google Play QR Code" />
+                </div>
+                <div class="qr-code">
+                    <img src="apple_qr.png" alt="App Store QR Code" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Section -->
+    <div class="image-section">
+        <img src="phone.png" alt="App Preview" />
+    </div>
+</div>
+
+<!-- Footer -->
+<footer>
+    <p class="copyright">&copy; 2024 THJ Co. Ltd. All rights reserved.</p>
+    <p class="contact"><img src="Mail.png" alt="Mail Icon">Contact: <a href="mailto:support@mscanner.net">support@mscanner.net</a></p>
+</footer>
+</body>
+</html>
