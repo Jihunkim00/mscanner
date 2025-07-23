@@ -4,6 +4,13 @@ build/
 .packages
 pubspec.lock
 
+# Firebase & native 설정 파일들 (로컬에만 유지)
+android/app/google-services.json
+android/app/src/main/AndroidManifest.xml
+function/translateAndSaveRAG.js
+ios/Runner/AppDelegate.swift
+lib/firebase_options.dart
+
 # IDE 설정
 .idea/
 .vscode/
