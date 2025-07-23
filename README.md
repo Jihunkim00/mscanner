@@ -1,0 +1,2 @@
+# mscanner
+AI travel Partner
