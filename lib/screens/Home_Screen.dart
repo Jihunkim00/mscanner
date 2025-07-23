@@ -924,14 +924,23 @@ class _HomeContentState extends State<HomeContent> {
 
             const SizedBox(height: 20),
 
-        // 광고 배너 (isAdRemoved 가 false 일 때만 보여줌)
-                  if (!isAdRemoved && _isBannerLoaded && _adaptiveBanner != null)
-              Container(
-                width: _adaptiveBanner!.size.width.toDouble(),
-                height: _adaptiveBanner!.size.height.toDouble(),
-                alignment: Alignment.center,
-                child: AdWidget(ad: _adaptiveBanner!),
-              ),
+            Consumer<AdRemoveProvider>(
+              builder: (context, adProvider, child) {
+                if (adProvider.isSubscribed || adProvider.isAdRemoved) {
+                  return SizedBox.shrink(); // 프리미엄이면 광고 제거
+                } else if (_isBannerLoaded && _adaptiveBanner != null) {
+                  return Container(
+                    width: _adaptiveBanner!.size.width.toDouble(),
+                    height: _adaptiveBanner!.size.height.toDouble(),
+                    alignment: Alignment.center,
+                    child: AdWidget(ad: _adaptiveBanner!), // 광고 표시
+                  );
+                } else {
+                  return SizedBox.shrink(); // 배너 미로드 시 빈 공간
+                }
+              },
+            ),
+
 
             // 도움말 배너
             const SizedBox(height: 20),
