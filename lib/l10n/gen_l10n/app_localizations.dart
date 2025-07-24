@@ -1379,6 +1379,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Only the first {maxCount} images will be scanned.'**
   String maxScanImages(int maxCount);
+
+  /// No description provided for @restorePurchases.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Purchases'**
+  String get restorePurchases;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

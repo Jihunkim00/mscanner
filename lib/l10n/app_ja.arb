@@ -216,5 +216,6 @@
         "example": "4"
       }
     }
-  }
+  },
+  "restorePurchases": "購入を復元する"
 }

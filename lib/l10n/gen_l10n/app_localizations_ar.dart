@@ -635,4 +635,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String maxScanImages(int maxCount) {
     return 'سيتم مسح الصور الأولى فقط $maxCount.';
   }
+
+  @override
+  String get restorePurchases => 'استعادة المشتريات';
 }

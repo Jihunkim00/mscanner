@@ -65,7 +65,21 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
     });
 
     await _checkPreviousPurchase();
+    // 4) 이미 소유 중인(non-consumable) 구매 내역 복원
+    await _iap.restorePurchases();
+
   }
+  void _onPurchaseError(Object error) {
+    debugPrint('purchaseStream error: $error');
+
+    // 이미 소유 중인 상품 오류가 발생하면 복원 시도
+    if (error is IAPError &&
+        error.code == 'purchase_error' &&
+        (error.message?.contains('itemAlreadyOwned') ?? false)) {
+      _iap.restorePurchases();
+    }
+  }
+
 
   Future<void> _checkPreviousPurchase() async {
     final uid = FirebaseAuth.instance.currentUser!.uid;
@@ -165,9 +179,7 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
     }
   }
 
-  void _onPurchaseError(Object error) {
-    debugPrint('purchaseStream error: $error');
-  }
+
 
   void _buy(ProductDetails product) {
     final param = PurchaseParam(productDetails: product);
@@ -206,51 +218,67 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
     }
 
     // 일반 사용자는 상품 리스트 표시
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: available.length,
-      itemBuilder: (_, idx) {
-        final prod = available[idx];
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          elevation: 2,
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                const Icon(Icons.star, size: 20, color: Colors.amber),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        prod.title,
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        prod.description,
-                        style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-                      ),
-                    ],
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () => _buy(prod),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  ),
-                  child: Text(prod.price, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                ),
-              ],
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // ← 여기 복원 버튼 추가
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: ElevatedButton(
+            onPressed: () => _iap.restorePurchases(),
+            child: Text(AppLocalizations.of(context)!.restorePurchases),
           ),
-        );
-      },
+        ),
+
+        // 기존 ListView.builder
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: available.length,
+          itemBuilder: (_, idx) {
+            final prod = available[idx];
+            return Card(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    const Icon(Icons.star, size: 20, color: Colors.amber),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            prod.title,
+                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            prod.description,
+                            style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => _buy(prod),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      ),
+                      child: Text(prod.price, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ],
     );
+
   }
 }

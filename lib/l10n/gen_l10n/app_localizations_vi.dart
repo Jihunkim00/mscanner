@@ -635,4 +635,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String maxScanImages(int maxCount) {
     return 'Chỉ có $maxCount hình ảnh đầu tiên sẽ được quét.';
   }
+
+  @override
+  String get restorePurchases => 'Khôi phục Mua hàng';
 }

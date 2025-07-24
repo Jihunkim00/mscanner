@@ -635,4 +635,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String maxScanImages(int maxCount) {
     return '처음 $maxCount개의 이미지까지만 스캔됩니다.';
   }
+
+  @override
+  String get restorePurchases => '구매 복원하기';
 }

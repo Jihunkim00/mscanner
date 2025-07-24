@@ -635,6 +635,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String maxScanImages(int maxCount) {
     return 'Apenas as primeiras $maxCount imagens serão escaneadas.';
   }
+
+  @override
+  String get restorePurchases => 'Restaurar Compras';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -1268,4 +1271,7 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String maxScanImages(int maxCount) {
     return 'Apenas as primeiras $maxCount imagens serão escaneadas.';
   }
+
+  @override
+  String get restorePurchases => 'Restaurar Compras';
 }

@@ -216,5 +216,6 @@
         "example": "4"
       }
     }
-  }
+  },
+  "restorePurchases": "Khôi phục Mua hàng"
 }

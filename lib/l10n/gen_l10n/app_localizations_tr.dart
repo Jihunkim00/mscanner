@@ -635,4 +635,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String maxScanImages(int maxCount) {
     return 'Sadece ilk $maxCount resim taranacaktır.';
   }
+
+  @override
+  String get restorePurchases => 'Satın Alımları Geri Yükle';
 }

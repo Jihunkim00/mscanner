@@ -216,5 +216,6 @@
         "example": "4"
       }
     }
-  }
+  },
+  "restorePurchases": "恢復購買"
 }

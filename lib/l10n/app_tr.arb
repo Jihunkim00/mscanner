@@ -216,5 +216,6 @@
         "example": "4"
       }
     }
-  }
+  },
+  "restorePurchases": "Satın Alımları Geri Yükle"
 }

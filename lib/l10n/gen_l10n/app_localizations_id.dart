@@ -635,4 +635,7 @@ class AppLocalizationsId extends AppLocalizations {
   String maxScanImages(int maxCount) {
     return 'Hanya $maxCount gambar pertama yang akan dipindai.';
   }
+
+  @override
+  String get restorePurchases => 'Pulihkan Pembelian';
 }

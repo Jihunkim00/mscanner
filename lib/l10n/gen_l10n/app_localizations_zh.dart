@@ -635,6 +635,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String maxScanImages(int maxCount) {
     return '仅扫描前 $maxCount 张图片。';
   }
+
+  @override
+  String get restorePurchases => '恢复购买';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -1268,6 +1271,9 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String maxScanImages(int maxCount) {
     return '仅扫描前 $maxCount 张图片。';
   }
+
+  @override
+  String get restorePurchases => '恢复购买';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -1901,4 +1907,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String maxScanImages(int maxCount) {
     return '僅會掃描前 $maxCount 張圖片。';
   }
+
+  @override
+  String get restorePurchases => '恢復購買';
 }

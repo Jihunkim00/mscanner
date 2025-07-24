@@ -635,4 +635,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String maxScanImages(int maxCount) {
     return '最初の$maxCount枚の画像のみがスキャンされます。';
   }
+
+  @override
+  String get restorePurchases => '購入を復元する';
 }
