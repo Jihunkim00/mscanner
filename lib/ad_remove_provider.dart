@@ -15,11 +15,12 @@ class AdRemoveProvider extends ChangeNotifier {
   StreamSubscription<User?>? _authSubscription;
 
   AdRemoveProvider() {
+    // 로그인 상태 변화 감지
     _authSubscription = FirebaseAuth.instance
         .authStateChanges()
         .listen(_onAuthChanged);
 
-    // 앱 시작 시 이미 로그인된 유저가 있으면 바로 구독 시작
+    // 앱 시작 시 이미 로그인된 사용자가 있으면 구독 시작
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
       _startListening(currentUser.uid);
@@ -30,10 +31,12 @@ class AdRemoveProvider extends ChangeNotifier {
     _subscription?.cancel();
 
     if (user == null) {
+      // 로그아웃 시 초기화
       _isAdRemoved = false;
       _isSubscribed = false;
       notifyListeners();
     } else {
+      // 로그인 시 Firestore 구독 시작
       _startListening(user.uid);
     }
   }
@@ -48,23 +51,22 @@ class AdRemoveProvider extends ChangeNotifier {
       if (!doc.exists) return;
       final data = doc.data() as Map<String, dynamic>?;
 
-      // userStatus 와 premiumExpiry 필드를 읽어옴
-      final status = data?['userStatus'] as String?;
-      final Timestamp? expiryTs = data?['premiumExpiry'] as Timestamp?;
+      // 1) 영구 광고 제거 구매 여부
+      final bool adFreePerm = data?['adFreePurchased'] as bool? ?? false;
 
-      // premium 구독이 만료되지 않았는지 체크
-      final hasActivePremium = status == 'premium'
-          && expiryTs != null
+      // 2) 3개월 프리미엄 만료일 체크
+      final Timestamp? expiryTs = data?['premiumExpiry'] as Timestamp?;
+      final bool hasActivePremium = expiryTs != null
           && DateTime.now().isBefore(expiryTs.toDate());
 
-      // adfree 이거나, 구독이 유효할 때만 광고 제거
-      final newAdRemove = status == 'adfree' || hasActivePremium;
+      // 광고 제거 여부: 영구 제거 OR 프리미엄 활성 시
+      final bool newAdRemove = adFreePerm || hasActivePremium;
 
-      // 구독 여부는 유효한 premium 만
-      final newSubscribed = hasActivePremium;
+      // 구독 여부: 프리미엄이 유효할 때만 true
+      final bool newSubscribed = hasActivePremium;
 
       if (newAdRemove != _isAdRemoved || newSubscribed != _isSubscribed) {
-        _isAdRemoved  = newAdRemove;
+        _isAdRemoved = newAdRemove;
         _isSubscribed = newSubscribed;
         notifyListeners();
       }
@@ -96,6 +98,7 @@ class AdRemoveProvider extends ChangeNotifier {
     }
   }
 
+  /// 수동으로 Firestore 구독을 재시작하고 싶을 때
   void refreshStatus() {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;

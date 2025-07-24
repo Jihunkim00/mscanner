@@ -80,30 +80,33 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
 
       if (doc.exists) {
         final data = doc.data()!;
-        // 광고 제거 상태
-        isAdFree = data['userStatus'] == 'adfree';
+        // 1) 영구 광고 제거 구매 여부
+        isAdFree = data['adFreePurchased'] as bool? ?? false;
 
-        // 구독 상태
-        if (data['userStatus'] == 'premium' && data.containsKey('premiumExpiry')) {
+        // 2) 구독(3개월) 활성 여부
+        if (data.containsKey('premiumExpiry')) {
           final expiry = (data['premiumExpiry'] as Timestamp).toDate();
           isSubscribed = DateTime.now().isBefore(expiry);
+          if (isSubscribed) {
+            // 구독 중엔 항상 광고 제거
+            isAdFree = true;
+          }
         }
       }
     } catch (e) {
       debugPrint('Error checking previous purchase: $e');
     }
 
-       // Provider 에 두 상태 모두 반영
+    // Provider 에 두 상태 모두 반영
     final adProvider = Provider.of<AdRemoveProvider>(context, listen: false);
     adProvider.setRemoveAds(isAdFree);
-       adProvider.setSubscribed(isSubscribed);
+    adProvider.setSubscribed(isSubscribed);
 
     setState(() {
-    _isAdFree = isAdFree;
-    _isSubscribed = isSubscribed;
+      _isAdFree = isAdFree;
+      _isSubscribed = isSubscribed;
     });
   }
-
 
   void _onPurchaseUpdated(List<PurchaseDetails> purchases) {
     const restoreIds = {'remove_ads', 'premium_3month'};
@@ -133,37 +136,34 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
 
     try {
       if (purchase.productID == 'remove_ads') {
-        await ref.set({'userStatus': 'adfree'}, SetOptions(merge: true));
+        // 영구 광고 제거
+        await ref.set({'adFreePurchased': true}, SetOptions(merge: true));
         _isAdFree = true;
-
-               // 광고 제거 권한만 갱신
-        Provider.of<AdRemoveProvider>(context, listen: false)
-            .setRemoveAds(true);
+        Provider.of<AdRemoveProvider>(context, listen: false).setRemoveAds(true);
 
       } else if (purchase.productID == 'premium_3month') {
+        // 3개월 구독: 만료일만 저장
         final expiry = DateTime.now().add(const Duration(days: 90));
         await ref.set({
-          'userStatus': 'premium',
           'premiumExpiry': Timestamp.fromDate(expiry),
         }, SetOptions(merge: true));
 
         _isSubscribed = true;
-               _isAdFree = true; // 구독 중에도 광고 제거
+        _isAdFree = true; // 구독 중엔 광고 제거
 
-           final adProvider = Provider.of<AdRemoveProvider>(context, listen: false);
-           adProvider.setSubscribed(true);
-           adProvider.setRemoveAds(true);
-    }
+        final adProvider = Provider.of<AdRemoveProvider>(context, listen: false);
+        adProvider.setSubscribed(true);
+        adProvider.setRemoveAds(true);
+      }
 
-    setState(() {});
+      setState(() {});
     } catch (e) {
-    debugPrint('Error saving purchase: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('저장 중 오류가 발생했습니다: \$e')),
-    );
+      debugPrint('Error saving purchase: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('저장 중 오류가 발생했습니다: $e')),
+      );
     }
   }
-
 
   void _onPurchaseError(Object error) {
     debugPrint('purchaseStream error: $error');
@@ -191,7 +191,7 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
       return true;
     }).toList();
 
-    // 구독 유저
+    // 구독 중인 사용자
     if (_isSubscribed) {
       return ListTile(
         leading: const Icon(Icons.check_circle, color: Colors.green),
@@ -200,11 +200,12 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
       );
     }
 
-    // 구독 전 유저에게 구매 옵션 노출
+    // 구매 가능한 상품이 없을 때
     if (available.isEmpty) {
       return ListTile(title: Text(AppLocalizations.of(context)!.noAvailableProducts));
     }
 
+    // 일반 사용자는 상품 리스트 표시
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
