@@ -665,6 +665,7 @@ class _SettingScreenState extends State<SettingScreen> {
             ),
           ),
 // ─ Premium 섹션 ─
+    if (false) ...[
           if (!isGuest)
             CupertinoFormSection.insetGrouped(
               backgroundColor: backgroundColor,
@@ -696,7 +697,7 @@ class _SettingScreenState extends State<SettingScreen> {
                 ),
               ],
             ),
-
+],
 
           CupertinoFormSection.insetGrouped(
             backgroundColor: backgroundColor,

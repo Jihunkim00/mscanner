@@ -3,7 +3,7 @@ description: "mscanner by thj."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 
-version: 1.2.11+90
+version: 1.2.13+92
 
 environment:
   sdk: '>=3.4.3 <4.0.0'
