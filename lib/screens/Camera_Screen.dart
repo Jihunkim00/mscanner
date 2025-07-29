@@ -29,14 +29,18 @@ class _CameraScreenState extends State<CameraScreen> {
   String _response = '';
   Position? _position;
   DateTime? _captureTime;
+  bool _isProcessing = false;
+  bool _isCancelled = false;
 
   @override
   void initState() {
     super.initState();
+    // 다시 진입 시에도 플래그가 초기 상태가 되도록 설정
+    _isProcessing = false;
+    _isCancelled = false;
   }
 
-  bool _isProcessing = false;
-  bool _isCancelled = false;
+
 
   @override
   void dispose() {
@@ -46,42 +50,61 @@ class _CameraScreenState extends State<CameraScreen> {
 
   /// PhotoCaptureWidget.onCaptured 콜백
   Future<void> _onCaptured(List<File> rawFiles) async {
-    if (_isCancelled || _isProcessing) return;  // ← 취소된 상태면 즉시 리턴
-    _isProcessing = true;
+    print('📸 _onCaptured called: cancelled=$_isCancelled, processing=$_isProcessing');
+    // 이미 처리 중이거나 취소된 상태면 즉시 리턴
+    if (_isCancelled || _isProcessing) return;
+
+    // 처리 시작 플래그 설정 (UI 갱신을 위해 setState 사용)
+    setState(() => _isProcessing = true);
+
     try {
       // 1) 이미지 압축
       List<File> files = [];
       for (var f in rawFiles) {
         files.add(await compressImage(f));
       }
-      // 2) 위치 및 시간
+
+      // 2) 위치 및 시간 정보 취득
       Position? position = await _getCurrentLocation();
       DateTime captureTime = DateTime.now();
-      // 3) 분석 화면으로 이동
-      if (_isCancelled) return; // ④ 작업 중간에도 취소 체크
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) =>
-              LoadingScreen(
-                image: files.length == 1 ? files.first : null,
-                images: files.length > 1 ? files : null,
-                captureTime: captureTime,
-                position: position,
-              ),
-        ),
-      );
+
+      // 중간에 취소되었거나 위젯이 언마운트되었으면 중단
+      if (_isCancelled || !mounted) return;
+      print('📸 네비게이션 전, mounted=$mounted');
+
+      // 3) 다음 화면으로 안전하게 네비게이션
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        print('📸 Navigator.push 실행');
+        if (!mounted) return;
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => LoadingScreen(
+              image: files.length == 1 ? files.first : null,
+              images: files.length > 1 ? files : null,
+              captureTime: captureTime,
+              position: position,
+            ),
+          ),
+        );
+      });
     } catch (e) {
+      // 에러 발생 시에도 위젯이 살아있으면 스낵바 표시
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations
-            .of(context)
-            ?.loadingError ?? '분석 중 오류가 발생했습니다.')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)?.loadingError
+                ?? '분석 중 오류가 발생했습니다.',
+          ),
+        ),
       );
       widget.onCancel();
     } finally {
-      _isProcessing = false;
+      // 처리 종료 플래그 해제 (UI 갱신)
+      if (mounted) setState(() => _isProcessing = false);
     }
   }
+
 
 
   Future<File> compressImage(File file) async {

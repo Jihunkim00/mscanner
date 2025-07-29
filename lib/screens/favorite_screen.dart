@@ -474,7 +474,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                               fontSize: 14,
                               color: Colors.grey,
                             ),
-                            border: OutlineInputBorder(),
+
                           ),
                         ),
                       ],

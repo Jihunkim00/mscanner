@@ -372,6 +372,7 @@ class _HomeScreenState extends State<HomeScreen> {
               // 카메라 화면에서 뒤로가거나 onCancel() 호출되면
               Navigator.of(ctx).pop();      // 화면 pop
               setState(() => _selectedIndex = 0); // 홈 탭으로
+
             },
           ),
         ),
@@ -382,7 +383,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (index == 2) {
       // 10초 이내 재클릭 방지
          final now = DateTime.now();
-         if (_lastMultiScanTap != null && now.difference(_lastMultiScanTap!) < Duration(seconds: 10)) {
+         if (_lastMultiScanTap != null && now.difference(_lastMultiScanTap!) < Duration(seconds: 1)) {
            return;
          }
          _lastMultiScanTap = now;

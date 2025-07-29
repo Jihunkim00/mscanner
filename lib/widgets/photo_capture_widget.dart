@@ -47,14 +47,14 @@ class _PhotoCaptureWidgetState extends State<PhotoCaptureWidget> {
         widget.onCancel();
         return;
       }
-    // ★ 5장 이상 선택 시, 스낵바 안내는 띄우되 앞의 4장만 사용
-         if (pickedFiles.length > widget.maxCount) {
-           ScaffoldMessenger.of(context).showSnackBar(
-             SnackBar(
-               content: Text(AppLocalizations.of(context)!.maxScanImages(widget.maxCount))
-             ),
-           );
-         }
+      // ★ 5장 이상 선택 시, 스낵바 안내는 띄우되 앞의 4장만 사용
+      if (pickedFiles.length > widget.maxCount) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(AppLocalizations.of(context)!.maxScanImages(widget.maxCount))
+          ),
+        );
+      }
       final files = pickedFiles
           .take(widget.maxCount)
           .map((pf) => File(pf.path))

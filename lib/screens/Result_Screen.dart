@@ -1024,7 +1024,7 @@ class _ResultScreenState extends State<ResultScreen> {
                                     fontSize: 14,
                                     color: Colors.grey,
                                   ),
-                                  border: OutlineInputBorder(),
+
                                 ),
                               ),
                             ],
