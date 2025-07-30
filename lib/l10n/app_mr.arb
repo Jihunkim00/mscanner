@@ -217,5 +217,9 @@
       }
     }
   },
-  "restorePurchases": "खरेदी पुनर्संचयित करा"
+  "restorePurchases": "खरेदी पुनर्संचयित करा",
+  "mergeInProgress": "प्रतिमा एकत्र केली जात आहेत…\nकृपया प्रतीक्षा करा.",
+  "@mergeInProgress": {
+    "description": "SnackBar message shown while image merge is in progress"
+  }
 }

@@ -217,5 +217,9 @@
       }
     }
   },
-  "restorePurchases": "خریداریوں کی بحالی کریں"
+  "restorePurchases": "خریداریوں کی بحالی کریں",
+  "mergeInProgress": "تصاویر یکجا کی جا رہی ہیں…\nبراہ کرم انتظار کریں۔",
+  "@mergeInProgress": {
+    "description": "SnackBar message shown while image merge is in progress"
+  }
 }

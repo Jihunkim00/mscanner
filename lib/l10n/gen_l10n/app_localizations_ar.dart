@@ -638,4 +638,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get restorePurchases => 'استعادة المشتريات';
+
+  @override
+  String get mergeInProgress => 'جاري دمج الصور…\nيرجى الانتظار.';
 }

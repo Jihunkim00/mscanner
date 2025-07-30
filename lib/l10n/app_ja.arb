@@ -217,5 +217,9 @@
       }
     }
   },
-  "restorePurchases": "購入を復元する"
+  "restorePurchases": "購入を復元する",
+  "mergeInProgress": "画像をマージしています…\nしばらくお待ちください。",
+  "@mergeInProgress": {
+    "description": "SnackBar message shown while image merge is in progress"
+  }
 }

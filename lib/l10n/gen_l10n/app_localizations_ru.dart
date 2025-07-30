@@ -638,4 +638,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get restorePurchases => 'Восстановить покупки';
+
+  @override
+  String get mergeInProgress => 'Объединение изображений…\nПожалуйста, подождите.';
 }

@@ -217,5 +217,9 @@
       }
     }
   },
-  "restorePurchases": "Pulihkan Pembelian"
+  "restorePurchases": "Pulihkan Pembelian",
+  "mergeInProgress": "Menggabungkan gambar…\nHarap tunggu.",
+  "@mergeInProgress": {
+    "description": "SnackBar message shown while image merge is in progress"
+  }
 }

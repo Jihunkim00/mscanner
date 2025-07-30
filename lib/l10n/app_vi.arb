@@ -217,5 +217,9 @@
       }
     }
   },
-  "restorePurchases": "Khôi phục Mua hàng"
+  "restorePurchases": "Khôi phục Mua hàng",
+  "mergeInProgress": "Đang gộp ảnh…\nVui lòng chờ.",
+  "@mergeInProgress": {
+    "description": "SnackBar message shown while image merge is in progress"
+  }
 }

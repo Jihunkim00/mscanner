@@ -638,4 +638,7 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get restorePurchases => 'ক্রয় পুনরুদ্ধার করুন';
+
+  @override
+  String get mergeInProgress => 'চিত্র একত্রিত করা হচ্ছে…\nঅনুগ্রহ করে অপেক্ষা করুন।';
 }

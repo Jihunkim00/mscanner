@@ -638,4 +638,7 @@ class AppLocalizationsMr extends AppLocalizations {
 
   @override
   String get restorePurchases => 'खरेदी पुनर्संचयित करा';
+
+  @override
+  String get mergeInProgress => 'प्रतिमा एकत्र केली जात आहेत…\nकृपया प्रतीक्षा करा.';
 }

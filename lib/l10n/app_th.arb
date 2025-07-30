@@ -217,5 +217,9 @@
       }
     }
   },
-  "restorePurchases": "กู้คืนการซื้อ"
+  "restorePurchases": "กู้คืนการซื้อ",
+  "mergeInProgress": "กำลังรวมภาพ…\nกรุณารอสักครู่",
+  "@mergeInProgress": {
+    "description": "SnackBar message shown while image merge is in progress"
+  }
 }

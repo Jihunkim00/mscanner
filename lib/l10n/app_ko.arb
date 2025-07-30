@@ -217,5 +217,9 @@
       }
     }
   },
-  "restorePurchases": "구매 복원하기"
+  "restorePurchases": "구매 복원하기",
+  "mergeInProgress": "이미지 병합 중입니다.\n잠시만 기다려주세요.",
+  "@mergeInProgress": {
+    "description": "SnackBar message shown while image merge is in progress"
+  }
 }

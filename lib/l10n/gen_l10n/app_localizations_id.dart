@@ -638,4 +638,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get restorePurchases => 'Pulihkan Pembelian';
+
+  @override
+  String get mergeInProgress => 'Menggabungkan gambar…\nHarap tunggu.';
 }

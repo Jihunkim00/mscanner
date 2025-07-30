@@ -217,5 +217,9 @@
       }
     }
   },
-  "restorePurchases": "ক্রয় পুনরুদ্ধার করুন"
+  "restorePurchases": "ক্রয় পুনরুদ্ধার করুন",
+  "mergeInProgress": "চিত্র একত্রিত করা হচ্ছে…\nঅনুগ্রহ করে অপেক্ষা করুন।",
+  "@mergeInProgress": {
+    "description": "SnackBar message shown while image merge is in progress"
+  }
 }

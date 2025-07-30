@@ -217,5 +217,9 @@
       }
     }
   },
-  "restorePurchases": "Satın Alımları Geri Yükle"
+  "restorePurchases": "Satın Alımları Geri Yükle",
+  "mergeInProgress": "Görseller birleştiriliyor…\nLütfen bekleyin.",
+  "@mergeInProgress": {
+    "description": "SnackBar message shown while image merge is in progress"
+  }
 }

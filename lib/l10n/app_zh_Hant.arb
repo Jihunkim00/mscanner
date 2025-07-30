@@ -217,5 +217,9 @@
       }
     }
   },
-  "restorePurchases": "恢復購買"
+  "restorePurchases": "恢復購買",
+  "mergeInProgress": "正在合併圖像…\n請稍候。",
+  "@mergeInProgress": {
+    "description": "SnackBar message shown while image merge is in progress"
+  }
 }

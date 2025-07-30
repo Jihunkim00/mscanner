@@ -638,6 +638,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get restorePurchases => '恢复购买';
+
+  @override
+  String get mergeInProgress => '正在合并图像…\n请稍候。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -1274,6 +1277,9 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get restorePurchases => '恢复购买';
+
+  @override
+  String get mergeInProgress => '正在合并图像…\n请稍候。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -1910,4 +1916,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get restorePurchases => '恢復購買';
+
+  @override
+  String get mergeInProgress => '正在合併圖像…\n請稍候。';
 }

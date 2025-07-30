@@ -217,5 +217,9 @@
       }
     }
   },
-  "restorePurchases": "استعادة المشتريات"
+  "restorePurchases": "استعادة المشتريات",
+  "mergeInProgress": "جاري دمج الصور…\nيرجى الانتظار.",
+  "@mergeInProgress": {
+    "description": "SnackBar message shown while image merge is in progress"
+  }
 }

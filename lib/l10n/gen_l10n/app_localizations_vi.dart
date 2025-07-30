@@ -638,4 +638,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get restorePurchases => 'Khôi phục Mua hàng';
+
+  @override
+  String get mergeInProgress => 'Đang gộp ảnh…\nVui lòng chờ.';
 }

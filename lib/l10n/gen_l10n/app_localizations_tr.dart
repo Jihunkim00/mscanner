@@ -638,4 +638,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get restorePurchases => 'Satın Alımları Geri Yükle';
+
+  @override
+  String get mergeInProgress => 'Görseller birleştiriliyor…\nLütfen bekleyin.';
 }

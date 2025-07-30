@@ -1385,6 +1385,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restore Purchases'**
   String get restorePurchases;
+
+  /// SnackBar message shown while image merge is in progress
+  ///
+  /// In en, this message translates to:
+  /// **'Merging images…\nPlease wait.'**
+  String get mergeInProgress;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

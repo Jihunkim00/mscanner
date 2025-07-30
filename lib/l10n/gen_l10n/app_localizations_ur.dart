@@ -638,4 +638,7 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get restorePurchases => 'خریداریوں کی بحالی کریں';
+
+  @override
+  String get mergeInProgress => 'تصاویر یکجا کی جا رہی ہیں…\nبراہ کرم انتظار کریں۔';
 }

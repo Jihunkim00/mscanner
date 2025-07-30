@@ -217,5 +217,9 @@
       }
     }
   },
-  "restorePurchases": "Käufe wiederherstellen"
+  "restorePurchases": "Käufe wiederherstellen",
+  "mergeInProgress": "Bilder werden zusammengeführt…\nBitte warten.",
+  "@mergeInProgress": {
+    "description": "SnackBar message shown while image merge is in progress"
+  }
 }

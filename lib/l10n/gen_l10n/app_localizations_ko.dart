@@ -638,4 +638,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get restorePurchases => '구매 복원하기';
+
+  @override
+  String get mergeInProgress => '이미지 병합 중입니다.\n잠시만 기다려주세요.';
 }

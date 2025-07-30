@@ -638,4 +638,7 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get restorePurchases => 'กู้คืนการซื้อ';
+
+  @override
+  String get mergeInProgress => 'กำลังรวมภาพ…\nกรุณารอสักครู่';
 }

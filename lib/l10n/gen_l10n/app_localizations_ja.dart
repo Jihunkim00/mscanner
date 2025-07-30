@@ -638,4 +638,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get restorePurchases => '購入を復元する';
+
+  @override
+  String get mergeInProgress => '画像をマージしています…\nしばらくお待ちください。';
 }

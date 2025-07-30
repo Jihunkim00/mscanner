@@ -78,6 +78,7 @@ class _ResultScreenState extends State<ResultScreen> {
   bool _isDarkMode = false;
   String? _imageUrl;
   bool _isLoading = false;
+  bool _isMergeDone = false; // ✅ 이미지 병합 완료 플래그
   bool _isLiked = false;
   bool _isCloudSaveEnabled = false;
   bool _isAllowedUser = false;
@@ -104,7 +105,10 @@ class _ResultScreenState extends State<ResultScreen> {
       // UI 로딩이 끝난 후 병합 작업 시작
       if (!widget.isTutorial && widget.images != null && widget.images!.length > 1) {
         _startMergeInBackground();  // 병합 작업을 비동기적으로 시작
-      }
+      } else {
+                // 단일 이미지(또는 튜토리얼)인 경우 바로 병합 완료 상태로 처리
+                setState(() => _isMergeDone = true);
+            }
     });
 
     // 튜토리얼 모드일 때 탭 이벤트 리스너 등록
@@ -239,15 +243,17 @@ class _ResultScreenState extends State<ResultScreen> {
       // 3) UI 업데이트
       if (mounted) {
         setState(() {
-          _mergedImageBytes = merged;
+                  _mergedImageBytes = merged;
+                  _isMergeDone = true; // 병합 완료 플래그 세팅
         });
       }
     } catch (e) {
-      if (mounted) {
-        setState(() => _mergedImageBytes = null);
+      if (mounted) setState(() {
+                _mergedImageBytes = null;
+                _isMergeDone = true; // 병합 실패 시에도 저장 허용
       }
-      print('❌ 이미지 병합 실패: $e');
-    }
+
+      );}
   }
 
 
@@ -1037,7 +1043,20 @@ class _ResultScreenState extends State<ResultScreen> {
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                             child: ElevatedButton(
-                              onPressed: _isLoading ? null : _saveScanResult,
+                              onPressed: _isLoading ? null
+// 병합이 아직 끝나지 않았으면 안내 메시지
+                                      : (!_isMergeDone
+                                          ? () {
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    AppLocalizations.of(context)!.mergeInProgress,
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          : _saveScanResult),
                               style: ElevatedButton.styleFrom(
                                 foregroundColor: Theme.of(context).brightness == Brightness.dark
                                     ? Colors.grey

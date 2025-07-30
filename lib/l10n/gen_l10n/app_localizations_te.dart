@@ -638,4 +638,7 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get restorePurchases => 'కొనుగోళ్లు పునరుద్ధరించండి';
+
+  @override
+  String get mergeInProgress => 'చిత్రాలను విలీనం చేస్తోంది…\nదయచేసి వేచి ఉండండి.';
 }
