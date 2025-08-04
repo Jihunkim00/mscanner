@@ -83,6 +83,7 @@ class _ResultScreenState extends State<ResultScreen> {
   bool _isCloudSaveEnabled = false;
   bool _isAllowedUser = false;
   Uint8List? _mergedImageBytes; // ✅ 병합된 이미지 저장용
+  bool _pendingSave = false;  // ✅ merge 완료 후 자동 저장 요청 플래그
 
   Timer? _timer; // Timer variable
   bool _isLoadingError = false; // Error state variable
@@ -240,21 +241,38 @@ class _ResultScreenState extends State<ResultScreen> {
       // 2) top‐level 함수 mergeImages를 compute로 호출
       final merged = await compute(mergeImages, bytesList);
 
-      // 3) UI 업데이트
-      if (mounted) {
-        setState(() {
-                  _mergedImageBytes = merged;
-                  _isMergeDone = true; // 병합 완료 플래그 세팅
+      // 3) UI 업데이트 및 자동 저장 처리
+      if (!mounted) return;
+      setState(() {
+        _mergedImageBytes = merged;
+        _isMergeDone = true; // 병합 완료 플래그 세팅
+      });
+
+      // 저장 버튼이 눌려 자동 저장 대기 중이었다면, 병합 완료 후 바로 저장
+      if (_pendingSave) {
+        _pendingSave = false;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _saveScanResult();
         });
       }
     } catch (e) {
-      if (mounted) setState(() {
-                _mergedImageBytes = null;
-                _isMergeDone = true; // 병합 실패 시에도 저장 허용
-      }
+      // 병합 실패 시에도 저장 가능하도록 플래그만 세팅
+      if (!mounted) return;
+      setState(() {
+        _mergedImageBytes = null;
+        _isMergeDone = true;
+      });
 
-      );}
+      // 동일하게 자동 저장 대기 중이면 저장 실행
+      if (_pendingSave) {
+        _pendingSave = false;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _saveScanResult();
+        });
+      }
+    }
   }
+
 
 
 
@@ -1043,20 +1061,22 @@ class _ResultScreenState extends State<ResultScreen> {
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                             child: ElevatedButton(
-                              onPressed: _isLoading ? null
-// 병합이 아직 끝나지 않았으면 안내 메시지
-                                      : (!_isMergeDone
-                                          ? () {
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    AppLocalizations.of(context)!.mergeInProgress,
-                                                  ),
-                                                ),
-                                              );
-                                            }
-                                          : _saveScanResult),
+                              onPressed: _isLoading ? null : () {
+                                                                // 병합이 아직 안 끝났고, 대기 플래그도 세팅 안 된 경우에만 안내
+                                                                if (!_isMergeDone) {
+                                                                  if (!_pendingSave) {
+                                                                    setState(() => _pendingSave = true);
+                                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                                      SnackBar(
+                                                                        content: Text(AppLocalizations.of(context)!.mergeInProgress),
+                                                                      ),
+                                                                    );
+                                                                  }
+                                                                  return;
+                                                                }
+                                                                // 병합 완료된 경우 바로 저장
+                                                                _saveScanResult();
+                                                              },
                               style: ElevatedButton.styleFrom(
                                 foregroundColor: Theme.of(context).brightness == Brightness.dark
                                     ? Colors.grey

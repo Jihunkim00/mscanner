@@ -1,41 +1,62 @@
 import 'dart:typed_data';
+import 'dart:math';
 import 'package:image/image.dart';
 
 class ImageMergeService {
   static Future<Uint8List> mergeAndCompress(List<Uint8List> imageBytesList) async {
-    final images = imageBytesList.map((bytes) => decodeImage(bytes)!).toList();
+    // 1) 바이트 리스트를 Image 객체로 디코딩
+    final images = imageBytesList.map((b) => decodeImage(b)!).toList();
     final count = images.length;
 
-    if (count == 1) {
-      return imageBytesList[0];
-    }
+    // 1장뿐이면 그대로 반환
+    if (count == 1) return imageBytesList[0];
 
-    if (count == 2) {
-      final width = images.map((i) => i.width).reduce((a, b) => a > b ? a : b);
-      final height = images.fold(0, (sum, i) => sum + i.height);
-      final merged = Image(width: width, height: height);
+    // 2) 셀 크기 결정: 최대 너비 × 최대 높이
+    final cellW = images.map((i) => i.width).reduce(max);
+    final cellH = images.map((i) => i.height).reduce(max);
 
-      int yOffset = 0;
-      for (final img in images) {
-        compositeImage(merged, img, dstY: yOffset);
-        yOffset += img.height;
-      }
-      return Uint8List.fromList(encodeJpg(merged, quality: 50));
-    }
+    // 3) 비율 유지 중앙 크롭
+    final fitted = images.map((src) => _fitAndCrop(src, cellW, cellH)).toList();
 
-    // 3장 또는 4장: 2x2 격자
-    final cellW = images.map((i) => i.width).reduce((a, b) => a > b ? a : b);
-    final cellH = images.map((i) => i.height).reduce((a, b) => a > b ? a : b);
-    final merged = Image(width: cellW * 2, height: cellH * 2);
+    // 4) 그리드(column, row) 계산
+    final cols = (count == 2) ? 1 : 2;
+    final rows = (count == 2) ? 2 : ((count + 1) ~/ 2);
 
+    // 5) 빈 캔버스 생성 (named parameters)
+    final merged = Image(width: cellW * cols, height: cellH * rows);
+
+    // 6) 각 셀에 compositeImage 로 붙여넣기
     for (int i = 0; i < count; i++) {
-      final x = (i % 2) * cellW;
-      final y = (i ~/ 2) * cellH;
-      compositeImage(merged, images[i], dstX: x, dstY: y);
+      final x = (i % cols) * cellW;
+      final y = (i ~/ cols) * cellH;
+      compositeImage(merged, fitted[i], dstX: x, dstY: y);
     }
 
-    // count == 3일 때엔 빈 공간을 따로 채우지 않고 그대로 둠
-
+    // 7) JPEG 압축 후 반환
     return Uint8List.fromList(encodeJpg(merged, quality: 50));
+  }
+
+  /// 비율 유지(resize) → 중앙 크롭(crop)
+  static Image _fitAndCrop(Image src, int targetW, int targetH) {
+    // a) 필요한 축을 모두 덮도록 스케일 계산
+    final scale = max(targetW / src.width, targetH / src.height);
+
+    // b) copyResize: named width/height
+    final resized = copyResize(
+      src,
+      width:  (src.width  * scale).round(),
+      height: (src.height * scale).round(),
+    );
+
+    // c) copyCrop: named x/y/width/height
+    final offsetX = (resized.width  - targetW) ~/ 2;
+    final offsetY = (resized.height - targetH) ~/ 2;
+    return copyCrop(
+      resized,
+      x:      offsetX,
+      y:      offsetY,
+      width:  targetW,
+      height: targetH,
+    );
   }
 }
