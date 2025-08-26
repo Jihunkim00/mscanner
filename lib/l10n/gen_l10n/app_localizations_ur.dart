@@ -641,4 +641,75 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get mergeInProgress => 'تصاویر یکجا کی جا رہی ہیں…\nبراہ کرم انتظار کریں۔';
+
+  @override
+  String get fx_title => 'کرنسی کنورٹر';
+
+  @override
+  String get fx_tooltip => 'کرنسی تبدیل کریں';
+
+  @override
+  String fx_currency_btn(Object code) {
+    return 'کرنسی: $code';
+  }
+
+  @override
+  String fx_base_date(Object date) {
+    return 'بنیادی تاریخ: $date';
+  }
+
+  @override
+  String get fx_unknown => 'نامعلوم';
+
+  @override
+  String get fx_amount_label => 'رقم';
+
+  @override
+  String get fx_amount_hint => 'مثال: 100';
+
+  @override
+  String fx_enter_amount_to_convert(Object target) {
+    return '$target میں تبدیلی کے لیے رقم درج کریں۔';
+  }
+
+  @override
+  String get fx_error_no_rate => 'اس کرنسی کے تبادلہ نرخ کا ڈیٹا دستیاب نہیں۔';
+
+  @override
+  String get fx_search_currency_hint => 'کرنسی کوڈ تلاش کریں (مثال: USD, JPY)';
+
+  @override
+  String get sub_disclaimer_title => 'سبسکرپشن کی معلومات';
+
+  @override
+  String get sub_trial_free => 'پہلی بار سبسکرپشن لینے والوں سے آزمائشی مدت میں چارج نہیں لیا جائے گا۔';
+
+  @override
+  String get sub_auto_renew => 'ٹیسٹ ختم ہونے کے بعد سبسکرپشن خود بخود ری نیو ہو جائے گی اگر موجودہ مدت کے اختتام سے کم از کم 24 گھنٹے پہلے منسوخ نہ کیا جائے۔';
+
+  @override
+  String get sub_renew_charge => 'تجدید کے اخراجات موجودہ مدت کے اختتام سے 24 گھنٹے پہلے لاگو ہوسکتے ہیں۔';
+
+  @override
+  String sub_period_price(Object period, Object price) {
+    return 'یہ سبسکرپشن $period ہے (قیمت: $price)۔';
+  }
+
+  @override
+  String get sub_restore => 'پہلے کی خریداری کو \"خریداری بحال کریں\" کے ذریعے بحال کیا جا سکتا ہے۔';
+
+  @override
+  String get terms => 'سروس کی شرائط';
+
+  @override
+  String get privacy => 'رازداری کی پالیسی';
+
+  @override
+  String get sub_manage_ios => 'ادائیگی آپ کے Apple ID سے کی جائے گی اور آپ سبسکرپشن کو سیٹنگز > [آپ کا نام] > سبسکرپشنز میں منظم یا منسوخ کرسکتے ہیں۔';
+
+  @override
+  String get sub_manage_android => 'ادائیگی آپ کے Google اکاؤنٹ سے کی جائے گی اور آپ سبسکرپشن کو Play اسٹور ایپ > پروفائل آئیکن > ادائیگی اور سبسکرپشن > سبسکرپشن میں منظم یا منسوخ کرسکتے ہیں۔';
+
+  @override
+  String get sub_badge_trial_1m => '🎁 پہلی بار سبسکرائب کرنے والوں کے لیے ایک ماہ مفت';
 }

@@ -641,4 +641,75 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get mergeInProgress => '画像をマージしています…\nしばらくお待ちください。';
+
+  @override
+  String get fx_title => '通貨換算';
+
+  @override
+  String get fx_tooltip => '通貨換算';
+
+  @override
+  String fx_currency_btn(Object code) {
+    return '通貨: $code';
+  }
+
+  @override
+  String fx_base_date(Object date) {
+    return '基準日: $date';
+  }
+
+  @override
+  String get fx_unknown => '不明';
+
+  @override
+  String get fx_amount_label => '金額';
+
+  @override
+  String get fx_amount_hint => '例: 100';
+
+  @override
+  String fx_enter_amount_to_convert(Object target) {
+    return '金額を入力すると$targetに換算します。';
+  }
+
+  @override
+  String get fx_error_no_rate => '該当通貨の為替レート情報がありません。';
+
+  @override
+  String get fx_search_currency_hint => '通貨コードを検索（例: KRW, JPY）';
+
+  @override
+  String get sub_disclaimer_title => 'サブスクリプション情報';
+
+  @override
+  String get sub_trial_free => '初回の加入者は試用期間中に料金が発生しません。';
+
+  @override
+  String get sub_auto_renew => '試用期間終了後、自動的に有料に移行し、少なくとも24時間前に解約しない限り次の期間に更新されます。';
+
+  @override
+  String get sub_renew_charge => '更新料金は現在の期間終了の24時間以内に請求される場合があります。';
+
+  @override
+  String sub_period_price(Object period, Object price) {
+    return 'このサブスクリプションは$periodです（価格: $price）。';
+  }
+
+  @override
+  String get sub_restore => '以前の購入項目は「購入を復元」で復元できます。';
+
+  @override
+  String get terms => '利用規約';
+
+  @override
+  String get privacy => 'プライバシーポリシー';
+
+  @override
+  String get sub_manage_ios => '支払いはApple IDに請求され、設定 > [ユーザー名] > サブスクリプションから管理または解約できます。';
+
+  @override
+  String get sub_manage_android => '支払いはGoogleアカウントに請求され、Play ストアアプリ > プロフィールアイコン > お支払いとサブスクリプション > サブスクリプション から管理または解約できます。';
+
+  @override
+  String get sub_badge_trial_1m => '🎁 初回登録者は1か月無料';
 }

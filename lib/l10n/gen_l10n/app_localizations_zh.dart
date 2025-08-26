@@ -641,6 +641,77 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get mergeInProgress => '正在合并图像…\n请稍候。';
+
+  @override
+  String get fx_title => '货币换算';
+
+  @override
+  String get fx_tooltip => '货币换算';
+
+  @override
+  String fx_currency_btn(Object code) {
+    return '货币：$code';
+  }
+
+  @override
+  String fx_base_date(Object date) {
+    return '基准日期：$date';
+  }
+
+  @override
+  String get fx_unknown => '未知';
+
+  @override
+  String get fx_amount_label => '金额';
+
+  @override
+  String get fx_amount_hint => '例如：100';
+
+  @override
+  String fx_enter_amount_to_convert(Object target) {
+    return '输入金额将转换为$target。';
+  }
+
+  @override
+  String get fx_error_no_rate => '没有该货币的汇率信息。';
+
+  @override
+  String get fx_search_currency_hint => '搜索货币代码（例如：USD、JPY）';
+
+  @override
+  String get sub_disclaimer_title => '订阅信息';
+
+  @override
+  String get sub_trial_free => '首次订阅用户在试用期内不会被收费。';
+
+  @override
+  String get sub_auto_renew => '试用结束后将自动转为付费，如未在当前周期结束前至少24小时取消，将自动续订。';
+
+  @override
+  String get sub_renew_charge => '续订费用可能会在当前周期结束前24小时内收取。';
+
+  @override
+  String sub_period_price(Object period, Object price) {
+    return '此订阅为$period（价格: $price）。';
+  }
+
+  @override
+  String get sub_restore => '之前购买的项目可通过“恢复购买”进行恢复。';
+
+  @override
+  String get terms => '服务条款';
+
+  @override
+  String get privacy => '隐私政策';
+
+  @override
+  String get sub_manage_ios => '费用将通过您的Apple ID收取，可在 设置 > [您的姓名] > 订阅 中管理或取消。';
+
+  @override
+  String get sub_manage_android => '费用将通过您的Google账号收取，可在 Play 商店应用 > 个人资料图标 > 付款和订阅 > 订阅 中管理或取消。';
+
+  @override
+  String get sub_badge_trial_1m => '🎁 首次订阅用户可享1个月免费试用';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -1280,6 +1351,77 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get mergeInProgress => '正在合并图像…\n请稍候。';
+
+  @override
+  String get fx_title => '货币换算';
+
+  @override
+  String get fx_tooltip => '货币换算';
+
+  @override
+  String fx_currency_btn(Object code) {
+    return '货币：$code';
+  }
+
+  @override
+  String fx_base_date(Object date) {
+    return '基准日期：$date';
+  }
+
+  @override
+  String get fx_unknown => '未知';
+
+  @override
+  String get fx_amount_label => '金额';
+
+  @override
+  String get fx_amount_hint => '例如：100';
+
+  @override
+  String fx_enter_amount_to_convert(Object target) {
+    return '输入金额将转换为$target。';
+  }
+
+  @override
+  String get fx_error_no_rate => '没有该货币的汇率信息。';
+
+  @override
+  String get fx_search_currency_hint => '搜索货币代码（例如：USD、JPY）';
+
+  @override
+  String get sub_disclaimer_title => '订阅信息';
+
+  @override
+  String get sub_trial_free => '首次订阅用户在试用期内不会被收费。';
+
+  @override
+  String get sub_auto_renew => '试用结束后将自动转为付费，如未在当前周期结束前至少24小时取消，将自动续订。';
+
+  @override
+  String get sub_renew_charge => '续订费用可能会在当前周期结束前24小时内收取。';
+
+  @override
+  String sub_period_price(Object period, Object price) {
+    return '此订阅为$period（价格: $price）。';
+  }
+
+  @override
+  String get sub_restore => '之前购买的项目可通过“恢复购买”进行恢复。';
+
+  @override
+  String get terms => '服务条款';
+
+  @override
+  String get privacy => '隐私政策';
+
+  @override
+  String get sub_manage_ios => '费用将通过您的Apple ID收取，可在 设置 > [您的姓名] > 订阅 中管理或取消。';
+
+  @override
+  String get sub_manage_android => '费用将通过您的Google账号收取，可在 Play 商店应用 > 个人资料图标 > 付款和订阅 > 订阅 中管理或取消。';
+
+  @override
+  String get sub_badge_trial_1m => '🎁 首次订阅用户可享1个月免费体验';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -1919,4 +2061,75 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get mergeInProgress => '正在合併圖像…\n請稍候。';
+
+  @override
+  String get fx_title => '貨幣換算';
+
+  @override
+  String get fx_tooltip => '貨幣換算';
+
+  @override
+  String fx_currency_btn(Object code) {
+    return '貨幣：$code';
+  }
+
+  @override
+  String fx_base_date(Object date) {
+    return '基準日期：$date';
+  }
+
+  @override
+  String get fx_unknown => '未知';
+
+  @override
+  String get fx_amount_label => '金額';
+
+  @override
+  String get fx_amount_hint => '例如：100';
+
+  @override
+  String fx_enter_amount_to_convert(Object target) {
+    return '輸入金額後將換算為$target。';
+  }
+
+  @override
+  String get fx_error_no_rate => '沒有該貨幣的匯率資訊。';
+
+  @override
+  String get fx_search_currency_hint => '搜尋貨幣代碼（例如：USD、JPY）';
+
+  @override
+  String get sub_disclaimer_title => '訂閱資訊';
+
+  @override
+  String get sub_trial_free => '首次訂閱用戶在試用期內不會被收費。';
+
+  @override
+  String get sub_auto_renew => '試用結束後將自動轉為付費，如未在當前週期結束前至少24小時取消，將自動續訂。';
+
+  @override
+  String get sub_renew_charge => '續訂費用可能會在當前週期結束前24小時內收取。';
+
+  @override
+  String sub_period_price(Object period, Object price) {
+    return '此訂閱為$period（價格: $price）。';
+  }
+
+  @override
+  String get sub_restore => '之前購買的項目可透過「恢復購買」進行恢復。';
+
+  @override
+  String get terms => '服務條款';
+
+  @override
+  String get privacy => '隱私政策';
+
+  @override
+  String get sub_manage_ios => '費用將透過您的Apple ID收取，可在 設定 > [您的姓名] > 訂閱 中管理或取消。';
+
+  @override
+  String get sub_manage_android => '費用將透過您的Google帳戶收取，可在 Play 商店應用程式 > 個人資料圖示 > 付款與訂閱 > 訂閱 中管理或取消。';
+
+  @override
+  String get sub_badge_trial_1m => '🎁 首次訂閱者享 1 個月免費';
 }

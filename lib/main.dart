@@ -1,5 +1,4 @@
 // main.dart
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
@@ -26,7 +25,8 @@ import '/screens/auth_service.dart';
 import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import '/screens/log_service.dart';
 import 'package:provider/provider.dart';
-import 'ad_remove_provider.dart'; // 경로에 맞게 수정
+import 'ad_remove_provider.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';  // 이 줄 추가 map
 
 
 // 전역 변수 선언
@@ -89,7 +89,10 @@ Future<void> loadInterstitialAd({bool nonPersonalized = false}) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+
   await dotenv.load(fileName: "assets/.env");
+
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );

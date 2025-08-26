@@ -221,5 +221,26 @@
   "mergeInProgress": "Menggabungkan gambar…\nHarap tunggu.",
   "@mergeInProgress": {
     "description": "SnackBar message shown while image merge is in progress"
-  }
+  },
+  "fx_title": "Pengonversi mata uang",
+  "fx_tooltip": "Konversi mata uang",
+  "fx_currency_btn": "Mata uang: {code}",
+  "fx_base_date": "Tanggal acuan: {date}",
+  "fx_unknown": "Tidak diketahui",
+  "fx_amount_label": "Jumlah",
+  "fx_amount_hint": "mis.: 100",
+  "fx_enter_amount_to_convert": "Masukkan jumlah untuk dikonversi ke {target}.",
+  "fx_error_no_rate": "Data kurs untuk mata uang ini tidak tersedia.",
+  "fx_search_currency_hint": "Cari kode mata uang (mis.: KRW, JPY)",
+  "sub_disclaimer_title": "Informasi langganan",
+  "sub_trial_free": "Pelanggan pertama kali tidak dikenakan biaya selama masa uji coba.",
+  "sub_auto_renew": "Setelah masa uji coba berakhir, langganan akan diperpanjang otomatis kecuali dibatalkan setidaknya 24 jam sebelum akhir periode berjalan.",
+  "sub_renew_charge": "Biaya perpanjangan dapat dikenakan dalam waktu 24 jam sebelum periode berjalan berakhir.",
+  "sub_period_price": "Langganan ini adalah {period} (Harga: {price}).",
+  "sub_restore": "Pembelian sebelumnya dapat dipulihkan menggunakan \"Pulihkan pembelian\".",
+  "terms": "Ketentuan Layanan",
+  "privacy": "Kebijakan Privasi",
+  "sub_manage_ios": "Pembayaran dibebankan ke Apple ID Anda dan dapat dikelola/dibatalkan di Pengaturan > [nama Anda] > Langganan.",
+  "sub_manage_android": "Pembayaran dibebankan ke akun Google Anda dan dapat dikelola/dibatalkan di aplikasi Play Store > Ikon profil > Pembayaran & langganan > Langganan.",
+  "sub_badge_trial_1m": "🎁 Gratis 1 bulan untuk pelanggan baru"
 }

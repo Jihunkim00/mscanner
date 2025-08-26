@@ -1391,6 +1391,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Merging images…\nPlease wait.'**
   String get mergeInProgress;
+
+  /// No description provided for @fx_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency Converter'**
+  String get fx_title;
+
+  /// No description provided for @fx_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert currency'**
+  String get fx_tooltip;
+
+  /// No description provided for @fx_currency_btn.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency: {code}'**
+  String fx_currency_btn(Object code);
+
+  /// No description provided for @fx_base_date.
+  ///
+  /// In en, this message translates to:
+  /// **'Base date: {date}'**
+  String fx_base_date(Object date);
+
+  /// No description provided for @fx_unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get fx_unknown;
+
+  /// No description provided for @fx_amount_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get fx_amount_label;
+
+  /// No description provided for @fx_amount_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 100'**
+  String get fx_amount_hint;
+
+  /// No description provided for @fx_enter_amount_to_convert.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount to convert to {target}.'**
+  String fx_enter_amount_to_convert(Object target);
+
+  /// No description provided for @fx_error_no_rate.
+  ///
+  /// In en, this message translates to:
+  /// **'No exchange rate data available.'**
+  String get fx_error_no_rate;
+
+  /// No description provided for @fx_search_currency_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search currency code (e.g., USD, JPY)'**
+  String get fx_search_currency_hint;
+
+  /// No description provided for @sub_disclaimer_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription Information'**
+  String get sub_disclaimer_title;
+
+  /// No description provided for @sub_trial_free.
+  ///
+  /// In en, this message translates to:
+  /// **'First-time subscribers are not charged during the trial period.'**
+  String get sub_trial_free;
+
+  /// No description provided for @sub_auto_renew.
+  ///
+  /// In en, this message translates to:
+  /// **'After the trial ends, the subscription automatically renews unless canceled at least 24 hours before the end of the current period.'**
+  String get sub_auto_renew;
+
+  /// No description provided for @sub_renew_charge.
+  ///
+  /// In en, this message translates to:
+  /// **'Renewal charges may occur within 24 hours before the end of the current period.'**
+  String get sub_renew_charge;
+
+  /// No description provided for @sub_period_price.
+  ///
+  /// In en, this message translates to:
+  /// **'This subscription is {period} (Price: {price}).'**
+  String sub_period_price(Object period, Object price);
+
+  /// No description provided for @sub_restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Previously purchased items can be restored using \"Restore Purchases\".'**
+  String get sub_restore;
+
+  /// No description provided for @terms.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of Service'**
+  String get terms;
+
+  /// No description provided for @privacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacy;
+
+  /// No description provided for @sub_manage_ios.
+  ///
+  /// In en, this message translates to:
+  /// **'Payments are charged to your Apple ID and subscriptions can be managed or canceled in Settings > [your name] > Subscriptions.'**
+  String get sub_manage_ios;
+
+  /// No description provided for @sub_manage_android.
+  ///
+  /// In en, this message translates to:
+  /// **'Payments are charged to your Google account and subscriptions can be managed or canceled in the Play Store app > Profile icon > Payments & subscriptions > Subscriptions.'**
+  String get sub_manage_android;
+
+  /// No description provided for @sub_badge_trial_1m.
+  ///
+  /// In en, this message translates to:
+  /// **'🎁 1‑month free for first‑time subscribers'**
+  String get sub_badge_trial_1m;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

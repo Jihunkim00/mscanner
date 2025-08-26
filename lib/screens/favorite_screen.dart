@@ -202,6 +202,14 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
         ),
       ],
     );
+    if (_favoriteData == null) {
+      return Scaffold(
+        backgroundColor: backgroundColor,
+        appBar: AppBar(backgroundColor: backgroundColor),
+        body: const Center(child: CupertinoActivityIndicator()),
+      );
+    }
+
     final dynamic  rawList   = _favoriteData!['responses'];
     final dynamic  rawSingle = _favoriteData!['response'];
 

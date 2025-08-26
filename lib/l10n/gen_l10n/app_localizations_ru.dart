@@ -641,4 +641,75 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get mergeInProgress => 'Объединение изображений…\nПожалуйста, подождите.';
+
+  @override
+  String get fx_title => 'Конвертер валют';
+
+  @override
+  String get fx_tooltip => 'Конвертировать валюту';
+
+  @override
+  String fx_currency_btn(Object code) {
+    return 'Валюта: $code';
+  }
+
+  @override
+  String fx_base_date(Object date) {
+    return 'Базовая дата: $date';
+  }
+
+  @override
+  String get fx_unknown => 'Неизвестно';
+
+  @override
+  String get fx_amount_label => 'Сумма';
+
+  @override
+  String get fx_amount_hint => 'например: 100';
+
+  @override
+  String fx_enter_amount_to_convert(Object target) {
+    return 'Введите сумму для конвертации в $target.';
+  }
+
+  @override
+  String get fx_error_no_rate => 'Нет данных по курсу для этой валюты.';
+
+  @override
+  String get fx_search_currency_hint => 'Поиск кода валюты (напр.: USD, JPY)';
+
+  @override
+  String get sub_disclaimer_title => 'Информация о подписке';
+
+  @override
+  String get sub_trial_free => 'Новые подписчики не оплачивают в течение пробного периода.';
+
+  @override
+  String get sub_auto_renew => 'После окончания пробного периода подписка автоматически продлевается, если не отменить её как минимум за 24 часа до конца текущего периода.';
+
+  @override
+  String get sub_renew_charge => 'Плата за продление может взиматься в течение 24 часов до окончания текущего периода.';
+
+  @override
+  String sub_period_price(Object period, Object price) {
+    return 'Эта подписка $period (Цена: $price).';
+  }
+
+  @override
+  String get sub_restore => 'Ранее приобретённые покупки можно восстановить через \"Восстановить покупки\".';
+
+  @override
+  String get terms => 'Условия использования';
+
+  @override
+  String get privacy => 'Политика конфиденциальности';
+
+  @override
+  String get sub_manage_ios => 'Платежи списываются с вашего Apple ID, а подписками можно управлять или отменять в Настройки > [ваше имя] > Подписки.';
+
+  @override
+  String get sub_manage_android => 'Платежи списываются с вашего аккаунта Google, а подписками можно управлять или отменять в приложении Google Play > значок профиля > Платежи и подписки > Подписки.';
+
+  @override
+  String get sub_badge_trial_1m => '🎁 1 месяц бесплатно для новых подписчиков';
 }

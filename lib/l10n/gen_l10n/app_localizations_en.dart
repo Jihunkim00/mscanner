@@ -641,4 +641,75 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mergeInProgress => 'Merging images…\nPlease wait.';
+
+  @override
+  String get fx_title => 'Currency Converter';
+
+  @override
+  String get fx_tooltip => 'Convert currency';
+
+  @override
+  String fx_currency_btn(Object code) {
+    return 'Currency: $code';
+  }
+
+  @override
+  String fx_base_date(Object date) {
+    return 'Base date: $date';
+  }
+
+  @override
+  String get fx_unknown => 'Unknown';
+
+  @override
+  String get fx_amount_label => 'Amount';
+
+  @override
+  String get fx_amount_hint => 'e.g. 100';
+
+  @override
+  String fx_enter_amount_to_convert(Object target) {
+    return 'Enter an amount to convert to $target.';
+  }
+
+  @override
+  String get fx_error_no_rate => 'No exchange rate data available.';
+
+  @override
+  String get fx_search_currency_hint => 'Search currency code (e.g., USD, JPY)';
+
+  @override
+  String get sub_disclaimer_title => 'Subscription Information';
+
+  @override
+  String get sub_trial_free => 'First-time subscribers are not charged during the trial period.';
+
+  @override
+  String get sub_auto_renew => 'After the trial ends, the subscription automatically renews unless canceled at least 24 hours before the end of the current period.';
+
+  @override
+  String get sub_renew_charge => 'Renewal charges may occur within 24 hours before the end of the current period.';
+
+  @override
+  String sub_period_price(Object period, Object price) {
+    return 'This subscription is $period (Price: $price).';
+  }
+
+  @override
+  String get sub_restore => 'Previously purchased items can be restored using \"Restore Purchases\".';
+
+  @override
+  String get terms => 'Terms of Service';
+
+  @override
+  String get privacy => 'Privacy Policy';
+
+  @override
+  String get sub_manage_ios => 'Payments are charged to your Apple ID and subscriptions can be managed or canceled in Settings > [your name] > Subscriptions.';
+
+  @override
+  String get sub_manage_android => 'Payments are charged to your Google account and subscriptions can be managed or canceled in the Play Store app > Profile icon > Payments & subscriptions > Subscriptions.';
+
+  @override
+  String get sub_badge_trial_1m => '🎁 1‑month free for first‑time subscribers';
 }

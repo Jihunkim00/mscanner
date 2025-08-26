@@ -641,6 +641,77 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get mergeInProgress => 'Mesclando imagens…\nPor favor, aguarde.';
+
+  @override
+  String get fx_title => 'Conversor de moeda';
+
+  @override
+  String get fx_tooltip => 'Converter moeda';
+
+  @override
+  String fx_currency_btn(Object code) {
+    return 'Moeda: $code';
+  }
+
+  @override
+  String fx_base_date(Object date) {
+    return 'Data base: $date';
+  }
+
+  @override
+  String get fx_unknown => 'Desconhecido';
+
+  @override
+  String get fx_amount_label => 'Valor';
+
+  @override
+  String get fx_amount_hint => 'ex.: 100';
+
+  @override
+  String fx_enter_amount_to_convert(Object target) {
+    return 'Insira um valor para converter para $target.';
+  }
+
+  @override
+  String get fx_error_no_rate => 'Não há dados de taxa de câmbio disponíveis.';
+
+  @override
+  String get fx_search_currency_hint => 'Buscar código da moeda (ex.: USD, JPY)';
+
+  @override
+  String get sub_disclaimer_title => 'Informações da assinatura';
+
+  @override
+  String get sub_trial_free => 'Novos assinantes não são cobrados durante o período de teste.';
+
+  @override
+  String get sub_auto_renew => 'Após o período de teste, a assinatura é renovada automaticamente, a menos que seja cancelada pelo menos 24 horas antes do final do período atual.';
+
+  @override
+  String get sub_renew_charge => 'As cobranças de renovação podem ocorrer dentro de 24 horas antes do final do período atual.';
+
+  @override
+  String sub_period_price(Object period, Object price) {
+    return 'Esta assinatura é $period (Preço: $price).';
+  }
+
+  @override
+  String get sub_restore => 'As compras anteriores podem ser restauradas usando \"Restaurar compras\".';
+
+  @override
+  String get terms => 'Termos de serviço';
+
+  @override
+  String get privacy => 'Política de privacidade';
+
+  @override
+  String get sub_manage_ios => 'Os pagamentos são cobrados do seu ID Apple e a assinatura pode ser gerida ou cancelada em Ajustes > [seu nome] > Assinaturas.';
+
+  @override
+  String get sub_manage_android => 'Os pagamentos são cobrados da sua conta Google e a assinatura pode ser gerida ou cancelada na aplicação Play Store > Ícone de perfil > Pagamentos e subscrições > Subscrições.';
+
+  @override
+  String get sub_badge_trial_1m => '🎁 1 mês grátis para novos assinantes';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -1280,4 +1351,75 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get mergeInProgress => 'Mesclando imagens…\nPor favor, aguarde.';
+
+  @override
+  String get fx_title => 'Conversor de moeda';
+
+  @override
+  String get fx_tooltip => 'Converter moeda';
+
+  @override
+  String fx_currency_btn(Object code) {
+    return 'Moeda: $code';
+  }
+
+  @override
+  String fx_base_date(Object date) {
+    return 'Data-base: $date';
+  }
+
+  @override
+  String get fx_unknown => 'Desconhecido';
+
+  @override
+  String get fx_amount_label => 'Valor';
+
+  @override
+  String get fx_amount_hint => 'ex.: 100';
+
+  @override
+  String fx_enter_amount_to_convert(Object target) {
+    return 'Insira um valor para converter para $target.';
+  }
+
+  @override
+  String get fx_error_no_rate => 'Não há dados de taxa de câmbio disponíveis.';
+
+  @override
+  String get fx_search_currency_hint => 'Pesquisar código da moeda (ex.: USD, JPY)';
+
+  @override
+  String get sub_disclaimer_title => 'Informações da assinatura';
+
+  @override
+  String get sub_trial_free => 'Novos assinantes não são cobrados durante o período de teste.';
+
+  @override
+  String get sub_auto_renew => 'Após o período de teste, a assinatura é renovada automaticamente, a menos que seja cancelada pelo menos 24 horas antes do final do período atual.';
+
+  @override
+  String get sub_renew_charge => 'As cobranças de renovação podem ocorrer dentro de 24 horas antes do final do período atual.';
+
+  @override
+  String sub_period_price(Object period, Object price) {
+    return 'Esta assinatura é $period (Preço: $price).';
+  }
+
+  @override
+  String get sub_restore => 'As compras anteriores podem ser restauradas usando \"Restaurar compras\".';
+
+  @override
+  String get terms => 'Termos de serviço';
+
+  @override
+  String get privacy => 'Política de privacidade';
+
+  @override
+  String get sub_manage_ios => 'Os pagamentos são cobrados do seu ID Apple e a assinatura pode ser gerenciada ou cancelada em Ajustes > [seu nome] > Assinaturas.';
+
+  @override
+  String get sub_manage_android => 'Os pagamentos são cobrados da sua conta Google e a assinatura pode ser gerenciada ou cancelada no app Play Store > Ícone do perfil > Pagamentos e assinaturas > Assinaturas.';
+
+  @override
+  String get sub_badge_trial_1m => '🎁 1 mês grátis para assinantes pela primeira vez';
 }

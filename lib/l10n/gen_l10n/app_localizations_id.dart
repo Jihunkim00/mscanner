@@ -641,4 +641,75 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get mergeInProgress => 'Menggabungkan gambar…\nHarap tunggu.';
+
+  @override
+  String get fx_title => 'Pengonversi mata uang';
+
+  @override
+  String get fx_tooltip => 'Konversi mata uang';
+
+  @override
+  String fx_currency_btn(Object code) {
+    return 'Mata uang: $code';
+  }
+
+  @override
+  String fx_base_date(Object date) {
+    return 'Tanggal acuan: $date';
+  }
+
+  @override
+  String get fx_unknown => 'Tidak diketahui';
+
+  @override
+  String get fx_amount_label => 'Jumlah';
+
+  @override
+  String get fx_amount_hint => 'mis.: 100';
+
+  @override
+  String fx_enter_amount_to_convert(Object target) {
+    return 'Masukkan jumlah untuk dikonversi ke $target.';
+  }
+
+  @override
+  String get fx_error_no_rate => 'Data kurs untuk mata uang ini tidak tersedia.';
+
+  @override
+  String get fx_search_currency_hint => 'Cari kode mata uang (mis.: KRW, JPY)';
+
+  @override
+  String get sub_disclaimer_title => 'Informasi langganan';
+
+  @override
+  String get sub_trial_free => 'Pelanggan pertama kali tidak dikenakan biaya selama masa uji coba.';
+
+  @override
+  String get sub_auto_renew => 'Setelah masa uji coba berakhir, langganan akan diperpanjang otomatis kecuali dibatalkan setidaknya 24 jam sebelum akhir periode berjalan.';
+
+  @override
+  String get sub_renew_charge => 'Biaya perpanjangan dapat dikenakan dalam waktu 24 jam sebelum periode berjalan berakhir.';
+
+  @override
+  String sub_period_price(Object period, Object price) {
+    return 'Langganan ini adalah $period (Harga: $price).';
+  }
+
+  @override
+  String get sub_restore => 'Pembelian sebelumnya dapat dipulihkan menggunakan \"Pulihkan pembelian\".';
+
+  @override
+  String get terms => 'Ketentuan Layanan';
+
+  @override
+  String get privacy => 'Kebijakan Privasi';
+
+  @override
+  String get sub_manage_ios => 'Pembayaran dibebankan ke Apple ID Anda dan dapat dikelola/dibatalkan di Pengaturan > [nama Anda] > Langganan.';
+
+  @override
+  String get sub_manage_android => 'Pembayaran dibebankan ke akun Google Anda dan dapat dikelola/dibatalkan di aplikasi Play Store > Ikon profil > Pembayaran & langganan > Langganan.';
+
+  @override
+  String get sub_badge_trial_1m => '🎁 Gratis 1 bulan untuk pelanggan baru';
 }

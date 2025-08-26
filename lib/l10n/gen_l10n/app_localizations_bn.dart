@@ -641,4 +641,75 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get mergeInProgress => 'চিত্র একত্রিত করা হচ্ছে…\nঅনুগ্রহ করে অপেক্ষা করুন।';
+
+  @override
+  String get fx_title => 'মুদ্রা রূপান্তরক';
+
+  @override
+  String get fx_tooltip => 'মুদ্রা রূপান্তর';
+
+  @override
+  String fx_currency_btn(Object code) {
+    return 'মুদ্রা: $code';
+  }
+
+  @override
+  String fx_base_date(Object date) {
+    return 'ভিত্তি তারিখ: $date';
+  }
+
+  @override
+  String get fx_unknown => 'অজানা';
+
+  @override
+  String get fx_amount_label => 'পরিমাণ';
+
+  @override
+  String get fx_amount_hint => 'যেমন: 100';
+
+  @override
+  String fx_enter_amount_to_convert(Object target) {
+    return '$target এ রূপান্তরের জন্য পরিমাণ লিখুন।';
+  }
+
+  @override
+  String get fx_error_no_rate => 'এই মুদ্রার বিনিময় হারের তথ্য নেই।';
+
+  @override
+  String get fx_search_currency_hint => 'মুদ্রা কোড খুঁজুন (যেমন: KRW, JPY)';
+
+  @override
+  String get sub_disclaimer_title => 'সাবস্ক্রিপশন তথ্য';
+
+  @override
+  String get sub_trial_free => 'প্রথমবারের সাবস্ক্রাইবারদের ট্রায়াল পিরিয়ডে চার্জ করা হবে না।';
+
+  @override
+  String get sub_auto_renew => 'ট্রায়াল শেষ হওয়ার পরে সাবস্ক্রিপশন স্বয়ংক্রিয়ভাবে নবায়ন হবে যদি বর্তমান সময়ের শেষ হওয়ার কমপক্ষে 24 ঘণ্টা আগে বাতিল না করা হয়।';
+
+  @override
+  String get sub_renew_charge => 'নবায়ন চার্জ বর্তমান সময় শেষ হওয়ার 24 ঘণ্টার মধ্যে হতে পারে।';
+
+  @override
+  String sub_period_price(Object period, Object price) {
+    return 'এই সাবস্ক্রিপশনটি $period (মূল্য: $price)।';
+  }
+
+  @override
+  String get sub_restore => 'পূর্বে কেনা আইটেমগুলি \"পুনরুদ্ধার ক্রয়\" দিয়ে পুনরুদ্ধার করা যাবে।';
+
+  @override
+  String get terms => 'পরিষেবার শর্তাবলী';
+
+  @override
+  String get privacy => 'গোপনীয়তা নীতি';
+
+  @override
+  String get sub_manage_ios => 'পেমেন্ট আপনার Apple ID থেকে চার্জ করা হবে এবং সেটিংস > [আপনার নাম] > সাবস্ক্রিপশন থেকে ম্যানেজ/ক্যান্সেল করা যাবে।';
+
+  @override
+  String get sub_manage_android => 'পেমেন্ট আপনার Google অ্যাকাউন্ট থেকে চার্জ করা হবে এবং Play স্টোর অ্যাপ > প্রোফাইল আইকন > পেমেন্ট এবং সাবস্ক্রিপশন > সাবস্ক্রিপশন থেকে ম্যানেজ/ক্যান্সেল করা যাবে।';
+
+  @override
+  String get sub_badge_trial_1m => '🎁 প্রথমবার সাবস্ক্রাইবারদের জন্য ১ মাস ফ্রি';
 }

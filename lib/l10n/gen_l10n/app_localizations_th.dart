@@ -641,4 +641,75 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get mergeInProgress => 'กำลังรวมภาพ…\nกรุณารอสักครู่';
+
+  @override
+  String get fx_title => 'ตัวแปลงสกุลเงิน';
+
+  @override
+  String get fx_tooltip => 'แปลงสกุลเงิน';
+
+  @override
+  String fx_currency_btn(Object code) {
+    return 'สกุลเงิน: $code';
+  }
+
+  @override
+  String fx_base_date(Object date) {
+    return 'วันที่อ้างอิง: $date';
+  }
+
+  @override
+  String get fx_unknown => 'ไม่ทราบ';
+
+  @override
+  String get fx_amount_label => 'จำนวนเงิน';
+
+  @override
+  String get fx_amount_hint => 'เช่น 100';
+
+  @override
+  String fx_enter_amount_to_convert(Object target) {
+    return 'ป้อนจำนวนเงินเพื่อแปลงเป็น $target';
+  }
+
+  @override
+  String get fx_error_no_rate => 'ไม่มีข้อมูลอัตราแลกเปลี่ยนสำหรับสกุลเงินนี้';
+
+  @override
+  String get fx_search_currency_hint => 'ค้นหารหัสสกุลเงิน (เช่น KRW, JPY)';
+
+  @override
+  String get sub_disclaimer_title => 'ข้อมูลการสมัครสมาชิก';
+
+  @override
+  String get sub_trial_free => 'ผู้สมัครสมาชิกครั้งแรกจะไม่ถูกเรียกเก็บเงินในช่วงทดลองใช้ฟรี';
+
+  @override
+  String get sub_auto_renew => 'หลังจากหมดช่วงทดลองใช้ฟรี การสมัครจะต่ออายุอัตโนมัติ เว้นแต่ยกเลิกอย่างน้อย 24 ชั่วโมงก่อนหมดรอบปัจจุบัน';
+
+  @override
+  String get sub_renew_charge => 'อาจมีการเรียกเก็บค่าต่ออายุภายใน 24 ชั่วโมงก่อนหมดรอบปัจจุบัน';
+
+  @override
+  String sub_period_price(Object period, Object price) {
+    return 'การสมัครนี้คือ $period (ราคา: $price)';
+  }
+
+  @override
+  String get sub_restore => 'การซื้อก่อนหน้านี้สามารถกู้คืนได้โดยใช้ \"กู้คืนการซื้อ\"';
+
+  @override
+  String get terms => 'เงื่อนไขการให้บริการ';
+
+  @override
+  String get privacy => 'นโยบายความเป็นส่วนตัว';
+
+  @override
+  String get sub_manage_ios => 'การชำระเงินจะถูกเรียกเก็บกับ Apple ID ของคุณ และสามารถจัดการ/ยกเลิกได้ที่ การตั้งค่า > [ชื่อของคุณ] > การสมัครสมาชิก';
+
+  @override
+  String get sub_manage_android => 'การชำระเงินจะถูกเรียกเก็บกับบัญชี Google ของคุณ และสามารถจัดการ/ยกเลิกได้ในแอป Play Store > ไอคอนโปรไฟล์ > การชำระเงินและการสมัครสมาชิก > การสมัครสมาชิก';
+
+  @override
+  String get sub_badge_trial_1m => '🎁 สมาชิกใหม่ รับฟรี 1 เดือน';
 }

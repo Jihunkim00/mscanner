@@ -641,4 +641,75 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get mergeInProgress => 'Fusion des images…\nVeuillez patienter.';
+
+  @override
+  String get fx_title => 'Convertisseur de devises';
+
+  @override
+  String get fx_tooltip => 'Convertir des devises';
+
+  @override
+  String fx_currency_btn(Object code) {
+    return 'Devise : $code';
+  }
+
+  @override
+  String fx_base_date(Object date) {
+    return 'Date de base : $date';
+  }
+
+  @override
+  String get fx_unknown => 'Inconnu';
+
+  @override
+  String get fx_amount_label => 'Montant';
+
+  @override
+  String get fx_amount_hint => 'ex. : 100';
+
+  @override
+  String fx_enter_amount_to_convert(Object target) {
+    return 'Saisissez un montant à convertir en $target.';
+  }
+
+  @override
+  String get fx_error_no_rate => 'Aucune donnée de taux de change disponible.';
+
+  @override
+  String get fx_search_currency_hint => 'Rechercher un code de devise (ex. : EUR, JPY)';
+
+  @override
+  String get sub_disclaimer_title => 'Informations sur l’abonnement';
+
+  @override
+  String get sub_trial_free => 'Les nouveaux abonnés ne sont pas facturés pendant la période d’essai.';
+
+  @override
+  String get sub_auto_renew => 'À la fin de l’essai, l’abonnement se renouvelle automatiquement sauf annulation au moins 24 heures avant la fin de la période en cours.';
+
+  @override
+  String get sub_renew_charge => 'Les frais de renouvellement peuvent être facturés dans les 24 heures précédant la fin de la période en cours.';
+
+  @override
+  String sub_period_price(Object period, Object price) {
+    return 'Cet abonnement est $period (Prix : $price).';
+  }
+
+  @override
+  String get sub_restore => 'Les achats précédents peuvent être restaurés via \"Restaurer les achats\".';
+
+  @override
+  String get terms => 'Conditions d’utilisation';
+
+  @override
+  String get privacy => 'Politique de confidentialité';
+
+  @override
+  String get sub_manage_ios => 'Les paiements sont facturés sur votre identifiant Apple et les abonnements peuvent être gérés ou annulés dans Réglages > [votre nom] > Abonnements.';
+
+  @override
+  String get sub_manage_android => 'Les paiements sont facturés sur votre compte Google et les abonnements peuvent être gérés ou annulés dans l’application Play Store > Icône de profil > Paiements et abonnements > Abonnements.';
+
+  @override
+  String get sub_badge_trial_1m => '🎁 1 mois offert pour les nouveaux abonnés';
 }

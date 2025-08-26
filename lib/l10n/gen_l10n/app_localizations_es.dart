@@ -641,4 +641,75 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get mergeInProgress => 'Fusionando imágenes…\nPor favor espera.';
+
+  @override
+  String get fx_title => 'Conversor de divisas';
+
+  @override
+  String get fx_tooltip => 'Convertir divisas';
+
+  @override
+  String fx_currency_btn(Object code) {
+    return 'Moneda: $code';
+  }
+
+  @override
+  String fx_base_date(Object date) {
+    return 'Fecha base: $date';
+  }
+
+  @override
+  String get fx_unknown => 'Desconocido';
+
+  @override
+  String get fx_amount_label => 'Cantidad';
+
+  @override
+  String get fx_amount_hint => 'p. ej.: 100';
+
+  @override
+  String fx_enter_amount_to_convert(Object target) {
+    return 'Introduce un importe para convertir a $target.';
+  }
+
+  @override
+  String get fx_error_no_rate => 'No hay datos de tipo de cambio disponibles.';
+
+  @override
+  String get fx_search_currency_hint => 'Buscar código de moneda (p. ej., USD, JPY)';
+
+  @override
+  String get sub_disclaimer_title => 'Información de suscripción';
+
+  @override
+  String get sub_trial_free => 'Los primeros suscriptores no pagan durante el período de prueba.';
+
+  @override
+  String get sub_auto_renew => 'Después de la prueba, la suscripción se renueva automáticamente a menos que se cancele al menos 24 horas antes de finalizar el período actual.';
+
+  @override
+  String get sub_renew_charge => 'Los cargos de renovación pueden producirse dentro de las 24 horas antes de que finalice el período actual.';
+
+  @override
+  String sub_period_price(Object period, Object price) {
+    return 'Esta suscripción es $period (Precio: $price).';
+  }
+
+  @override
+  String get sub_restore => 'Las compras anteriores se pueden restaurar usando \"Restaurar compras\".';
+
+  @override
+  String get terms => 'Términos de servicio';
+
+  @override
+  String get privacy => 'Política de privacidad';
+
+  @override
+  String get sub_manage_ios => 'Los pagos se cargan a tu Apple ID y puedes gestionar o cancelar la suscripción en Configuración > [tu nombre] > Suscripciones.';
+
+  @override
+  String get sub_manage_android => 'Los pagos se cargan a tu cuenta de Google y puedes gestionar o cancelar la suscripción en la app Play Store > Icono de perfil > Pagos y suscripciones > Suscripciones.';
+
+  @override
+  String get sub_badge_trial_1m => '🎁 1 mes gratis para nuevos suscriptores';
 }

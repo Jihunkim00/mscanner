@@ -26,6 +26,8 @@ import '/widgets/comment_section.dart';
 import '/screens/geohash_service.dart';
 import 'package:provider/provider.dart';
 import '/ad_remove_provider.dart'; // 경로에 따라 수정 필요
+import '/widgets/premium_ad_overlay.dart';
+import '/widgets/test_purchase_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -41,12 +43,14 @@ class _HomeScreenState extends State<HomeScreen> {
   DocumentSnapshot? _latestLikedDoc;
   int _userPoints = 0;
   bool _shouldHighlightCameraTab = false; // 카메라 탭 하이라이트 상태
-  bool _isPremium = false; // ← ① 프리미엄 상태 변수 추가
-  late AdRemoveProvider _adProvider;  // ← 추가
+
   bool _isFirstLogin = false; // 처음 로그인 여부 확인
   Timer? _blinkTimer;
   bool _blinkState = false;
   DateTime? _lastMultiScanTap;  // ← ① 추가
+
+  bool _showPremiumOverlay = false; // 🔹 프리미엄 팝업 표시 여부
+  StreamSubscription<User?>? _authSub;
 
 
   // ─────────────────────────────────────────────────────────
@@ -67,21 +71,12 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _loadGeohash();
     _initializeHome();
+    _checkPremiumOverlay(); // 🔹 프리미엄 팝업 체크 추가
   }
   @override
     void didChangeDependencies() {
         super.didChangeDependencies();
-        // Provider 생성 후 한 번만 _syncPremium을 리스닝
-        _adProvider = Provider.of<AdRemoveProvider>(context);
-        _adProvider.addListener(_syncPremium);
-      }
-
-    // Provider.isSubscribed 값이 바뀔 때마다 _isPremium 동기화
-    void _syncPremium() {
-        if (!mounted) return;
-        setState(() {
-          _isPremium = _adProvider.isSubscribed;
-        });
+        // 별도 리스너 불필요 – Provider를 build 시점에 바로 읽습니다.
       }
 
   Future<void> _loadGeohash() async {
@@ -103,19 +98,38 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// Firestore 에서 userStatus 를 읽어와서 _isPremium 세팅
-   Future<void> _loadUserStatus() async {
-       final uid = FirebaseAuth.instance.currentUser?.uid;
-       if (uid == null) return;
-       final doc = await FirebaseFirestore.instance
-           .collection('user_points')
-           .doc(uid)
-           .get();
-       if (doc.exists && doc.data()?['userStatus'] == 'premium') {
-         setState(() => _isPremium = true);
-         print('✅ 프리미엄 유저입니다. 광고가 제거됩니다.');
-       }
+
+  Future<void> _checkPremiumOverlay() async {
+    final adp = context.read<AdRemoveProvider>();
+    if (adp.isSubscribed || adp.isAdRemoved) {
+      debugPrint('[PremiumOverlay] premium/adfree 사용자 → 팝업 안 띄움');
+      return;
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    final last = prefs.getInt('premium_overlay_closed_time');
+    final now = DateTime.now().millisecondsSinceEpoch;
+    const dayMs = 24 * 60 * 60 * 1000;
+
+    if (last == null || now - last > dayMs) {
+      debugPrint('[PremiumOverlay] 조건 충족 → 3초 뒤 표시');
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) setState(() => _showPremiumOverlay = true);
+      });
+    } else {
+      debugPrint('[PremiumOverlay] 24시간 내에 닫음 → 표시 안 함');
+    }
   }
+
+  Future<void> _closePremiumOverlay() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('premium_overlay_closed_time', DateTime.now().millisecondsSinceEpoch);
+    setState(() => _showPremiumOverlay = false);
+  }
+
+
+
+
 
 
 
@@ -140,12 +154,16 @@ class _HomeScreenState extends State<HomeScreen> {
           .doc(todayDocId)
           .get();
 
+      if (!mounted) return;                         // ✅ 추가
+
       if (doc.exists && doc.data()?['enabled'] == true) {
         final data = doc.data()!;
         final String languageCode = PlatformDispatcher.instance.locale.languageCode;
         String? localizedMessage = data['message_$languageCode'] ?? data['message_en'];
 
         final shouldShow = await _shouldShowEmergencyPopup();
+
+        if (!mounted) return;                       // ✅ 추가
 
         if (shouldShow && mounted) {
           _showEmergencyPopup(localizedMessage ?? 'Emergency Notice');
@@ -160,26 +178,29 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _initializeHome() async {
     await Future.wait([
-      // _checkDarkMode(),//
       _fetchLatestLikedData(),
-      //_fetchUserPoints(),//
     ]);
 
     _countryFuture = LocationService().getCountryCodeFromGPS();
     await _loadInitialData();
     await _checkFirstLogin();
 
+    // ✅ 구독 보관 + mounted 가드 + context 접근 전 안전화
+    _authSub = FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (user == null) return;
+      if (!mounted) return;                 // ✅ 필수
 
-    // FirebaseAuth 상태 변화 리스너
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      if (user != null) {
-        // 새로운 사용자가 로그인했을 때
-        Provider.of<AdRemoveProvider>(context, listen: false)
-            .refreshStatus();      // ← 이렇게 호출
-        _onNewUserLogin();
-      }
+      // ✅ context를 꼭 써야 한다면, 지역 변수로 잡아두고 최소한만 사용
+      final adp = context.read<AdRemoveProvider>();
+      adp.refreshStatus();
+      _onNewUserLogin();
     });
-    await _checkEmergencyNotice();
+
+    // ✅ 다이얼로그는 프레임 이후로 미루기
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      await _checkEmergencyNotice();
+    });
   }
 
   // 병렬 호출로 메인, 도시 데이터 불러오기
@@ -387,7 +408,7 @@ class _HomeScreenState extends State<HomeScreen> {
            return;
          }
          _lastMultiScanTap = now;
-      if (!Provider.of<AdRemoveProvider>(context, listen: false).isSubscribed) {
+         if (!context.read<AdRemoveProvider>().isSubscribed) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(AppLocalizations.of(context)!.premiumFunctionMessage)),
         );
@@ -593,13 +614,14 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
-    final bool premium = _isPremium;
+    final isSubscribed = context.watch<AdRemoveProvider>().isSubscribed;
+    final isAdRemoved  = context.watch<AdRemoveProvider>().isAdRemoved;
 
     // 현재 테마 밝기
     final brightness = AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark
         ? Brightness.dark
         : Brightness.light;
-    final isAdRemoved = context.watch<AdRemoveProvider>().isAdRemoved;
+
 
     // 배경색 및 텍스트 색상
     final Color backgroundColor =
@@ -666,13 +688,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     label: localizations?.camera ?? 'Camera',
                   ),
-                  BottomNavigationBarItem(
-                    icon: Icon(
-                      Icons.photo_library,
-                      color: _isPremium ? null : Colors.grey,
-                    ),
-                    label: localizations?.multiScan ?? 'multi scan',
-                  ),
+              BottomNavigationBarItem(
+                                      icon: Icon(
+                                        Icons.photo_library,
+                                        color: isSubscribed ? null : Colors.grey,
+                                      ),
+                                  label: localizations?.multiScan ?? 'multi scan',
+                                ),
                   BottomNavigationBarItem(
                     icon: Icon(Icons.history),
                     label: localizations?.history ?? 'History',
@@ -753,17 +775,79 @@ class _HomeScreenState extends State<HomeScreen> {
 
               ),
             ),
-          // ✅ 새로 추가된 플로팅 도움말 버튼
+          // ✅ 프리미엄 광고 팝업
+          if (_showPremiumOverlay && !(isSubscribed || isAdRemoved))
+            Positioned.fill(
+              child: Container(
+                color: Colors.black54,
+                child: Center(
+                  child: PremiumAdOverlay(
+                    // ⬇︎ 단말 폭 기준으로 적당히 리사이즈해서 디코딩
+                    image: ResizeImage(
+                      const AssetImage('assets/images/admscanner.png'),
+                      width: (MediaQuery.of(context).size.width * 2).toInt(), // 선명도 확보용
+                    ),
+                    locale: Localizations.localeOf(context),
+                    adFreePrice: simpleLocalizedPrice(Localizations.localeOf(context)),
+                    premiumMonthlyPrice: simpleLocalizedPrice(Localizations.localeOf(context)),
+                    // ⬇︎ 화면 꽉 채우되, 중요한 왼쪽 영역이 보이게 정렬
+                    // ⬇️ 이미지 잘림 최소화
+                    imageFit: BoxFit.cover,       // ✅ 세로 기준으로 꽉 차게
+                    imageAlignment: Alignment.topLeft, // ✅ 위쪽 기준
+                    panelOffsetY: -60,                // ✅ 텍스트 위로 올리기
+
+                    onPrimaryTap: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (_) {
+                          return DraggableScrollableSheet(
+                            initialChildSize: 0.7,
+                            minChildSize: 0.5,
+                            maxChildSize: 0.95,
+                            builder: (ctx, scrollController) {
+                              return Container(
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: SingleChildScrollView(
+                                    controller: scrollController,
+                                    child: TestPurchaseWidget(
+                                      onPurchased: () {
+                                        Navigator.of(context).maybePop(); // 바텀시트 닫기
+                                        _closePremiumOverlay();          // 프리미엄 오버레이도 닫기
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      );
+                    },
+                    onClose: _closePremiumOverlay,
+                  )
+                ),
+              ),
+            ),
 
 
         ],
       ),
-
     );
-
   }
 
+
+
+
+
   List<Widget> _getWidgetOptions() {
+    final isSubscribed = context.watch<AdRemoveProvider>().isSubscribed;
     return <Widget>[
       // 홈
       HomeContent(
@@ -784,12 +868,9 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       ),
       CameraScreen(
-         onCancel: () {
-          _onItemTapped(0);
-         },
-        isPremium: _isPremium,
-
-         ),
+        onCancel: () => _onItemTapped(0),
+          isPremium: isSubscribed,
+      ),
 
       // 히스토리
       HistoryScreen(),
@@ -800,7 +881,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
   @override
   void dispose() {
-    _adProvider.removeListener(_syncPremium);
+    _authSub?.cancel();          // ✅ 스트림 구독 해제
+
     _blinkTimer?.cancel();
     super.dispose();
   }
@@ -857,13 +939,19 @@ class _HomeContentState extends State<HomeContent> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_didLoadBanner) {
-      _loadAdaptiveBanner();
+          final adp = context.read<AdRemoveProvider>();
+          if (!(adp.isSubscribed || adp.isAdRemoved)) {
+            _loadAdaptiveBanner(); // 권리 없을 때만 로드
+          }
       _didLoadBanner = true;
     }
   }
 
 
   void _loadAdaptiveBanner() async {
+    final adp = context.read<AdRemoveProvider>();
+    if (adp.isSubscribed || adp.isAdRemoved) return; // 이중 가드
+
     final AnchoredAdaptiveBannerAdSize? size =
     await AdSize.getAnchoredAdaptiveBannerAdSize(
       Orientation.portrait,

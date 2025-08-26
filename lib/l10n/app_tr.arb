@@ -221,5 +221,26 @@
   "mergeInProgress": "Görseller birleştiriliyor…\nLütfen bekleyin.",
   "@mergeInProgress": {
     "description": "SnackBar message shown while image merge is in progress"
-  }
+  },
+  "fx_title": "Döviz çevirici",
+  "fx_tooltip": "Döviz çevir",
+  "fx_currency_btn": "Para birimi: {code}",
+  "fx_base_date": "Baz tarih: {date}",
+  "fx_unknown": "Bilinmiyor",
+  "fx_amount_label": "Tutar",
+  "fx_amount_hint": "örn.: 100",
+  "fx_enter_amount_to_convert": "{target} birimine çevirmek için tutar girin.",
+  "fx_error_no_rate": "Bu para birimi için kur verisi yok.",
+  "fx_search_currency_hint": "Para birimi kodu ara (örn.: USD, JPY)",
+  "sub_disclaimer_title": "Abonelik Bilgileri",
+  "sub_trial_free": "İlk kez abone olanlardan deneme süresinde ücret alınmaz.",
+  "sub_auto_renew": "Deneme süresi bittikten sonra, mevcut dönem bitiminden en az 24 saat önce iptal edilmezse abonelik otomatik olarak yenilenir.",
+  "sub_renew_charge": "Yenileme ücretleri mevcut dönem bitiminden 24 saat içinde tahsil edilebilir.",
+  "sub_period_price": "Bu abonelik {period}’dir (Fiyat: {price}).",
+  "sub_restore": "Önceki satın alımlar \"Satın Alımları Geri Yükle\" ile geri yüklenebilir.",
+  "terms": "Hizmet Şartları",
+  "privacy": "Gizlilik Politikası",
+  "sub_manage_ios": "Ödemeler Apple Kimliğinize yansıtılır ve Ayarlar > [adınız] > Abonelikler bölümünden yönetilebilir veya iptal edilebilir.",
+  "sub_manage_android": "Ödemeler Google hesabınıza yansıtılır ve Play Store uygulaması > Profil simgesi > Ödemeler ve abonelikler > Abonelikler bölümünden yönetilebilir veya iptal edilebilir.",
+  "sub_badge_trial_1m": "🎁 İlk kez abone olanlara 1 ay ücretsiz"
 }

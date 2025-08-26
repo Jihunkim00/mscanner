@@ -395,7 +395,8 @@ class _SettingScreenState extends State<SettingScreen> {
     final Color backgroundColor = _isDarkMode ? CupertinoColors.black : Color(0xFFEFEFF4);
     final Color textColor = _isDarkMode ? CupertinoColors.white : CupertinoColors.black;
     final Color dropdownColor = _isDarkMode ? Colors.grey[900]! : Colors.white;
-    final isAdRemoved = context.watch<AdRemoveProvider>().isAdRemoved;
+    final isAdRemoved  = context.watch<AdRemoveProvider>().isAdRemoved;
+    final isSubscribed = context.watch<AdRemoveProvider>().isSubscribed;
 
     bool isGuest = user != null && user!.isAnonymous;
 

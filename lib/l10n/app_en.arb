@@ -221,5 +221,26 @@
   "mergeInProgress": "Merging images…\nPlease wait.",
   "@mergeInProgress": {
     "description": "SnackBar message shown while image merge is in progress"
-  }
+  },
+  "fx_title": "Currency Converter",
+  "fx_tooltip": "Convert currency",
+  "fx_currency_btn": "Currency: {code}",
+  "fx_base_date": "Base date: {date}",
+  "fx_unknown": "Unknown",
+  "fx_amount_label": "Amount",
+  "fx_amount_hint": "e.g. 100",
+  "fx_enter_amount_to_convert": "Enter an amount to convert to {target}.",
+  "fx_error_no_rate": "No exchange rate data available.",
+  "fx_search_currency_hint": "Search currency code (e.g., USD, JPY)",
+  "sub_disclaimer_title": "Subscription Information",
+  "sub_trial_free": "First-time subscribers are not charged during the trial period.",
+  "sub_auto_renew": "After the trial ends, the subscription automatically renews unless canceled at least 24 hours before the end of the current period.",
+  "sub_renew_charge": "Renewal charges may occur within 24 hours before the end of the current period.",
+  "sub_period_price": "This subscription is {period} (Price: {price}).",
+  "sub_restore": "Previously purchased items can be restored using \"Restore Purchases\".",
+  "terms": "Terms of Service",
+  "privacy": "Privacy Policy",
+  "sub_manage_ios": "Payments are charged to your Apple ID and subscriptions can be managed or canceled in Settings > [your name] > Subscriptions.",
+  "sub_manage_android": "Payments are charged to your Google account and subscriptions can be managed or canceled in the Play Store app > Profile icon > Payments & subscriptions > Subscriptions.",
+  "sub_badge_trial_1m": "🎁 1‑month free for first‑time subscribers"
 }

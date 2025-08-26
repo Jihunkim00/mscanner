@@ -641,4 +641,75 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get mergeInProgress => 'छवियों को मर्ज किया जा रहा है…\nकृपया प्रतीक्षा करें।';
+
+  @override
+  String get fx_title => 'मुद्रा परिवर्तक';
+
+  @override
+  String get fx_tooltip => 'मुद्रा परिवर्तित करें';
+
+  @override
+  String fx_currency_btn(Object code) {
+    return 'मुद्रा: $code';
+  }
+
+  @override
+  String fx_base_date(Object date) {
+    return 'आधार तिथि: $date';
+  }
+
+  @override
+  String get fx_unknown => 'अज्ञात';
+
+  @override
+  String get fx_amount_label => 'राशि';
+
+  @override
+  String get fx_amount_hint => 'उदा.: 100';
+
+  @override
+  String fx_enter_amount_to_convert(Object target) {
+    return 'राशि दर्ज करें ताकि $target में रूपांतरण हो सके।';
+  }
+
+  @override
+  String get fx_error_no_rate => 'इस मुद्रा के विनिमय दर का डेटा उपलब्ध नहीं है।';
+
+  @override
+  String get fx_search_currency_hint => 'मुद्रा कोड खोजें (उदा.: USD, JPY)';
+
+  @override
+  String get sub_disclaimer_title => 'सदस्यता जानकारी';
+
+  @override
+  String get sub_trial_free => 'पहली बार सदस्यता लेने वालों से परीक्षण अवधि में शुल्क नहीं लिया जाएगा।';
+
+  @override
+  String get sub_auto_renew => 'परीक्षण अवधि समाप्त होने के बाद, यदि आप कम से कम 24 घंटे पहले रद्द नहीं करते हैं तो सदस्यता स्वचालित रूप से नवीनीकृत हो जाएगी।';
+
+  @override
+  String get sub_renew_charge => 'नवीनीकरण शुल्क वर्तमान अवधि समाप्त होने से 24 घंटे पहले लिया जा सकता है।';
+
+  @override
+  String sub_period_price(Object period, Object price) {
+    return 'यह सदस्यता $period है (मूल्य: $price)।';
+  }
+
+  @override
+  String get sub_restore => 'पहले से खरीदी गई वस्तुएँ \"खरीदारी पुनर्स्थापित करें\" से पुनर्स्थापित की जा सकती हैं।';
+
+  @override
+  String get terms => 'सेवा की शर्तें';
+
+  @override
+  String get privacy => 'गोपनीयता नीति';
+
+  @override
+  String get sub_manage_ios => 'भुगतान आपके Apple ID से लिया जाएगा और सेटिंग्स > [आपका नाम] > सदस्यताएँ में प्रबंधित या रद्द किया जा सकता है।';
+
+  @override
+  String get sub_manage_android => 'भुगतान आपके Google खाते से लिया जाएगा और Play स्टोर ऐप > प्रोफ़ाइल आइकन > भुगतान और सदस्यताएँ > सदस्यताएँ में प्रबंधित/रद्द किया जा सकता है।';
+
+  @override
+  String get sub_badge_trial_1m => '🎁 पहली बार सब्सक्राइब करने वालों के लिए 1 महीना मुफ्त';
 }

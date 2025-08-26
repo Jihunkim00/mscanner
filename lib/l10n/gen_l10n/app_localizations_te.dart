@@ -641,4 +641,75 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get mergeInProgress => 'చిత్రాలను విలీనం చేస్తోంది…\nదయచేసి వేచి ఉండండి.';
+
+  @override
+  String get fx_title => 'కరెన్సీ కన్వర్టర్';
+
+  @override
+  String get fx_tooltip => 'కరెన్సీని మార్చండి';
+
+  @override
+  String fx_currency_btn(Object code) {
+    return 'కరెన్సీ: $code';
+  }
+
+  @override
+  String fx_base_date(Object date) {
+    return 'ప్రామాణిక తేదీ: $date';
+  }
+
+  @override
+  String get fx_unknown => 'తెలియదు';
+
+  @override
+  String get fx_amount_label => 'మొత్తం';
+
+  @override
+  String get fx_amount_hint => 'ఉదా: 100';
+
+  @override
+  String fx_enter_amount_to_convert(Object target) {
+    return '$target కు మార్పిడికి మొత్తాన్ని నమోదు చేయండి.';
+  }
+
+  @override
+  String get fx_error_no_rate => 'ఈ కరెన్సీకి మార్పిడి రేటు డేటా అందుబాటులో లేదు.';
+
+  @override
+  String get fx_search_currency_hint => 'కరెన్సీ కోడ్‌ను వెతకండి (ఉదా: USD, JPY)';
+
+  @override
+  String get sub_disclaimer_title => 'చందా సమాచారం';
+
+  @override
+  String get sub_trial_free => 'మొదటి సారి సబ్‌స్క్రైబర్లు ట్రయల్ కాలంలో చార్జ్ చేయబడరు.';
+
+  @override
+  String get sub_auto_renew => 'ట్రయల్ ముగిసిన తర్వాత, ప్రస్తుత కాలం ముగియడానికి కనీసం 24 గంటల ముందు రద్దు చేయకపోతే సబ్‌స్క్రిప్షన్ ఆటోమేటిక్‌గా రీన్యూ అవుతుంది.';
+
+  @override
+  String get sub_renew_charge => 'పునరుద్ధరణ రుసుములు ప్రస్తుత కాలం ముగియడానికి 24 గంటల లోపు చెల్లించబడవచ్చు.';
+
+  @override
+  String sub_period_price(Object period, Object price) {
+    return 'ఈ సబ్‌స్క్రిప్షన్ $period (ధర: $price).';
+  }
+
+  @override
+  String get sub_restore => 'మునుపటి కొనుగోళ్లు \"కొనుగోళ్లను పునరుద్ధరించు\" ద్వారా పునరుద్ధరించవచ్చు.';
+
+  @override
+  String get terms => 'సేవా నిబంధనలు';
+
+  @override
+  String get privacy => 'గోప్యతా విధానం';
+
+  @override
+  String get sub_manage_ios => 'చెల్లింపులు మీ Apple ID కు చార్జ్ చేయబడతాయి మరియు సెట్టింగులు > [మీ పేరు] > సబ్‌స్క్రిప్షన్లు లో నిర్వహించవచ్చు/రద్దు చేయవచ్చు.';
+
+  @override
+  String get sub_manage_android => 'చెల్లింపులు మీ Google ఖాతాకు చార్జ్ చేయబడతాయి మరియు Play Store యాప్ > ప్రొఫైల్ ఐకాన్ > చెల్లింపులు & సబ్‌స్క్రిప్షన్లు > సబ్‌స్క్రిప్షన్లు లో నిర్వహించవచ్చు/రద్దు చేయవచ్చు.';
+
+  @override
+  String get sub_badge_trial_1m => '🎁 మొదటిసారి సభ్యత్వం పొందే వారికి ఒక నెల ఉచితం';
 }

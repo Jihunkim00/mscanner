@@ -641,4 +641,75 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get mergeInProgress => 'جاري دمج الصور…\nيرجى الانتظار.';
+
+  @override
+  String get fx_title => 'محول العملات';
+
+  @override
+  String get fx_tooltip => 'تحويل العملات';
+
+  @override
+  String fx_currency_btn(Object code) {
+    return 'العملة: $code';
+  }
+
+  @override
+  String fx_base_date(Object date) {
+    return 'تاريخ الأساس: $date';
+  }
+
+  @override
+  String get fx_unknown => 'غير معروف';
+
+  @override
+  String get fx_amount_label => 'المبلغ';
+
+  @override
+  String get fx_amount_hint => 'مثال: 100';
+
+  @override
+  String fx_enter_amount_to_convert(Object target) {
+    return 'أدخل مبلغًا للتحويل إلى $target.';
+  }
+
+  @override
+  String get fx_error_no_rate => 'لا تتوفر بيانات سعر الصرف لهذه العملة.';
+
+  @override
+  String get fx_search_currency_hint => 'ابحث عن رمز العملة (مثال: KRW, JPY)';
+
+  @override
+  String get sub_disclaimer_title => 'معلومات الاشتراك';
+
+  @override
+  String get sub_trial_free => 'لن يتم تحصيل رسوم من المشتركين لأول مرة خلال فترة التجربة.';
+
+  @override
+  String get sub_auto_renew => 'بعد انتهاء الفترة التجريبية، يتم تجديد الاشتراك تلقائيًا ما لم يتم إلغاؤه قبل 24 ساعة على الأقل من نهاية الفترة الحالية.';
+
+  @override
+  String get sub_renew_charge => 'قد يتم فرض رسوم التجديد خلال 24 ساعة قبل انتهاء الفترة الحالية.';
+
+  @override
+  String sub_period_price(Object period, Object price) {
+    return 'هذا الاشتراك هو $period (السعر: $price).';
+  }
+
+  @override
+  String get sub_restore => 'يمكن استعادة المشتريات السابقة باستخدام \"استعادة المشتريات\".';
+
+  @override
+  String get terms => 'شروط الخدمة';
+
+  @override
+  String get privacy => 'سياسة الخصوصية';
+
+  @override
+  String get sub_manage_ios => 'يتم تحصيل الدفعات من Apple ID الخاص بك ويمكنك إدارة/إلغاء الاشتراك من الإعدادات > [اسمك] > الاشتراكات.';
+
+  @override
+  String get sub_manage_android => 'يتم تحصيل الدفعات من حساب Google الخاص بك ويمكنك إدارة/إلغاء الاشتراك من تطبيق متجر Play > أيقونة الملف الشخصي > الدفعات والاشتراكات > الاشتراكات.';
+
+  @override
+  String get sub_badge_trial_1m => '🎁 شهر واحد مجانًا للمشتركين لأول مرة';
 }

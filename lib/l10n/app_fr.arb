@@ -221,5 +221,26 @@
   "mergeInProgress": "Fusion des images…\nVeuillez patienter.",
   "@mergeInProgress": {
     "description": "SnackBar message shown while image merge is in progress"
-  }
+  },
+  "fx_title": "Convertisseur de devises",
+  "fx_tooltip": "Convertir des devises",
+  "fx_currency_btn": "Devise : {code}",
+  "fx_base_date": "Date de base : {date}",
+  "fx_unknown": "Inconnu",
+  "fx_amount_label": "Montant",
+  "fx_amount_hint": "ex. : 100",
+  "fx_enter_amount_to_convert": "Saisissez un montant à convertir en {target}.",
+  "fx_error_no_rate": "Aucune donnée de taux de change disponible.",
+  "fx_search_currency_hint": "Rechercher un code de devise (ex. : EUR, JPY)",
+  "sub_disclaimer_title": "Informations sur l’abonnement",
+  "sub_trial_free": "Les nouveaux abonnés ne sont pas facturés pendant la période d’essai.",
+  "sub_auto_renew": "À la fin de l’essai, l’abonnement se renouvelle automatiquement sauf annulation au moins 24 heures avant la fin de la période en cours.",
+  "sub_renew_charge": "Les frais de renouvellement peuvent être facturés dans les 24 heures précédant la fin de la période en cours.",
+  "sub_period_price": "Cet abonnement est {period} (Prix : {price}).",
+  "sub_restore": "Les achats précédents peuvent être restaurés via \"Restaurer les achats\".",
+  "terms": "Conditions d’utilisation",
+  "privacy": "Politique de confidentialité",
+  "sub_manage_ios": "Les paiements sont facturés sur votre identifiant Apple et les abonnements peuvent être gérés ou annulés dans Réglages > [votre nom] > Abonnements.",
+  "sub_manage_android": "Les paiements sont facturés sur votre compte Google et les abonnements peuvent être gérés ou annulés dans l’application Play Store > Icône de profil > Paiements et abonnements > Abonnements.",
+  "sub_badge_trial_1m": "🎁 1 mois offert pour les nouveaux abonnés"
 }

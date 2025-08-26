@@ -7,11 +7,13 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import '/widgets/photo_capture_widget.dart';
+import 'package:provider/provider.dart';
+import '/ad_remove_provider.dart';
 
 
 class CameraScreen extends StatefulWidget {
   final VoidCallback onCancel;
-  final bool isPremium;
+  final bool isPremium; // (하위 호환 유지용) 상위에서 넘기면 우선 사용, 없으면 Provider 사용
   CameraScreen({
     required this.onCancel,
     this.isPremium = false,           // 기본값 false
@@ -58,9 +60,14 @@ class _CameraScreenState extends State<CameraScreen> {
     setState(() => _isProcessing = true);
 
     try {
+        // 프리미엄이 아니면 1장만 허용(혹시 위젯 변경/플랫폼 버그 등으로 여러 장 올 경우 대비)
+        final subscribed = mounted ? context.read<AdRemoveProvider>().isSubscribed : false;
+        final effectivePremium = widget.isPremium || subscribed;
+        final incoming = effectivePremium ? rawFiles : (rawFiles.isNotEmpty ? [rawFiles.first] : rawFiles);
+
       // 1) 이미지 압축
       List<File> files = [];
-      for (var f in rawFiles) {
+      for (var f in incoming) {
         files.add(await compressImage(f));
       }
 
@@ -291,6 +298,10 @@ class _CameraScreenState extends State<CameraScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+     // Provider 기준으로 최신 구독 상태를 읽고, 상위에서 명시적으로 넘긴 값이 true면 그걸 우선.
+    final subscribed = context.watch<AdRemoveProvider>().isSubscribed;
+    final effectivePremium = widget.isPremium || subscribed;
+    final maxCount = effectivePremium ? 8 : 1; // 필요시 원하는 값으로 조정(현재 4 → 8 제안)
     return WillPopScope(
       onWillPop: () async {
         // Flutter 레벨 뒤로가기도 홈으로
@@ -301,7 +312,7 @@ class _CameraScreenState extends State<CameraScreen> {
         backgroundColor: isDark ? Colors.black : Colors.white,
         appBar: AppBar(leading: SizedBox.shrink(), /*…*/),
         body: PhotoCaptureWidget(
-          isMulti: widget.isPremium,
+          isMulti: effectivePremium,
           maxCount: 4,
           onCaptured: _onCaptured,
           onCancel: widget.onCancel,  // ← 여기를 연결

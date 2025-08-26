@@ -26,13 +26,13 @@ import 'dart:typed_data'; // Uint8List 사용
 import '/screens/image_merge_service.dart'; // ImageMergeService 경로에 맞게 수정
 import '/widgets/image_grid_viewer.dart'; // ✅ 로그 서비스 추가
 import 'package:flutter/foundation.dart';
+import 'dart:ui' as ui;
+import 'package:mscanner/widgets/fx_auto_converter_card.dart';
 
 /// 파일 최상단에 선언
 Future<Uint8List> mergeImages(List<Uint8List> bytesList) async {
   return await ImageMergeService.mergeAndCompress(bytesList);
 }
-
-
 
 
 
@@ -72,6 +72,65 @@ class ResultScreen extends StatefulWidget {
 }
 
 class _ResultScreenState extends State<ResultScreen> {
+  // === Auto FX: detected hints ===
+  String? _isoCountryCode;                 // e.g., 'KR', 'JP'
+  String? _currencySymbolHint;             // e.g., '₩','€','$','¥'
+  double? _amountFromResponses;            // extracted number from AI response
+
+  // 🔽🔽🔽 [NEW] 다중 금액 후보 보관 리스트
+  List<double> _amountCandidates = [];     // ex) [12500, 3500, 7000]
+
+  Future<void> _initCountryCurrencyHints() async {
+    try {
+      // Extract from responses
+      final raw = widget.responses.join('\n\n');
+      _currencySymbolHint = _extractCurrencySymbolFromText(raw);
+      _amountFromResponses = _extractAmountFromText(raw);
+      _amountCandidates = _extractAmountsNextToFoodNames(raw);
+
+      // Country ISO2 from GPS if available
+      if (widget.position != null) {
+        try {
+          final placemarks = await placemarkFromCoordinates(
+            widget.position!.latitude,
+            widget.position!.longitude,
+          );
+          if (placemarks.isNotEmpty) {
+            _isoCountryCode = placemarks.first.isoCountryCode?.toUpperCase();
+          }
+        } catch (_) {}
+      }
+
+      // Fallback to device locale
+      _isoCountryCode ??= ui.PlatformDispatcher.instance.locale.countryCode?.toUpperCase();
+      if (mounted) setState(() {});
+    } catch (_) {
+      // ignore
+    }
+  }
+
+  // Extract first number (e.g., 12,500 or 12.50)
+  double? _extractAmountFromText(String text) {
+    final cleaned = text.replaceAll(',', ' ').replaceAll('\u00A0', ' ');
+    final regex = RegExp(r'(\d+[\s\d]*\.?\d*)');
+    final m = regex.firstMatch(cleaned);
+    if (m == null) return null;
+    final numStr = m.group(1)!.replaceAll(' ', '');
+    return double.tryParse(numStr);
+  }
+
+  // Detect currency symbol from text
+  String? _extractCurrencySymbolFromText(String text) {
+    // '$','¥'는 모호해도 힌트로 사용 (국가코드/로케일로 보정)
+    const symbols = ['₩','€','£','₫','₱','฿','₹','¥','\$'];
+    for (final s in symbols) {
+      if (text.contains(s)) return s;
+    }
+    return null;
+  }
+
+
+
   String _address = 'Loading...';
   TextEditingController _storeNameController = TextEditingController();
   final TextEditingController _reviewController = TextEditingController();
@@ -100,6 +159,8 @@ class _ResultScreenState extends State<ResultScreen> {
   void initState() {
     super.initState();
     print("▶️ [ResultScreen] initState at ${DateTime.now().toIso8601String()}");
+
+    _initCountryCurrencyHints();
 
     // ── UI 로딩 후에 이미지 병합 시작 ──
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -716,6 +777,161 @@ class _ResultScreenState extends State<ResultScreen> {
     return extractedNames;
   }
 
+  // ✅ 음식명(**굵게**) 라인부터 다음 2~4줄(또는 공백/다음 음식명 전까지) 블록에서 가격을 느슨하게 탐색
+// - 통화기호/코드 앞뒤 모두 허용
+// - 줄 앞 순번/불릿(1., 1), (1), [1], -, •, –, —, *) 제거 강화
+// - kcal/g/ml/% 등 영양 단위만 제외, 나머지는 거의 허용
+  List<double> _extractAmountsNextToFoodNames(String text) {
+    const int BLOCK_FOLLOW_LINES = 20;    // [CHANGE] 3 → 4줄
+    const int BLOCK_MAX_CHARS   = 2000;   // [CHANGE] 220 → 400자
+
+    final results = <double>[];
+    final seen = <String>{};
+
+    final lines = text.split('\n');
+
+    // **이름** 패턴 (그대로)
+    final nameReg = RegExp(r'\*\*(.+?)\*\*');
+
+    // [CHANGE] 매우 느슨한 금액 패턴
+    // - 통화(기호/코드/한글단위)가 앞/뒤 어느 쪽이든 와도 허용
+    // - 천단위 구분자: 콤마/점/공백 섞임 허용
+    // - 소수점도 , 또는 . 허용
+    // 예) ₩ 5 000 / 5,000원 / 5.000,50 / USD 12 / 12 USD / $12.50 / 12000 KRW ...
+    final amountReg = RegExp(
+      r'(?<!\d)' // 숫자 안쪽에서 시작하지 않게
+      r'(?:' // 통화가 먼저 오거나
+      r'(?:KRW|JPY|USD|EUR|CNY|HKD|TWD|NTD|SGD|AUD|CAD|GBP|CHF|₩|\$|€|¥|元|원|엔|달러|유로|엔화)\s*'
+      r'(?:(?:\d{1,3}(?:[.,\s]\d{3})*|\d+)(?:[.,]\d+)?))'
+      r'|' // 또는 숫자가 먼저 오고 통화가 뒤에 오거나 생략
+      r'(?:(?:\d{1,3}(?:[.,\s]\d{3})*|\d+)(?:[.,]\d+)?\s*'
+      r'(?:KRW|JPY|USD|EUR|CNY|HKD|TWD|NTD|SGD|AUD|CAD|GBP|CHF|₩|\$|€|¥|元|원|엔|달러|유로|엔화)?)'
+      r')'
+      r'(?!\d)', // 뒤에 바로 숫자가 이어붙지 않게
+      caseSensitive: false,
+    );
+
+    // [CHANGE] 영양/단위 제외 패턴 (직후 토큰 또는 직후 문자에 붙은 경우 모두 차단)
+    final excludeUnitToken = RegExp(
+      r'^(?:k?cal|kj|g|mg|kg|ml|l|cl|dl|%|oz|lb|pcs?|개|잔|인분|servings?)\b',
+      caseSensitive: false,
+    );
+    final excludeInlineSuffix = RegExp(
+      r'(?:k?cal|kj|g|mg|kg|ml|l|cl|dl|%|oz|lb|pcs?)$',
+      caseSensitive: false,
+    );
+
+    // [CHANGE] 줄 앞 번호/불릿 제거 강화
+    String stripPrefix(String s) => s.replaceFirst(
+      RegExp(
+          r'^\s*(?:'
+          r'\d+\.\s*|'     // 1.
+          r'\d+\)\s*|'     // 1)
+          r'\(\d+\)\s*|'   // (1)
+          r'\[\d+\]\s*|'   // [1]
+          r'[-–—•*·]\s*'   // -, –, —, •, *, ·
+          r')'),
+      '',
+    );
+
+    // [ADD] 숫자 문자열 → double 파싱 (천단위/통화 제거 & 소수점 보정)
+    double? parseNumber(String captured) {
+      // 통화/단위 표식 제거
+      var p = captured.replaceAll(RegExp(
+        r'(KRW|JPY|USD|EUR|CNY|HKD|TWD|NTD|SGD|AUD|CAD|GBP|CHF|원|엔|달러|유로|엔화|₩|\$|€|¥|元)',
+        caseSensitive: false,
+      ), '');
+
+      // 공백 제거
+      p = p.replaceAll(RegExp(r'\s+'), '');
+
+      // 유럽식 소수(, 소수점 .천단위)와 혼합 처리:
+      // 규칙: 마지막 구분자가 ',' 이고 그 뒤 자릿수가 1~2자리면 ',' → '.' 로 해석(소수점),
+      // 나머지 구분자(, .)는 천단위로 보고 제거
+      final m = RegExp(r'([.,])(\d{1,2})$').firstMatch(p);
+      if (m != null && m.group(1) == ',') {
+        // 소수점은 '.' 로
+        p = p.substring(0, m.start).replaceAll(RegExp(r'[.,]'), '') + '.' + m.group(2)!;
+      } else {
+        // 일반: 천단위 구분자 제거, 소수점은 '.'만 허용
+        // 만약 마지막에 '.xx' 형식이면 유지
+        // 우선 모든 콤마 제거
+        p = p.replaceAll(',', '');
+        // 공백/천단위 점 제거 (소수점으로 쓰인 단 하나의 점은 유지해야 함)
+        // 이미 콤마 처리했으니 점이 여러 개인 경우 천단위로 보고 전부 제거 후 소수 없음으로 처리
+        final dotCount = '.'.allMatches(p).length;
+        if (dotCount > 1) {
+          p = p.replaceAll('.', '');
+        }
+      }
+
+      return double.tryParse(p);
+    }
+
+    int i = 0;
+    while (i < lines.length) {
+      var line = stripPrefix(lines[i].trim());
+      if (line.isEmpty) { i++; continue; }
+
+      final nameMatch = nameReg.firstMatch(line);
+      if (nameMatch == null) { i++; continue; }
+
+      // 블록 구성: 현재 라인 + 다음 1~4줄, 빈 줄/다음 음식명에서 중단
+      final buffer = StringBuffer();
+      int taken = 0;
+      for (int j = i; j < lines.length && taken <= BLOCK_FOLLOW_LINES; j++) {
+        var cur = stripPrefix(lines[j]).trimRight();
+        if (j > i && cur.isEmpty) break;           // 빈 줄에서 종료
+        if (j > i && nameReg.hasMatch(cur)) break; // 다음 음식명에서 종료
+        buffer.writeln(cur);
+        taken++;
+      }
+
+      var block = buffer.toString().trim();
+      if (block.length > BLOCK_MAX_CHARS) {
+        block = block.substring(0, BLOCK_MAX_CHARS);
+      }
+
+      // 음식명 이후 우선, 없으면 블록 전체 —> 하지만 "느슨하게" 전부 훑어서 여러 개 추출
+      final afterName = block.substring(nameMatch.end).trimLeft();
+      final searchAreas = <String>[afterName, block];
+
+      for (final area in searchAreas) {
+        for (final m in amountReg.allMatches(area)) {
+          final captured = m.group(0)!;
+
+          // 직후 토큰(공백 기준) 검사하여 영양/단위면 제외
+          final remain = area.substring(m.end).trimLeft();
+          final nextToken = remain.isEmpty ? '' : remain.split(RegExp(r'\s+')).first;
+
+          // 캡처된 끝부분에 단위가 붙어있는 경우도 제외 (예: "200g", "250ml")
+          final capTrim = captured.trimRight();
+
+          if (excludeUnitToken.hasMatch(nextToken) || excludeInlineSuffix.hasMatch(capTrim)) {
+            continue; // 영양/단위 → 제외
+          }
+
+          final v = parseNumber(captured);
+          if (v != null && v > 0) {
+            final key = v.toStringAsFixed(2);
+            if (seen.add(key)) results.add(double.parse(key));
+          }
+        }
+        // afterName에서 이미 충분히 찾았어도, 느슨 모드라 block 전체도 계속 확인
+      }
+
+      // 다음 블록으로
+      i += taken > 0 ? taken : 1;
+    }
+
+    return results;
+  }
+
+
+
+
+
+
   // Fetch food detail from Firestore
   Future<void> _fetchFoodDetail() async {
     try {
@@ -930,9 +1146,29 @@ class _ResultScreenState extends State<ResultScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(localizations!.aiAnswer,
-                                  style: TextStyle(fontFamily: 'SFPro', fontWeight: FontWeight.bold, color: textColor)),
-                              SizedBox(height: 10),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    localizations!.aiAnswer,
+                                    style: TextStyle(fontFamily: 'SFPro', fontWeight: FontWeight.bold, color: textColor),
+                                  ),
+                                  const Spacer(),
+                                  if ((_amountFromResponses ?? 0) > 0)
+                                    FxQuickFxButton(
+                                      initialAmount: _amountFromResponses ?? 0,
+                                      detectedCountryCode: _isoCountryCode,
+                                      currencySymbolHint: _currencySymbolHint,
+                                      initialTarget: TargetCurrency.usd,
+                                      iconSize: 18,              // 작게
+                                      padding: EdgeInsets.zero,  // 타이트
+                                      parsedAmounts: _amountCandidates,
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 5), // 카드 내부의 헤더-본문 사이 최소 간격
+
+
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [

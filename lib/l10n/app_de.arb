@@ -221,5 +221,26 @@
   "mergeInProgress": "Bilder werden zusammengeführt…\nBitte warten.",
   "@mergeInProgress": {
     "description": "SnackBar message shown while image merge is in progress"
-  }
+  },
+  "fx_title": "Währungsrechner",
+  "fx_tooltip": "Währung umrechnen",
+  "fx_currency_btn": "Währung: {code}",
+  "fx_base_date": "Stichtag: {date}",
+  "fx_unknown": "Unbekannt",
+  "fx_amount_label": "Betrag",
+  "fx_amount_hint": "z. B.: 100",
+  "fx_enter_amount_to_convert": "Geben Sie einen Betrag ein, um in {target} umzuwandeln.",
+  "fx_error_no_rate": "Keine Wechselkursdaten verfügbar.",
+  "fx_search_currency_hint": "Währungscode suchen (z. B.: EUR, JPY)",
+  "sub_disclaimer_title": "Abo-Informationen",
+  "sub_trial_free": "Erstabonnenten werden während der Testphase nicht berechnet.",
+  "sub_auto_renew": "Nach Ablauf der Testphase verlängert sich das Abonnement automatisch, sofern es nicht mindestens 24 Stunden vor Ende der aktuellen Periode gekündigt wird.",
+  "sub_renew_charge": "Verlängerungsgebühren können innerhalb von 24 Stunden vor Ablauf der aktuellen Periode anfallen.",
+  "sub_period_price": "Dieses Abonnement ist {period} (Preis: {price}).",
+  "sub_restore": "Frühere Käufe können über \"Käufe wiederherstellen\" wiederhergestellt werden.",
+  "terms": "Nutzungsbedingungen",
+  "privacy": "Datenschutzrichtlinie",
+  "sub_manage_ios": "Zahlungen werden Ihrem Apple ID-Konto belastet und können in Einstellungen > [Ihr Name] > Abonnements verwaltet oder gekündigt werden.",
+  "sub_manage_android": "Zahlungen werden Ihrem Google-Konto belastet und können in der Play Store-App > Profilsymbol > Zahlungen & Abos > Abos verwaltet oder gekündigt werden.",
+  "sub_badge_trial_1m": "🎁 1 Monat kostenlos für Erstabonnenten"
 }

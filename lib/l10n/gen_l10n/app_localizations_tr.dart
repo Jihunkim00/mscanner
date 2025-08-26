@@ -641,4 +641,75 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get mergeInProgress => 'Görseller birleştiriliyor…\nLütfen bekleyin.';
+
+  @override
+  String get fx_title => 'Döviz çevirici';
+
+  @override
+  String get fx_tooltip => 'Döviz çevir';
+
+  @override
+  String fx_currency_btn(Object code) {
+    return 'Para birimi: $code';
+  }
+
+  @override
+  String fx_base_date(Object date) {
+    return 'Baz tarih: $date';
+  }
+
+  @override
+  String get fx_unknown => 'Bilinmiyor';
+
+  @override
+  String get fx_amount_label => 'Tutar';
+
+  @override
+  String get fx_amount_hint => 'örn.: 100';
+
+  @override
+  String fx_enter_amount_to_convert(Object target) {
+    return '$target birimine çevirmek için tutar girin.';
+  }
+
+  @override
+  String get fx_error_no_rate => 'Bu para birimi için kur verisi yok.';
+
+  @override
+  String get fx_search_currency_hint => 'Para birimi kodu ara (örn.: USD, JPY)';
+
+  @override
+  String get sub_disclaimer_title => 'Abonelik Bilgileri';
+
+  @override
+  String get sub_trial_free => 'İlk kez abone olanlardan deneme süresinde ücret alınmaz.';
+
+  @override
+  String get sub_auto_renew => 'Deneme süresi bittikten sonra, mevcut dönem bitiminden en az 24 saat önce iptal edilmezse abonelik otomatik olarak yenilenir.';
+
+  @override
+  String get sub_renew_charge => 'Yenileme ücretleri mevcut dönem bitiminden 24 saat içinde tahsil edilebilir.';
+
+  @override
+  String sub_period_price(Object period, Object price) {
+    return 'Bu abonelik $period’dir (Fiyat: $price).';
+  }
+
+  @override
+  String get sub_restore => 'Önceki satın alımlar \"Satın Alımları Geri Yükle\" ile geri yüklenebilir.';
+
+  @override
+  String get terms => 'Hizmet Şartları';
+
+  @override
+  String get privacy => 'Gizlilik Politikası';
+
+  @override
+  String get sub_manage_ios => 'Ödemeler Apple Kimliğinize yansıtılır ve Ayarlar > [adınız] > Abonelikler bölümünden yönetilebilir veya iptal edilebilir.';
+
+  @override
+  String get sub_manage_android => 'Ödemeler Google hesabınıza yansıtılır ve Play Store uygulaması > Profil simgesi > Ödemeler ve abonelikler > Abonelikler bölümünden yönetilebilir veya iptal edilebilir.';
+
+  @override
+  String get sub_badge_trial_1m => '🎁 İlk kez abone olanlara 1 ay ücretsiz';
 }

@@ -641,4 +641,75 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get mergeInProgress => 'Bilder werden zusammengeführt…\nBitte warten.';
+
+  @override
+  String get fx_title => 'Währungsrechner';
+
+  @override
+  String get fx_tooltip => 'Währung umrechnen';
+
+  @override
+  String fx_currency_btn(Object code) {
+    return 'Währung: $code';
+  }
+
+  @override
+  String fx_base_date(Object date) {
+    return 'Stichtag: $date';
+  }
+
+  @override
+  String get fx_unknown => 'Unbekannt';
+
+  @override
+  String get fx_amount_label => 'Betrag';
+
+  @override
+  String get fx_amount_hint => 'z. B.: 100';
+
+  @override
+  String fx_enter_amount_to_convert(Object target) {
+    return 'Geben Sie einen Betrag ein, um in $target umzuwandeln.';
+  }
+
+  @override
+  String get fx_error_no_rate => 'Keine Wechselkursdaten verfügbar.';
+
+  @override
+  String get fx_search_currency_hint => 'Währungscode suchen (z. B.: EUR, JPY)';
+
+  @override
+  String get sub_disclaimer_title => 'Abo-Informationen';
+
+  @override
+  String get sub_trial_free => 'Erstabonnenten werden während der Testphase nicht berechnet.';
+
+  @override
+  String get sub_auto_renew => 'Nach Ablauf der Testphase verlängert sich das Abonnement automatisch, sofern es nicht mindestens 24 Stunden vor Ende der aktuellen Periode gekündigt wird.';
+
+  @override
+  String get sub_renew_charge => 'Verlängerungsgebühren können innerhalb von 24 Stunden vor Ablauf der aktuellen Periode anfallen.';
+
+  @override
+  String sub_period_price(Object period, Object price) {
+    return 'Dieses Abonnement ist $period (Preis: $price).';
+  }
+
+  @override
+  String get sub_restore => 'Frühere Käufe können über \"Käufe wiederherstellen\" wiederhergestellt werden.';
+
+  @override
+  String get terms => 'Nutzungsbedingungen';
+
+  @override
+  String get privacy => 'Datenschutzrichtlinie';
+
+  @override
+  String get sub_manage_ios => 'Zahlungen werden Ihrem Apple ID-Konto belastet und können in Einstellungen > [Ihr Name] > Abonnements verwaltet oder gekündigt werden.';
+
+  @override
+  String get sub_manage_android => 'Zahlungen werden Ihrem Google-Konto belastet und können in der Play Store-App > Profilsymbol > Zahlungen & Abos > Abos verwaltet oder gekündigt werden.';
+
+  @override
+  String get sub_badge_trial_1m => '🎁 1 Monat kostenlos für Erstabonnenten';
 }

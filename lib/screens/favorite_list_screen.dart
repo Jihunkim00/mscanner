@@ -7,6 +7,8 @@ import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'favorite_screen.dart'; // ✅ FavoriteScreen을 사용하므로 유지
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
+import 'package:mscanner/screens/animated_map_screen.dart'; // ← 추가
+import '../models/place_data.dart'; // ← 추가
 
 class FavoriteListScreen extends StatefulWidget {
   @override
@@ -15,6 +17,7 @@ class FavoriteListScreen extends StatefulWidget {
 
 class _FavoriteListScreenState extends State<FavoriteListScreen> {
   List<DocumentSnapshot> _favoriteResults = [];
+  Set<String> _selectedIds = {}; // ← 추가
   bool _isDarkMode = false;
   String _currentSort = 'latest'; // 기본 정렬: 최신순
 
@@ -59,6 +62,7 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
 
     setState(() {
       _favoriteResults = querySnapshot.docs;
+      _selectedIds.clear(); // 새로 로드 시 선택 초기화
     });
   }
 
@@ -134,15 +138,34 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
     });
   }
 
+  void _goToAnimatedMap() {
+    // 선택된 DocumentSnapshot → PlaceData 변환
+    final selectedPlaces = _favoriteResults
+        .where((doc) => _selectedIds.contains(doc.id))
+        .map((doc) => PlaceData.fromFirestore(doc))
+        .toList()
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+    if (selectedPlaces.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AnimatedMapScreen(selectedPlaces: selectedPlaces),
+        ),
+      );
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = _isDarkMode ? Colors.black : Color(0xFFEFEFF4);
+    final backgroundColor = _isDarkMode ? Colors.black : const Color(
+        0xFFEFEFF4);
     final textColor = _isDarkMode ? Colors.white : Colors.black;
 
     final locale = Localizations.localeOf(context);
     final rtlLanguageCodes = ['ar', 'ur'];
     final isRTL = rtlLanguageCodes.contains(locale.languageCode.toLowerCase());
-
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -151,33 +174,35 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
           children: [
             // 리스트
             Padding(
-              padding: const EdgeInsets.only(top: 10), // 버튼 높이만큼 위에 여백 줌
+              padding: const EdgeInsets.only(top: 10),
               child: _favoriteResults.isEmpty
-                  ? Center(child: Text(
-                  'No History Found', style: TextStyle(color: textColor)))
+                  ? Center(
+                child: Text(
+                  'No History Found',
+                  style: TextStyle(color: textColor),
+                ),
+              )
                   : ListView.builder(
                 itemCount: _favoriteResults.length,
                 itemBuilder: (context, index) {
-                  final data = _favoriteResults[index].data() as Map<
-                      String,
-                      dynamic>;
+                  final doc = _favoriteResults[index];
+                  final data = doc.data() as Map<String, dynamic>;
+                  final isSelected = _selectedIds.contains(doc.id);
 
                   return Dismissible(
-                    key: Key(_favoriteResults[index].id),
+                    key: Key(doc.id),
                     direction: DismissDirection.endToStart,
                     background: Container(
                       color: Colors.redAccent,
-                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
                       alignment: Alignment.centerRight,
-                      child: Icon(
+                      child: const Icon(
                         CupertinoIcons.delete,
                         color: Colors.white,
                         size: 30,
                       ),
                     ),
-                    onDismissed: (direction) {
-                      _deleteFavoriteResult(index);
-                    },
+                    onDismissed: (_) => _deleteFavoriteResult(index),
                     child: ListTile(
                       leading: Container(
                         width: 50,
@@ -187,8 +212,9 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
                           child: CachedNetworkImage(
                             imageUrl: data['image_url'] ?? '',
                             placeholder: (_, __) =>
-                                CupertinoActivityIndicator(),
-                            errorWidget: (_, __, ___) => Icon(Icons.error),
+                            const CupertinoActivityIndicator(),
+                            errorWidget: (_, __, ___) =>
+                            const Icon(Icons.error),
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -199,22 +225,45 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       subtitle: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            data['timestamp'] != null
-                                ? DateFormat('yyyy-MM-dd HH:mm').format(
-                                DateTime.parse(data['timestamp']))
-                                : 'No date',
-                            style: TextStyle(color: textColor),
-                            overflow: TextOverflow.ellipsis,
+                          // 왼쪽 텍스트: 부모의 가용 너비만큼 차지, 필요 시 ellipsis
+                          Expanded(
+                            child: Text(
+                              data['timestamp'] != null
+                                  ? DateFormat('yyyy-MM-dd HH:mm')
+                                  .format(DateTime.parse(data['timestamp']))
+                                  : 'No date',
+                              style: TextStyle(color: textColor),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                          Text(
-                            data['country'] ?? 'Unknown Country',
-                            style: TextStyle(color: textColor),
-                            overflow: TextOverflow.ellipsis,
+
+                          const SizedBox(width: 8), // 두 텍스트 사이 여백
+
+                          // 오른쪽 텍스트: 마찬가지로 가용 너비만큼 차지
+                          Expanded(
+                            child: Text(
+                              data['country'] ?? 'Unknown Country',
+                              style: TextStyle(color: textColor),
+                              textAlign: TextAlign.right,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ],
+                      ),
+
+                      trailing: Checkbox(
+                        value: isSelected,
+                        onChanged: (val) {
+                          setState(() {
+                            if (val == true)
+                              _selectedIds.add(doc.id);
+                            else
+                              _selectedIds.remove(doc.id);
+                          });
+                        },
                       ),
                       onTap: () {
                         Navigator.push(
@@ -222,7 +271,8 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
                           MaterialPageRoute(
                             builder: (_) =>
                                 FavoriteScreen(
-                                    documentId: _favoriteResults[index].id),
+                                  documentId: doc.id,
+                                ),
                           ),
                         );
                       },
@@ -235,14 +285,12 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
             // 정렬 버튼 (겹치도록 배치)
             Positioned(
               top: -15,
-              right: isRTL ? null : 14,
+              right: isRTL ? null : 16,
               left: isRTL ? 14 : null,
               child: Container(
                 decoration: BoxDecoration(
-                  color: _isDarkMode ? Colors.black : const Color(0xFFEFEFF4),
-
+                  color: backgroundColor,
                   borderRadius: BorderRadius.circular(10),
-
                 ),
                 child: IconButton(
                   icon: Icon(
@@ -250,12 +298,33 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
                     color: textColor,
                     size: 28,
                   ),
-                  padding: EdgeInsets.all(4), // 패딩 최소화
-                  constraints: BoxConstraints(), // 버튼 크기 최소화
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(),
                   onPressed: _showSortingOptions,
                 ),
               ),
             ),
+
+            // 선택된 항목이 있을 때만 노출되는 "지도에서 보기" 버튼
+            if (_selectedIds.isNotEmpty)
+              Positioned(
+                bottom: 20,
+                left: 20,
+                right: 20,
+                child: ElevatedButton.icon(
+                  onPressed: _goToAnimatedMap,
+                  icon: const Icon(Icons.map),
+                  label: const Text('선택한 장소 지도에서 보기'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: Colors.white,            // 텍스트/아이콘 색
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

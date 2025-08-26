@@ -3,7 +3,7 @@ description: "mscanner by thj."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 
-version: 1.2.17+96
+version: 1.2.20+101
 
 environment:
   sdk: '>=3.4.3 <4.0.0'
@@ -52,6 +52,7 @@ dependencies:
   in_app_purchase: ^3.2.3
   provider: ^6.1.5
   image: ^4.5.4
+  mapbox_maps_flutter: ^2.10.0
 
 
 dependency_overrides:
@@ -84,6 +85,10 @@ flutter:
     - assets/images/manual_dark.png
     - assets/images/manual_light.png
     - assets/images/tutorial_sample.jpg
+    - assets/mapbox_terrain.html
+    - assets/images/icon.png
+    - assets/images/m_zoomout_pin.png
+    - assets/images/admscanner.png
 
 
 
@@ -101,3 +106,4 @@ flutter:
         - asset: assets/fonts/SF-Pro-Italic.ttf
           style: italic
         - asset: assets/fonts/SF-Pro-text-black.otf
+          weight: 900

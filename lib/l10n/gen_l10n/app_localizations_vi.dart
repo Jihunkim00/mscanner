@@ -641,4 +641,75 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get mergeInProgress => 'Đang gộp ảnh…\nVui lòng chờ.';
+
+  @override
+  String get fx_title => 'Trình đổi tiền tệ';
+
+  @override
+  String get fx_tooltip => 'Đổi tiền tệ';
+
+  @override
+  String fx_currency_btn(Object code) {
+    return 'Tiền tệ: $code';
+  }
+
+  @override
+  String fx_base_date(Object date) {
+    return 'Ngày cơ sở: $date';
+  }
+
+  @override
+  String get fx_unknown => 'Không rõ';
+
+  @override
+  String get fx_amount_label => 'Số tiền';
+
+  @override
+  String get fx_amount_hint => 'vd: 100';
+
+  @override
+  String fx_enter_amount_to_convert(Object target) {
+    return 'Nhập số tiền để đổi sang $target.';
+  }
+
+  @override
+  String get fx_error_no_rate => 'Không có dữ liệu tỷ giá cho loại tiền này.';
+
+  @override
+  String get fx_search_currency_hint => 'Tìm mã tiền tệ (vd: KRW, JPY)';
+
+  @override
+  String get sub_disclaimer_title => 'Thông tin gói đăng ký';
+
+  @override
+  String get sub_trial_free => 'Người đăng ký lần đầu sẽ không bị tính phí trong thời gian dùng thử.';
+
+  @override
+  String get sub_auto_renew => 'Sau khi hết thời gian dùng thử, gói đăng ký sẽ tự động gia hạn trừ khi hủy ít nhất 24 giờ trước khi kết thúc chu kỳ hiện tại.';
+
+  @override
+  String get sub_renew_charge => 'Phí gia hạn có thể bị tính trong vòng 24 giờ trước khi kết thúc chu kỳ hiện tại.';
+
+  @override
+  String sub_period_price(Object period, Object price) {
+    return 'Gói đăng ký này là $period (Giá: $price).';
+  }
+
+  @override
+  String get sub_restore => 'Các mục đã mua trước đây có thể được khôi phục bằng \"Khôi phục mua hàng\".';
+
+  @override
+  String get terms => 'Điều khoản dịch vụ';
+
+  @override
+  String get privacy => 'Chính sách bảo mật';
+
+  @override
+  String get sub_manage_ios => 'Thanh toán sẽ được tính vào Apple ID của bạn và có thể quản lý/hủy trong Cài đặt > [tên của bạn] > Đăng ký.';
+
+  @override
+  String get sub_manage_android => 'Thanh toán sẽ được tính vào tài khoản Google của bạn và có thể quản lý/hủy trong ứng dụng Cửa hàng Play > Biểu tượng hồ sơ > Thanh toán & gói đăng ký > Đăng ký.';
+
+  @override
+  String get sub_badge_trial_1m => '🎁 1 tháng miễn phí cho người đăng ký lần đầu';
 }

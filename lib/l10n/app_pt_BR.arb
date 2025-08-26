@@ -221,5 +221,26 @@
   "mergeInProgress": "Mesclando imagens…\nPor favor, aguarde.",
   "@mergeInProgress": {
     "description": "SnackBar message shown while image merge is in progress"
-  }
+  },
+  "fx_title": "Conversor de moeda",
+  "fx_tooltip": "Converter moeda",
+  "fx_currency_btn": "Moeda: {code}",
+  "fx_base_date": "Data-base: {date}",
+  "fx_unknown": "Desconhecido",
+  "fx_amount_label": "Valor",
+  "fx_amount_hint": "ex.: 100",
+  "fx_enter_amount_to_convert": "Insira um valor para converter para {target}.",
+  "fx_error_no_rate": "Não há dados de taxa de câmbio disponíveis.",
+  "fx_search_currency_hint": "Pesquisar código da moeda (ex.: USD, JPY)",
+  "sub_disclaimer_title": "Informações da assinatura",
+  "sub_trial_free": "Novos assinantes não são cobrados durante o período de teste.",
+  "sub_auto_renew": "Após o período de teste, a assinatura é renovada automaticamente, a menos que seja cancelada pelo menos 24 horas antes do final do período atual.",
+  "sub_renew_charge": "As cobranças de renovação podem ocorrer dentro de 24 horas antes do final do período atual.",
+  "sub_period_price": "Esta assinatura é {period} (Preço: {price}).",
+  "sub_restore": "As compras anteriores podem ser restauradas usando \"Restaurar compras\".",
+  "terms": "Termos de serviço",
+  "privacy": "Política de privacidade",
+  "sub_manage_ios": "Os pagamentos são cobrados do seu ID Apple e a assinatura pode ser gerenciada ou cancelada em Ajustes > [seu nome] > Assinaturas.",
+  "sub_manage_android": "Os pagamentos são cobrados da sua conta Google e a assinatura pode ser gerenciada ou cancelada no app Play Store > Ícone do perfil > Pagamentos e assinaturas > Assinaturas.",
+  "sub_badge_trial_1m": "🎁 1 mês grátis para assinantes pela primeira vez"
 }
