@@ -97,26 +97,54 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
           .get();
 
       if (doc.exists) {
-        final data = doc.data()!;
-        // 1) 영구 광고 제거 구매 여부
+        final data = doc.data()! as Map<String, dynamic>;
+
+        // 1) 영구 광고 제거 권리
         isAdFree = data['adFreePurchased'] as bool? ?? false;
 
-        // 2) 서버가 관리하는 구독 상태(권장)
-        final premium = data['premium'] as Map<String, dynamic>?;
-        if (premium != null) {
-          final status = premium['status'] as String? ?? 'expired';
-          final expiresAt = (premium['expiresAt'] as Timestamp?)?.toDate();
-          final active = status == 'active' || status == 'grace' || status == 'pending';
-          final notExpired = (expiresAt == null) || DateTime.now().isBefore(expiresAt);
-          isSubscribed = active && notExpired;
-          if (isSubscribed) isAdFree = true;
+        // 2) 프리미엄 권리 판정 (신규 스키마 우선)
+        final premium = data['premium'];
+        final now = DateTime.now();
+
+        if (premium is Map<String, dynamic>) {
+          final status = (premium['status'] as String? ?? 'expired').toLowerCase();
+          final Timestamp? ts = premium['expiresAt'] as Timestamp?;
+          final DateTime? expiresAt = ts?.toDate();
+
+          final bool hasExpires = expiresAt != null;
+          final bool entitlementValid = hasExpires && now.isBefore(expiresAt!);
+
+          // 서버가 권리 확정 전/유예 중인 상태
+          final bool statusActive = status == 'active' || status == 'grace' || status == 'pending';
+
+          // 취소했어도 만료 전 권리는 유지
+          final bool canceledButEntitled = status == 'canceled' && entitlementValid;
+
+          // 권장 로직: 만료일이 있으면 그걸 우선시
+          if (hasExpires) {
+            isSubscribed = entitlementValid || statusActive || canceledButEntitled;
+          } else {
+            // expiresAt 없으면 무기한 활성 방지: 활성 상태에서만 임시 true
+            isSubscribed = statusActive;
+          }
+        } else {
+          // (옵션) 레거시 스키마 백업: premiumExpiry 가 있으면 사용
+          final Timestamp? legacyTs = data['premiumExpiry'] as Timestamp?;
+          if (legacyTs != null) {
+            isSubscribed = now.isBefore(legacyTs.toDate());
+          }
+        }
+
+        if (isSubscribed) {
+          // 구독 중이면 광고 제거도 ON
+          isAdFree = true;
         }
       }
     } catch (e) {
       debugPrint('Error checking previous purchase: $e');
     }
 
-    // Provider 에 두 상태 모두 반영
+    // Provider 반영 (기존 그대로)
     final adProvider = Provider.of<AdRemoveProvider>(context, listen: false);
     adProvider.setRemoveAds(isAdFree);
     adProvider.setSubscribed(isSubscribed);
@@ -126,6 +154,7 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
       _isSubscribed = isSubscribed;
     });
   }
+
 
   void _onPurchaseUpdated(List<PurchaseDetails> purchases) {
     // ✅ 3개월 상품 제거에 따라 복원 대상도 정리
@@ -253,6 +282,18 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
     // 광고 제거만 된 유저라면 remove_ads 상품 숨기기
     final available = _products.where((p) {
       if (_isAdFree && p.id == 'remove_ads') return false;
+      if (p.id == 'premium_monthly') {
+        // 오퍼(1개월 무료)가 있으면 기본 베이스 플랜은 숨김
+        final hasTrial = _findAndroidOfferToken(
+          p,
+          basePlanId: 'monthly',
+          offerId: 'free1month',
+        ) != null;
+        if (hasTrial) {
+          // 기본 베이스 플랜 숨기고, trial 오퍼만 표시
+          return true;
+        }
+      }
       return true;
     }).toList();
 
@@ -320,8 +361,22 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
                             Builder(
                               builder: (_) {
                                 final isSub = prod.id == 'premium_monthly';
-                                final subtitle = isSub
-                                    ? AppLocalizations.of(context)!.sub_badge_trial_1m // 🎁 첫 구독자 1개월 무료
+
+                                // ANDROID: 무료체험 오퍼 토큰 존재 시에만 배지 표시
+                                bool showTrialBadge = false;
+                                if (isSub && Platform.isAndroid) {
+                                  final hasTrialOffer = _findAndroidOfferToken(
+                                    prod,
+                                    basePlanId: 'monthly',
+                                    offerId: 'free1month',
+                                  ) != null;
+                                  showTrialBadge = hasTrialOffer;
+                                  debugPrint('Trial offer available? $hasTrialOffer (productId=${prod.id})');
+                                }
+
+                                // iOS는 배지 표시 X (원하면 서버 판별 후 표시)
+                                final subtitle = (isSub && showTrialBadge)
+                                    ? AppLocalizations.of(context)!.sub_badge_trial_1m
                                     : prod.description;
 
                                 return Text(
@@ -330,6 +385,7 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
                                 );
                               },
                             ),
+
 
                           ],
                         ),
