@@ -780,6 +780,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Positioned.fill(
               child: Container(
                 color: Colors.black54,
+    child: SafeArea( // 👈 추가
                 child: Center(
                   child: PremiumAdOverlay(
                     // ⬇︎ 단말 폭 기준으로 적당히 리사이즈해서 디코딩
@@ -837,7 +838,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
 
 
-        ],
+            )],
       ),
     );
   }

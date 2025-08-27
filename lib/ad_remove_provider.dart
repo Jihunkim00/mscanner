@@ -71,22 +71,32 @@ class AdRemoveProvider extends ChangeNotifier {
   bool _computePremiumActive(Map<String, dynamic>? data) {
     final now = DateTime.now();
 
-    // ── 2-1) 신규 스키마 우선
+    // ── 1) 신규 스키마
     final premium = data?['premium'];
     if (premium is Map<String, dynamic>) {
-      final String status = (premium['status'] as String?) ?? 'expired';
-      final DateTime? expiresAt =
-      (premium['expiresAt'] is Timestamp) ? (premium['expiresAt'] as Timestamp).toDate()
-          : null;
+      final String status = (premium['status'] as String? ?? 'expired').toLowerCase();
+      final Timestamp? ts = premium['expiresAt'] as Timestamp?;
+      final DateTime? expiresAt = ts?.toDate();
 
-      // 유효 상태(status) + 만료 시각 체크
+      final bool hasExpires = expiresAt != null;
+      final bool entitlementValid = hasExpires && now.isBefore(expiresAt!);
+
+      // 상태 기반 활성(서버가 권리 확정 전/유예 중인 상황)
       final bool statusActive = status == 'active' || status == 'grace' || status == 'pending';
-      final bool notExpired   = (expiresAt == null) || now.isBefore(expiresAt);
 
-      return statusActive && notExpired;
+      // ❗️취소되었더라도 만료 전이면 권리 유효
+      final bool canceledButEntitled = status == 'canceled' && entitlementValid;
+
+      // 권장: 만료일이 있다면 만료일을 "단일 진실"로 우선시
+      if (hasExpires) {
+        return entitlementValid || statusActive; // 권리가 남아있거나(만료 전) 상태가 활성(유예/보류/활성)
+      } else {
+        // expiresAt가 아직 안 온 케이스(결제 직후 pending 등): 오직 활성 상태에서만 true
+        return statusActive;
+      }
     }
 
-    // ── 2-2) 레거시 스키마(존재하면 백업으로 계산)
+    // ── 2) 레거시 스키마
     final Timestamp? legacyExpiryTs = data?['premiumExpiry'] as Timestamp?;
     if (legacyExpiryTs != null) {
       return now.isBefore(legacyExpiryTs.toDate());
@@ -94,6 +104,7 @@ class AdRemoveProvider extends ChangeNotifier {
 
     return false;
   }
+
 
   void _applyState({required bool isAdRemoved, required bool isSubscribed}) {
     if (_isAdRemoved != isAdRemoved || _isSubscribed != isSubscribed) {

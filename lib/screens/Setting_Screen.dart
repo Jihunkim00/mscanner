@@ -74,23 +74,40 @@ class _SettingScreenState extends State<SettingScreen> {
 
   Future<void> _fetchUserProfile() async {
     user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      DocumentSnapshot userPointsDoc = await FirebaseFirestore.instance
-          .collection('user_points')
-          .doc(user!.uid)
-          .get();
+    if (user == null) return;
 
-      if (userPointsDoc.exists) {
-        setState(() {
-          _userPoints = userPointsDoc.get('points') ?? 0;
-        });
+    final docRef = FirebaseFirestore.instance
+        .collection('user_points')
+        .doc(user!.uid);
+
+    final snap = await docRef.get();
+
+    int points = 0;
+
+    if (snap.exists) {
+      final data = snap.data() as Map<String, dynamic>?;
+
+      // points 필드가 없거나 null인 경우 대비
+      final raw = data != null ? data['points'] : null;
+      if (raw is int) {
+        points = raw;
+      } else if (raw is double) {
+        points = raw.toInt();
       } else {
-        setState(() {
-          _userPoints = 0;
-        });
+        // 스키마 보정: 필드가 없으면 기본값으로 채움
+        await docRef.set({'points': 0}, SetOptions(merge: true));
       }
+    } else {
+      // 문서 자체가 없으면 생성
+      await docRef.set({'points': 0});
     }
+
+    if (!mounted) return;
+    setState(() {
+      _userPoints = points;
+    });
   }
+
 
   Future<void> _toggleCloudSave(bool value, {bool initialLoad = false}) async {
     setState(() {

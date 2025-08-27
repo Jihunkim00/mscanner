@@ -38,6 +38,7 @@ class PremiumAdOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final strings = _Strings.of(locale);
+    final safeTop = MediaQuery.of(context).padding.top; // 👈 상단 노치/상태바 높이
     return Directionality(
       textDirection: _isRTL(locale) ? TextDirection.rtl : TextDirection.ltr,
       child: LayoutBuilder(
@@ -100,7 +101,8 @@ class PremiumAdOverlay extends StatelessWidget {
                 ),
                 if (onClose != null)
                   PositionedDirectional(
-                    top: 10,
+                    // ✅ 기기 상단 안전영역 + 여백
+                    top: safeTop + 8,
                     start: 10,
                     child: _CloseButton(onClose: onClose!),
                   ),
@@ -220,20 +222,26 @@ class _CloseButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.black54,
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: onClose,
-        child: const Padding(
-          padding: EdgeInsets.all(6.0),
-          child: Icon(Icons.close, color: Colors.white70, size: 20),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,  // 투명 영역까지 탭 감지
+      onTap: onClose,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.black54,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: const Icon(
+          Icons.close,
+          color: Colors.white70,
+          size: 22,
         ),
       ),
     );
   }
 }
+
+
 
 /// -------------------------
 /// Strings & Localizations
