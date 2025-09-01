@@ -16,6 +16,7 @@ class TestPurchaseWidget extends StatefulWidget {
 
   final VoidCallback? onPurchased; // ✅ 추가
 
+
   @override
   State<TestPurchaseWidget> createState() => _TestPurchaseWidgetState();
 }
@@ -239,24 +240,30 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
 
   void _buy(ProductDetails product) {
     if (Platform.isAndroid && product is GooglePlayProductDetails) {
-      final token = _findAndroidOfferToken(
-        product,
-        basePlanId: 'monthly',
-        offerId: 'free1month',
-      );
+      // ✅ 안드로이드: premium 이력 없으면 무료 1개월 오퍼 강제, 있으면 기본 플랜
+      String? token;
+      if (!_isSubscribed) {
+        token = _findAndroidOfferToken(
+          product,
+          basePlanId: 'monthly',
+          offerId: 'free1month',
+        );
+      }
 
       final param = GooglePlayPurchaseParam(
         productDetails: product,
-        offerToken: token, // null이면 기본 베이스 플랜 결제(무료체험 미적용)
+        offerToken: token, // 첫 구독이면 free1month, 그 외 null(기본)
       );
       _iap.buyNonConsumable(purchaseParam: param);
       return;
     }
 
-    // iOS: Intro Offer는 콘솔 설정만으로 자동 적용
+    // iOS 그대로
     final param = PurchaseParam(productDetails: product);
     _iap.buyNonConsumable(purchaseParam: param);
   }
+
+
 
   @override
   void dispose() {
@@ -279,23 +286,55 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null) return ListTile(title: Text(_error!));
 
-    // 광고 제거만 된 유저라면 remove_ads 상품 숨기기
-    final available = _products.where((p) {
+// 광고 제거는 상태에 따라 보이게, 구독은 무조건 1개만
+    List<ProductDetails> available = _products.where((p) {
       if (_isAdFree && p.id == 'remove_ads') return false;
-      if (p.id == 'premium_monthly') {
-        // 오퍼(1개월 무료)가 있으면 기본 베이스 플랜은 숨김
-        final hasTrial = _findAndroidOfferToken(
-          p,
-          basePlanId: 'monthly',
-          offerId: 'free1month',
-        ) != null;
-        if (hasTrial) {
-          // 기본 베이스 플랜 숨기고, trial 오퍼만 표시
-          return true;
-        }
-      }
       return true;
     }).toList();
+
+// ✅ ANDROID 전용: premium_monthly는 하나만 노출(무료오퍼/기본 중 상황에 맞게 선택)
+    if (Platform.isAndroid) {
+      // premium 후보들 수집
+      final premiumCandidates = _products.where((p) => p.id == 'premium_monthly').toList();
+
+      ProductDetails? chosen;
+
+      // 무료 오퍼 토큰 있는지 검사 함수 (null-safe)
+      String? _trialToken(ProductDetails p) => _findAndroidOfferToken(
+        p,
+        basePlanId: 'monthly',
+        offerId: 'free1month',
+      );
+
+      if (!_isSubscribed) {
+        // 첫 구독자 → 무료 오퍼 있는 항목을 우선 선택
+        for (final p in premiumCandidates) {
+          if (_trialToken(p) != null) {
+            chosen = p;
+            break;
+          }
+        }
+        // 무료 오퍼 후보가 없으면 아무거나 1개
+        chosen ??= premiumCandidates.isNotEmpty ? premiumCandidates.first : null;
+      } else {
+        // 이미 구독 권리 있음 → 기본 플랜(무료오퍼 없는 항목) 우선
+        for (final p in premiumCandidates) {
+          if (_trialToken(p) == null) {
+            chosen = p;
+            break;
+          }
+        }
+        // 기본 플랜 후보 없으면 아무거나 1개
+        chosen ??= premiumCandidates.isNotEmpty ? premiumCandidates.first : null;
+      }
+
+      // 리스트에서 premium 전부 제거 후, 선택된 것만 1개 추가
+      available = available.where((p) => p.id != 'premium_monthly').toList();
+      if (chosen != null) {
+        available.add(chosen);
+      }
+    }
+
 
     // 구독 중인 사용자
     if (_isSubscribed) {
@@ -353,43 +392,17 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-
-                                                          // 👇 안드로이드에서만 "(앱이름)"을 작은 폰트로 분리 표시
-                                                          _buildProductTitle(prod, warmText, warmTextSub),
-
+                            _buildProductTitle(prod, warmText, warmTextSub),
                             const SizedBox(height: 6),
-                            Builder(
-                              builder: (_) {
-                                final isSub = prod.id == 'premium_monthly';
-
-                                // ANDROID: 무료체험 오퍼 토큰 존재 시에만 배지 표시
-                                bool showTrialBadge = false;
-                                if (isSub && Platform.isAndroid) {
-                                  final hasTrialOffer = _findAndroidOfferToken(
-                                    prod,
-                                    basePlanId: 'monthly',
-                                    offerId: 'free1month',
-                                  ) != null;
-                                  showTrialBadge = hasTrialOffer;
-                                  debugPrint('Trial offer available? $hasTrialOffer (productId=${prod.id})');
-                                }
-
-                                // iOS는 배지 표시 X (원하면 서버 판별 후 표시)
-                                final subtitle = (isSub && showTrialBadge)
-                                    ? AppLocalizations.of(context)!.sub_badge_trial_1m
-                                    : prod.description;
-
-                                return Text(
-                                  subtitle,
-                                  style: TextStyle(fontSize: 12, color: warmTextSub),
-                                );
-                              },
+                            // 👉 여기 Builder(...) 부분 삭제!
+                            Text(
+                              prod.description,
+                              style: TextStyle(fontSize: 12, color: warmTextSub),
                             ),
-
-
                           ],
                         ),
                       ),
+
                       ElevatedButton(
                         onPressed: () => _buy(prod),
                         style: ElevatedButton.styleFrom(
@@ -410,6 +423,19 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
               );
             },
           ),
+          // 👇 여기 추가
+          if (available.any((p) => p.id == 'premium_monthly'))
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                l10n.sub_badge_trial_1m, // "1개월 무료 체험 제공" 같은 안내
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: warmText,
+                ),
+              ),
+            ),
 
           // 👇 고지 문구 블록 (L10n 적용)
           Padding(
