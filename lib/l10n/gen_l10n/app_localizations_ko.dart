@@ -712,4 +712,19 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get sub_badge_trial_1m => '🎁 신규 구독자 1개월 무료';
+
+  @override
+  String get iapRestoreError => '복원 중 오류가 발생했습니다.';
+
+  @override
+  String get iapRestoreDone => '구매가 복원되었습니다.';
+
+  @override
+  String get iapRestoreEmpty => '복원할 구매 내역이 없습니다.';
+
+  @override
+  String get iapRestoreTrying => '구매 복원 중...';
+
+  @override
+  String get viewOnMap => '지도에서 보기';
 }

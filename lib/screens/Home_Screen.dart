@@ -28,6 +28,8 @@ import 'package:provider/provider.dart';
 import '/ad_remove_provider.dart'; // 경로에 따라 수정 필요
 import '/widgets/premium_ad_overlay.dart';
 import '/widgets/test_purchase_widget.dart';
+import '/screens/log_service.dart';
+
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -51,6 +53,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool _showPremiumOverlay = false; // 🔹 프리미엄 팝업 표시 여부
   StreamSubscription<User?>? _authSub;
+
+
 
 
   // ─────────────────────────────────────────────────────────
@@ -383,7 +387,9 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _onItemTapped(int index) {
+  void _onItemTapped(int index) async {
+    await LogService().logCameraOpen(reason: 'home_tab'); // ① 카메라 버튼 누름
+
     // 1: 카메라 탭
     if (index == 1) {
       Navigator.of(context).push(
@@ -414,7 +420,9 @@ class _HomeScreenState extends State<HomeScreen> {
         );
         return;
       }
-      Navigator.of(context).push(
+         await LogService().logCameraOpen(reason: 'multi_scan_tab'); // ① 변형(멀티스캔 진입 의도)
+
+         Navigator.of(context).push(
         MaterialPageRoute(
           builder: (ctx) => CameraScreen(
             isPremium: true,
@@ -797,7 +805,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     imageAlignment: Alignment.topLeft, // ✅ 위쪽 기준
                     panelOffsetY: -60,                // ✅ 텍스트 위로 올리기
 
-                    onPrimaryTap: () {
+                    onPrimaryTap: () async {
+                      await LogService().logPremiumCtaClick(placement: 'overlay', plan: 'subscription'); // ⑰ 프리미엄 CTA
                       showModalBottomSheet(
                         context: context,
                         isScrollControlled: true,
@@ -929,6 +938,10 @@ class _HomeContentState extends State<HomeContent> {
   int _rating = 0;
   double _carouselSpacing = 10.0; // Spacing between "도시별 추천"과 GFCard
 
+  bool _sentMainCardsImpression = false;
+  bool _sentManualImpression = false; // (아래 4번에서 사용)
+
+
   @override
   void initState() {
     super.initState();
@@ -996,6 +1009,7 @@ class _HomeContentState extends State<HomeContent> {
     final localizations = AppLocalizations.of(context);
         // 구독(premium)이나 광고제거(adfree) 둘 중 하나라도 있으면 isAdRemoved=true
     final isAdRemoved = context.watch<AdRemoveProvider>().isAdRemoved;
+
 
 
     return Container(
@@ -1235,6 +1249,11 @@ class _HomeContentState extends State<HomeContent> {
 
 
   Future<void> _performSave(bool isSkip) async {
+    await LogService().logRatingPrompt(
+      action: isSkip ? 'skip' : 'save',
+      stars: isSkip ? null : _rating,
+    ); // ⑧ 등급 버튼(저장/건너뛰기)
+
     final localizations = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final User? user = FirebaseAuth.instance.currentUser;
@@ -1407,6 +1426,17 @@ class _HomeContentState extends State<HomeContent> {
           return Center(child: Text('No data available'));
         } else {
           final cardData = snapshot.data!;
+          if (!_sentMainCardsImpression) {
+            _sentMainCardsImpression = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              LogService().logContentImpression(
+                contentType: 'home_main_cards',
+                count: cardData.length,
+                // sampleRate: 0.3, // 트래픽 크면 샘플링도 가능
+              );
+            });
+          }
+
           return SizedBox(
             height: 300,
             child: ListView.builder(
@@ -1480,6 +1510,7 @@ class _HomeContentState extends State<HomeContent> {
             ),
           );
         }
+
       },
     );
   }
@@ -1491,6 +1522,12 @@ class _HomeContentState extends State<HomeContent> {
     final iconPath = isDarkMode
         ? 'assets/images/manual_dark.png'
         : 'assets/images/manual_light.png';
+    if (!_sentManualImpression) {
+      _sentManualImpression = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+       });
+    }
+
 
     return CustomLinkLauncher(
       url: 'https://mscanner.net/how-to-use/',
@@ -1510,4 +1547,5 @@ class _HomeContentState extends State<HomeContent> {
       ),
     );
   }
+
 }

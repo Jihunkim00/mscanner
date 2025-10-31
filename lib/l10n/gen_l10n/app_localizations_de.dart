@@ -712,4 +712,19 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sub_badge_trial_1m => '🎁 1 Monat kostenlos für Erstabonnenten';
+
+  @override
+  String get iapRestoreError => 'Bei der Wiederherstellung ist ein Fehler aufgetreten.';
+
+  @override
+  String get iapRestoreDone => 'Einkäufe wurden wiederhergestellt.';
+
+  @override
+  String get iapRestoreEmpty => 'Keine Einkäufe zum Wiederherstellen.';
+
+  @override
+  String get iapRestoreTrying => 'Versuche, Einkäufe wiederherzustellen...';
+
+  @override
+  String get viewOnMap => 'Auf der Karte anzeigen';
 }

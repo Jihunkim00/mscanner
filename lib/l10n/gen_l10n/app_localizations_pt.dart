@@ -712,6 +712,21 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get sub_badge_trial_1m => '🎁 1 mês grátis para novos assinantes';
+
+  @override
+  String get iapRestoreError => 'Ocorreu um erro durante a restauração.';
+
+  @override
+  String get iapRestoreDone => 'As compras foram restauradas.';
+
+  @override
+  String get iapRestoreEmpty => 'Não há compras para restaurar.';
+
+  @override
+  String get iapRestoreTrying => 'Tentando restaurar compras...';
+
+  @override
+  String get viewOnMap => 'Ver no mapa';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -1422,4 +1437,19 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get sub_badge_trial_1m => '🎁 1 mês grátis para assinantes pela primeira vez';
+
+  @override
+  String get iapRestoreError => 'Ocorreu um erro durante a restauração.';
+
+  @override
+  String get iapRestoreDone => 'As compras foram restauradas.';
+
+  @override
+  String get iapRestoreEmpty => 'Não há compras para restaurar.';
+
+  @override
+  String get iapRestoreTrying => 'Tentando restaurar compras...';
+
+  @override
+  String get viewOnMap => 'Ver no mapa';
 }

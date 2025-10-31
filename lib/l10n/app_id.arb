@@ -242,5 +242,10 @@
   "privacy": "Kebijakan Privasi",
   "sub_manage_ios": "Pembayaran dibebankan ke Apple ID Anda dan dapat dikelola/dibatalkan di Pengaturan > [nama Anda] > Langganan.",
   "sub_manage_android": "Pembayaran dibebankan ke akun Google Anda dan dapat dikelola/dibatalkan di aplikasi Play Store > Ikon profil > Pembayaran & langganan > Langganan.",
-  "sub_badge_trial_1m": "🎁 Gratis 1 bulan untuk pelanggan baru"
+  "sub_badge_trial_1m": "🎁 Gratis 1 bulan untuk pelanggan baru",
+  "iapRestoreError": "Terjadi kesalahan selama pemulihan.",
+  "iapRestoreDone": "Pembelian telah dipulihkan.",
+  "iapRestoreEmpty": "Tidak ada pembelian untuk dipulihkan.",
+  "iapRestoreTrying": "Mencoba memulihkan pembelian...",
+  "viewOnMap": "Lihat di peta"
 }

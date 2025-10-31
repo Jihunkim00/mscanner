@@ -242,5 +242,10 @@
   "privacy": "Datenschutzrichtlinie",
   "sub_manage_ios": "Zahlungen werden Ihrem Apple ID-Konto belastet und können in Einstellungen > [Ihr Name] > Abonnements verwaltet oder gekündigt werden.",
   "sub_manage_android": "Zahlungen werden Ihrem Google-Konto belastet und können in der Play Store-App > Profilsymbol > Zahlungen & Abos > Abos verwaltet oder gekündigt werden.",
-  "sub_badge_trial_1m": "🎁 1 Monat kostenlos für Erstabonnenten"
+  "sub_badge_trial_1m": "🎁 1 Monat kostenlos für Erstabonnenten",
+  "iapRestoreError": "Bei der Wiederherstellung ist ein Fehler aufgetreten.",
+  "iapRestoreDone": "Einkäufe wurden wiederhergestellt.",
+  "iapRestoreEmpty": "Keine Einkäufe zum Wiederherstellen.",
+  "iapRestoreTrying": "Versuche, Einkäufe wiederherzustellen...",
+  "viewOnMap": "Auf der Karte anzeigen"
 }

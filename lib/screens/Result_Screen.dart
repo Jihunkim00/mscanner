@@ -5,7 +5,6 @@ import '/screens/Home_Screen.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:flutter/services.dart';
@@ -13,7 +12,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
-import 'package:getwidget/getwidget.dart'; // GetWidget package import
 import 'package:share_plus/share_plus.dart';
 import 'dart:async'; // To use Timer
 import '/screens/geohash_service.dart'; // Adjust the actual path accordingly
@@ -76,6 +74,9 @@ class _ResultScreenState extends State<ResultScreen> {
   String? _isoCountryCode;                 // e.g., 'KR', 'JP'
   String? _currencySymbolHint;             // e.g., '₩','€','$','¥'
   double? _amountFromResponses;            // extracted number from AI response
+
+  bool _sentAiImpression = false;
+  bool _sentRagImpression = false;
 
   // 🔽🔽🔽 [NEW] 다중 금액 후보 보관 리스트
   List<double> _amountCandidates = [];     // ex) [12500, 3500, 7000]
@@ -192,9 +193,10 @@ class _ResultScreenState extends State<ResultScreen> {
 
     // 결과 화면 로드 완료 로그
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      LogService().logScanCompleted();
+
       print("✅ [ResultScreen] first frame rendered at ${DateTime.now().toIso8601String()}");
     });
+    _trySendImpressions();
 
     // 허용 사용자 체크
     _checkAllowedUser();
@@ -264,6 +266,27 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
 
+  Future<void> _trySendImpressions() async {
+    // AI 답변 카드 노출 1회
+    if (!_sentAiImpression) {
+      _sentAiImpression = true;
+      await LogService().logContentImpression(
+        contentType: 'ai_answer', // 식별용
+        count: 1,
+        // sampleRate: 0.3, // 필요한 경우 샘플링
+      );
+    }
+    // RAG 블록 노출 1회 (허용 사용자 + 내용 있을 때)
+    if (!_sentRagImpression && _isAllowedUser && (_ragDetail?.isNotEmpty ?? false)) {
+      _sentRagImpression = true;
+      await LogService().logContentImpression(
+        contentType: 'rag',
+        count: 1,
+      );
+    }
+  }
+
+
 
   // Called when the loading timeout occurs
   void _onLoadingTimeout() {
@@ -315,6 +338,7 @@ class _ResultScreenState extends State<ResultScreen> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _saveScanResult();
         });
+
       }
     } catch (e) {
       // 병합 실패 시에도 저장 가능하도록 플래그만 세팅
@@ -330,6 +354,7 @@ class _ResultScreenState extends State<ResultScreen> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _saveScanResult();
         });
+
       }
     }
   }
@@ -672,6 +697,7 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   void _copyTextToClipboard(String text) {
+    LogService().logCopyClick(field: 'ai_text'); // or 'all' 등 구분 원하는 값
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -701,6 +727,7 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   Future<void> _shareToPlatform(BuildContext context, String platform) async {
+    await LogService().logShareClick(dest: 'system', context: 'result'); // 시스템 공유
     String message =
         "${AppLocalizations.of(context)?.checkOutContent ?? 'Check out this content!'}\n\n${widget.responses.join('\n\n')}";
     String filePath = widget.image.path;
@@ -1009,6 +1036,7 @@ class _ResultScreenState extends State<ResultScreen> {
           setState(() {
             _ragDetail = null;
           });
+          await _trySendImpressions(); // 🔹 이 줄 추가
         }
       } else {
         setState(() {
@@ -1298,6 +1326,13 @@ class _ResultScreenState extends State<ResultScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                             child: ElevatedButton(
                               onPressed: _isLoading ? null : () {
+                                // 🔹 추가: 저장 버튼 누른 순간 집계
+                                final _comment = _reviewController.text.trim();
+                                LogService().logSaveClick(
+                                  hasComment: _comment.isNotEmpty,
+                                  contentLength: _comment.length,
+                                  context: 'result',
+                                );
                                                                 // 병합이 아직 안 끝났고, 대기 플래그도 세팅 안 된 경우에만 안내
                                                                 if (!_isMergeDone) {
                                                                   if (!_pendingSave) {

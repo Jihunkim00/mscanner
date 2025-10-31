@@ -89,32 +89,71 @@ Future<void> loadInterstitialAd({bool nonPersonalized = false}) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // ✅ 여러 초기화를 병렬로 처리 (빠르고 깔끔하게)
+  final initialization = Future.wait([
+    dotenv.load(fileName: "assets/.env"),
+    Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
+    MobileAds.instance.initialize(),
+    AdaptiveTheme.getThemeMode(),
+    SharedPreferences.getInstance(),
+  ]);
 
-  await dotenv.load(fileName: "assets/.env");
-
-
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  await LocationService().requestPermission();
-  await MobileAds.instance.initialize();
-
-  final savedThemeMode = await AdaptiveTheme.getThemeMode() ?? AdaptiveThemeMode.light;
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  final String? savedLocale = prefs.getString('selectedLocale');
-
+  // ✅ Flutter UI 먼저 띄워서 검정화면 방지
   runApp(
     ChangeNotifierProvider(
       create: (_) => AdRemoveProvider(),
-      child: MyApp(savedThemeMode: savedThemeMode, savedLocale: savedLocale),
+      child: FutureBuilder(
+        future: initialization,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            final results = snapshot.data as List;
+            final AdaptiveThemeMode savedThemeMode =
+                results[3] ?? AdaptiveThemeMode.light;
+            final SharedPreferences prefs = results[4];
+            final String? savedLocale = prefs.getString('selectedLocale');
+            return MyApp(
+              savedThemeMode: savedThemeMode,
+              savedLocale: savedLocale,
+            );
+          } else {
+            // ✅ 초기화 중엔 흰 배경 + 로딩
+            return MaterialApp(
+              home: Scaffold(
+                backgroundColor: Colors.white,
+                body: Center(child: CircularProgressIndicator()),
+              ),
+            );
+          }
+        },
+      ),
     ),
   );
 
+  // ✅ 앱 구동 후 초기화 실행 (Firebase 등 완료 후)
+  unawaited(_initializeAfterLaunch());
+}
 
-  WidgetsBinding.instance.addPostFrameCallback((_) async {
-    try {
-      // ✅ 화면 방향 고정은 postFrameCallback에서 MediaQuery가 사용 가능할 때 적용
-      final context = WidgetsBinding.instance.focusManager.primaryFocus?.context;
+Future<void> _initializeAfterLaunch() async {
+  try {
+    await LocationService().requestPermission();
+
+    bool nonPersonalized = false;
+    if (Platform.isIOS) {
+      final status =
+      await AppTrackingTransparency.requestTrackingAuthorization();
+      if (status != TrackingStatus.authorized) {
+        nonPersonalized = true;
+      }
+    }
+
+    if (enableInterstitialAds) {
+      await loadInterstitialAd(nonPersonalized: nonPersonalized);
+    }
+
+    // ✅ 화면 방향 고정 (iPad 구분)
+    final binding = WidgetsBinding.instance;
+    binding.addPostFrameCallback((_) {
+      final context = binding.focusManager.primaryFocus?.context;
       if (context != null) {
         final isTablet = MediaQuery.of(context).size.shortestSide >= 600;
         if (!isTablet) {
@@ -124,25 +163,13 @@ void main() async {
           ]);
         }
       }
+    });
 
-      // ✅ ATT 권한 요청 및 광고 초기화
-      bool nonPersonalized = false;
-      if (Platform.isIOS) {
-        final status = await AppTrackingTransparency.requestTrackingAuthorization();
-        if (status != TrackingStatus.authorized) {
-          nonPersonalized = true;
-        }
-      }
-
-      if (enableInterstitialAds) {
-        await loadInterstitialAd(nonPersonalized: nonPersonalized);
-      }
-
-    } catch (e) {
-      debugPrint("초기화 중 오류 발생: $e");
-    }
-  });
+  } catch (e) {
+    debugPrint("초기화 중 오류 발생: $e");
+  }
 }
+
 
 
 

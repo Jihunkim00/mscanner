@@ -10,6 +10,8 @@ import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '/ad_remove_provider.dart'; // 실제 경로로 수정
 import 'package:url_launcher/url_launcher.dart';
+import '/screens/log_service.dart';
+
 
 class TestPurchaseWidget extends StatefulWidget {
   const TestPurchaseWidget({super.key, this.onPurchased});
@@ -28,10 +30,13 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
   List<ProductDetails> _products = [];
   bool _loading = true;
   String? _error;
+  final _log = LogService();
 
   // 광고 제거와 구독 상태 분리
   bool _isAdFree = false;
   bool _isSubscribed = false;
+
+  bool _restoring = false;
 
   // ✅ 상품 ID 정리: 3개월 제거, 월 정기(premium_monthly)만 사용
   static const _productIds = <String>{'remove_ads', 'premium_monthly'};
@@ -39,6 +44,7 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
   @override
   void initState() {
     super.initState();
+    _log.logPremiumCtaClick(placement: 'settings', plan: 'view');
     _sub = _iap.purchaseStream.listen(
       _onPurchaseUpdated,
       onError: _onPurchaseError,
@@ -75,7 +81,7 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
     await _iap.restorePurchases();
   }
 
-  void _onPurchaseError(Object error) {
+  void _onPurchaseError(Object error) async {
     debugPrint('purchaseStream error: $error');
 
     // 이미 소유 중인 상품 오류가 발생하면 복원 시도
@@ -84,6 +90,11 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
         (error.message.contains('itemAlreadyOwned'))) {
       _iap.restorePurchases();
     }
+    await _log.logPurchaseFailed(
+      productId: 'unknown_product',
+      errorCode: 'stream_error',
+      errorMsg: error.toString(),
+    );
   }
 
   Future<void> _checkPreviousPurchase() async {
@@ -157,7 +168,7 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
   }
 
 
-  void _onPurchaseUpdated(List<PurchaseDetails> purchases) {
+  void _onPurchaseUpdated(List<PurchaseDetails> purchases) async {
     // ✅ 3개월 상품 제거에 따라 복원 대상도 정리
     const restoreIds = {'remove_ads', 'premium_monthly'};
 
@@ -173,12 +184,61 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
           _processedTxns.add(txId);
           _onPurchaseSuccess(purchase);
         }
+        // ✅ 추가: 성공(ACK) 로그
+        await _log.logPurchaseAcknowledged(
+          productId: purchase.productID,
+          orderId: purchase.verificationData.serverVerificationData,
+        );
+
+
         _iap.completePurchase(purchase);
       } else if (status == PurchaseStatus.error) {
         debugPrint('Purchase error: ${purchase.error}');
+        await _log.logPurchaseFailed(
+          productId: purchase.productID,
+          errorCode: '${purchase.error?.code}',
+          errorMsg: purchase.error?.message,
+        );
       }
     }
   }
+
+  // ✅ 복원 시도 + 결과 피드백 (SnackBar)
+  Future<void> _restoreWithFeedback() async {
+    await _log.logPremiumCtaClick(placement: 'settings', plan: 'restore');
+
+    if (_restoring) return;     // ✅ 가드
+    _restoring = true;
+    final before = _processedTxns.length;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppLocalizations.of(context)!.iapRestoreTrying)),
+    );
+
+    try {
+      await _iap.restorePurchases();
+      await Future.delayed(const Duration(seconds: 2));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${AppLocalizations.of(context)!.iapRestoreError}: $e')),
+      );
+      _restoring = false;        // ✅ 해제
+      return;
+    }
+
+    final after = _processedTxns.length;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          after > before
+              ? AppLocalizations.of(context)!.iapRestoreDone
+              : AppLocalizations.of(context)!.iapRestoreEmpty,
+        ),
+      ),
+    );
+    _restoring = false;          // ✅ 해제
+  }
+
 
   Future<void> _onPurchaseSuccess(PurchaseDetails purchase) async {
     final uid = FirebaseAuth.instance.currentUser!.uid;
@@ -238,7 +298,13 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
     return null;
   }
 
-  void _buy(ProductDetails product) {
+  void _buy(ProductDetails product) async {
+    await _log.logPremiumCtaClick(
+      placement: 'settings',
+      plan: product.id == 'premium_monthly' ? 'monthly' : 'remove_ads',
+    );
+    await _log.logPurchaseStarted(productId: product.id);
+
     if (Platform.isAndroid && product is GooglePlayProductDetails) {
       // ✅ 안드로이드: premium 이력 없으면 무료 1개월 오퍼 강제, 있으면 기본 플랜
       String? token;
@@ -354,21 +420,7 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 복원 버튼
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: ElevatedButton(
-              onPressed: () => _iap.restorePurchases(),
-                style: ElevatedButton.styleFrom(
-                                    backgroundColor: warmBtnBg,
-                                    foregroundColor: warmText,
-                                    elevation: 0,
-                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-              child: Text(AppLocalizations.of(context)!.restorePurchases),
-            ),
-          ),
+
 
           // 상품 리스트
           ListView.builder(
@@ -437,6 +489,8 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
               ),
             ),
 
+
+
           // 👇 고지 문구 블록 (L10n 적용)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -476,6 +530,29 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
               ],
             ),
           ),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  onPressed: _restoreWithFeedback,
+                  child: Text(
+                    AppLocalizations.of(context)!.restorePurchases,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+
         ],
       ),
     );

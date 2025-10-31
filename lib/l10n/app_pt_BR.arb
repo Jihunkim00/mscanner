@@ -242,5 +242,10 @@
   "privacy": "Política de privacidade",
   "sub_manage_ios": "Os pagamentos são cobrados do seu ID Apple e a assinatura pode ser gerenciada ou cancelada em Ajustes > [seu nome] > Assinaturas.",
   "sub_manage_android": "Os pagamentos são cobrados da sua conta Google e a assinatura pode ser gerenciada ou cancelada no app Play Store > Ícone do perfil > Pagamentos e assinaturas > Assinaturas.",
-  "sub_badge_trial_1m": "🎁 1 mês grátis para assinantes pela primeira vez"
+  "sub_badge_trial_1m": "🎁 1 mês grátis para assinantes pela primeira vez",
+  "iapRestoreError": "Ocorreu um erro durante a restauração.",
+  "iapRestoreDone": "As compras foram restauradas.",
+  "iapRestoreEmpty": "Não há compras para restaurar.",
+  "iapRestoreTrying": "Tentando restaurar compras...",
+  "viewOnMap": "Ver no mapa"
 }

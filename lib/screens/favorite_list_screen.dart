@@ -9,6 +9,7 @@ import 'favorite_screen.dart'; // ✅ FavoriteScreen을 사용하므로 유지
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import 'package:mscanner/screens/animated_map_screen.dart'; // ← 추가
 import '../models/place_data.dart'; // ← 추가
+import '/screens/log_service.dart';
 
 class FavoriteListScreen extends StatefulWidget {
   @override
@@ -20,6 +21,25 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
   Set<String> _selectedIds = {}; // ← 추가
   bool _isDarkMode = false;
   String _currentSort = 'latest'; // 기본 정렬: 최신순
+
+  int _calcItemAgeDays(Map<String, dynamic> data) {
+    try {
+      final ts = data['timestamp'];
+      final dt = ts is String ? DateTime.parse(ts) : (ts as DateTime?);
+      if (dt == null) return 0;
+      return DateTime.now().difference(dt).inDays;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  String _inferItemType(Map<String, dynamic> data) {
+    // responses(스캔 결과)가 있으면 'scan', 없으면 'manual'로 간주
+    final r = data['responses'];
+    if (r is List && r.isNotEmpty) return 'scan';
+    return 'manual';
+  }
+
 
   @override
   void initState() {
@@ -147,6 +167,7 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
       ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
     if (selectedPlaces.isNotEmpty) {
+      LogService().logMapOpen(from: 'history');
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -166,6 +187,7 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
     final locale = Localizations.localeOf(context);
     final rtlLanguageCodes = ['ar', 'ur'];
     final isRTL = rtlLanguageCodes.contains(locale.languageCode.toLowerCase());
+    final loc = AppLocalizations.of(context)!; // ← 추가
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -266,16 +288,23 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
                         },
                       ),
                       onTap: () {
+                        final ageDays = _calcItemAgeDays(data);
+                        final itemType = _inferItemType(data);
+
+                        // ⑩ 이력 상세 표시
+                        LogService().logHistoryDetailView(
+                          itemAgeDays: ageDays,
+                          itemType: itemType,
+                        );
+
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) =>
-                                FavoriteScreen(
-                                  documentId: doc.id,
-                                ),
+                            builder: (_) => FavoriteScreen(documentId: doc.id),
                           ),
                         );
                       },
+
                     ),
                   );
                 },
@@ -311,20 +340,19 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
                 bottom: 20,
                 left: 20,
                 right: 20,
-                child: ElevatedButton.icon(
+                child: FilledButton.tonalIcon(   // ← 통일감 있는 M3 톤 다운 버튼
                   onPressed: _goToAnimatedMap,
                   icon: const Icon(Icons.map),
-                  label: const Text('선택한 장소 지도에서 보기'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    foregroundColor: Colors.white,            // 텍스트/아이콘 색
+                  label: Text(loc.viewOnMap),     // ← l10n 적용
+                  style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),
               ),
+
           ],
         ),
       ),

@@ -242,5 +242,10 @@
   "privacy": "Política de privacidad",
   "sub_manage_ios": "Los pagos se cargan a tu Apple ID y puedes gestionar o cancelar la suscripción en Configuración > [tu nombre] > Suscripciones.",
   "sub_manage_android": "Los pagos se cargan a tu cuenta de Google y puedes gestionar o cancelar la suscripción en la app Play Store > Icono de perfil > Pagos y suscripciones > Suscripciones.",
-  "sub_badge_trial_1m": "🎁 1 mes gratis para nuevos suscriptores"
+  "sub_badge_trial_1m": "🎁 1 mes gratis para nuevos suscriptores",
+  "iapRestoreError": "Ocurrió un error durante la restauración.",
+  "iapRestoreDone": "Las compras se han restaurado.",
+  "iapRestoreEmpty": "No hay compras para restaurar.",
+  "iapRestoreTrying": "Intentando restaurar las compras...",
+  "viewOnMap": "Ver en el mapa"
 }

@@ -7,6 +7,7 @@ import '../helpers/settings_helper.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import 'package:adaptive_theme/adaptive_theme.dart'; // Import for adaptive theme
 import 'package:mscanner/screens/TutorialCamera_Screen.dart';
+import '/screens/log_service.dart';
 
 
 // 언어 정보를 담는 클래스
@@ -112,6 +113,7 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
     super.initState();
     // 첫 로그인 시 자동 저장 타이머만 설정
     if (widget.isFirstLogin) _startInactivityTimer();
+
   }
 
   @override
@@ -282,6 +284,7 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
                     child: Text(localizations.saveAndContinue),
                     onPressed: _isSaving ? null : _savePresetAndNavigate,
 
+
                   ),
                 ),
               ],
@@ -356,7 +359,7 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
       _isSaving = true; // ❗ 한번 실행되면 true로 바꿔서 중복 차단
     });
 
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     await prefs.setString('selectedLanguageCode', _selectedLanguageCode);
     await prefs.setString('selectedFoodStyle', _selectedFoodStyle);
     await prefs.setString('selectedMenuNumber', _selectedMenuNumber);
@@ -365,33 +368,53 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
     print('Saved Food Style: $_selectedFoodStyle');
     print('Saved Menu Number: $_selectedMenuNumber');
 
-    String preset = _createPresetDescription();
+    // ✅ 첫 로그인(튜토리얼) 아닐 때만 로그
+    if (!widget.isFirstLogin) {
+      try {
+        final count = [
+          _selectedLanguageCode,
+          _selectedFoodStyle,
+          _selectedMenuNumber,
+        ].where((e) => e.isNotEmpty).length;
+
+        await LogService().logPresetSave(
+          fieldsCount: count,          // 예: 3
+          presetType: 'manual_save',   // 원하는 라벨 (e.g., 'manual_save')
+        );
+      } catch (e) {
+        debugPrint('[LogService] logPresetSave failed: $e');
+      }
+    }
+
+    final preset = _createPresetDescription();
     await SettingsHelper.saveCustomPresetDescription(preset);
 
     // 확인을 위해 바로 값을 가져와서 출력
-    String savedLanguageCode = prefs.getString('selectedLanguageCode') ?? 'Not found';
-    String savedFoodStyle = prefs.getString('selectedFoodStyle') ?? 'Not found';
-    String savedMenuNumber = prefs.getString('selectedMenuNumber') ?? 'Not found';
+    final savedLanguageCode =
+        prefs.getString('selectedLanguageCode') ?? 'Not found';
+    final savedFoodStyle =
+        prefs.getString('selectedFoodStyle') ?? 'Not found';
+    final savedMenuNumber =
+        prefs.getString('selectedMenuNumber') ?? 'Not found';
 
     print('Loaded Language Code: $savedLanguageCode');
     print('Loaded Food Style: $savedFoodStyle');
     print('Loaded Menu Number: $savedMenuNumber');
 
-    if (!widget.isFirstLogin) { // 첫 로그인 (튜토리얼)이 아닐 때만
+    if (!widget.isFirstLogin) {
+      // 첫 로그인(튜토리얼) 아닐 때만 토스트
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Preset saved!'),
           duration: Duration(milliseconds: 1000),
         ),
       );
     }
 
+    // 1초 딜레이 후 화면 전환
+    await Future.delayed(const Duration(seconds: 1));
 
-
-
-    // 1초 딜레이 후 홈 화면으로 전환
-    await Future.delayed(Duration(seconds: 1));
-
+    if (!mounted) return;
     if (widget.isFirstLogin) {
       Navigator.pushReplacement(
         context,
@@ -400,7 +423,12 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
     } else {
       Navigator.pushReplacementNamed(context, '/home');
     }
+
+    if (mounted) {
+      setState(() => _isSaving = false);
+    }
   }
+
 
   String _createPresetDescription() {
     print('Creating preset description for language code: $_selectedLanguageCode');

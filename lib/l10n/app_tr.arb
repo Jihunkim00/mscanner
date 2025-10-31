@@ -242,5 +242,10 @@
   "privacy": "Gizlilik Politikası",
   "sub_manage_ios": "Ödemeler Apple Kimliğinize yansıtılır ve Ayarlar > [adınız] > Abonelikler bölümünden yönetilebilir veya iptal edilebilir.",
   "sub_manage_android": "Ödemeler Google hesabınıza yansıtılır ve Play Store uygulaması > Profil simgesi > Ödemeler ve abonelikler > Abonelikler bölümünden yönetilebilir veya iptal edilebilir.",
-  "sub_badge_trial_1m": "🎁 İlk kez abone olanlara 1 ay ücretsiz"
+  "sub_badge_trial_1m": "🎁 İlk kez abone olanlara 1 ay ücretsiz",
+  "iapRestoreError": "Geri yükleme sırasında bir hata oluştu.",
+  "iapRestoreDone": "Satın alımlar geri yüklendi.",
+  "iapRestoreEmpty": "Geri yüklenecek satın alma yok.",
+  "iapRestoreTrying": "Satın alımlar geri yükleniyor...",
+  "viewOnMap": "Haritada görüntüle"
 }

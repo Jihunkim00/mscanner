@@ -712,4 +712,19 @@ class AppLocalizationsMr extends AppLocalizations {
 
   @override
   String get sub_badge_trial_1m => '🎁 पहिल्यांदा सदस्यांसाठी 1 महिना मोफत';
+
+  @override
+  String get iapRestoreError => 'पुनर्स्थापनादरम्यान त्रुटी आली.';
+
+  @override
+  String get iapRestoreDone => 'खरेदी पुनर्स्थापित करण्यात आल्या आहेत.';
+
+  @override
+  String get iapRestoreEmpty => 'पुनर्स्थापित करण्यासाठी कोणतीही खरेदी उपलब्ध नाही.';
+
+  @override
+  String get iapRestoreTrying => 'खरेदी पुनर्स्थापित करण्याचा प्रयत्न करत आहे...';
+
+  @override
+  String get viewOnMap => 'नकाशावर पहा';
 }

@@ -712,4 +712,19 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get sub_badge_trial_1m => '🎁 پہلی بار سبسکرائب کرنے والوں کے لیے ایک ماہ مفت';
+
+  @override
+  String get iapRestoreError => 'بحالی کے دوران ایک خرابی پیش آئی۔';
+
+  @override
+  String get iapRestoreDone => 'خریداریاں بحال کر دی گئی ہیں۔';
+
+  @override
+  String get iapRestoreEmpty => 'بحال کرنے کے لیے کوئی خریداری نہیں ہے۔';
+
+  @override
+  String get iapRestoreTrying => 'خریداریوں کو بحال کرنے کی کوشش کی جا رہی ہے...';
+
+  @override
+  String get viewOnMap => 'نقشے پر دیکھیں';
 }

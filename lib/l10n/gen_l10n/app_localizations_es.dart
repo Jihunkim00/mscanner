@@ -712,4 +712,19 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get sub_badge_trial_1m => '🎁 1 mes gratis para nuevos suscriptores';
+
+  @override
+  String get iapRestoreError => 'Ocurrió un error durante la restauración.';
+
+  @override
+  String get iapRestoreDone => 'Las compras se han restaurado.';
+
+  @override
+  String get iapRestoreEmpty => 'No hay compras para restaurar.';
+
+  @override
+  String get iapRestoreTrying => 'Intentando restaurar las compras...';
+
+  @override
+  String get viewOnMap => 'Ver en el mapa';
 }

@@ -712,4 +712,19 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get sub_badge_trial_1m => '🎁 初回登録者は1か月無料';
+
+  @override
+  String get iapRestoreError => '復元中にエラーが発生しました。';
+
+  @override
+  String get iapRestoreDone => '購入が復元されました。';
+
+  @override
+  String get iapRestoreEmpty => '復元する購入はありません。';
+
+  @override
+  String get iapRestoreTrying => '購入の復元を試みています...';
+
+  @override
+  String get viewOnMap => '地図で表示';
 }

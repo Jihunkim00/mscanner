@@ -39,7 +39,7 @@ class AnimatedMapScreen extends StatefulWidget {
   const AnimatedMapScreen({Key? key, required this.selectedPlaces})
       : super(key: key);
   // 크기 상수 (기존 대비 1/3)
-  static const double PHOTO_SIZE  = 0.7;   // 이전 1.5
+  static const double PHOTO_SIZE  = 2.0;   // 이전 1.5
   static const double PIN_SIZE    = 0.15;   // 이전 0.9
   static const double HIDDEN_SIZE = 0.01;  // 숨김용 그대로
 
@@ -178,6 +178,47 @@ class _AnimatedMapScreenState extends State<AnimatedMapScreen> {
     }
   }
 
+// _AnimatedMapScreenState 내부에 넣기
+  Future<CameraOptions> _cameraForAllSelected({MbxEdgeInsets? padding}) async {
+    final places = widget.selectedPlaces;
+
+    // 빈 리스트면 현재 카메라 상태를 CameraOptions로 변환해서 반환
+    if (places.isEmpty) {
+      final st = await _mapboxMap!.getCameraState(); // CameraState
+      return CameraOptions(
+        center: st.center,
+        zoom: st.zoom,
+        pitch: st.pitch,
+        bearing: st.bearing,
+        padding: st.padding,
+      );
+    }
+
+    // 좌표 리스트 생성 (Point(coordinates: Position(lng, lat)))
+    final coords = <Point>[];
+    for (final p in places) {
+      coords.add(Point(coordinates: Position(p.lng, p.lat)));
+    }
+
+    // MbxEdgeInsets는 이름있는 파라미터 필수(top/left/bottom/right)
+    final pad = padding ??
+        MbxEdgeInsets(
+          top: 80,
+          left: 60,
+          bottom: 120,
+          right: 60,
+        );
+
+    // ✅ bounds 대신 coordinates로 fit (버전차 이슈, infiniteBounds 요구 등 회피)
+    return await _mapboxMap!.cameraForCoordinates(
+      coords,
+      pad,
+      0.0, // bearing
+      0.0, // pitch
+    );
+  }
+
+
 
 
 
@@ -305,161 +346,155 @@ class _AnimatedMapScreenState extends State<AnimatedMapScreen> {
     _L('ensurePins: done, pins=${_zoomOutPins.length}');
   }
 
-
-
-
-
-
-
-
-
   Future<void> _startAnimation() async {
-        if (_mapboxMap == null || _pointManager == null || _lineManager == null)
-          return;
+    if (_mapboxMap == null || _pointManager == null || _lineManager == null) return;
+    if (widget.selectedPlaces.isEmpty) return;
 
-        // ▶ 애니메이션 시작 직전에 첫 마커를 보이도록 세팅
-        final firstAnn = _pointAnnotations[0];
+    _isAnimating = true;
+    try {
+      final places = widget.selectedPlaces;
+      final bool isMulti = places.length > 1;
+
+      // ── 속도 헬퍼: 다중 선택이면 1.5배 느리게 ─────────────────────
+      final double SPEED = isMulti ? 1.5 : 1.0;
+      int ms(num v) => (v * SPEED).round();
+      Duration dz(int baseMs) => Duration(milliseconds: ms(baseMs));
+      MapAnimationOptions anim(int baseMs) => MapAnimationOptions(duration: ms(baseMs));
+
+      final int steps = 100; // 또는 120
+      final int stepDelay = isMulti ? 38 : 50;    // 50ms → 75ms (다중일 때)
+      final double zoomIn = 19.0;
+
+      // 폴리라인 초기화
+      final polylineCoords = <Position>[Position(places.first.lng, places.first.lat)];
+      _animatedPolyline = await _lineManager!.create(
+        PolylineAnnotationOptions(
+          geometry: LineString(coordinates: polylineCoords),
+          lineWidth: 6.0,
+          lineOpacity: 0.8,
+          lineColor: 0xFF20C1FF,
+        ),
+      );
+
+      // 첫 마커 준비
+      final firstAnn = _pointAnnotations[0]
+        ..iconOpacity = 0.0
+        ..iconSize = AnimatedMapScreen.PHOTO_SIZE * 0.66;
+      await _pointManager!.update(firstAnn);
+
+      // 1) 지구 → 2) 첫 장소 줌인 (초기 연출은 원래 속도 유지)
+      await _mapboxMap!.flyTo(
+        CameraOptions(center: Point(coordinates: Position(0, 0)), zoom: 4.0),
+        MapAnimationOptions(duration: 3000),
+      );
+      await Future.delayed(Duration(milliseconds: 600));
+
+      await _mapboxMap!.flyTo(
+        CameraOptions(center: Point(coordinates: polylineCoords.first), zoom: zoomIn),
+        MapAnimationOptions(duration: 2500),
+      );
+      await _applyMarkerMode(zoomIn);
+
+      // 첫 사진 아이콘 키우기
+      for (final size in [
+        AnimatedMapScreen.PHOTO_SIZE * 0.66,
+        AnimatedMapScreen.PHOTO_SIZE * 0.85,
+        AnimatedMapScreen.PHOTO_SIZE,
+      ]) {
         firstAnn
-          ..iconOpacity = 0.0 // 보이게
-          ..iconSize = AnimatedMapScreen.PHOTO_SIZE * 0.66;
+          ..iconOpacity = 1.0
+          ..iconSize = size;
         await _pointManager!.update(firstAnn);
+        await Future.delayed(dz(150)); // 다중이면 225ms
+      }
 
-
-        const int steps = 80; // 더 부드럽게
-        const int stepDuration = 50;
-        const double zoomIn = 19.0;
-
-
-        final places = widget.selectedPlaces;
-        List<Position> polylineCoords = [];
-
-        // 폴리라인 최초 생성(첫 포인트)
-        polylineCoords.add(Position(places.first.lng, places.first.lat));
-
-        _animatedPolyline = await _lineManager!.create(
-          PolylineAnnotationOptions(
-            geometry: LineString(coordinates: polylineCoords),
-            lineWidth: 6.0,
-            lineOpacity: 0.8,
-            lineColor: 0xFF20C1FF,
-          ),
-        );
-
-        // 지구 전체 → 첫 장소 이동
-        await _mapboxMap!.flyTo(
-          CameraOptions(center: Point(coordinates: Position(0, 0)), zoom: 4.0),
-          MapAnimationOptions(duration: 3000),
-        );
-        await Future.delayed(const Duration(milliseconds: 600));
-
-        // 첫 장소로 zoomIn
+      // ── 단일 선택: 너무 줌인 방지 후 종료 ─────────────────────────
+      if (!isMulti) {
+        final endZoom = math.min(zoomIn, 17.0);
         await _mapboxMap!.flyTo(
           CameraOptions(
-              center: Point(coordinates: polylineCoords.first), zoom: zoomIn),
-          MapAnimationOptions(duration: 2500),
+            center: Point(coordinates: Position(places.first.lng, places.first.lat)),
+            zoom: endZoom,
+            pitch: 45.0,
+            bearing: -15.0,
+          ),
+          MapAnimationOptions(duration: 700),
+        );
+        await _applyMarkerMode(endZoom);
+        return;
+      }
+
+      // ── 다중 선택: 전체 보기로 "한 번만" 줌아웃 (fit-bounds) ────────
+      final camAll = await _cameraForAllSelected();
+      await _mapboxMap!.flyTo(camAll, anim(1000)); // 1000 → 1500ms
+      await _applyMarkerMode((camAll.zoom ?? 12.0));
+
+      // 3) 트레일: 중간 지점에서는 카메라 이동 없이 라인만 그리기
+      for (int i = 1; i < places.length; i++) {
+        final prev = places[i - 1];
+        final curr = places[i];
+        final interpolated = interpolatePositions(
+          Position(prev.lng, prev.lat),
+          Position(curr.lng, curr.lat),
+          steps,
         );
 
-
-        // 첫 마커 커지기
-
-        for (final size in [
-          AnimatedMapScreen.PHOTO_SIZE * 0.66,
-          AnimatedMapScreen.PHOTO_SIZE * 0.85,
-          AnimatedMapScreen.PHOTO_SIZE,]) {
-          firstAnn
-            ..iconOpacity = 1.0
-            ..iconSize = size;
-          await _pointManager!.update(firstAnn);
-          await Future.delayed(const Duration(milliseconds: 150));
+        for (final pos in interpolated) {
+          polylineCoords.add(pos);
+          _animatedPolyline!.geometry = LineString(coordinates: List.from(polylineCoords));
+          await _lineManager!.update(_animatedPolyline!);
+          await Future.delayed(Duration(milliseconds: stepDelay)); // 50 → 75ms
         }
-        // 최종 고정 크기
-        firstAnn.iconSize = AnimatedMapScreen.PHOTO_SIZE;
-        await _pointManager!.update(firstAnn);
 
-        // 다음 장소들 이동 및 폴리라인 확장 (부드럽게!)
-        for (int i = 1; i < places.length; i++) {
-          final prev = places[i - 1];
-          final curr = places[i];
-          final interpolated = interpolatePositions(
-            Position(prev.lng, prev.lat),
-            Position(curr.lng, curr.lat),
-            steps,
-          );
+        // 🔕 중간 지점: 카메라 줌인/줌아웃 생략 (요청사항)
+        // 필요하면 중간 지점 아이콘만 천천히 나타내고 싶을 때:
+        // final ann = _pointAnnotations[i]
+        //   ..iconOpacity = 1.0
+        //   ..iconSize = AnimatedMapScreen.PHOTO_SIZE * 0.7;
+        // await _pointManager!.update(ann);
+        // (주의: camAll 줌에서는 사진 모드가 아닐 수 있음)
+      }
 
-          // ▶ 폴리라인 그리기 전, 전체 경로가 보이도록 줌아웃
-          await _mapboxMap!.flyTo(
-            CameraOptions(
-              center: Point(coordinates: polylineCoords.first),
-              zoom: 8.0, // 미리 정의된 zoomOut 값 사용
-              pitch: 0.0, // 2D 뷰로 전환하면 전체가 더 잘 보여요
-            ),
-            MapAnimationOptions(duration: 1000),
-          );
-          await _applyMarkerMode(8.0);   // ← 추가
+      // 4) 마지막 지점으로만 줌인
+      final last = places.last;
+      await _mapboxMap!.flyTo(
+        CameraOptions(
+          center: Point(coordinates: Position(last.lng, last.lat)),
+          zoom: zoomIn,
+          pitch: 50.0,
+          bearing: -20.0,
+        ),
+        anim(900), // 900 → 1350ms
+      );
+      await _applyMarkerMode(zoomIn);
 
+      // 마지막 사진 아이콘만 키우기
+      final lastAnn = _pointAnnotations.last
+        ..iconOpacity = 1.0
+        ..iconSize = AnimatedMapScreen.PHOTO_SIZE * 0.66;
+      await _pointManager!.update(lastAnn);
 
-          for (int idx = 0; idx < interpolated.length; idx++) {
-            final pos = interpolated[idx];
+      for (final size in [
+        AnimatedMapScreen.PHOTO_SIZE * 0.66,
+        AnimatedMapScreen.PHOTO_SIZE * 0.85,
+        AnimatedMapScreen.PHOTO_SIZE,
+      ]) {
+        lastAnn.iconSize = size;
+        await _pointManager!.update(lastAnn);
+        await Future.delayed(dz(150)); // 150 → 225ms
+      }
 
+      // 5) 엔딩: 전체 보기로 한 번만 줌아웃
+      await _mapboxMap!.flyTo(camAll, anim(700)); // 700 → 1050ms
+      await _applyMarkerMode((camAll.zoom ?? 12.0));
 
-
-
-            polylineCoords.add(pos);
-
-            // 폴리라인 좌표만 업데이트하여 깜빡임 방지
-            _animatedPolyline!.geometry =
-                LineString(coordinates: List.from(polylineCoords));
-            await _lineManager!.update(_animatedPolyline!);
-
-            await Future.delayed(const Duration(milliseconds: stepDuration));
-          }
-
-          // ▶ 폴리라인이 모두 그려진 뒤, 다시 현재 지점으로 줌인
-          await _mapboxMap!.flyTo(
-            CameraOptions(
-              center: Point(coordinates: polylineCoords.last),
-              zoom: zoomIn, // 미리 정의된 zoomIn 값 사용
-              pitch: 50.0,
-              bearing: -20.0,
-            ),
-            MapAnimationOptions(duration: 1000),
-          );
-          await _applyMarkerMode(zoomIn); // ← 추가
-
-
-          final ann = _pointAnnotations[i];
-
-          // ▶ ① 마커를 보이게 세팅
-          ann
-            ..iconOpacity = 1.0 // 투명 → 불투명
-            ..iconSize = AnimatedMapScreen.PHOTO_SIZE * 0.66;
-          await _pointManager!.update(ann);
-
-          // ▶ ② (옵션) 크기 애니메이션
-          for (final size in [
-            AnimatedMapScreen.PHOTO_SIZE * 0.66,
-            AnimatedMapScreen.PHOTO_SIZE * 0.85,
-            AnimatedMapScreen.PHOTO_SIZE,]) {
-            ann.iconSize = size;
-            await _pointManager!.update(ann);
-            await Future.delayed(const Duration(milliseconds: 150));
-          }
-
-          // ▶ ③ 최종 고정 크기
-          ann.iconSize = AnimatedMapScreen.PHOTO_SIZE;
-          await _pointManager!.update(ann);
-          await Future.delayed(const Duration(seconds: 1));
-        }
-         firstAnn.iconSize = AnimatedMapScreen.PHOTO_SIZE;
-         await _pointManager!.update(firstAnn);
-
-         // ▶ 애니메이션 종료 후 살짝 줌아웃 + 핀으로 전환
-         await _mapboxMap!.flyTo(
-               CameraOptions(zoom: 12.0, pitch: 50.0), // center는 현 위치 유지
-               MapAnimationOptions(duration: 800),
-             );
-         await _applyMarkerMode(8.0);
+    } finally {
+      _isAnimating = false;
+    }
   }
+
+
+
 
   Future<void> _onCameraChanged(CameraChangedEventData _) async {
     if (_mapboxMap == null || _isAnimating) return;
@@ -511,12 +546,13 @@ class _AnimatedMapScreenState extends State<AnimatedMapScreen> {
               Positioned(
                 bottom: 40,
                 right: 20,
-                child: FloatingActionButton.extended(
+                child: FloatingActionButton.small(
                   onPressed: _startAnimation,
-                  icon: const Icon(Icons.play_arrow),
-                  label: const Text('애니메이션 시작'),
+                  child: const Icon(Icons.play_arrow),
+                  tooltip: '애니메이션 시작',
                 ),
               ),
+
             ],
           ),
         );

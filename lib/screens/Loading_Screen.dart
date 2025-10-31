@@ -12,6 +12,8 @@ import 'package:mscanner/widgets/tutorial_indicator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mscanner/screens/geohash_service.dart';
+import '/screens/log_service.dart';
+
 
 class LoadingScreen extends StatefulWidget {
   final File? image;
@@ -184,6 +186,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
     try {
       final responses = await _gptFutureAll.timeout(Duration(seconds: 60));
       if (!_hasNavigated && mounted) {
+        await LogService().logScanCompleted();
         _navigateToResultScreen(responses); // ✅ 튜토리얼 여부 상관없이 결과 화면으로 이동
       }
     } catch (e) {

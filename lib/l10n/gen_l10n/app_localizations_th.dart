@@ -712,4 +712,19 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get sub_badge_trial_1m => '🎁 สมาชิกใหม่ รับฟรี 1 เดือน';
+
+  @override
+  String get iapRestoreError => 'เกิดข้อผิดพลาดระหว่างการกู้คืน.';
+
+  @override
+  String get iapRestoreDone => 'การซื้อถูกกู้คืนแล้ว.';
+
+  @override
+  String get iapRestoreEmpty => 'ไม่มีการซื้อให้กู้คืน';
+
+  @override
+  String get iapRestoreTrying => 'กำลังพยายามกู้คืนการซื้อ...';
+
+  @override
+  String get viewOnMap => 'ดูบนแผนที่';
 }

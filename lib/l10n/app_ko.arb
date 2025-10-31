@@ -242,5 +242,10 @@
   "privacy": "개인정보 처리방침",
   "sub_manage_ios": "결제는 Apple ID로 청구되며, 설정 > [사용자 이름] > 구독에서 관리/해지할 수 있습니다.",
   "sub_manage_android": "결제는 Google 계정으로 청구되며, Play 스토어 앱 > 프로필 아이콘 > 결제 및 구독 > 구독에서 관리/해지할 수 있습니다.",
-  "sub_badge_trial_1m": "🎁 신규 구독자 1개월 무료"
+  "sub_badge_trial_1m": "🎁 신규 구독자 1개월 무료",
+  "iapRestoreError": "복원 중 오류가 발생했습니다.",
+  "iapRestoreDone": "구매가 복원되었습니다.",
+  "iapRestoreEmpty": "복원할 구매 내역이 없습니다.",
+  "iapRestoreTrying": "구매 복원 중...",
+  "viewOnMap": "지도에서 보기"
 }

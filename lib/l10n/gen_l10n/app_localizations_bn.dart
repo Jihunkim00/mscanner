@@ -712,4 +712,19 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get sub_badge_trial_1m => '🎁 প্রথমবার সাবস্ক্রাইবারদের জন্য ১ মাস ফ্রি';
+
+  @override
+  String get iapRestoreError => 'পুনরুদ্ধারের সময় একটি ত্রুটি ঘটেছে।';
+
+  @override
+  String get iapRestoreDone => 'ক্রয়সমূহ পুনরুদ্ধার করা হয়েছে।';
+
+  @override
+  String get iapRestoreEmpty => 'পুনরুদ্ধার করার জন্য কোনো কেনাকাটা নেই।';
+
+  @override
+  String get iapRestoreTrying => 'ক্রয় পুনরুদ্ধার করার চেষ্টা করা হচ্ছে...';
+
+  @override
+  String get viewOnMap => 'মানচিত্রে দেখুন';
 }

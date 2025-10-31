@@ -9,6 +9,8 @@ import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import '/widgets/photo_capture_widget.dart';
 import 'package:provider/provider.dart';
 import '/ad_remove_provider.dart';
+import '/screens/log_service.dart';
+
 
 
 class CameraScreen extends StatefulWidget {
@@ -61,9 +63,16 @@ class _CameraScreenState extends State<CameraScreen> {
 
     try {
         // 프리미엄이 아니면 1장만 허용(혹시 위젯 변경/플랫폼 버그 등으로 여러 장 올 경우 대비)
-        final subscribed = mounted ? context.read<AdRemoveProvider>().isSubscribed : false;
-        final effectivePremium = widget.isPremium || subscribed;
-        final incoming = effectivePremium ? rawFiles : (rawFiles.isNotEmpty ? [rawFiles.first] : rawFiles);
+      // 멀티스캔 탭에서만 여러 장 허용: 네비게이션에서 넘긴 flag만 사용
+      final isMultiMode = widget.isPremium; // (이름 그대로: 멀티스캔 여부)
+      final incoming = isMultiMode ? rawFiles : (rawFiles.isNotEmpty ? [rawFiles.first] : rawFiles);
+
+      // 🔹 [LOG] ② 멀티 스캔: 사진 선택 후 전송
+      if (isMultiMode && incoming.isNotEmpty) {
+        // 여러 장이면 개수도 같이 남김
+        await LogService().logMultiScanSubmit(imageCount: incoming.length);
+      }
+
 
       // 1) 이미지 압축
       List<File> files = [];
@@ -299,9 +308,9 @@ class _CameraScreenState extends State<CameraScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
      // Provider 기준으로 최신 구독 상태를 읽고, 상위에서 명시적으로 넘긴 값이 true면 그걸 우선.
-    final subscribed = context.watch<AdRemoveProvider>().isSubscribed;
-    final effectivePremium = widget.isPremium || subscribed;
-    final maxCount = effectivePremium ? 8 : 1; // 필요시 원하는 값으로 조정(현재 4 → 8 제안)
+// 네비게이션에서 넘긴 값으로만 멀티/싱글 결정
+    final isMultiMode = widget.isPremium;
+    final maxCount = isMultiMode ? 4 : 1;
     return WillPopScope(
       onWillPop: () async {
         // Flutter 레벨 뒤로가기도 홈으로
@@ -312,10 +321,10 @@ class _CameraScreenState extends State<CameraScreen> {
         backgroundColor: isDark ? Colors.black : Colors.white,
         appBar: AppBar(leading: SizedBox.shrink(), /*…*/),
         body: PhotoCaptureWidget(
-          isMulti: effectivePremium,
-          maxCount: 4,
+          isMulti: isMultiMode,
+          maxCount: maxCount,
           onCaptured: _onCaptured,
-          onCancel: widget.onCancel,  // ← 여기를 연결
+          onCancel: widget.onCancel,
         ),
       ),
     );

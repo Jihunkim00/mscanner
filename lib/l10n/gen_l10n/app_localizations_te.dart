@@ -712,4 +712,19 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get sub_badge_trial_1m => '🎁 మొదటిసారి సభ్యత్వం పొందే వారికి ఒక నెల ఉచితం';
+
+  @override
+  String get iapRestoreError => 'పునరుద్ధరణ సమయంలో ఒక లోపం ఏర్పడింది.';
+
+  @override
+  String get iapRestoreDone => 'కొనుగోళ్లు పునరుద్ధరించబడ్డాయి.';
+
+  @override
+  String get iapRestoreEmpty => 'పునరుద్ధరించడానికి ఎలాంటి కొనుగోలు లేవు.';
+
+  @override
+  String get iapRestoreTrying => 'కొనుగోళ్లను పునరుద్ధరించడానికి ప్రయత్నిస్తున్నాం...';
+
+  @override
+  String get viewOnMap => 'నక్షాపై చూడండి';
 }

@@ -242,5 +242,10 @@
   "privacy": "Chính sách bảo mật",
   "sub_manage_ios": "Thanh toán sẽ được tính vào Apple ID của bạn và có thể quản lý/hủy trong Cài đặt > [tên của bạn] > Đăng ký.",
   "sub_manage_android": "Thanh toán sẽ được tính vào tài khoản Google của bạn và có thể quản lý/hủy trong ứng dụng Cửa hàng Play > Biểu tượng hồ sơ > Thanh toán & gói đăng ký > Đăng ký.",
-  "sub_badge_trial_1m": "🎁 1 tháng miễn phí cho người đăng ký lần đầu"
+  "sub_badge_trial_1m": "🎁 1 tháng miễn phí cho người đăng ký lần đầu",
+  "iapRestoreError": "Đã xảy ra lỗi trong quá trình khôi phục.",
+  "iapRestoreDone": "Các giao dịch mua đã được khôi phục.",
+  "iapRestoreEmpty": "Không có mua hàng nào để khôi phục.",
+  "iapRestoreTrying": "Đang cố gắng khôi phục các giao dịch mua...",
+  "viewOnMap": "Xem trên bản đồ"
 }

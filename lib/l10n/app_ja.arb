@@ -242,5 +242,10 @@
   "privacy": "プライバシーポリシー",
   "sub_manage_ios": "支払いはApple IDに請求され、設定 > [ユーザー名] > サブスクリプションから管理または解約できます。",
   "sub_manage_android": "支払いはGoogleアカウントに請求され、Play ストアアプリ > プロフィールアイコン > お支払いとサブスクリプション > サブスクリプション から管理または解約できます。",
-  "sub_badge_trial_1m": "🎁 初回登録者は1か月無料"
+  "sub_badge_trial_1m": "🎁 初回登録者は1か月無料",
+  "iapRestoreError": "復元中にエラーが発生しました。",
+  "iapRestoreDone": "購入が復元されました。",
+  "iapRestoreEmpty": "復元する購入はありません。",
+  "iapRestoreTrying": "購入の復元を試みています...",
+  "viewOnMap": "地図で表示"
 }

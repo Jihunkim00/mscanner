@@ -712,4 +712,19 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get sub_badge_trial_1m => '🎁 İlk kez abone olanlara 1 ay ücretsiz';
+
+  @override
+  String get iapRestoreError => 'Geri yükleme sırasında bir hata oluştu.';
+
+  @override
+  String get iapRestoreDone => 'Satın alımlar geri yüklendi.';
+
+  @override
+  String get iapRestoreEmpty => 'Geri yüklenecek satın alma yok.';
+
+  @override
+  String get iapRestoreTrying => 'Satın alımlar geri yükleniyor...';
+
+  @override
+  String get viewOnMap => 'Haritada görüntüle';
 }

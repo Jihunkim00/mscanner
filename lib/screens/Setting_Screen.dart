@@ -14,6 +14,9 @@ import 'package:package_info_plus/package_info_plus.dart'; // 패키지 추가
 import '/widgets/test_purchase_widget.dart'; // 추가된 위젯 import
 import 'package:provider/provider.dart';
 import '/ad_remove_provider.dart'; // 경로에 따라 수정 필요
+import '/screens/log_service.dart';
+
+
 
 class SettingScreen extends StatefulWidget {
   @override
@@ -26,10 +29,22 @@ class _SettingScreenState extends State<SettingScreen> {
   bool _isDarkMode = false;
   bool _isPasswordChangeVisible = false;
   bool _isCloudSaveEnabled = true; // 클라우드 저장 기본 활성화
-  String _selectedEngine = 'GPT-4o';
+  String _selectedEngine = 'GPT-4.1-mini';
   String _appVersion = '1.0.0'; // 기본 버전
   User? user;
   int _userPoints = 0;
+
+    // ✅ 추가: photoURL 유무 확인 + 이니셜 추출
+    bool _hasPhoto(User? u) => u?.photoURL != null && u!.photoURL!.isNotEmpty;
+    String _initialsFrom(String? nameOrEmail) {
+        final s = (nameOrEmail ?? '').trim();
+        if (s.isEmpty) return '👤';
+        final parts = s.split(RegExp(r'\s+'));
+        if (parts.length >= 2) {
+          return (parts[0].substring(0, 1) + parts[1].substring(0, 1)).toUpperCase();
+        }
+        return s.substring(0, 1).toUpperCase();
+      }
 
   @override
   void initState() {
@@ -37,6 +52,8 @@ class _SettingScreenState extends State<SettingScreen> {
     _loadSettings();
     _fetchUserProfile();
     _fetchAppVersion(); // 앱 버전 불러오기
+
+    LogService().logSettingsOpen();
   }
 
   Future<void> _fetchAppVersion() async {
@@ -57,7 +74,7 @@ class _SettingScreenState extends State<SettingScreen> {
     bool isDarkMode = savedThemeMode == AdaptiveThemeMode.dark;
 
     // 엔진 설정 로드
-    String selectedEngine = await SettingsHelper.getSelectedEngine() ?? 'GPT-4o';
+    String selectedEngine = await SettingsHelper.getSelectedEngine() ?? 'GPT-4.1-mini';
 
     // 상태 업데이트
     setState(() {
@@ -417,6 +434,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
     bool isGuest = user != null && user!.isAnonymous;
 
+
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: null, // title 텍스트 제거
@@ -444,20 +462,74 @@ class _SettingScreenState extends State<SettingScreen> {
             ),
             children: [
               CupertinoFormRow(
-                prefix: CircleAvatar(
-                  radius: 18,
-                  backgroundColor: isGuest ? Colors.blue[300] : null,
-                  child: isGuest
-                      ? Text(
-                    'GUEST',
-                    style: TextStyle(
-                      fontSize: 9,
-                      color: _isDarkMode ? CupertinoColors.white : CupertinoColors.black,
-                    ),
-                  )
-                      : null,
-                  backgroundImage: isGuest ? null : NetworkImage(user?.photoURL ?? 'https://via.placeholder.com/150'),
+                prefix: SizedBox(
+                  width: 36,
+                  height: 36,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      CircleAvatar(
+                        radius: 18,
+                        backgroundColor: isGuest ? Colors.blue[300] : null,
+                      // ✅ 변경: photoURL 있을 때만 네트워크 이미지 사용
+                                              backgroundImage: (!isGuest && _hasPhoto(user))
+                                    ? NetworkImage(user!.photoURL!)
+                                : null,
+                            // ✅ 변경: 게스트는 "GUEST", 그 외 photo 없으면 이니셜 표시
+                            child: isGuest
+                                ? Text(
+                                    'GUEST',
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      color: _isDarkMode ? CupertinoColors.white : CupertinoColors.black,
+                                    ),
+                                  )
+                                : (!_hasPhoto(user))
+                                    ? Text(
+                                        _initialsFrom(user?.displayName ?? user?.email),
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      )
+                                    : null,
+                      ),
+
+                      // PRO 배지 (구독자일 때만 표시)
+                      if (!isGuest && isSubscribed)
+                        Positioned(
+                          right: -2,
+                          bottom: -2,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: CupertinoColors.activeBlue,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: _isDarkMode ? CupertinoColors.black : CupertinoColors.white,
+                                width: 1.0,
+                              ),
+                              boxShadow: const [
+                                BoxShadow(blurRadius: 1, offset: Offset(0, 1), color: Colors.black26),
+                              ],
+                            ),
+                            child: const Text(
+                              'PRO',
+                              style: TextStyle(
+                                fontSize: 6,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
+
+
+
                 child: Row(
                   children: [
                     SizedBox(width: 8), // 프로필 사진과 텍스트 사이에 약간의 간격 추가

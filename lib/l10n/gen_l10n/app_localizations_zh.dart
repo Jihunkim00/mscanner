@@ -712,6 +712,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get sub_badge_trial_1m => '🎁 首次订阅用户可享1个月免费试用';
+
+  @override
+  String get iapRestoreError => '恢复过程中发生错误。';
+
+  @override
+  String get iapRestoreDone => '购买已恢复。';
+
+  @override
+  String get iapRestoreEmpty => '没有可恢复的购买。';
+
+  @override
+  String get iapRestoreTrying => '正在尝试恢复购买...';
+
+  @override
+  String get viewOnMap => '在地图上查看';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -1422,6 +1437,21 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get sub_badge_trial_1m => '🎁 首次订阅用户可享1个月免费体验';
+
+  @override
+  String get iapRestoreError => '恢复过程中发生错误。';
+
+  @override
+  String get iapRestoreDone => '购买已恢复。';
+
+  @override
+  String get iapRestoreEmpty => '没有可恢复的购买。';
+
+  @override
+  String get iapRestoreTrying => '正在尝试恢复购买…';
+
+  @override
+  String get viewOnMap => '在地图上查看';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -2132,4 +2162,19 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get sub_badge_trial_1m => '🎁 首次訂閱者享 1 個月免費';
+
+  @override
+  String get iapRestoreError => '還原過程中發生錯誤。';
+
+  @override
+  String get iapRestoreDone => '已恢復購買項目。';
+
+  @override
+  String get iapRestoreEmpty => '沒有可恢復的購買。';
+
+  @override
+  String get iapRestoreTrying => '正在嘗試恢復已購買的項目...';
+
+  @override
+  String get viewOnMap => '在地圖上查看';
 }

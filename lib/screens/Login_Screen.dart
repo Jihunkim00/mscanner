@@ -6,12 +6,15 @@ import 'package:google_sign_in/google_sign_in.dart';
 import '/screens/Home_Screen.dart';
 import '/screens/SignUp_Screen.dart';
 import '/screens/ChangePassword_Screen.dart';
-
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '/screens/log_service.dart'; // ✅ 로그 서비스 추가
 import '/screens/url_launcher1.dart'; // ← 만들어둔 위젯 import 추가
+import 'dart:convert';
+import 'dart:math';
+import 'package:crypto/crypto.dart';
+
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -20,71 +23,112 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   String? _errorMessage;
 
+  @override
+  void initState() {
+    super.initState();
+    _initGoogleSignIn();
+  }
+
+  Future<void> _initGoogleSignIn() async {
+    await _googleSignIn.initialize(
+      // ✅ Android에서는 반드시 Web Client ID 지정해야 함
+      serverClientId: '522189466074-ijitmvohfhromjc32kkjs6khbprasp8e.apps.googleusercontent.com',
+      // ✅ iOS에서는 clientId 지정 (Firebase Console iOS OAuth ID)
+      clientId: Platform.isIOS
+          ? '522189466074-qjculmgnptdeorlv86rh9e0uulp934rs.apps.googleusercontent.com'
+          : null,
+    );
+  }
+
+
+
   Future<User?> _signInWithGoogle() async {
+    await LogService().logLoginAttempt(method: 'google');
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        return null;
+      final account = await _googleSignIn.authenticate(); // ← signIn() 아님
+      final idToken = account.authentication.idToken;      // ← property, nullable
+
+      if (idToken == null) {
+        throw Exception('Google idToken is null');
       }
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(idToken: idToken);
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
 
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      final UserCredential userCredential = await _auth.signInWithCredential(credential);
+      await LogService().logLoginSuccess(method: 'google');
       return userCredential.user;
     } catch (e) {
-      print('Google sign-in error: $e');
-      // 에러 메시지 제거
+      await LogService().logLoginFail(method: 'google', errorCode: 'exception', errorMsg: e.toString());
+      debugPrint('Google sign-in error: $e');
       return null;
     }
   }
+
+  String _generateNonce([int length = 32]) {
+    const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(length, (_) => charset[random.nextInt(charset.length)]).join();
+  }
+
+  String _sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
 
   Future<User?> _signInWithApple() async {
+    await LogService().logLoginAttempt(method: 'apple');
     try {
-      // Apple 인증 요청
+      // 1) rawNonce 생성 + 해시
+      final rawNonce = _generateNonce();
+      final hashedNonce = _sha256ofString(rawNonce);
+
+      // 2) 애플 인증 (hashedNonce 전달)
       final appleCredential = await SignInWithApple.getAppleIDCredential(
-        scopes: [
-          AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName,
-        ],
+        scopes: [AppleIDAuthorizationScopes.email, AppleIDAuthorizationScopes.fullName],
+        nonce: hashedNonce,
       );
 
-      // Firebase로 전달할 OAuthCredential 생성
-      final oauthCredential = OAuthProvider("apple.com").credential(
-        idToken: appleCredential.identityToken,
-        accessToken: appleCredential.authorizationCode,
+      // 3) Firebase용 credential (idToken + rawNonce + AppleFullPersonName(널 불가))
+      final oauth = AppleAuthProvider.credentialWithIDToken(
+        appleCredential.identityToken!,         // String (not null)
+        rawNonce,                               // String (not null)
+        AppleFullPersonName(                    // 객체 자체는 not null, 내부 필드는 null 허용
+          givenName: appleCredential.givenName,
+          familyName: appleCredential.familyName,
+        ),
       );
 
-      // Firebase 로그인 시도
-      final UserCredential userCredential = await _auth.signInWithCredential(oauthCredential);
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(oauth);
+      await LogService().logLoginSuccess(method: 'apple');
       return userCredential.user;
     } catch (e) {
-      print('Apple sign-in error: $e');
-      // 에러 메시지 제거
+      await LogService().logLoginFail(method: 'password', errorCode: 'exception', errorMsg: e.toString());
+      debugPrint('Apple sign-in error: $e');
       return null;
     }
   }
 
+
   Future<void> _signInWithEmailPassword() async {
+    await LogService().logLoginAttempt(method: 'password'); // 🔹 시도
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: _emailController.text,
         password: _passwordController.text,
       );
+      await LogService().logLoginSuccess(method: 'password'); // 🔹 성공
 
-      await LogService().logLoginSuccess(); // ✅ 추가된 부분
 
       _navigateAfterSignIn(userCredential.user);
     } catch (e) {
+      await LogService().logLoginFail(method: 'password', errorCode: 'exception', errorMsg: e.toString()); // 🔹 실패(일반 예외)
       setState(() {
         _errorMessage = e.toString();
       });
@@ -93,8 +137,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // **게스트 로그인 기능 추가 및 Cupertino 스타일 다이얼로그로 변경**
   Future<void> _signInAsGuest() async {
+    await LogService().logLoginAttempt(method: 'guest'); // 🔹 시도
     try {
       UserCredential userCredential = await _auth.signInAnonymously();
+
+      await LogService().logLoginSuccess(method: 'guest'); // 🔹 성공
 
       // 게스트 로그인 성공 시 Cupertino 스타일 다이얼로그 표시
       await showCupertinoDialog(
@@ -113,7 +160,15 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       _navigateAfterSignIn(userCredential.user);
+    } on FirebaseAuthException catch (e) {
+      await LogService().logLoginFail(method: 'guest', errorCode: e.code, errorMsg: e.message); // 🔹 실패
+      setState(() {
+        _errorMessage =
+            AppLocalizations.of(context)?.guestLoginFailed ?? 'Guest login failed. Please try again.';
+      });
+      print('Guest sign-in error: $e');
     } catch (e) {
+      await LogService().logLoginFail(method: 'guest', errorCode: 'exception', errorMsg: e.toString()); // 🔹 실패
       setState(() {
         _errorMessage =
             AppLocalizations.of(context)?.guestLoginFailed ?? 'Guest login failed. Please try again.';
@@ -166,7 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           onPressed: () async {
                             User? user = await _signInWithGoogle();
                             if (user != null) {
-                              await LogService().logLoginSuccess(); // ✅ 추가된 부분
+
                               _navigateAfterSignIn(user);
                             }
                           },
@@ -193,8 +248,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             onPressed: () async {
                               User? user = await _signInWithApple();
                               if (user != null) {
-                                await LogService()
-                                    .logLoginSuccess(); // ✅ 추가된 부분
+
                                 _navigateAfterSignIn(user);
                               }
                             },

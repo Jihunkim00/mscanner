@@ -712,4 +712,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sub_badge_trial_1m => '🎁 1‑month free for first‑time subscribers';
+
+  @override
+  String get iapRestoreError => 'An error occurred during restoration.';
+
+  @override
+  String get iapRestoreDone => 'Purchases have been restored.';
+
+  @override
+  String get iapRestoreEmpty => 'No purchases to restore.';
+
+  @override
+  String get iapRestoreTrying => 'Trying to restore purchases...';
+
+  @override
+  String get viewOnMap => 'View on map';
 }

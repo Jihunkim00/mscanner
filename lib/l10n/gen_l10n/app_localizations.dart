@@ -1517,6 +1517,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'🎁 1‑month free for first‑time subscribers'**
   String get sub_badge_trial_1m;
+
+  /// No description provided for @iapRestoreError.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred during restoration.'**
+  String get iapRestoreError;
+
+  /// No description provided for @iapRestoreDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchases have been restored.'**
+  String get iapRestoreDone;
+
+  /// No description provided for @iapRestoreEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No purchases to restore.'**
+  String get iapRestoreEmpty;
+
+  /// No description provided for @iapRestoreTrying.
+  ///
+  /// In en, this message translates to:
+  /// **'Trying to restore purchases...'**
+  String get iapRestoreTrying;
+
+  /// No description provided for @viewOnMap.
+  ///
+  /// In en, this message translates to:
+  /// **'View on map'**
+  String get viewOnMap;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

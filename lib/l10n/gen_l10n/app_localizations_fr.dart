@@ -712,4 +712,19 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sub_badge_trial_1m => '🎁 1 mois offert pour les nouveaux abonnés';
+
+  @override
+  String get iapRestoreError => 'Une erreur s\'est produite lors de la restauration.';
+
+  @override
+  String get iapRestoreDone => 'Les achats ont été restaurés.';
+
+  @override
+  String get iapRestoreEmpty => 'Aucun achat à restaurer.';
+
+  @override
+  String get iapRestoreTrying => 'Tentative de restauration des achats...';
+
+  @override
+  String get viewOnMap => 'Afficher sur la carte';
 }

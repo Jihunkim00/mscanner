@@ -712,4 +712,19 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get sub_badge_trial_1m => '🎁 1 месяц бесплатно для новых подписчиков';
+
+  @override
+  String get iapRestoreError => 'Во время восстановления произошла ошибка.';
+
+  @override
+  String get iapRestoreDone => 'Покупки восстановлены.';
+
+  @override
+  String get iapRestoreEmpty => 'Нет покупок для восстановления.';
+
+  @override
+  String get iapRestoreTrying => 'Пытаюсь восстановить покупки...';
+
+  @override
+  String get viewOnMap => 'Показать на карте';
 }

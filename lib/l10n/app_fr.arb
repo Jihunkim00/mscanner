@@ -242,5 +242,10 @@
   "privacy": "Politique de confidentialité",
   "sub_manage_ios": "Les paiements sont facturés sur votre identifiant Apple et les abonnements peuvent être gérés ou annulés dans Réglages > [votre nom] > Abonnements.",
   "sub_manage_android": "Les paiements sont facturés sur votre compte Google et les abonnements peuvent être gérés ou annulés dans l’application Play Store > Icône de profil > Paiements et abonnements > Abonnements.",
-  "sub_badge_trial_1m": "🎁 1 mois offert pour les nouveaux abonnés"
+  "sub_badge_trial_1m": "🎁 1 mois offert pour les nouveaux abonnés",
+  "iapRestoreError": "Une erreur s'est produite lors de la restauration.",
+  "iapRestoreDone": "Les achats ont été restaurés.",
+  "iapRestoreEmpty": "Aucun achat à restaurer.",
+  "iapRestoreTrying": "Tentative de restauration des achats...",
+  "viewOnMap": "Afficher sur la carte"
 }

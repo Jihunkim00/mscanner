@@ -242,5 +242,10 @@
   "privacy": "隐私政策",
   "sub_manage_ios": "费用将通过您的Apple ID收取，可在 设置 > [您的姓名] > 订阅 中管理或取消。",
   "sub_manage_android": "费用将通过您的Google账号收取，可在 Play 商店应用 > 个人资料图标 > 付款和订阅 > 订阅 中管理或取消。",
-  "sub_badge_trial_1m": "🎁 首次订阅用户可享1个月免费体验"
+  "sub_badge_trial_1m": "🎁 首次订阅用户可享1个月免费体验",
+  "iapRestoreError": "恢复过程中发生错误。",
+  "iapRestoreDone": "购买已恢复。",
+  "iapRestoreEmpty": "没有可恢复的购买。",
+  "iapRestoreTrying": "正在尝试恢复购买…",
+  "viewOnMap": "在地图上查看"
 }

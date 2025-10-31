@@ -712,4 +712,19 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get sub_badge_trial_1m => '🎁 1 tháng miễn phí cho người đăng ký lần đầu';
+
+  @override
+  String get iapRestoreError => 'Đã xảy ra lỗi trong quá trình khôi phục.';
+
+  @override
+  String get iapRestoreDone => 'Các giao dịch mua đã được khôi phục.';
+
+  @override
+  String get iapRestoreEmpty => 'Không có mua hàng nào để khôi phục.';
+
+  @override
+  String get iapRestoreTrying => 'Đang cố gắng khôi phục các giao dịch mua...';
+
+  @override
+  String get viewOnMap => 'Xem trên bản đồ';
 }

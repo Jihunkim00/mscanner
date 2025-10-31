@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
+import '/screens/log_service.dart';
+
 
 /// ===== 상위 통화 & 국가→통화 매핑(요약) =====
 const Set<String> kTopCurrencies = {
@@ -225,7 +227,20 @@ class FxQuickFxButton extends StatelessWidget {
         splashRadius: iconSize + 6,
         tooltip: AppLocalizations.of(context)?.fx_tooltip,
         icon: const Icon(Icons.currency_exchange),
-        onPressed: () {
+        onPressed: () async {
+          // 🔹 from/to 산출
+          final from = pickLocalCurrency(
+            detectedCountryCode: detectedCountryCode,
+            currencySymbolHint: currencySymbolHint,
+          );
+          final to = _targetCodeOf(initialTarget);
+
+          // 🔹 로그: 환율 기능 열기
+          await LogService().logCurrencyCalcOpen(
+            from: from,
+            to: to,
+            context: 'scan', // 필요하면 'manual' 등으로 바꿔도 됨
+          );
           showModalBottomSheet(
             context: context,
             useSafeArea: true,

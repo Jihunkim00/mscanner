@@ -712,4 +712,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sub_badge_trial_1m => '🎁 شهر واحد مجانًا للمشتركين لأول مرة';
+
+  @override
+  String get iapRestoreError => 'حدث خطأ أثناء الاستعادة.';
+
+  @override
+  String get iapRestoreDone => 'تم استعادة المشتريات.';
+
+  @override
+  String get iapRestoreEmpty => 'لا توجد مشتريات لاستعادتها.';
+
+  @override
+  String get iapRestoreTrying => 'جاري استعادة المشتريات...';
+
+  @override
+  String get viewOnMap => 'عرض على الخريطة';
 }

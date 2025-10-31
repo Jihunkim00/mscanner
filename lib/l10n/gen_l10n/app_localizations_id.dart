@@ -712,4 +712,19 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get sub_badge_trial_1m => '🎁 Gratis 1 bulan untuk pelanggan baru';
+
+  @override
+  String get iapRestoreError => 'Terjadi kesalahan selama pemulihan.';
+
+  @override
+  String get iapRestoreDone => 'Pembelian telah dipulihkan.';
+
+  @override
+  String get iapRestoreEmpty => 'Tidak ada pembelian untuk dipulihkan.';
+
+  @override
+  String get iapRestoreTrying => 'Mencoba memulihkan pembelian...';
+
+  @override
+  String get viewOnMap => 'Lihat di peta';
 }
