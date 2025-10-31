@@ -1,0 +1,1 @@
+D:\mscanner\build\app\intermediates\cxx\RelWithDebInfo\2v323r1q\obj\arm64-v8a
