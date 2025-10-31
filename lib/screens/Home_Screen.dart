@@ -1426,16 +1426,22 @@ class _HomeContentState extends State<HomeContent> {
           return Center(child: Text('No data available'));
         } else {
           final cardData = snapshot.data!;
-          if (!_sentMainCardsImpression) {
-            _sentMainCardsImpression = true;
+          if (!_sentMainCardsImpression && cardData.isNotEmpty) {
+            _sentMainCardsImpression = true; // 위젯 수명 내 중복 방지
             WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return; // 안전 가드
               LogService().logContentImpression(
                 contentType: 'home_main_cards',
                 count: cardData.length,
-                // sampleRate: 0.3, // 트래픽 크면 샘플링도 가능
+                sampleRate: 1.0,       // 테스트는 1.0 (샘플링 배제)
+                oncePerSession: false, // 테스트는 false로 (게이트 배제)
+                oncePerDay: false,     // 테스트는 false로
+                debug: false,           // 콘솔에 이유 출력
               );
             });
           }
+
+
 
           return SizedBox(
             height: 300,

@@ -11,6 +11,13 @@ import 'package:uuid/uuid.dart';
 // 레거시 로그 저장 비활성화 플래그
 const bool _legacyEnabled = false;
 
+// ✅ DB 저장을 막을 "중복" div (BASE div 기준) — 필요 시 여기에만 추가/삭제
+const Set<int> _disabledBaseDivs = {
+  10,   // scan_result_received_success (요약) → 202(success)로 대체
+  200,  // camera_open → 201(multi_scan_submit)로 대체
+  500,  // history_open → 501(history_detail_view)로 대체
+};
+
 /// LogDiv 전략: result로 구분 vs 상태별로 code 분할
 enum LogDivStrategy {
   singleWithResult,   // 하나의 log_div + result 필드(기본)
@@ -125,12 +132,27 @@ class LogService {
     });
   }
 
+  /// (옵션) 저장 여부 결정 가드
+  bool _shouldStore({
+    required int baseDiv,
+    required String eventName,
+    required String result,
+  }) {
+    // BASE div 기준으로만 판단 (singleWithResult, splitByResult 모두 호환)
+    if (_disabledBaseDivs.contains(baseDiv)) return false;
+    return true;
+  }
+
   Future<void> _log({
     required int logDiv,
     required String eventName,
     Map<String, dynamic>? params,
     String result = 'success', // attempt|success|fail
   }) async {
+
+    if (!_shouldStore(baseDiv: logDiv, eventName: eventName, result: result)) {
+      return;
+    }
     final uuid = await getUuid();
     final deviceInfo = await _getDeviceInfo();
     final appInfo = await _getAppInfo();
@@ -196,6 +218,34 @@ class LogService {
     );
   }
 
+  // 세션 중복 방지용(메모리)
+  final Set<String> _sessionOnceKeys = {};
+
+  bool _oncePerSession(String key) {
+    if (_sessionOnceKeys.contains(key)) return false;
+    _sessionOnceKeys.add(key);
+    return true;
+  }
+
+// 일 1회 제한(SharedPreferences 사용)
+  Future<bool> _oncePerDay(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    final now = DateTime.now().toUtc();
+    final dayKey = 'log_once_day:$key:${now.year}-${now.month}-${now.day}';
+    if (prefs.getBool(dayKey) == true) return false;
+    await prefs.setBool(dayKey, true);
+    return true;
+  }
+
+// 샘플링(0.0~1.0)
+  bool _sample(double rate) {
+    if (rate >= 1.0) return true;
+    if (rate <= 0.0) return false;
+    final r = (DateTime.now().microsecondsSinceEpoch % 1000) / 1000.0;
+    return r < rate;
+  }
+
+
   // ───────────────────────── 신규 이벤트 ─────────────────────────
   // A. 로그인
   Future<void> logLoginAttempt({String method = 'google'}) async =>
@@ -256,12 +306,52 @@ class LogService {
   Future<void> logHistoryDetailView({required int itemAgeDays, required String itemType}) async =>
       _log(logDiv: 501, eventName: 'history_detail_view', params: {'item_age_days': itemAgeDays, 'item_type': itemType});
 
-  Future<void> logMapOpen({String provider = 'mapbox', required String from}) async =>
+  Future<void> logMapOpen({String provider = 'map', required String from}) async =>
       _log(logDiv: 502, eventName: 'map_open', params: {'provider': provider, 'from': from});
 
-  // F. 콘텐츠 노출
-  Future<void> logContentImpression({required String contentType, required int count, double sampleRate = 1.0}) async =>
-      _log(logDiv: 300, eventName: 'content_impression', params: {'content_type': contentType, 'count': count, 'sample_rate': sampleRate});
+  Future<void> logContentImpression({
+    required String contentType,
+    required int count,
+    double sampleRate = 1.0,
+    bool oncePerSession = true,
+    bool oncePerDay = false,
+    bool debug = false, // ← 임시 디버그
+  }) async {
+    if (count <= 0) {
+      if (debug) print('[logContentImpression] skip: count<=0');
+      return;
+    }
+    if (contentType.isEmpty || contentType == 'none' || contentType == 'placeholder') {
+      if (debug) print('[logContentImpression] skip: invalid contentType=$contentType');
+      return;
+    }
+    if (!_sample(sampleRate)) {
+      if (debug) print('[logContentImpression] skip: sampled out (rate=$sampleRate)');
+      return;
+    }
+    final key = 'imp_$contentType';
+    if (oncePerSession && !_oncePerSession(key)) {
+      if (debug) print('[logContentImpression] skip: oncePerSession gate ($key)');
+      return;
+    }
+    if (oncePerDay && !await _oncePerDay(key)) {
+      if (debug) print('[logContentImpression] skip: oncePerDay gate ($key)');
+      return;
+    }
+
+    await _log(
+      logDiv: 300,
+      eventName: 'content_impression',
+      params: {
+        'content_type': contentType,
+        'count': count,
+        'sample_rate': sampleRate,
+      },
+      result: 'success',
+    );
+    if (debug) print('[logContentImpression] stored: type=$contentType, count=$count');
+  }
+
 
   // G. 매뉴얼/설정/프리셋
   Future<void> logManualOpen({required String entryPoint}) async =>
