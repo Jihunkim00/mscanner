@@ -99,6 +99,7 @@ class _CameraScreenState extends State<CameraScreen> {
               images: files.length > 1 ? files : null,
               captureTime: captureTime,
               position: position,
+              maxOutputTokens: isMultiMode ? 4000 : 1000,
             ),
           ),
         );

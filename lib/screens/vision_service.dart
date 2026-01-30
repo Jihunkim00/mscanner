@@ -9,6 +9,7 @@ class VisionService {
   static Future<String> analyzeImage(
       File imageFile, {
         String? promptContext,
+        int maxOutputTokens = 1000, // ✅ 추가
       }) async {
 
     try {
@@ -221,18 +222,13 @@ Yemekle ilgili görünmüyorsa, sadece belirtin.
 
 // 3) messages 배열에는 user 메시지 하나만. content에 contentList 배열을 넘겨야 합니다.
       final payload = {
-        'model': 'gpt-4.1-mini',
+        'model': 'gpt-5-mini',
         'messages': [
-          {
-            'role': 'user',
-            'content': contentList,
-          }
+          {'role': 'user', 'content': contentList}
         ],
-        'max_tokens': 1000,
+        'reasoning_effort': 'low',              // ✅ 빈 응답/짧은 응답 방지에 도움
+        'max_completion_tokens': maxOutputTokens,
       };
-
-
-
 
 
       final response = await http.post(
@@ -246,14 +242,16 @@ Yemekle ilgili görünmüyorsa, sadece belirtin.
 
       if (response.statusCode == 200) {
         final json = jsonDecode(utf8.decode(response.bodyBytes));
-        final assistantMessages = json['choices']
-            .where((choice) => choice['message']['role'] == 'assistant')
-            .map((choice) => choice['message']['content'])
-            .join('\n');
-        return assistantMessages;
+        final content = json['choices']?[0]?['message']?['content'];
+        final text = (content is String) ? content : (content?.toString() ?? '');
+        return text;
+
+
       } else {
-        throw Exception('GPT 응답 실패: ${response.statusCode}');
+        final body = utf8.decode(response.bodyBytes);
+        throw Exception('GPT 응답 실패: ${response.statusCode}\n$body');
       }
+
     } catch (e) {
       throw Exception('Vision 분석 중 오류: $e');
     }

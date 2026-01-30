@@ -27,13 +27,12 @@ import 'package:flutter/foundation.dart';
 import 'dart:ui' as ui;
 import 'package:mscanner/widgets/fx_auto_converter_card.dart';
 
+// NOTE: searched_menu 저장은 UI 흐름과 분리(비동기)해서 실행합니다.
+
 /// 파일 최상단에 선언
 Future<Uint8List> mergeImages(List<Uint8List> bytesList) async {
   return await ImageMergeService.mergeAndCompress(bytesList);
 }
-
-
-
 
 class ResultScreen extends StatefulWidget {
   final File image;
@@ -47,9 +46,6 @@ class ResultScreen extends StatefulWidget {
   final String? geohash; // Added geohash
   final String? ragDetail; // Added ragDetail
   final bool isTutorial; // ✅ 추가
-
-
-
 
   ResultScreen({
     required this.image,
@@ -69,6 +65,12 @@ class ResultScreen extends StatefulWidget {
   _ResultScreenState createState() => _ResultScreenState();
 }
 
+class _MenuTag {
+  final String name;
+  final int count;
+  const _MenuTag(this.name, this.count);
+}
+
 class _ResultScreenState extends State<ResultScreen> {
   // === Auto FX: detected hints ===
   String? _isoCountryCode;                 // e.g., 'KR', 'JP'
@@ -80,6 +82,9 @@ class _ResultScreenState extends State<ResultScreen> {
 
   // 🔽🔽🔽 [NEW] 다중 금액 후보 보관 리스트
   List<double> _amountCandidates = [];     // ex) [12500, 3500, 7000]
+
+  // ✅ 주변 타인 메뉴 태그 Future
+  Future<List<_MenuTag>>? _nearbyMenuTagsFuture;
 
   Future<void> _initCountryCurrencyHints() async {
     try {
@@ -103,7 +108,9 @@ class _ResultScreenState extends State<ResultScreen> {
       }
 
       // Fallback to device locale
-      _isoCountryCode ??= ui.PlatformDispatcher.instance.locale.countryCode?.toUpperCase();
+      _isoCountryCode ??=
+          ui.PlatformDispatcher.instance.locale.countryCode?.toUpperCase();
+
       if (mounted) setState(() {});
     } catch (_) {
       // ignore
@@ -123,14 +130,251 @@ class _ResultScreenState extends State<ResultScreen> {
   // Detect currency symbol from text
   String? _extractCurrencySymbolFromText(String text) {
     // '$','¥'는 모호해도 힌트로 사용 (국가코드/로케일로 보정)
-    const symbols = ['₩','€','£','₫','₱','฿','₹','¥','\$'];
+    const symbols = ['₩', '€', '£', '₫', '₱', '฿', '₹', '¥', '\$'];
     for (final s in symbols) {
       if (text.contains(s)) return s;
     }
     return null;
   }
 
+  /// AI 응답에서 1번 메뉴만 추출
+  /// - "1.", "1)", "1).", "1]", "1:", "1-" 등 허용
+  /// - "1." 형태가 없으면 null 반환(=저장 스킵)
+  String? _extractMenuOnlyFromAiResponses() {
+    final joined = widget.responses.join('\n').replaceAll('\r', '');
+    final lines = joined.split('\n');
 
+    String? first;
+    for (final rawLine in lines) {
+      final line = rawLine.trim();
+      if (line.isEmpty) continue;
+
+      // ✅ 1번 표기 모두 허용
+      final reFirstItemPrefix = RegExp(r'^\s*1\s*[\.\)\]\:\-]\.?\s*');
+      final m = reFirstItemPrefix.firstMatch(line);
+
+      if (m != null) {
+        first = line.substring(m.end).trim();
+
+        // ✅ 같은 줄에 "2.", "2)", "2:"... 붙어 있으면 여기서 컷
+        final nextItem = RegExp(r'\s*[2-9]\s*[\.\)\]\:\-]\.?\s*');
+        final cut = nextItem.firstMatch(first);
+        if (cut != null && cut.start > 0) {
+          first = first.substring(0, cut.start).trim();
+        }
+        break;
+      }
+    }
+
+    if (first == null || first.isEmpty) return null;
+
+    // 꼬리 설명 컷
+    final cutTokens = <String>[' - ', ' – ', ' — ', ': ', '(', '[', '|'];
+    for (final t in cutTokens) {
+      final idx = first!.indexOf(t);
+      if (idx > 0) {
+        first = first.substring(0, idx).trim();
+      }
+    }
+
+    // 끝에 붙은 가격/숫자 제거 (예: "Kimchi 12000")
+    first = first!.replaceAll(RegExp(r'\s*[0-9][0-9,\.\s]*$'), '').trim();
+
+    if (first.length < 2) return null;
+    return first;
+  }
+
+  /// searched menu 컬렉션에 (geohash + 메뉴명 + 시스템언어)만 비동기로 저장
+  void _saveSearchedMenuFireAndForget() {
+    if (widget.isTutorial) return;
+    if (widget.isFromHistory) return; // 히스토리 진입 시 중복 저장 방지
+    if (_geohash == null) return;
+
+    final menuName = _extractMenuOnlyFromAiResponses();
+    if (menuName == null) return;
+
+    final systemLang = ui.PlatformDispatcher.instance.locale.languageCode;
+    final user = FirebaseAuth.instance.currentUser;
+
+    unawaited(() async {
+      try {
+        await FirebaseFirestore.instance.collection('searched menu').add({
+          'menu_name': menuName,
+          'geohash': _geohash,
+          'lang': systemLang,
+          'timestamp': DateTime.now().toIso8601String(),
+          if (user != null) 'uid': user.uid,
+        });
+      } catch (e) {
+        if (kDebugMode) {
+          print('❌ searched_menu 저장 실패: $e');
+        }
+      }
+    }());
+  }
+
+  String _safePrefix(String geohash, int len) {
+    if (geohash.isEmpty) return geohash;
+    if (len <= 0) return geohash;
+    return geohash.substring(0, geohash.length < len ? geohash.length : len);
+  }
+
+  /// 저장된 값이 꼬였을 때(한 줄에 2.,3. 붙은 케이스) 표시용으로만 정리
+  String _sanitizeMenuName(String raw) {
+    var s = raw.replaceAll('\r', '').trim();
+    if (s.isEmpty) return s;
+
+    // 다음 항목 붙어 있으면 컷
+    final nextItem = RegExp(r'\s*[2-9]\s*[\.\)\]\:\-]\.?\s*');
+    final cut = nextItem.firstMatch(s);
+    if (cut != null && cut.start > 0) {
+      s = s.substring(0, cut.start).trim();
+    }
+
+    final cutTokens = <String>[' - ', ' – ', ' — ', ': ', '(', '[', '|'];
+    for (final t in cutTokens) {
+      final idx = s.indexOf(t);
+      if (idx > 0) s = s.substring(0, idx).trim();
+    }
+
+    s = s.replaceAll(RegExp(r'\s*[0-9][0-9,\.\s]*$'), '').trim();
+    return s;
+  }
+
+  /// ✅ 주변 타인 메뉴 TOP 1~3
+  /// Firestore 제약:
+  /// - timestamp range + geohash range를 동시에 못 걸기 때문에
+  /// => geohash prefix range만 서버에서 걸고
+  /// => timestamp는 클라에서 필터(ISO8601 문자열 비교)
+  Future<List<_MenuTag>> _fetchNearbyMenuTags({
+    int prefixLen = 6,
+    int days = 30,
+    int maxDocs = 200,
+  }) async {
+    if (_geohash == null) return const [];
+
+    final lang = ui.PlatformDispatcher.instance.locale.languageCode;
+    final myUid = FirebaseAuth.instance.currentUser?.uid;
+
+    final prefix = _safePrefix(_geohash!, prefixLen);
+    final since = DateTime.now()
+        .subtract(Duration(days: days))
+        .toIso8601String();
+
+    final qs = await FirebaseFirestore.instance
+        .collection('searched menu')
+        .where('lang', isEqualTo: lang)
+        .where('geohash', isGreaterThanOrEqualTo: prefix)
+        .where('geohash', isLessThan: '$prefix\uf8ff')
+        .orderBy('geohash')
+        .limit(maxDocs)
+        .get();
+
+
+    final Map<String, int> counts = {};
+    final Map<String, String> displayName = {};
+
+    for (final d in qs.docs) {
+      final data = d.data();
+
+      // 자기 제외
+      if (myUid != null && data['uid'] == myUid) continue;
+
+      // ✅ timestamp 기간 필터(클라)
+      final ts = (data['timestamp'] ?? '').toString();
+      if (ts.isEmpty) continue;
+      if (ts.compareTo(since) < 0) continue;
+
+
+      final raw = (data['menu_name'] ?? '').toString();
+      final cleaned = _sanitizeMenuName(raw);
+      if (cleaned.isEmpty) continue;
+
+      final key = cleaned.toLowerCase();
+      counts[key] = (counts[key] ?? 0) + 1;
+      displayName.putIfAbsent(key, () => cleaned);
+    }
+
+    final tags = counts.entries
+        .map((e) => _MenuTag(displayName[e.key] ?? e.key, e.value))
+        .toList()
+      ..sort((a, b) => b.count.compareTo(a.count));
+
+    return tags.take(3).toList();
+  }
+
+  /// ✅ 결과 카드 바깥에 붙일 “작은 해시태그” UI
+  /// - 별도 패딩 없음
+  /// - 아주 작은 텍스트/간격
+  Widget _buildNearbyMenuTags() {
+    final f = _nearbyMenuTagsFuture;
+    if (f == null) return const SizedBox.shrink();
+
+    return FutureBuilder<List<_MenuTag>>(
+      future: f,
+      builder: (context, snap) {
+        if (snap.hasError) {
+          if (kDebugMode) print('❌ nearby tags error: ${snap.error}');
+          return const SizedBox.shrink();
+        }
+
+        if (!snap.hasData) return const SizedBox.shrink();
+        final tags = snap.data!;
+        if (tags.isEmpty) return const SizedBox.shrink();
+
+        return Padding(
+          padding: const EdgeInsets.only(top: 4), // 카드 아래 최소 간격
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ✅ 왼쪽 고정 아이콘(배지 느낌)
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(width: 1),
+                ),
+                child: Icon(
+                  Icons.near_me, // place / trending_up / groups도 OK
+                  size: 11,
+                  color: Theme.of(context).textTheme.labelSmall?.color,
+                ),
+              ),
+
+              const SizedBox(width: 4),
+
+              // ✅ 오른쪽에 태그들이 흘러가며 줄바꿈
+              Expanded(
+                child: Wrap(
+                  spacing: 4,
+                  runSpacing: 4,
+                  children: [
+                    for (final t in tags)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(width: 1),
+                        ),
+                        child: Text(
+                          '#${t.name}(${t.count})',
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            fontSize: 11,
+                            height: 1.0,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+
+
+      },
+    );
+  }
 
   String _address = 'Loading...';
   TextEditingController _storeNameController = TextEditingController();
@@ -143,7 +387,7 @@ class _ResultScreenState extends State<ResultScreen> {
   bool _isCloudSaveEnabled = false;
   bool _isAllowedUser = false;
   Uint8List? _mergedImageBytes; // ✅ 병합된 이미지 저장용
-  bool _pendingSave = false;  // ✅ merge 완료 후 자동 저장 요청 플래그
+  bool _pendingSave = false; // ✅ merge 완료 후 자동 저장 요청 플래그
 
   Timer? _timer; // Timer variable
   bool _isLoadingError = false; // Error state variable
@@ -165,46 +409,40 @@ class _ResultScreenState extends State<ResultScreen> {
 
     // ── UI 로딩 후에 이미지 병합 시작 ──
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // UI 로딩이 끝난 후 병합 작업 시작
-      if (!widget.isTutorial && widget.images != null && widget.images!.length > 1) {
-        _startMergeInBackground();  // 병합 작업을 비동기적으로 시작
+      if (!widget.isTutorial &&
+          widget.images != null &&
+          widget.images!.length > 1) {
+        _startMergeInBackground();
       } else {
-                // 단일 이미지(또는 튜토리얼)인 경우 바로 병합 완료 상태로 처리
-                setState(() => _isMergeDone = true);
-            }
+        setState(() => _isMergeDone = true);
+      }
     });
 
-    // 튜토리얼 모드일 때 탭 이벤트 리스너 등록
     if (widget.isTutorial) {
       Future.delayed(Duration.zero, () {
         GestureBinding.instance.pointerRouter.addGlobalRoute(_handleTutorialTap);
       });
     }
 
-    // 공통 초기 설정
     _loadSettings();
     if (widget.title != null) {
       _storeNameController.text = widget.title!;
     }
     _isLiked = true;
 
-    // 다크 모드 체크
     _checkDarkMode();
 
-    // 결과 화면 로드 완료 로그
     WidgetsBinding.instance.addPostFrameCallback((_) {
-
-      print("✅ [ResultScreen] first frame rendered at ${DateTime.now().toIso8601String()}");
+      print(
+          "✅ [ResultScreen] first frame rendered at ${DateTime.now().toIso8601String()}");
     });
     _trySendImpressions();
 
-    // 허용 사용자 체크
     _checkAllowedUser();
 
     // 위치 및 RAG, 푸드 디테일 불러오기
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (widget.position != null) {
-        // 위치가 있을 경우
         _getAddressFromLatLng(widget.position!);
 
         final geohashService = GeohashService();
@@ -213,24 +451,46 @@ class _ResultScreenState extends State<ResultScreen> {
           widget.position!.longitude,
         );
 
+        setState(() {
+          _nearbyMenuTagsFuture = () async {
+            final a = await _fetchNearbyMenuTags(prefixLen: 6, days: 30, maxDocs: 200);
+            if (a.isNotEmpty) return a;
+            return _fetchNearbyMenuTags(prefixLen: 5, days: 30, maxDocs: 200);
+          }();
+        });
+
+
+        // ✅ searched menu 저장(비동기)
+        _saveSearchedMenuFireAndForget();
+
         _fetchRAGData();
         _fetchFoodDetail();
-      }
-      else if (widget.isFromHistory) {
-        // 히스토리에서 온 경우
+      } else if (widget.isFromHistory) {
         setState(() {
           _address = widget.location ?? 'Location not available';
           _geohash = widget.geohash;
           _ragDetail = widget.ragDetail;
         });
+
+        // 히스토리에서는 저장 스킵됨
+        _saveSearchedMenuFireAndForget();
+
+        // 히스토리에서도 주변태그는 보여주고 싶으면 Future 세팅(원하면 유지)
+        if (_geohash != null) {
+          _nearbyMenuTagsFuture = () async {
+            final a =
+            await _fetchNearbyMenuTags(prefixLen: 6, days: 30, maxDocs: 200);
+            if (a.isNotEmpty) return a;
+            return _fetchNearbyMenuTags(prefixLen: 5, days: 30, maxDocs: 200);
+          }();
+        }
+
         _fetchExistingReview();
         if (_ragDetail == null) {
           _fetchRAGData();
         }
         _fetchFoodDetail();
-      }
-      else {
-        // 위치 정보가 없을 경우
+      } else {
         setState(() {
           _address = 'Location not available';
         });
@@ -238,26 +498,25 @@ class _ResultScreenState extends State<ResultScreen> {
     });
   }
 
-
   Map<String, double> parseNutritionalData(String text) {
     final result = <String, double>{};
 
-    // kcal 정보 추출 (예: "105 kcal")
     final regCal = RegExp(r'(\d+(\.\d+)?)\s*kcal', caseSensitive: false);
     final matchCal = regCal.firstMatch(text);
     if (matchCal != null) result['calories'] = double.parse(matchCal.group(1)!);
 
-    // 단백질 추출 (예: "단백질: 11.4g")
     final regProtein = RegExp(r'단백질\s*[:=]\s*(\d+(\.\d+)?)\s*g');
     final matchProtein = regProtein.firstMatch(text);
-    if (matchProtein != null) result['protein'] = double.parse(matchProtein.group(1)!);
+    if (matchProtein != null) {
+      result['protein'] = double.parse(matchProtein.group(1)!);
+    }
 
-    // 탄수화물 추출 (예: "탄수화물: 67.1g")
     final regCarbs = RegExp(r'탄수화물\s*[:=]\s*(\d+(\.\d+)?)\s*g');
     final matchCarbs = regCarbs.firstMatch(text);
-    if (matchCarbs != null) result['carbs'] = double.parse(matchCarbs.group(1)!);
+    if (matchCarbs != null) {
+      result['carbs'] = double.parse(matchCarbs.group(1)!);
+    }
 
-    // 지방 추출 (예: "지방: 7.35g")
     final regFat = RegExp(r'지방\s*[:=]\s*(\d+(\.\d+)?)\s*g');
     final matchFat = regFat.firstMatch(text);
     if (matchFat != null) result['fat'] = double.parse(matchFat.group(1)!);
@@ -265,19 +524,17 @@ class _ResultScreenState extends State<ResultScreen> {
     return result;
   }
 
-
   Future<void> _trySendImpressions() async {
-    // AI 답변 카드 노출 1회
     if (!_sentAiImpression) {
       _sentAiImpression = true;
       await LogService().logContentImpression(
-        contentType: 'ai_answer', // 식별용
+        contentType: 'ai_answer',
         count: 1,
-        // sampleRate: 0.3, // 필요한 경우 샘플링
       );
     }
-    // RAG 블록 노출 1회 (허용 사용자 + 내용 있을 때)
-    if (!_sentRagImpression && _isAllowedUser && (_ragDetail?.isNotEmpty ?? false)) {
+    if (!_sentRagImpression &&
+        _isAllowedUser &&
+        (_ragDetail?.isNotEmpty ?? false)) {
       _sentRagImpression = true;
       await LogService().logContentImpression(
         contentType: 'rag',
@@ -286,25 +543,22 @@ class _ResultScreenState extends State<ResultScreen> {
     }
   }
 
-
-
-  // Called when the loading timeout occurs
   void _onLoadingTimeout() {
     setState(() {
       _isLoadingError = true;
-      _isLoading = false; // Stop loading
+      _isLoading = false;
     });
 
-    // After displaying the error message, go back to the home screen after 2 seconds
     Future.delayed(Duration(seconds: 2), () {
       if (!mounted) return;
       Navigator.of(context).pop();
     });
   }
-  bool _hasNavigatedFromTutorial = false; // 클래스 멤버 변수 추가 필요
+
+  bool _hasNavigatedFromTutorial = false;
 
   void _handleTutorialTap(PointerEvent event) {
-    if (_hasNavigatedFromTutorial) return; // 중복 방지
+    if (_hasNavigatedFromTutorial) return;
     _hasNavigatedFromTutorial = true;
 
     Future.delayed(Duration(seconds: 3), () {
@@ -314,67 +568,52 @@ class _ResultScreenState extends State<ResultScreen> {
     });
   }
 
-
   void _startMergeInBackground() async {
     try {
-      // 1) 이미지 바이트 로드
       final bytesList = await Future.wait(
         widget.images!.map((file) => file.readAsBytes()),
       );
 
-      // 2) top‐level 함수 mergeImages를 compute로 호출
       final merged = await compute(mergeImages, bytesList);
 
-      // 3) UI 업데이트 및 자동 저장 처리
       if (!mounted) return;
       setState(() {
         _mergedImageBytes = merged;
-        _isMergeDone = true; // 병합 완료 플래그 세팅
+        _isMergeDone = true;
       });
 
-      // 저장 버튼이 눌려 자동 저장 대기 중이었다면, 병합 완료 후 바로 저장
       if (_pendingSave) {
         _pendingSave = false;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _saveScanResult();
         });
-
       }
     } catch (e) {
-      // 병합 실패 시에도 저장 가능하도록 플래그만 세팅
       if (!mounted) return;
       setState(() {
         _mergedImageBytes = null;
         _isMergeDone = true;
       });
 
-      // 동일하게 자동 저장 대기 중이면 저장 실행
       if (_pendingSave) {
         _pendingSave = false;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _saveScanResult();
         });
-
       }
     }
   }
 
-
-
-
-
-
-
   @override
   void dispose() {
     if (widget.isTutorial) {
-      GestureBinding.instance.pointerRouter.removeGlobalRoute(_handleTutorialTap);
+      GestureBinding.instance.pointerRouter
+          .removeGlobalRoute(_handleTutorialTap);
     }
-    _mergedImageBytes = null; // ✅ 메모리 정리
+    _mergedImageBytes = null;
     _timer?.cancel();
     _storeNameController.dispose();
     _reviewController.dispose();
-
     super.dispose();
   }
 
@@ -382,8 +621,15 @@ class _ResultScreenState extends State<ResultScreen> {
   Future<void> _checkAllowedUser() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      // 허용할 UID 리스트 또는 단일 UID
-      const allowedUidList = ['XSouRMPnmnhgQ0QiK8zgNvOQAwu1', 'sHWmp3IoNCh7YUY7BXjJ4OEIr9t1','UCNasiqnZgdvERYimeM9TvmNDI33','bVAaTXHSi1TTQGp7HPwT1whDUIS2','QV9xmlGofQbMe9ZOOTFxlAjnqbI3','01RLorc0WFWyxQIlae4wcXC9KJF3','pfJilWN46cPj9ikX0S8eXWNJCLe2'];
+      const allowedUidList = [
+        'XSouRMPnmnhgQ0QiK8zgNvOQAwu1',
+        'sHWmp3IoNCh7YUY7BXjJ4OEIr9t1',
+        'UCNasiqnZgdvERYimeM9TvmNDI33',
+        'bVAaTXHSi1TTQGp7HPwT1whDUIS2',
+        'QV9xmlGofQbMe9ZOOTFxlAjnqbI3',
+        '01RLorc0WFWyxQIlae4wcXC9KJF3',
+        'pfJilWN46cPj9ikX0S8eXWNJCLe2'
+      ];
       setState(() {
         _isAllowedUser = allowedUidList.contains(user.uid);
       });
@@ -410,7 +656,6 @@ class _ResultScreenState extends State<ResultScreen> {
       }
     }
   }
-
 
   Future<void> _loadSettings() async {
     try {
@@ -445,16 +690,15 @@ class _ResultScreenState extends State<ResultScreen> {
 
     try {
       String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
-      Reference ref = FirebaseStorage.instance.ref().child('Beta_test').child(fileName);
+      Reference ref =
+      FirebaseStorage.instance.ref().child('Beta_test').child(fileName);
       SettableMetadata metadata = SettableMetadata(contentType: 'image/jpeg');
 
       UploadTask uploadTask;
 
       if (_mergedImageBytes != null) {
-        // ✅ 병합된 이미지 사용
         uploadTask = ref.putData(_mergedImageBytes!, metadata);
       } else {
-        // ✅ fallback: 단일 이미지 사용
         uploadTask = ref.putFile(widget.image, metadata);
       }
 
@@ -466,8 +710,6 @@ class _ResultScreenState extends State<ResultScreen> {
       _imageUrl = null;
     }
   }
-
-
 
   Future<void> _saveDataToFirestore() async {
     if (!_isCloudSaveEnabled) return;
@@ -485,7 +727,7 @@ class _ResultScreenState extends State<ResultScreen> {
             .collection('user_data')
             .doc(user.uid)
             .collection('data')
-            .doc(docId);  // ✅ 문서 ID 고정
+            .doc(docId);
 
         await docRef.set({
           'image_url': _imageUrl,
@@ -500,7 +742,7 @@ class _ResultScreenState extends State<ResultScreen> {
           'rag_detail': _ragDetail,
           'food_detail': _foodDetail,
           'liked': _isLiked,
-          'review': _reviewController.text.trim(), // ✅ 리뷰 저장
+          'review': _reviewController.text.trim(),
         });
 
         print('Data saved to Firestore with ID: $docId');
@@ -511,7 +753,6 @@ class _ResultScreenState extends State<ResultScreen> {
       print('Failed to save data: $e');
     }
   }
-
 
   Future<void> _submitReview() async {
     final trimmedReview = _reviewController.text.trim();
@@ -527,18 +768,18 @@ class _ResultScreenState extends State<ResultScreen> {
     final centerHash = geohashService.generateGeohash(lat, lng, precision: 8);
     final neighbors = geohashService.getNeighborGeohashes(centerHash);
 
-    final allGeohashes = {centerHash, ...neighbors}; // 중복 제거된 Set
+    final allGeohashes = {centerHash, ...neighbors};
 
-    // 🔸 현재 앱 표시 언어 (없으면 시스템 언어 fallback)
     final prefs = await SharedPreferences.getInstance();
-    final langCode = prefs.getString('selectedLangCode') ?? Platform.localeName.split('_').first;
+    final langCode =
+        prefs.getString('selectedLangCode') ?? Platform.localeName.split('_').first;
 
     await FirebaseFirestore.instance.collection('rag_reviews').add({
       'menuName': _storeNameController.text.trim(),
       'detail': trimmedReview,
-      'geohashes': allGeohashes.toList(),     // ✅ center + 주변 geohash 포함
-      'geohash5': centerHash.substring(0, 5), // ✅ center geohash의 앞 5자리
-      'lang': langCode,                       // ✅ 리뷰 작성 당시의 앱 언어
+      'geohashes': allGeohashes.toList(),
+      'geohash5': centerHash.substring(0, 5),
+      'lang': langCode,
       'timestamp': DateTime.now().toIso8601String(),
       'uid': user.uid,
       'status': 'pending',
@@ -549,11 +790,6 @@ class _ResultScreenState extends State<ResultScreen> {
 
     print('리뷰 저장 완료');
   }
-
-
-
-
-
 
   Future<void> _saveDataToSharedPreferences() async {
     try {
@@ -582,7 +818,7 @@ class _ResultScreenState extends State<ResultScreen> {
       print('Failed to save data to SharedPreferences: $e');
     }
   }
-// 추가: 사용 횟수 증가 및 리뷰 요청 메서드
+
   Future<void> _checkAndRequestReview() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     int usageCount = prefs.getInt('usageCount') ?? 0;
@@ -592,16 +828,13 @@ class _ResultScreenState extends State<ResultScreen> {
     bool hasReviewed = prefs.getBool('hasReviewed') ?? false;
 
     if (!hasReviewed) {
-      // 최초 5회 사용 시 리뷰 요청
       if (usageCount == 5) {
         final InAppReview inAppReview = InAppReview.instance;
         if (await inAppReview.isAvailable()) {
           await inAppReview.requestReview();
-          await prefs.setBool('hasReviewed', true); // 리뷰 요청 후 표시
+          await prefs.setBool('hasReviewed', true);
         }
-      }
-      // 5번 이후는 30번마다 요청
-      else if (usageCount > 5 && (usageCount - 5) % 30 == 0) {
+      } else if (usageCount > 5 && (usageCount - 5) % 30 == 0) {
         final InAppReview inAppReview = InAppReview.instance;
         if (await inAppReview.isAvailable()) {
           inAppReview.requestReview();
@@ -609,7 +842,6 @@ class _ResultScreenState extends State<ResultScreen> {
       }
     }
   }
-
 
   Future<void> _saveScanResult() async {
     if (widget.isTutorial) {
@@ -623,7 +855,6 @@ class _ResultScreenState extends State<ResultScreen> {
 
     _timer = Timer(Duration(seconds: 30), _onLoadingTimeout);
 
-    // 🔥 이미지 업로드 먼저 확인
     await _uploadImage();
     if (_imageUrl == null) {
       setState(() {
@@ -635,14 +866,12 @@ class _ResultScreenState extends State<ResultScreen> {
           backgroundColor: Colors.red,
         ),
       );
-      return; // ❌ 저장 중단
+      return;
     }
-
 
     await _saveDataToFirestore();
     await _saveDataToSharedPreferences();
     await _submitReview();
-
 
     if (_timer?.isActive ?? false) {
       _timer?.cancel();
@@ -671,8 +900,6 @@ class _ResultScreenState extends State<ResultScreen> {
     }
   }
 
-
-
   Future<void> _checkDarkMode() async {
     final savedThemeMode = await AdaptiveTheme.getThemeMode();
     setState(() {
@@ -697,13 +924,12 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   void _copyTextToClipboard(String text) {
-    LogService().logCopyClick(field: 'ai_text'); // or 'all' 등 구분 원하는 값
+    LogService().logCopyClick(field: 'ai_text');
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          AppLocalizations.of(context)?.textCopied ?? 'Text copied to clipboard',
-        ),
+        content:
+        Text(AppLocalizations.of(context)?.textCopied ?? 'Text copied to clipboard'),
         duration: Duration(seconds: 2),
       ),
     );
@@ -727,7 +953,7 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   Future<void> _shareToPlatform(BuildContext context, String platform) async {
-    await LogService().logShareClick(dest: 'system', context: 'result'); // 시스템 공유
+    await LogService().logShareClick(dest: 'system', context: 'result');
     String message =
         "${AppLocalizations.of(context)?.checkOutContent ?? 'Check out this content!'}\n\n${widget.responses.join('\n\n')}";
     String filePath = widget.image.path;
@@ -735,13 +961,9 @@ class _ResultScreenState extends State<ResultScreen> {
 
     try {
       switch (platform) {
-
-
         case 'shareToSystem':
           final RenderBox box = context.findRenderObject() as RenderBox;
-
           final List<XFile> files = [XFile(filePath)];
-
           await Share.shareXFiles(
             files,
             text: message,
@@ -749,7 +971,6 @@ class _ResultScreenState extends State<ResultScreen> {
             sharePositionOrigin: box.localToGlobal(Offset.zero) & box.size,
           );
           break;
-
         default:
           print('Unsupported platform');
       }
@@ -759,42 +980,21 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   void _showShareOptions(BuildContext context) {
-    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
-    String getIconPath(String iconName) {
-      return isDarkMode
-          ? 'assets/images/${iconName}_white.png'
-          : 'assets/images/$iconName.png';
-    }
-
-    // ✅ System Share를 바로 실행
     _shareToPlatform(context, 'shareToSystem');
-
   }
 
   // Method to extract all food names
   List<String> _extractAllFoodNames(String text) {
     List<String> extractedNames = [];
-
-    // Split the response into lines
     List<String> lines = text.split('\n');
 
     for (String line in lines) {
       line = line.trim();
-
-      // Regular expression to capture text enclosed in '**'
-      final RegExp regExp = RegExp(
-        r'\*\*(.*?)\*\*', // Capture all text between '**'
-      );
-
+      final RegExp regExp = RegExp(r'\*\*(.*?)\*\*');
       final Match? match = regExp.firstMatch(line);
       if (match != null && match.groupCount >= 1) {
         String foodName = match.group(1)?.trim() ?? '';
-
-        // Remove any text within parentheses (e.g., "족발(앞발)" -> "족발")
         foodName = foodName.replaceAll(RegExp(r'\(.*?\)'), '').trim();
-
-        // Ensure the food name is not empty and not too long
         if (foodName.isNotEmpty && foodName.length < 50) {
           extractedNames.add(foodName);
         }
@@ -805,40 +1005,29 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   // ✅ 음식명(**굵게**) 라인부터 다음 2~4줄(또는 공백/다음 음식명 전까지) 블록에서 가격을 느슨하게 탐색
-// - 통화기호/코드 앞뒤 모두 허용
-// - 줄 앞 순번/불릿(1., 1), (1), [1], -, •, –, —, *) 제거 강화
-// - kcal/g/ml/% 등 영양 단위만 제외, 나머지는 거의 허용
   List<double> _extractAmountsNextToFoodNames(String text) {
-    const int BLOCK_FOLLOW_LINES = 20;    // [CHANGE] 3 → 4줄
-    const int BLOCK_MAX_CHARS   = 2000;   // [CHANGE] 220 → 400자
+    const int BLOCK_FOLLOW_LINES = 20;
+    const int BLOCK_MAX_CHARS = 2000;
 
     final results = <double>[];
     final seen = <String>{};
 
     final lines = text.split('\n');
-
-    // **이름** 패턴 (그대로)
     final nameReg = RegExp(r'\*\*(.+?)\*\*');
 
-    // [CHANGE] 매우 느슨한 금액 패턴
-    // - 통화(기호/코드/한글단위)가 앞/뒤 어느 쪽이든 와도 허용
-    // - 천단위 구분자: 콤마/점/공백 섞임 허용
-    // - 소수점도 , 또는 . 허용
-    // 예) ₩ 5 000 / 5,000원 / 5.000,50 / USD 12 / 12 USD / $12.50 / 12000 KRW ...
     final amountReg = RegExp(
-      r'(?<!\d)' // 숫자 안쪽에서 시작하지 않게
-      r'(?:' // 통화가 먼저 오거나
+      r'(?<!\d)'
+      r'(?:'
       r'(?:KRW|JPY|USD|EUR|CNY|HKD|TWD|NTD|SGD|AUD|CAD|GBP|CHF|₩|\$|€|¥|元|원|엔|달러|유로|엔화)\s*'
       r'(?:(?:\d{1,3}(?:[.,\s]\d{3})*|\d+)(?:[.,]\d+)?))'
-      r'|' // 또는 숫자가 먼저 오고 통화가 뒤에 오거나 생략
+      r'|'
       r'(?:(?:\d{1,3}(?:[.,\s]\d{3})*|\d+)(?:[.,]\d+)?\s*'
       r'(?:KRW|JPY|USD|EUR|CNY|HKD|TWD|NTD|SGD|AUD|CAD|GBP|CHF|₩|\$|€|¥|元|원|엔|달러|유로|엔화)?)'
       r')'
-      r'(?!\d)', // 뒤에 바로 숫자가 이어붙지 않게
+      r'(?!\d)',
       caseSensitive: false,
     );
 
-    // [CHANGE] 영양/단위 제외 패턴 (직후 토큰 또는 직후 문자에 붙은 경우 모두 차단)
     final excludeUnitToken = RegExp(
       r'^(?:k?cal|kj|g|mg|kg|ml|l|cl|dl|%|oz|lb|pcs?|개|잔|인분|servings?)\b',
       caseSensitive: false,
@@ -848,44 +1037,29 @@ class _ResultScreenState extends State<ResultScreen> {
       caseSensitive: false,
     );
 
-    // [CHANGE] 줄 앞 번호/불릿 제거 강화
     String stripPrefix(String s) => s.replaceFirst(
-      RegExp(
-          r'^\s*(?:'
-          r'\d+\.\s*|'     // 1.
-          r'\d+\)\s*|'     // 1)
-          r'\(\d+\)\s*|'   // (1)
-          r'\[\d+\]\s*|'   // [1]
-          r'[-–—•*·]\s*'   // -, –, —, •, *, ·
-          r')'),
+      RegExp(r'^\s*(?:\d+\.\s*|\d+\)\s*|\(\d+\)\s*|\[\d+\]\s*|[-–—•*·]\s*)'),
       '',
     );
 
-    // [ADD] 숫자 문자열 → double 파싱 (천단위/통화 제거 & 소수점 보정)
     double? parseNumber(String captured) {
-      // 통화/단위 표식 제거
-      var p = captured.replaceAll(RegExp(
-        r'(KRW|JPY|USD|EUR|CNY|HKD|TWD|NTD|SGD|AUD|CAD|GBP|CHF|원|엔|달러|유로|엔화|₩|\$|€|¥|元)',
-        caseSensitive: false,
-      ), '');
+      var p = captured.replaceAll(
+        RegExp(
+          r'(KRW|JPY|USD|EUR|CNY|HKD|TWD|NTD|SGD|AUD|CAD|GBP|CHF|원|엔|달러|유로|엔화|₩|\$|€|¥|元)',
+          caseSensitive: false,
+        ),
+        '',
+      );
 
-      // 공백 제거
       p = p.replaceAll(RegExp(r'\s+'), '');
 
-      // 유럽식 소수(, 소수점 .천단위)와 혼합 처리:
-      // 규칙: 마지막 구분자가 ',' 이고 그 뒤 자릿수가 1~2자리면 ',' → '.' 로 해석(소수점),
-      // 나머지 구분자(, .)는 천단위로 보고 제거
       final m = RegExp(r'([.,])(\d{1,2})$').firstMatch(p);
       if (m != null && m.group(1) == ',') {
-        // 소수점은 '.' 로
-        p = p.substring(0, m.start).replaceAll(RegExp(r'[.,]'), '') + '.' + m.group(2)!;
+        p = p.substring(0, m.start).replaceAll(RegExp(r'[.,]'), '') +
+            '.' +
+            m.group(2)!;
       } else {
-        // 일반: 천단위 구분자 제거, 소수점은 '.'만 허용
-        // 만약 마지막에 '.xx' 형식이면 유지
-        // 우선 모든 콤마 제거
         p = p.replaceAll(',', '');
-        // 공백/천단위 점 제거 (소수점으로 쓰인 단 하나의 점은 유지해야 함)
-        // 이미 콤마 처리했으니 점이 여러 개인 경우 천단위로 보고 전부 제거 후 소수 없음으로 처리
         final dotCount = '.'.allMatches(p).length;
         if (dotCount > 1) {
           p = p.replaceAll('.', '');
@@ -898,18 +1072,23 @@ class _ResultScreenState extends State<ResultScreen> {
     int i = 0;
     while (i < lines.length) {
       var line = stripPrefix(lines[i].trim());
-      if (line.isEmpty) { i++; continue; }
+      if (line.isEmpty) {
+        i++;
+        continue;
+      }
 
       final nameMatch = nameReg.firstMatch(line);
-      if (nameMatch == null) { i++; continue; }
+      if (nameMatch == null) {
+        i++;
+        continue;
+      }
 
-      // 블록 구성: 현재 라인 + 다음 1~4줄, 빈 줄/다음 음식명에서 중단
       final buffer = StringBuffer();
       int taken = 0;
       for (int j = i; j < lines.length && taken <= BLOCK_FOLLOW_LINES; j++) {
         var cur = stripPrefix(lines[j]).trimRight();
-        if (j > i && cur.isEmpty) break;           // 빈 줄에서 종료
-        if (j > i && nameReg.hasMatch(cur)) break; // 다음 음식명에서 종료
+        if (j > i && cur.isEmpty) break;
+        if (j > i && nameReg.hasMatch(cur)) break;
         buffer.writeln(cur);
         taken++;
       }
@@ -919,7 +1098,6 @@ class _ResultScreenState extends State<ResultScreen> {
         block = block.substring(0, BLOCK_MAX_CHARS);
       }
 
-      // 음식명 이후 우선, 없으면 블록 전체 —> 하지만 "느슨하게" 전부 훑어서 여러 개 추출
       final afterName = block.substring(nameMatch.end).trimLeft();
       final searchAreas = <String>[afterName, block];
 
@@ -927,15 +1105,15 @@ class _ResultScreenState extends State<ResultScreen> {
         for (final m in amountReg.allMatches(area)) {
           final captured = m.group(0)!;
 
-          // 직후 토큰(공백 기준) 검사하여 영양/단위면 제외
           final remain = area.substring(m.end).trimLeft();
-          final nextToken = remain.isEmpty ? '' : remain.split(RegExp(r'\s+')).first;
+          final nextToken =
+          remain.isEmpty ? '' : remain.split(RegExp(r'\s+')).first;
 
-          // 캡처된 끝부분에 단위가 붙어있는 경우도 제외 (예: "200g", "250ml")
           final capTrim = captured.trimRight();
 
-          if (excludeUnitToken.hasMatch(nextToken) || excludeInlineSuffix.hasMatch(capTrim)) {
-            continue; // 영양/단위 → 제외
+          if (excludeUnitToken.hasMatch(nextToken) ||
+              excludeInlineSuffix.hasMatch(capTrim)) {
+            continue;
           }
 
           final v = parseNumber(captured);
@@ -944,22 +1122,14 @@ class _ResultScreenState extends State<ResultScreen> {
             if (seen.add(key)) results.add(double.parse(key));
           }
         }
-        // afterName에서 이미 충분히 찾았어도, 느슨 모드라 block 전체도 계속 확인
       }
 
-      // 다음 블록으로
       i += taken > 0 ? taken : 1;
     }
 
     return results;
   }
 
-
-
-
-
-
-  // Fetch food detail from Firestore
   Future<void> _fetchFoodDetail() async {
     try {
       List<String> foodNames = _extractAllFoodNames(widget.responses.join('\n'));
@@ -968,10 +1138,9 @@ class _ResultScreenState extends State<ResultScreen> {
         return;
       }
 
-      bool detailFound = false; // Track if detail is found
+      bool detailFound = false;
 
       for (String foodName in foodNames) {
-        // Firestore query to search for documents where 'foodname' matches
         QuerySnapshot querySnapshot = await FirebaseFirestore.instance
             .collection('rag_data_food')
             .where('foodname', isEqualTo: foodName)
@@ -983,12 +1152,11 @@ class _ResultScreenState extends State<ResultScreen> {
             _foodDetail = doc['detail'] ?? null;
           });
           detailFound = true;
-          break; // Exit loop after finding the detail
+          break;
         }
       }
 
       if (!detailFound) {
-        // No matching document found
         setState(() {
           _foodDetail = null;
         });
@@ -996,7 +1164,7 @@ class _ResultScreenState extends State<ResultScreen> {
     } catch (e) {
       print('Failed to fetch food detail: $e');
       setState(() {
-        _foodDetail = null; // Set to null in case of error
+        _foodDetail = null;
       });
     }
   }
@@ -1018,25 +1186,20 @@ class _ResultScreenState extends State<ResultScreen> {
         if (data != null) {
           SharedPreferences prefs = await SharedPreferences.getInstance();
           String? langCode = prefs.getString('languageCode');
-
-          // ✅ SharedPreferences에 없으면 시스템 언어 사용
-          langCode ??= Localizations.localeOf(context).toLanguageTag(); // 예: 'ko' or 'pt-BR'
-
-          // ✅ Firestore 필드명 포맷에 맞춰 언어 코드 변환 (pt-BR -> pt_BR 등)
+          langCode ??= Localizations.localeOf(context).toLanguageTag();
           langCode = langCode.replaceAll('-', '_');
 
           String detailField = 'detail_$langCode';
 
           setState(() {
-            _ragDetail = data.containsKey(detailField)
-                ? data[detailField]
-                : data['detail_en']; // 언어 없을 경우 fallback to English
+            _ragDetail =
+            data.containsKey(detailField) ? data[detailField] : data['detail_en'];
           });
         } else {
           setState(() {
             _ragDetail = null;
           });
-          await _trySendImpressions(); // 🔹 이 줄 추가
+          await _trySendImpressions();
         }
       } else {
         setState(() {
@@ -1051,9 +1214,6 @@ class _ResultScreenState extends State<ResultScreen> {
     }
   }
 
-
-
-  // ── 2. PageView 기반 풀스크린 뷰어 호출 함수 ──
   void _showFullImage({required List<File> files, required int initialIndex}) {
     _viewerImages = files;
     _viewerInitialIndex = initialIndex;
@@ -1115,290 +1275,308 @@ class _ResultScreenState extends State<ResultScreen> {
     );
 
     return WillPopScope(
-        onWillPop: () async {
-          if (!_isLoading) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => HomeScreen()),
-            );
-            return false;
-          }
+      onWillPop: () async {
+        if (!_isLoading) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => HomeScreen()),
+          );
           return false;
-        },
-        child: Scaffold(
-            backgroundColor: backgroundColor,
-            appBar: AppBar(
-              backgroundColor: backgroundColor,
-              leading: widget.isTutorial
-                  ? null
-                  : IconButton(
-                icon: Icon(CupertinoIcons.back, color: textColor, size: 30),
-                onPressed: () {
-                  if (!_isLoading) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => HomeScreen()),
-                    );
-                  }
-                },
-              ),
-              title: widget.isTutorial ? TutorialIndicator() : null,
-            ),
-            body: Stack(
+        }
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: backgroundColor,
+        appBar: AppBar(
+          backgroundColor: backgroundColor,
+          leading: widget.isTutorial
+              ? null
+              : IconButton(
+            icon: Icon(CupertinoIcons.back, color: textColor, size: 30),
+            onPressed: () {
+              if (!_isLoading) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => HomeScreen()),
+                );
+              }
+            },
+          ),
+          title: widget.isTutorial ? TutorialIndicator() : null,
+        ),
+        body: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
+                  ImageGridViewer(
+                    images: widget.images != null && widget.images!.isNotEmpty
+                        ? widget.images!
+                        : [widget.image],
+                    onTap: (i) {
+                      final files =
+                      widget.images != null && widget.images!.isNotEmpty
+                          ? widget.images!
+                          : [widget.image];
+                      _showFullImage(files: files, initialIndex: i);
+                    },
+                  ),
+                  SizedBox(height: 16),
+
+                  // ─── AI 응답 카드 ───
+                  Container(
+                    decoration: boxDecoration,
+                    padding: const EdgeInsets.all(8),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // ─── 썸네일 그리드 ───
-                        // ─── 썸네일 그리드 (ImageGridViewer 사용) ───
-                        ImageGridViewer(
-                          images: widget.images != null && widget.images!.isNotEmpty
-                              ? widget.images!
-                              : [widget.image],
-                          onTap: (i) {
-                            final files = widget.images != null && widget.images!.isNotEmpty
-                                ? widget.images!
-                                : [widget.image];
-                            _showFullImage(files: files, initialIndex: i);
-                          },
-                        ),
-
-                        SizedBox(height: 16),
-
-                        // ─── AI 응답 영역 (기존 코드 그대로) ───
-                        Container(
-                          decoration: boxDecoration,
-                          padding: const EdgeInsets.all(8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    localizations!.aiAnswer,
-                                    style: TextStyle(fontFamily: 'SFPro', fontWeight: FontWeight.bold, color: textColor),
-                                  ),
-                                  const Spacer(),
-                                  if ((_amountFromResponses ?? 0) > 0)
-                                    FxQuickFxButton(
-                                      initialAmount: _amountFromResponses ?? 0,
-                                      detectedCountryCode: _isoCountryCode,
-                                      currencySymbolHint: _currencySymbolHint,
-                                      initialTarget: TargetCurrency.usd,
-                                      iconSize: 18,              // 작게
-                                      padding: EdgeInsets.zero,  // 타이트
-                                      parsedAmounts: _amountCandidates,
-                                    ),
-                                ],
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              localizations!.aiAnswer,
+                              style: TextStyle(
+                                fontFamily: 'SFPro',
+                                fontWeight: FontWeight.bold,
+                                color: textColor,
                               ),
-                              const SizedBox(height: 5), // 카드 내부의 헤더-본문 사이 최소 간격
-
-
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      widget.responses.join('\n\n'),
-                                      style: TextStyle(fontFamily: 'SFPro', fontSize: 12, color: textColor),
-                                    ),
-                                  ),
-                                  Builder(builder: (_) {
-                                    final nutritionData =
-                                    parseNutritionalData(widget.responses.join('\n\n'));
-                                    if (nutritionData.containsKey('calories')) {
-                                      return Padding(
-                                        padding: const EdgeInsets.only(left: 8),
-                                        child: SizedBox(
-                                          width: 60,
-                                          height: 60,
-                                          child: NutritionChart(
-                                            calories: nutritionData['calories'],
-                                            protein: nutritionData['protein'] ?? 0,
-                                            carbs: nutritionData['carbs'] ?? 0,
-                                            fat: nutritionData['fat'] ?? 0,
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                    return SizedBox.shrink();
-                                  }),
-                                ],
-                              ),
-                              SizedBox(height: 10),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  IconButton(
-                                    icon: Icon(Icons.copy, color: Colors.blue, size: 20),
-                                    onPressed: () =>
-                                        _copyTextToClipboard(widget.responses.join('\n\n')),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(CupertinoIcons.square_arrow_up, color: Colors.blue, size: 24),
-                                    onPressed: () => Platform.isIOS
-                                        ? _shareToPlatform(context, 'shareToSystem')
-                                        : _showShareOptions(context),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-
-// ✅ RAG Answer (허용 사용자만)
-                        if (_isAllowedUser && (_ragDetail?.isNotEmpty ?? false)) ...[
-                          SizedBox(height: 16),
-                          Container(
-                            decoration: boxDecoration,
-                            padding: EdgeInsets.all(8),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'RAG Answer',
-                                  style: TextStyle(
-                                    fontFamily: 'SFPro',
-                                    fontWeight: FontWeight.bold,
-                                    color: textColor,
-                                  ),
-                                ),
-                                SizedBox(height: 10),
-                                Text(
-                                  _ragDetail!,
-                                  style: TextStyle(
-                                    fontFamily: 'SFPro',
-                                    fontSize: 12,
-                                    color: textColor,
-                                  ),
-                                ),
-                              ],
                             ),
-                          ),
-                        ],
-
-// ✅ 리뷰 입력 (모든 사용자 가능)
-                        SizedBox(height: 16),
-                        Container(
-                          decoration: boxDecoration,
-                          padding: EdgeInsets.all(8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                localizations.reviewTitle, // ✅ '리뷰 입력'
-                                style: TextStyle(
-                                  fontFamily: 'SFPro',
-                                  fontWeight: FontWeight.bold,
-                                  color: textColor,
-                                ),
+                            const Spacer(),
+                            if ((_amountFromResponses ?? 0) > 0)
+                              FxQuickFxButton(
+                                initialAmount: _amountFromResponses ?? 0,
+                                detectedCountryCode: _isoCountryCode,
+                                currencySymbolHint: _currencySymbolHint,
+                                initialTarget: TargetCurrency.usd,
+                                iconSize: 18,
+                                padding: EdgeInsets.zero,
+                                parsedAmounts: _amountCandidates,
                               ),
-                              SizedBox(height: 8),
-                              TextField(
-                                controller: _reviewController,
-                                maxLines: 3,
-                                style: TextStyle(
-                                  fontFamily: 'SFPro',
-                                  fontSize: 14,
-                                  color: textColor,
-                                ),
-                                decoration: InputDecoration(
-                                  hintText: localizations.reviewHint, // ✅ '음식점에 대한 간단한 감상평을 입력하세요'
-                                  hintStyle: TextStyle(
-                                    fontFamily: 'SFPro',
-                                    fontSize: 14,
-                                    color: Colors.grey,
-                                  ),
-
-                                ),
-                              ),
-                            ],
-                          ),
+                          ],
                         ),
-
-
-                        SafeArea(
-                          bottom: true,  // 하단 안전 영역만 적용
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                            child: ElevatedButton(
-                              onPressed: _isLoading ? null : () {
-                                // 🔹 추가: 저장 버튼 누른 순간 집계
-                                final _comment = _reviewController.text.trim();
-                                LogService().logSaveClick(
-                                  hasComment: _comment.isNotEmpty,
-                                  contentLength: _comment.length,
-                                  context: 'result',
+                        const SizedBox(height: 5),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                widget.responses.join('\n\n'),
+                                style: TextStyle(
+                                  fontFamily: 'SFPro',
+                                  fontSize: 12,
+                                  color: textColor,
+                                ),
+                              ),
+                            ),
+                            Builder(builder: (_) {
+                              final nutritionData = parseNutritionalData(
+                                  widget.responses.join('\n\n'));
+                              if (nutritionData.containsKey('calories')) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(left: 8),
+                                  child: SizedBox(
+                                    width: 60,
+                                    height: 60,
+                                    child: NutritionChart(
+                                      calories: nutritionData['calories'],
+                                      protein: nutritionData['protein'] ?? 0,
+                                      carbs: nutritionData['carbs'] ?? 0,
+                                      fat: nutritionData['fat'] ?? 0,
+                                    ),
+                                  ),
                                 );
-                                                                // 병합이 아직 안 끝났고, 대기 플래그도 세팅 안 된 경우에만 안내
-                                                                if (!_isMergeDone) {
-                                                                  if (!_pendingSave) {
-                                                                    setState(() => _pendingSave = true);
-                                                                    ScaffoldMessenger.of(context).showSnackBar(
-                                                                      SnackBar(
-                                                                        content: Text(AppLocalizations.of(context)!.mergeInProgress),
-                                                                      ),
-                                                                    );
-                                                                  }
-                                                                  return;
-                                                                }
-                                                                // 병합 완료된 경우 바로 저장
-                                                                _saveScanResult();
-                                                              },
-                              style: ElevatedButton.styleFrom(
-                                foregroundColor: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.grey
-                                    : Colors.white,
-                                backgroundColor: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.grey[800]
-                                    : Colors.grey,
-                                minimumSize: Size(double.infinity, 48),
-                                textStyle: TextStyle(fontFamily: 'SFPro', fontSize: 14),
-                              ),
-                              child: Text(localizations.save),
-                            ),
-                          ),
+                              }
+                              return SizedBox.shrink();
+                            }),
+                          ],
                         ),
-
-                        if (_isLoading)
-                          Container(
-                            color: Colors.black.withOpacity(0.5),
-                            child: Center(
-                              child: CupertinoActivityIndicator(radius: 10.0),
+                        SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.copy,
+                                  color: Colors.blue, size: 20),
+                              onPressed: () =>
+                                  _copyTextToClipboard(widget.responses.join('\n\n')),
                             ),
-                          ),
-                        if (_isLoadingError)
-                          Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                Icon(
-                                  CupertinoIcons.exclamationmark_triangle,
-                                  color: _isDarkMode ? Colors.redAccent : Colors.red,
-                                  size: 40.0,
-                                ),
-                                SizedBox(height: 20),
-                                Text(
-                                  localizations.cloudsavingError,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontFamily: 'SFProText',
-                                    color:
-                                    _isDarkMode ? Colors.white70 : CupertinoColors.systemGrey,
-                                    decoration: TextDecoration.none,
-                                  ),
-                                ),
-                              ],
+                            IconButton(
+                              icon: Icon(CupertinoIcons.square_arrow_up,
+                                  color: Colors.blue, size: 24),
+                              onPressed: () => Platform.isIOS
+                                  ? _shareToPlatform(context, 'shareToSystem')
+                                  : _showShareOptions(context),
                             ),
-                          ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
-                ])
-        )
+
+                  // ✅ 여기! 결과 카드 바깥 바로 아래에 “근처 타인 메뉴 태그”
+                  _buildNearbyMenuTags(),
+
+
+                  // ✅ RAG Answer (허용 사용자만)
+                  if (_isAllowedUser && (_ragDetail?.isNotEmpty ?? false)) ...[
+                    SizedBox(height: 16),
+                    Container(
+                      decoration: boxDecoration,
+                      padding: EdgeInsets.all(8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'RAG Answer',
+                            style: TextStyle(
+                              fontFamily: 'SFPro',
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            _ragDetail!,
+                            style: TextStyle(
+                              fontFamily: 'SFPro',
+                              fontSize: 12,
+                              color: textColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  // ✅ 리뷰 입력
+                  SizedBox(height: 16),
+                  Container(
+                    decoration: boxDecoration,
+                    padding: EdgeInsets.all(8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          localizations.reviewTitle,
+                          style: TextStyle(
+                            fontFamily: 'SFPro',
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        TextField(
+                          controller: _reviewController,
+                          maxLines: 3,
+                          style: TextStyle(
+                            fontFamily: 'SFPro',
+                            fontSize: 14,
+                            color: textColor,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: localizations.reviewHint,
+                            hintStyle: TextStyle(
+                              fontFamily: 'SFPro',
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  SafeArea(
+                    bottom: true,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 8.0),
+                      child: ElevatedButton(
+                        onPressed: _isLoading
+                            ? null
+                            : () {
+                          final _comment =
+                          _reviewController.text.trim();
+                          LogService().logSaveClick(
+                            hasComment: _comment.isNotEmpty,
+                            contentLength: _comment.length,
+                            context: 'result',
+                          );
+
+                          if (!_isMergeDone) {
+                            if (!_pendingSave) {
+                              setState(() => _pendingSave = true);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(AppLocalizations.of(context)!
+                                      .mergeInProgress),
+                                ),
+                              );
+                            }
+                            return;
+                          }
+                          _saveScanResult();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor:
+                          Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey
+                              : Colors.white,
+                          backgroundColor:
+                          Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey[800]
+                              : Colors.grey,
+                          minimumSize: Size(double.infinity, 48),
+                          textStyle:
+                          TextStyle(fontFamily: 'SFPro', fontSize: 14),
+                        ),
+                        child: Text(localizations.save),
+                      ),
+                    ),
+                  ),
+
+                  if (_isLoading)
+                    Container(
+                      color: Colors.black.withOpacity(0.5),
+                      child: Center(
+                        child: CupertinoActivityIndicator(radius: 10.0),
+                      ),
+                    ),
+                  if (_isLoadingError)
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Icon(
+                            CupertinoIcons.exclamationmark_triangle,
+                            color: _isDarkMode
+                                ? Colors.redAccent
+                                : Colors.red,
+                            size: 40.0,
+                          ),
+                          SizedBox(height: 20),
+                          Text(
+                            localizations.cloudsavingError,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontFamily: 'SFProText',
+                              color: _isDarkMode
+                                  ? Colors.white70
+                                  : CupertinoColors.systemGrey,
+                              decoration: TextDecoration.none,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

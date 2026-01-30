@@ -21,6 +21,8 @@ class LoadingScreen extends StatefulWidget {
   final DateTime captureTime;
   final Position? position;
   final bool isTutorial;
+  final int maxOutputTokens; // ✅ 이미지 1장당 최대 출력 토큰
+
 
 
   LoadingScreen({
@@ -30,6 +32,7 @@ class LoadingScreen extends StatefulWidget {
       required this.captureTime,
       this.position,
       this.isTutorial = false,
+      this.maxOutputTokens = 1000,
     })  : assert(image != null || images != null,
              'image 또는 images 중 하나는 반드시 제공되어야 합니다.'),
         super(key: key);
@@ -173,7 +176,11 @@ class _LoadingScreenState extends State<LoadingScreen> {
         : [widget.image!];
     // 모든 파일에 대해 GPT 호출
     return Future.wait(files.map((file) =>
-        VisionService.analyzeImage(file, promptContext: promptContext)
+        VisionService.analyzeImage(
+          file,
+          promptContext: promptContext,
+          maxOutputTokens: widget.maxOutputTokens,
+        )
     ));
   }
 
