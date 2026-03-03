@@ -7,8 +7,6 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import '/widgets/photo_capture_widget.dart';
-import 'package:provider/provider.dart';
-import '/ad_remove_provider.dart';
 import '/screens/log_service.dart';
 
 
@@ -62,7 +60,7 @@ class _CameraScreenState extends State<CameraScreen> {
     setState(() => _isProcessing = true);
 
     try {
-        // 프리미엄이 아니면 1장만 허용(혹시 위젯 변경/플랫폼 버그 등으로 여러 장 올 경우 대비)
+      // 프리미엄이 아니면 1장만 허용(혹시 위젯 변경/플랫폼 버그 등으로 여러 장 올 경우 대비)
       // 멀티스캔 탭에서만 여러 장 허용: 네비게이션에서 넘긴 flag만 사용
       final isMultiMode = widget.isPremium; // (이름 그대로: 멀티스캔 여부)
       final incoming = isMultiMode ? rawFiles : (rawFiles.isNotEmpty ? [rawFiles.first] : rawFiles);
@@ -99,7 +97,7 @@ class _CameraScreenState extends State<CameraScreen> {
               images: files.length > 1 ? files : null,
               captureTime: captureTime,
               position: position,
-              maxOutputTokens: isMultiMode ? 4000 : 1000,
+              maxOutputTokens: isMultiMode ? 9000 : 3000,
             ),
           ),
         );
@@ -127,23 +125,39 @@ class _CameraScreenState extends State<CameraScreen> {
   Future<File> compressImage(File file) async {
     final tempDir = await getTemporaryDirectory();
     final targetPath =
-        '${tempDir.path}/compressed_${DateTime
-        .now()
-        .millisecondsSinceEpoch}.jpg';
+        '${tempDir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
-    var result = await FlutterImageCompress.compressAndGetFile(
+    // 🔎 원본 크기 로그(디버그)
+    try {
+      final inSize = await file.length();
+      print('🖼️ [Compress] input = ${(inSize / 1024).toStringAsFixed(1)} KB');
+    } catch (_) {}
+
+    // ✅ 분석/OCR 용도: 과도한 원본(4K/8K) 전송 방지
+    // - 메뉴판은 1280~1600px 정도면 충분한 경우가 대부분
+    final result = await FlutterImageCompress.compressAndGetFile(
       file.absolute.path,
       targetPath,
-      minHeight: 1920,
-      minWidth: 1080,
-      quality: 50,
+      format: CompressFormat.jpeg,
+      quality: 60,          // 50~70 권장 (OCR 고려)
+      minWidth: 1600,        // ✅ 너무 큰 원본을 줄이기 위한 기준
+      minHeight: 1600,
+      keepExif: false,
     );
 
-    if (result != null) {
-      return File(result.path); // XFile을 File로 변환
-    } else {
+    if (result == null) {
       throw Exception('Failed to compress image');
     }
+
+    final outFile = File(result.path);
+
+    // 🔎 압축 후 크기 로그(디버그)
+    try {
+      final outSize = await outFile.length();
+      print('🗜️ [Compress] output = ${(outSize / 1024).toStringAsFixed(1)} KB');
+    } catch (_) {}
+
+    return outFile;
   }
 
 
@@ -308,7 +322,7 @@ class _CameraScreenState extends State<CameraScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-     // Provider 기준으로 최신 구독 상태를 읽고, 상위에서 명시적으로 넘긴 값이 true면 그걸 우선.
+    // Provider 기준으로 최신 구독 상태를 읽고, 상위에서 명시적으로 넘긴 값이 true면 그걸 우선.
 // 네비게이션에서 넘긴 값으로만 멀티/싱글 결정
     final isMultiMode = widget.isPremium;
     final maxCount = isMultiMode ? 4 : 1;

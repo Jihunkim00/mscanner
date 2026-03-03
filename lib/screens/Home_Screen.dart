@@ -29,6 +29,7 @@ import '/ad_remove_provider.dart'; // 경로에 따라 수정 필요
 import '/widgets/premium_ad_overlay.dart';
 import '/widgets/test_purchase_widget.dart';
 import '/screens/log_service.dart';
+import '/widgets/how_to_use_mscanner_card.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -53,8 +54,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool _showPremiumOverlay = false; // 🔹 프리미엄 팝업 표시 여부
   StreamSubscription<User?>? _authSub;
-
-
 
 
   // ─────────────────────────────────────────────────────────
@@ -103,6 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
 
+
   Future<void> _checkPremiumOverlay() async {
     final adp = context.read<AdRemoveProvider>();
     if (adp.isSubscribed || adp.isAdRemoved) {
@@ -130,11 +130,6 @@ class _HomeScreenState extends State<HomeScreen> {
     await prefs.setInt('premium_overlay_closed_time', DateTime.now().millisecondsSinceEpoch);
     setState(() => _showPremiumOverlay = false);
   }
-
-
-
-
-
 
 
 
@@ -312,15 +307,7 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
-
   }
-
-
-
-
-
-
-
   void _onNewUserLogin() {
     _clearCachedData();
     setState(() {
@@ -334,7 +321,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // ⭐ 최초 로그인 시에만 깜빡이기 실행
     if (_isFirstLogin) {
-      Future.delayed(Duration(seconds: 6), ()
+      Future.delayed(Duration(seconds: 3), ()
       {
         if (mounted) _highlightCameraTab();
       });
@@ -578,7 +565,7 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     });
 
-    Timer(Duration(seconds: 12), () {
+    Timer(Duration(seconds: 8), () {
       _blinkTimer?.cancel();
       setState(() {
         _shouldHighlightCameraTab = false;
@@ -615,6 +602,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     return null;
   }
+
+
 
   /// ─────────────────────────────────────────────────────────
   /// 빌드
@@ -701,7 +690,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         Icons.photo_library,
                                         color: isSubscribed ? null : Colors.grey,
                                       ),
-                                  label: localizations?.multiScan ?? 'multi scan',
+                                  label: localizations?.multiScan ?? 'Multi scan',
                                 ),
                   BottomNavigationBarItem(
                     icon: Icon(Icons.history),
@@ -940,6 +929,63 @@ class _HomeContentState extends State<HomeContent> {
 
   bool _sentMainCardsImpression = false;
   bool _sentManualImpression = false; // (아래 4번에서 사용)
+  String? _extractPrimaryMenuFromResponses(List<String> responses) {
+    if (responses.isEmpty) return null;
+
+    // 1) JSON이면 recommended[0].name 우선
+    for (final r in responses) {
+      final s = r.trim();
+      if (!s.startsWith('{')) continue;
+      try {
+        final decoded = jsonDecode(s);
+        if (decoded is Map) {
+          final rec = decoded['recommended'];
+          if (rec is List && rec.isNotEmpty && rec.first is Map) {
+            final m = Map<String, dynamic>.from(rec.first as Map);
+            final name = (m['name'] ?? '').toString().trim();
+            final nameOriginal = (m['nameOriginal'] ?? '').toString().trim();
+            final pick = nameOriginal.isNotEmpty ? nameOriginal : name;
+            if (pick.length >= 2) return pick;
+          }
+        }
+      } catch (_) {}
+    }
+
+    // 2) 텍스트면 "1." / "1)" 같은 첫 항목 파싱
+    final joined = responses.join('\n').replaceAll('\r', '');
+    final lines = joined.split('\n');
+
+    for (final rawLine in lines) {
+      final line = rawLine.trim();
+      if (line.isEmpty) continue;
+
+      final reFirstItemPrefix = RegExp(r'^\s*1\s*[\.\)\]\:\-]\.?\s*');
+      final m = reFirstItemPrefix.firstMatch(line);
+      if (m != null) {
+        var first = line.substring(m.end).trim();
+
+        // 같은 줄에 2. 3. 붙어있으면 컷
+        final nextItem = RegExp(r'\s*[2-9]\s*[\.\)\]\:\-]\.?\s*');
+        final cut = nextItem.firstMatch(first);
+        if (cut != null && cut.start > 0) {
+          first = first.substring(0, cut.start).trim();
+        }
+
+        // 꼬리 설명 컷
+        for (final t in [' - ', ' – ', ' — ', ': ', '(', '[', '|']) {
+          final idx = first.indexOf(t);
+          if (idx > 0) first = first.substring(0, idx).trim();
+        }
+
+        // 끝 가격 제거
+        first = first.replaceAll(RegExp(r'\s*[0-9][0-9,\.\s]*$'), '').trim();
+
+        if (first.length >= 2) return first;
+      }
+    }
+
+    return null;
+  }
 
 
   @override
@@ -1003,6 +1049,50 @@ class _HomeContentState extends State<HomeContent> {
     super.dispose();
   }
 
+  // ✅ _HomeContentState 안에 추가 (build() 위에 넣으면 됨)
+  Widget _buildSearchBar(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (ctx) => CameraScreen(
+              onCancel: () => Navigator.of(ctx).pop(),
+            ),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: isDarkMode ? Colors.white10 : Colors.white,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              CupertinoIcons.search,
+              size: 18,
+              color: isDarkMode ? Colors.white70 : Colors.black54,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Search Ai food image...',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDarkMode ? Colors.white70 : Colors.black54,
+                  fontFamily: 'SFProText',
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -1018,39 +1108,76 @@ class _HomeContentState extends State<HomeContent> {
       child: SingleChildScrollView(
         child: Column(
           children: [
-            // 최신 좋아요 콘텐츠 표시
-            if (widget.latestLikedData != null)
-              _buildLatestLikedContainer(context),
+            // 상단 검색바
+            _buildSearchBar(context),
+            const SizedBox(height: 16),
+
+            // 최신 좋아요 콘텐츠 표시 (기존 유지)
+            if (widget.latestLikedData != null) _buildLatestLikedContainer(context),
 
             // 메인 카드 (헤더 + 캐러셀)
             _buildHeaderRow(),
             _buildGFCardCarousel(),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
-            Consumer<AdRemoveProvider>(
-              builder: (context, adProvider, child) {
-                if (adProvider.isSubscribed || adProvider.isAdRemoved) {
-                  return SizedBox.shrink(); // 프리미엄이면 광고 제거
-                } else if (_isBannerLoaded && _adaptiveBanner != null) {
-                  return Container(
-                    width: _adaptiveBanner!.size.width.toDouble(),
-                    height: _adaptiveBanner!.size.height.toDouble(),
-                    alignment: Alignment.center,
-                    child: AdWidget(ad: _adaptiveBanner!), // 광고 표시
-                  );
-                } else {
-                  return SizedBox.shrink(); // 배너 미로드 시 빈 공간
-                }
-              },
+            // 도움말 배너 (How to use) — 기존 링크 유지
+            const HowToUseMscannerCard(),
+
+            const SizedBox(height: 16),
+
+            // AD 라벨 + 기존 배너 광고
+            if (!isAdRemoved) ...[
+              Center(
+                child: Text(
+                  'AD',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isDarkMode ? Colors.white60 : Colors.black54,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Consumer<AdRemoveProvider>(
+                builder: (context, adProvider, child) {
+                  if (adProvider.isSubscribed || adProvider.isAdRemoved) {
+                    return SizedBox.shrink();
+                  } else if (_isBannerLoaded && _adaptiveBanner != null) {
+                    return Container(
+                      width: _adaptiveBanner!.size.width.toDouble(),
+                      height: _adaptiveBanner!.size.height.toDouble(),
+                      alignment: Alignment.center,
+                      child: AdWidget(ad: _adaptiveBanner!),
+                    );
+                  } else {
+                    return SizedBox.shrink();
+                  }
+                },
+              ),
+              const SizedBox(height: 20),
+            ],
+
+            // Trending 헤더
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "What's Trending Near You",
+                  style: TextStyle(
+                    fontFamily: 'SFProDisplay',
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).textTheme.titleLarge?.color,
+                  ),
+                ),
+              ),
             ),
+            const SizedBox(height: 10),
 
-
-            // 도움말 배너
-            const SizedBox(height: 20),
-            _buildManualBanner(context),
-
-            const SizedBox(height: 20),
+            // 댓글 섹션 (기존 유지)
             CommentSection(userGeohash: widget.userGeohash),
           ],
         ),
@@ -1265,6 +1392,7 @@ class _HomeContentState extends State<HomeContent> {
 
         final String location = widget.latestLikedData?['location'] ?? 'Unknown';
         final List<String> responses = List<String>.from(widget.latestLikedData?['responses'] ?? []);
+        final primary = _extractPrimaryMenuFromResponses(responses);
         final String timestamp = DateTime.now().toIso8601String();
         final String restaurantName = isSkip
             ? AppLocalizations.of(context)?.restaurantName ?? 'Restaurant Name'
@@ -1313,6 +1441,7 @@ class _HomeContentState extends State<HomeContent> {
             'image_url': widget.latestLikedData?['image_url'],
             'responses': responses,
             'review': widget.latestLikedData?['review'] ?? '',
+            if (primary != null) 'primary_menu': primary, // ✅ 추가
           });
 
           // ② ranking_data 저장
@@ -1387,25 +1516,57 @@ class _HomeContentState extends State<HomeContent> {
 
 
 
-  /// 2) 메인 카드 섹션
+  /// 메인 카드 섹션 헤더 (Mscanner's Picks + View All)
   Widget _buildHeaderRow() {
-    final localizations = AppLocalizations.of(context);
     return Padding(
       padding: EdgeInsets.only(
-        top: Platform.isIOS ? 30.0 : 20.0,
-        left: 10.0,
-        right: 10.0,
+        top: Platform.isIOS ? 18.0 : 12.0,
+        left: 6.0,
+        right: 6.0,
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            localizations?.cityrecommand ?? 'Recommendations by Region',
+            "Mscanner's Picks",
             style: TextStyle(
               fontFamily: 'SFProDisplay',
-              fontSize: 16,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Theme.of(context).textTheme.titleLarge?.color,
+            ),
+          ),
+          const Spacer(),
+          TextButton(
+            onPressed: () async {
+              final future = widget.mainCardDataFuture;
+              if (future == null) return;
+              final items = await future;
+              if (!mounted || items.isEmpty) return;
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DetailScreen(
+                    items: items,
+                    initialIndex: 0,
+                  ),
+                ),
+              );
+            },
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              foregroundColor: Colors.deepOrange,
+              textStyle: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            child: Row(
+              children: const [
+                Text('View All'),
+                SizedBox(width: 4),
+                Icon(CupertinoIcons.chevron_right, size: 14),
+              ],
             ),
           ),
         ],
@@ -1444,7 +1605,7 @@ class _HomeContentState extends State<HomeContent> {
 
 
           return SizedBox(
-            height: 300,
+            height: 260,
             child: ListView.builder(
               shrinkWrap: true, // ✅ 추가 필요
               scrollDirection: Axis.horizontal,
@@ -1464,54 +1625,58 @@ class _HomeContentState extends State<HomeContent> {
                     );
                   },
                   child: Container(
-                    width: 300,
-                    margin: EdgeInsets.symmetric(horizontal: 5),
-                    child: GFImageOverlay(
-                      height: MediaQuery.of(context).size.height * 0.3,
-                      width: MediaQuery.of(context).size.width * 0.8,
-                      image: CachedNetworkImageProvider(
-                        cardData[index]['image_url']!,
-                        cacheManager: CustomCacheManager(),
-                      ),
-                      colorFilter: ColorFilter.mode(
-                        Colors.black.withOpacity(0.3),
-                        BlendMode.darken,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(3.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Html(
-                              data: cardData[index]['title']!,
-                              style: {
-                                'body': Style(
-                                  fontFamily: 'SFProText',
-                                  color: GFColors.LIGHT,
-                                  fontSize: FontSize(14),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              },
-                            ),
-                            SizedBox(height: 1),
-                            Html(
-                              data: cardData[index]['subtitle']!,
-                              style: {
-                                'body': Style(
-                                  fontFamily: 'SFProText',
-                                  color: GFColors.LIGHT,
-                                  fontSize: FontSize(12),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              },
-                            ),
-                          ],
+                    width: 260,
+                    margin: const EdgeInsets.symmetric(horizontal: 5),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: GFImageOverlay(
+                        height: MediaQuery.of(context).size.height * 0.3,
+                        width: MediaQuery.of(context).size.width * 0.8,
+                        image: CachedNetworkImageProvider(
+                          cardData[index]['image_url']!,
+                          cacheManager: CustomCacheManager(),
+                        ),
+                        colorFilter: ColorFilter.mode(
+                          Colors.black.withOpacity(0.3),
+                          BlendMode.darken,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(3.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Html(
+                                data: cardData[index]['title']!,
+                                style: {
+                                  'body': Style(
+                                    fontFamily: 'SFProText',
+                                    color: GFColors.LIGHT,
+                                    fontSize: FontSize(14),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                },
+                              ),
+                              const SizedBox(height: 1),
+                              Html(
+                                data: cardData[index]['subtitle']!,
+                                style: {
+                                  'body': Style(
+                                    fontFamily: 'SFProText',
+                                    color: GFColors.LIGHT,
+                                    fontSize: FontSize(12),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                },
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 );
+
               },
             ),
           );
@@ -1553,5 +1718,4 @@ class _HomeContentState extends State<HomeContent> {
       ),
     );
   }
-
 }

@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import '/screens/log_service.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 
 /// ===== 상위 통화 & 국가→통화 매핑(요약) =====
@@ -205,6 +206,7 @@ class FxQuickFxButton extends StatelessWidget {
     this.initialTarget = TargetCurrency.usd,
     this.iconSize = 18, // 작게
     this.padding = const EdgeInsets.all(4),
+    this.iconData,
     // [ADD] 결과에서 파싱한 다중 금액 후보
     this.parsedAmounts = const <double>[],
   });
@@ -215,6 +217,7 @@ class FxQuickFxButton extends StatelessWidget {
   final TargetCurrency initialTarget;
   final double iconSize;
   final EdgeInsets padding;
+  final IconData? iconData;
   // [ADD]
   final List<double> parsedAmounts;
 
@@ -226,7 +229,7 @@ class FxQuickFxButton extends StatelessWidget {
         iconSize: iconSize,
         splashRadius: iconSize + 6,
         tooltip: AppLocalizations.of(context)?.fx_tooltip,
-        icon: const Icon(Icons.currency_exchange),
+        icon: Icon(Icons.currency_exchange),
         onPressed: () async {
           // 🔹 from/to 산출
           final from = pickLocalCurrency(

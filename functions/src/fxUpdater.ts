@@ -2,11 +2,12 @@
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { setGlobalOptions, logger } from "firebase-functions/v2";
 import { defineSecret } from "firebase-functions/params";
-import { initializeApp } from "firebase-admin/app";
+import { getApps, initializeApp } from "firebase-admin/app";
+
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 
 setGlobalOptions({ region: "asia-northeast3", timeoutSeconds: 60, memory: "256MiB" });
-initializeApp();
+if (getApps().length === 0) initializeApp();
 const db = getFirestore();
 
 const FX_KEY = defineSecret("EXCHANGERATE_HOST_KEY");

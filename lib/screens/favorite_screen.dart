@@ -14,6 +14,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import 'mapscreen.dart';
 import 'package:getwidget/getwidget.dart'; // GetWidget 패키지 임포트
+import 'dart:convert';
+import 'package:mscanner/widgets/menu_tag_registry.dart';
 
 class FavoriteScreen extends StatefulWidget {
   final String documentId;
@@ -33,6 +35,36 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
   TextEditingController _restaurantNameController = TextEditingController();
   TextEditingController _reviewController = TextEditingController();
   int _rating = 0;
+
+  String? _extractJsonObjectFromText(String input) {
+    var s = input.trim();
+    if (s.isEmpty) return null;
+
+    // 1) ```json ... ``` 코드블럭 제거
+    if (s.startsWith('```')) {
+      s = s.replaceAll(RegExp(r'^```[a-zA-Z]*\s*'), '');
+      s = s.replaceAll(RegExp(r'\s*```$'), '');
+      s = s.trim();
+    }
+
+    // 2) 앞에 RECOMMEND/기타 텍스트가 붙어있으면 첫 '{'부터 자르기
+    final start = s.indexOf('{');
+    if (start < 0) return null;
+
+    // 3) 마지막 '}'까지 자르기
+    final end = s.lastIndexOf('}');
+    if (end < 0 || end <= start) return null;
+
+    final candidate = s.substring(start, end + 1).trim();
+    if (!candidate.startsWith('{') || !candidate.endsWith('}')) return null;
+
+    return candidate;
+  }
+
+  // ✅ JSON(칩 UI) 지원
+  Map<String, dynamic>? _aiJson;
+  String? _aiJsonError;
+  List<String> _normalizedResponses = const [];
 
   @override
   void initState() {
@@ -83,8 +115,453 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
             });
           });
         });
+
+        // ✅ responses 정규화 + JSON 파싱(구버전 호환)
+        final data = docSnapshot.data() as Map<String, dynamic>?;
+        final rawList = data?['responses'];
+        final rawSingle = data?['response'];
+        List<String> normalized;
+        if (rawList is List) {
+          normalized = rawList.map((e) => e.toString()).toList();
+        } else if (rawSingle != null) {
+          normalized = [rawSingle.toString()];
+        } else {
+          normalized = [];
+        }
+        _normalizedResponses = normalized;
+        _parseAiJsonFromResponses(normalized);
       }
     }
+  }
+
+  void _parseAiJsonFromResponses(List<String> responses) {
+    Map<String, dynamic>? firstJson;
+    final List<Map<String, dynamic>> jsonList = [];
+
+    _aiJsonError = null;
+
+    for (final r in responses) {
+      final s = _extractJsonObjectFromText(r);
+      if (s == null) continue;
+
+      try {
+        final decoded = jsonDecode(s);
+        if (decoded is Map) {
+          final m = Map<String, dynamic>.from(decoded);
+          firstJson ??= m;
+          jsonList.add(m);
+        }
+      } catch (e) {
+        _aiJsonError = 'jsonDecode failed: $e';
+        continue;
+      }
+    }
+
+    if (firstJson == null) {
+      _aiJson = null;
+      return;
+    }
+
+    // 멀티 JSON 병합 로직은 기존 그대로 사용
+    if (jsonList.length <= 1) {
+      _aiJson = firstJson;
+      return;
+    }
+
+    final merged = Map<String, dynamic>.from(firstJson);
+
+    final List<Map<String, dynamic>> recommendedAll = [];
+    final Map<String, List<Map<String, dynamic>>> fullMenuAll = {
+      'main': <Map<String, dynamic>>[],
+      'side': <Map<String, dynamic>>[],
+      'meal': <Map<String, dynamic>>[],
+      'drink': <Map<String, dynamic>>[],
+      'beverage': <Map<String, dynamic>>[],
+      'unknown': <Map<String, dynamic>>[],
+    };
+
+    String dedupKey(Map<String, dynamic> item) {
+      final no = (item['nameOriginal'] ?? '').toString().trim().toLowerCase();
+      final nt = (item['name'] ?? '').toString().trim().toLowerCase();
+      return (no.isNotEmpty ? no : nt).isNotEmpty ? (no.isNotEmpty ? no : nt) : item.toString();
+    }
+
+    List<Map<String, dynamic>> dedupList(List<Map<String, dynamic>> items) {
+      final seen = <String>{};
+      final out = <Map<String, dynamic>>[];
+      for (final it in items) {
+        if (seen.add(dedupKey(it))) out.add(it);
+      }
+      return out;
+    }
+
+    for (final j in jsonList) {
+      final rec = j['recommended'];
+      if (rec is List) {
+        for (final e in rec) {
+          if (e is Map) recommendedAll.add(Map<String, dynamic>.from(e));
+        }
+      }
+
+      final fm = j['fullMenu'] ?? j['full_menu'] ?? j['menu'] ?? j['menus'];
+      if (fm is Map) {
+        final src = (fm['items'] is Map)
+            ? Map<String, dynamic>.from(fm['items'] as Map)
+            : Map<String, dynamic>.from(fm);
+
+        for (final k in fullMenuAll.keys) {
+          final v = src[k];
+          if (v is List) {
+            for (final e in v) {
+              if (e is Map) fullMenuAll[k]!.add(Map<String, dynamic>.from(e));
+            }
+          }
+        }
+      }
+    }
+
+    merged['recommended'] = dedupList(recommendedAll);
+    merged['fullMenu'] = {
+      'items': { for (final k in fullMenuAll.keys) k: dedupList(fullMenuAll[k]!) },
+      'summary': (firstJson['fullMenu'] is Map) ? ((firstJson['fullMenu']['summary'] ?? '').toString()) : '',
+      'truncated': (firstJson['fullMenu'] is Map) ? (firstJson['fullMenu']['truncated'] == true) : false,
+    };
+
+    _aiJson = merged;
+  }
+
+  List<Map<String, dynamic>> _getRecommendedItems() {
+    final j = _aiJson;
+    if (j == null) return const [];
+    final rec = j['recommended'];
+    if (rec is List) {
+      return rec
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    }
+    return const [];
+  }
+
+  void _showFullMenuSheet(Color textColor) {
+    final j = _aiJson;
+    if (j == null) return;
+
+    final rawFm = j['fullMenu'] ?? j['full_menu'] ?? j['menu'] ?? j['menus'];
+    if (rawFm is! Map) return;
+
+    // ✅ new schema: fullMenu.items.{main/side/...} + summary + truncated
+    Map<String, dynamic>? itemsMap;
+    String? summary;
+    bool truncated = false;
+
+    if (rawFm['items'] is Map) {
+      itemsMap = Map<String, dynamic>.from(rawFm['items'] as Map);
+      summary = (rawFm['summary'] ?? '').toString().trim();
+      truncated = rawFm['truncated'] == true;
+    } else {
+      // ✅ old schema: fullMenu.{main/side/...} is List
+      itemsMap = Map<String, dynamic>.from(rawFm);
+      summary = null;
+      truncated = false;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) {
+        return SafeArea(
+          child: DraggableScrollableSheet(
+            expand: false,
+            initialChildSize: 0.85,
+            builder: (context, scrollController) {
+              return ListView(
+                controller: scrollController,
+                padding: const EdgeInsets.all(16),
+                children: [
+                  Text(
+                    'Full Menu',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  ..._buildMenuSection('Main', itemsMap?['main'], textColor),
+                  ..._buildMenuSection('Side', itemsMap?['side'], textColor),
+                  ..._buildMenuSection('Meal', itemsMap?['meal'], textColor),
+                  ..._buildMenuSection('Drink', itemsMap?['drink'], textColor),
+                  ..._buildMenuSection('Beverage', itemsMap?['beverage'], textColor),
+                  ..._buildMenuSection('Other', itemsMap?['unknown'], textColor),
+
+                  // ✅ new schema summary 표시
+                  if ((summary ?? '').isNotEmpty) ...[
+                    const SizedBox(height: 18),
+                    Text(
+                      truncated ? 'Summary (truncated)' : 'Summary',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      summary!,
+                      style: TextStyle(fontSize: 13, height: 1.35, color: textColor),
+                    ),
+                  ],
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  List<Widget> _buildMenuSection(String title, dynamic items, Color textColor) {
+    if (items is! List || items.isEmpty) return const [];
+    return [
+      const SizedBox(height: 16),
+      Text(title,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: textColor,
+          )),
+      const SizedBox(height: 8),
+      ...items.whereType<Map>().map((e) {
+        final m = Map<String, dynamic>.from(e);
+        final nameOriginal = (m['nameOriginal'] ?? '').toString().trim();
+        final nameTranslated = (m['name'] ?? '').toString().trim();
+        final displayName = nameOriginal.isNotEmpty
+            ? (nameTranslated.isNotEmpty &&
+            nameTranslated.toLowerCase() != nameOriginal.toLowerCase()
+            ? '$nameOriginal ($nameTranslated)'
+            : nameOriginal)
+            : nameTranslated;
+        final desc = (m['shortDesc'] ?? '').toString();
+        final price = (m['price'] ?? '').toString().trim();
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                price.isEmpty ? displayName : '$displayName  ·  $price',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
+                ),
+              ),
+              if (desc.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(desc, style: TextStyle(fontSize: 12, color: textColor)),
+              ],
+            ],
+          ),
+        );
+      }).toList(),
+    ];
+  }
+
+  Widget _tagChipPhosphor({
+    required String rawTag,
+  }) {
+    final code = MenuTagRegistry.normalizeCode(rawTag);
+    final icon = MenuTagRegistry.iconForCode(code);
+    final bg = MenuTagRegistry.backgroundForCode(code);
+    final showCheck = MenuTagRegistry.isCheckTag(code);
+
+    const foreground = Color(0xFF1F2937);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.black.withOpacity(0.08)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: foreground),
+          const SizedBox(width: 8),
+          Text(
+            rawTag,
+            style: const TextStyle(
+              fontFamily: 'SFPro',
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: foreground,
+              height: 1.0,
+            ),
+          ),
+          if (showCheck) ...[
+            const SizedBox(width: 10),
+            Icon(Icons.check, size: 18, color: foreground),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDishRow(Map<String, dynamic> item, Color textColor) {
+    final nameOriginal = (item['nameOriginal'] ?? '').toString().trim();
+    final nameTranslated = (item['name'] ?? '').toString().trim();
+    final desc = (item['shortDesc'] ?? '').toString();
+
+    // ✅ 여기! (label 방어)
+    final label = nameOriginal.isNotEmpty ? nameOriginal : nameTranslated;
+    if (label.isEmpty) return const SizedBox.shrink();
+
+    final displayName = (nameOriginal.isNotEmpty)
+        ? (nameTranslated.isNotEmpty &&
+        nameTranslated.toLowerCase() != nameOriginal.toLowerCase()
+        ? '$nameOriginal ($nameTranslated)'
+        : nameOriginal)
+        : nameTranslated;
+
+    final tags = (item['tags'] is List)
+        ? (item['tags'] as List).map((e) => e.toString()).toList()
+        : <String>[];
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            displayName,
+            style: TextStyle(
+              fontFamily: 'SFPro',
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: textColor,
+            ),
+          ),
+          const SizedBox(height: 6),
+          if (desc.isNotEmpty)
+            Text(
+              desc,
+              style: TextStyle(
+                fontFamily: 'SFPro',
+                fontSize: 13,
+                color: textColor,
+              ),
+            ),
+          const SizedBox(height: 10),
+          if (tags.isNotEmpty)
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: tags.take(6).map((t) {
+                return _tagChipPhosphor(rawTag: t);
+              }).toList(),
+            ),
+          const SizedBox(height: 12),
+          Divider(height: 1, color: textColor.withOpacity(0.12)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAiAnswerSection({
+    required Color textColor,
+    required BoxDecoration boxDecoration,
+    required String responseText,
+  }) {
+    final rec = _getRecommendedItems();
+
+    final hasJsonUi = _aiJson != null && rec.isNotEmpty;
+
+    // ✅ 구버전 호환: JSON 없으면 기존 텍스트 출력 유지
+    if (!hasJsonUi) {
+      return Container(
+        padding: const EdgeInsets.all(8),
+        decoration: boxDecoration,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              AppLocalizations.of(context)!.aiAnswer,
+              style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              responseText.isNotEmpty ? responseText : 'No responses available',
+              style: TextStyle(fontSize: 12, color: textColor),
+            ),
+            const SizedBox(height: 10),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.copy,
+                        color: Colors.blue, size: 20),
+                    onPressed: () => _copyTextToClipboard(responseText),
+                  ),
+                  IconButton(
+                    icon: const Icon(CupertinoIcons.square_arrow_up,
+                        color: Colors.blue, size: 24),
+                    onPressed: _shareCapturedImage,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // ✅ JSON(칩) UI
+    return Container(
+      decoration: boxDecoration,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppLocalizations.of(context)!.aiAnswer,
+            style: TextStyle(
+              fontFamily: 'SFPro',
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: textColor,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...rec.map((item) => _buildDishRow(item, textColor)).toList(),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: () => _showFullMenuSheet(textColor),
+                  child: const Text('View Full Menu'),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.copy, color: Colors.blue, size: 20),
+                onPressed: () => _copyTextToClipboard(responseText),
+              ),
+              IconButton(
+                icon: const Icon(CupertinoIcons.square_arrow_up,
+                    color: Colors.blue, size: 24),
+                onPressed: _shareCapturedImage,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _saveChanges() async {
@@ -210,19 +687,9 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
       );
     }
 
-    final dynamic  rawList   = _favoriteData!['responses'];
-    final dynamic  rawSingle = _favoriteData!['response'];
-
-        List<String>   normalized;
-        if (rawList is List) {
-          normalized = rawList.map((e) => e.toString()).toList();
-        } else if (rawSingle != null) {
-          normalized = [rawSingle.toString()];
-        } else {
-          normalized = [];
-        }
-
-        final String responseText = normalized.join('\n\n');
+    // ✅ responses 정규화(구버전 호환) + 텍스트 fallback
+    final normalized = _normalizedResponses;
+    final String responseText = normalized.join('\n\n');
 
     if (_favoriteData == null) {
       return Scaffold(
@@ -396,59 +863,11 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                     ],
                   ),
                   SizedBox(height: 16),
-                  // AI 응답
-                  Container(
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: _isDarkMode ? Colors.grey[850] : Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black12,
-                          offset: Offset(0, 2),
-                          blurRadius: 6,
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          AppLocalizations.of(context)!.aiAnswer,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: textColor,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          responseText.isNotEmpty
-                              ? responseText
-                              : 'No responses available',  // ← join 결과가 비어있으면 대체 문구 출력
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: textColor,
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        Align(
-                          alignment: Alignment.bottomRight,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.copy, color: Colors.blue, size: 20),
-                                onPressed: () => _copyTextToClipboard(responseText),  // ← 복사할 때도 join 결과 사용
-                              ),
-                              IconButton(
-                                icon: Icon(CupertinoIcons.square_arrow_up, color: Colors.blue, size: 24),
-                                onPressed: _shareCapturedImage,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                  // ✅ AI 응답 (JSON 칩 UI + 구버전 텍스트 fallback)
+                  _buildAiAnswerSection(
+                    textColor: textColor,
+                    boxDecoration: boxDecoration,
+                    responseText: responseText,
                   ),
                   SizedBox(height: 16),
                   Container(

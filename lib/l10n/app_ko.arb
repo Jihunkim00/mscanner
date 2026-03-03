@@ -206,7 +206,7 @@
   "buy": "구매",
   "guestPurchaseMessage": "게스트 회원은 구매할 수 없습니다",
   "premiumFunctionMessage": "프리미엄 서비스 전용",
-  "multiScan": "일괄 스캔",
+  "multiScan": "다중 스캔",
   "maxScanImages": "처음 {maxCount}개의 이미지까지만 스캔됩니다.",
   "@maxScanImages": {
     "description": "Snackbar message shown when user selects more images than the max allowed",

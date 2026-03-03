@@ -26,6 +26,13 @@ import '/widgets/image_grid_viewer.dart'; // ✅ 로그 서비스 추가
 import 'package:flutter/foundation.dart';
 import 'dart:ui' as ui;
 import 'package:mscanner/widgets/fx_auto_converter_card.dart';
+import 'package:meta/meta.dart';
+// NOTE: FX/태그 보조 아이콘은 Material 아이콘을 사용합니다.
+import 'package:mscanner/widgets/menu_tag_registry.dart'; // 네 경로에 맞춰
+import 'dart:math' as math;
+import '/widgets/ai_food_image_button.dart'; // 파일 경로 맞게
+
+
 
 // NOTE: searched_menu 저장은 UI 흐름과 분리(비동기)해서 실행합니다.
 
@@ -46,6 +53,8 @@ class ResultScreen extends StatefulWidget {
   final String? geohash; // Added geohash
   final String? ragDetail; // Added ragDetail
   final bool isTutorial; // ✅ 추가
+  final Stream<String>? responseStream; // ✅ 스트리밍 응답
+  final List<String> initialFastRecommend; // ✅ 첫 추천칩 미리 표시용
 
   ResultScreen({
     required this.image,
@@ -59,6 +68,8 @@ class ResultScreen extends StatefulWidget {
     this.geohash, // Added geohash
     this.ragDetail, // Added ragDetail
     this.isTutorial = false, // ✅ 기본값 false
+    this.responseStream,
+    this.initialFastRecommend = const [],
   });
 
   @override
@@ -71,7 +82,92 @@ class _MenuTag {
   const _MenuTag(this.name, this.count);
 }
 
+@immutable
+class _MenuNamePair {
+  final String original;
+  final String translated;
+  const _MenuNamePair({required this.original, required this.translated});
+
+  String get _o => original.trim();
+  String get _t => translated.trim();
+
+  bool get hasAny => _o.isNotEmpty || _t.isNotEmpty;
+
+  /// UI/집계에서 기본으로 쓸 표시값(언어는 일단 번역 우선)
+  String get display => _t.isNotEmpty ? _t : _o;
+
+  /// 중복 집계용 키(원문 우선, 없으면 번역)
+  String get key {
+    final base = _o.isNotEmpty ? _o : _t;
+    return base.trim().toLowerCase();
+  }
+
+  Map<String, dynamic> toMap() => {
+    'original': _o,
+    'translated': _t,
+  };
+}
+
+bool _pendingSearchedMenuSave = false; // ✅ 스트림 끝나고 저장하기 위한 플래그
+
+
 class _ResultScreenState extends State<ResultScreen> {
+
+  // ===== Recommended price candidates (for FxQuickFxButton) =====
+  double? _parseAmountAny(dynamic v) {
+    if (v == null) return null;
+    if (v is num) return v.toDouble();
+    if (v is String) {
+      final s = v.trim();
+      if (s.isEmpty) return null;
+      final cleaned = s.replaceAll(',', '').replaceAll('\u00A0', ' ');
+      final m = RegExp(r'(\d+(?:\.\d+)?)').firstMatch(cleaned);
+      if (m == null) return null;
+      return double.tryParse(m.group(1)!);
+    }
+    return null;
+  }
+
+  List<double> _extractAmountsFromRecommendedPrices(List<Map<String, dynamic>> items) {
+    final out = <double>[];
+    for (final item in items) {
+      // new schema: prices.{single/small/medium/large}
+      final prices = item['prices'];
+      if (prices is Map) {
+        for (final k in const ['single', 'small', 'medium', 'large']) {
+          final a = _parseAmountAny(prices[k]);
+          if (a != null && a > 0) out.add(a);
+        }
+      }
+
+      // old schema fallback
+      final a2 = _parseAmountAny(item['price']);
+      if (a2 != null && a2 > 0) out.add(a2);
+    }
+    // de-dup (string key)
+    final seen = <String>{};
+    final uniq = <double>[];
+    for (final a in out) {
+      final key = a.toStringAsFixed(2);
+      if (seen.add(key)) uniq.add(a);
+    }
+    return uniq;
+  }
+
+// ===== Streaming AI response =====
+StreamSubscription<String>? _aiStreamSub;
+final StringBuffer _aiStreamBuffer = StringBuffer();
+bool _aiStreamDone = false;
+
+bool get _isWaitingFullMenu => widget.responseStream != null && !_aiStreamDone;
+
+// RECOMMEND: line fast chips
+List<String> _fastRecommend = <String>[];
+
+// Reveal chips: 1 first, then others after stream done
+int _revealRecommendedCount = 1;
+Timer? _revealTimer;
+
   // === Auto FX: detected hints ===
   String? _isoCountryCode;                 // e.g., 'KR', 'JP'
   String? _currencySymbolHint;             // e.g., '₩','€','$','¥'
@@ -79,6 +175,24 @@ class _ResultScreenState extends State<ResultScreen> {
 
   bool _sentAiImpression = false;
   bool _sentRagImpression = false;
+  bool _pendingSearchedMenuSave = false; // ✅ 스트림 끝나고 searched_menu 저장하기 위한 플래그
+
+  String? _searchedMenuDocId; // ✅ 이번 결과에서 저장한 searched menu 문서 id
+
+  // ✅ AI JSON parsed result (new UI)
+  Map<String, dynamic>? _aiJson;
+  String? _aiJsonError;
+
+
+  final Set<String> _aiIconLoading = <String>{};
+
+  String _menuKeyForIcon(String nameOriginal, String nameTranslated) {
+    final base = (nameOriginal.isNotEmpty ? nameOriginal : nameTranslated).trim().toLowerCase();
+    return base; // 나중에 lang까지 붙여도 됨: '${lang}_$base'
+  }
+
+
+
 
   // 🔽🔽🔽 [NEW] 다중 금액 후보 보관 리스트
   List<double> _amountCandidates = [];     // ex) [12500, 3500, 7000]
@@ -136,11 +250,1237 @@ class _ResultScreenState extends State<ResultScreen> {
     }
     return null;
   }
+  // ✅ NEW: parse JSON from responses
+// - 단일 스캔: 첫 번째 유효 JSON 사용
+// - 멀티 스캔: responses 안의 JSON들을 "추천메뉴/전체메뉴" 기준으로 병합(중복 제거)
+
+  String? _extractJsonObjectFromText(String input) {
+    var s = input.trim();
+    if (s.isEmpty) return null;
+
+    // 1) ```json ... ``` 코드블록 제거
+    if (s.startsWith('```')) {
+      s = s.replaceAll(RegExp(r'^```[a-zA-Z]*\s*'), '');
+      s = s.replaceAll(RegExp(r'\s*```$'), '');
+      s = s.trim();
+    }
+
+    // 2) RECOMMEND: 라인이 앞에 붙어있으면 제거(첫 '{'부터 자르기)
+    final start = s.indexOf('{');
+    if (start < 0) return null;
+
+    // 3) 마지막 '}'까지
+    final end = s.lastIndexOf('}');
+    if (end < 0 || end <= start) return null;
+
+    final candidate = s.substring(start, end + 1).trim();
+
+    // 4) 빠른 sanity check
+    if (!candidate.startsWith('{') || !candidate.endsWith('}')) return null;
+
+    return candidate;
+  }
+
+  void _parseAiJson() {
+    Map<String, dynamic>? firstJson;
+    final List<Map<String, dynamic>> jsonList = [];
+
+    for (final r in widget.responses) {
+      final raw = r.trim();
+      final s = _extractJsonObjectFromText(raw);
+      if (s == null) continue;
+
+      try {
+        final decoded = jsonDecode(s);
+        if (decoded is Map) {
+          final m = Map<String, dynamic>.from(decoded);
+          firstJson ??= m;
+          jsonList.add(m);
+        }
+      } catch (e) {
+        _aiJsonError = 'jsonDecode failed: $e\nrawHead=${raw.substring(0, raw.length > 120 ? 120 : raw.length)}';
+        continue;
+      }
+    }
+
+    if (firstJson == null) {
+      _aiJson = null;
+      // print('⚠️ no json found. responses=${widget.responses.length} bufferLen=${_aiStreamBuffer.length}');
+      return;
+    }
+
+    final isMulti = (widget.images?.length ?? 0) > 1 || jsonList.length > 1;
+
+    if (!isMulti) {
+      _aiJson = firstJson;
+      _aiJsonError = null;
+      return;
+    }
+
+    // ---- merge mode ----
+    final merged = Map<String, dynamic>.from(firstJson);
+
+    // 1) merge recommended
+    final List<Map<String, dynamic>> recommendedAll = [];
+    // 2) merge fullMenu categories
+    final Map<String, List<Map<String, dynamic>>> fullMenuAll = {
+      'main': <Map<String, dynamic>>[],
+      'side': <Map<String, dynamic>>[],
+      'meal': <Map<String, dynamic>>[],
+      'drink': <Map<String, dynamic>>[],
+      'beverage': <Map<String, dynamic>>[],
+      'unknown': <Map<String, dynamic>>[],
+    };
+
+    String _dedupKey(Map<String, dynamic> item) {
+      final no = (item['nameOriginal'] ?? '').toString().trim().toLowerCase();
+      final nt = (item['name'] ?? '').toString().trim().toLowerCase();
+      final key = no.isNotEmpty ? no : nt;
+      return key.isNotEmpty ? key : item.toString();
+    }
+
+    List<Map<String, dynamic>> _dedupList(List<Map<String, dynamic>> items) {
+      final seen = <String>{};
+      final out = <Map<String, dynamic>>[];
+      for (final it in items) {
+        final k = _dedupKey(it);
+        if (seen.add(k)) out.add(it);
+      }
+      return out;
+    }
+
+    for (final j in jsonList) {
+      final rec = j['recommended'];
+      if (rec is List) {
+        for (final e in rec) {
+          if (e is Map) recommendedAll.add(Map<String, dynamic>.from(e));
+        }
+      }
+
+      final fm = j['fullMenu'] ?? j['full_menu'] ?? j['menu'] ?? j['menus'];
+      if (fm is Map) {
+        // ✅ new schema면 fm['items']를 사용, 아니면 fm 자체가 items
+        final src = (fm['items'] is Map) ? Map<String, dynamic>.from(fm['items'] as Map) : Map<String, dynamic>.from(fm);
+
+        for (final k in fullMenuAll.keys) {
+          final v = src[k];
+          if (v is List) {
+            for (final e in v) {
+              if (e is Map) fullMenuAll[k]!.add(Map<String, dynamic>.from(e));
+            }
+          }
+        }
+
+        // ✅ summary/truncated는 첫 번째 것 유지 + 없으면 채우기 정도로만(가볍게)
+        if (merged['fullMenu'] is Map) {
+          // no-op
+        }
+      }
+
+    }
+
+    merged['recommended'] = _dedupList(recommendedAll);
+    merged['fullMenu'] = {
+      'items': { for (final k in fullMenuAll.keys) k: _dedupList(fullMenuAll[k]!) },
+      // summary/truncated는 첫 JSON 기준으로 유지 (없으면 빈 값)
+      'summary': (firstJson['fullMenu'] is Map) ? ((firstJson['fullMenu']['summary'] ?? '').toString()) : '',
+      'truncated': (firstJson['fullMenu'] is Map) ? (firstJson['fullMenu']['truncated'] == true) : false,
+    };
+
+    _aiJson = merged;
+    _aiJsonError = null;
+  }
+
+  // ✅ NEW: recommended list extractor
+  List<Map<String, dynamic>> _getRecommendedItems() {
+    final j = _aiJson;
+    if (j == null) return const [];
+    final rec = j['recommended'];
+    if (rec is List) {
+      return rec
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    }
+    return const [];
+  }
+
+void _kickoffRecommendedReveal() {
+  _revealTimer?.cancel();
+
+  final jsonRec = _getRecommendedItems();
+  final total = jsonRec.isNotEmpty ? jsonRec.length : _fastRecommend.length;
+  if (total <= 0) return;
+
+  if (_revealRecommendedCount <= 0) _revealRecommendedCount = 1;
+  if (mounted) setState(() {});
+
+  // If streaming and not done yet, keep only the first revealed chip.
+  if (widget.responseStream != null && !_aiStreamDone) return;
+
+  _revealTimer = Timer.periodic(const Duration(milliseconds: 220), (t) {
+    if (!mounted) return t.cancel();
+    if (_revealRecommendedCount >= total) return t.cancel();
+    setState(() => _revealRecommendedCount += 1);
+  });
+}
+
+
+  void _showFullMenuSheet() {
+    final j = _aiJson;
+    if (j == null) return;
+
+    final rawFm = j['fullMenu'] ?? j['full_menu'] ?? j['menu'] ?? j['menus'];
+    if (rawFm is! Map) return;
+
+    // ✅ new schema: fullMenu.items.{main/side/...} + summary + truncated
+    Map<String, dynamic>? itemsMap;
+    String? summary;
+    bool truncated = false;
+
+    if (rawFm['items'] is Map) {
+      itemsMap = Map<String, dynamic>.from(rawFm['items'] as Map);
+      summary = (rawFm['summary'] ?? '').toString().trim();
+      truncated = rawFm['truncated'] == true;
+    } else {
+      // ✅ old schema: fullMenu.{main/side/...} is List
+      itemsMap = Map<String, dynamic>.from(rawFm);
+      summary = null;
+      truncated = false;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) {
+        return SafeArea(
+          child: DraggableScrollableSheet(
+            expand: false,
+            initialChildSize: 0.8,
+            builder: (context, scrollController) {
+              return ListView(
+                controller: scrollController,
+                padding: const EdgeInsets.all(16),
+                children: [
+                  const Text(
+                    'Full Menu',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // ✅ 메뉴 섹션들 (new/old 둘 다)
+                  ..._buildMenuSection('Main', itemsMap?['main']),
+                  ..._buildMenuSection('Side', itemsMap?['side']),
+                  ..._buildMenuSection('Meal', itemsMap?['meal']),
+                  ..._buildMenuSection('Drink', itemsMap?['drink']),
+                  ..._buildMenuSection('Beverage', itemsMap?['beverage']),
+                  ..._buildMenuSection('Other', itemsMap?['unknown']),
+
+                  // ✅ new schema summary 표시
+                  if ((summary ?? '').isNotEmpty) ...[
+                    const SizedBox(height: 18),
+                    Row(
+                      children: [
+                        Text(
+                          truncated ? 'Summary (truncated)' : 'Summary',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      summary!,
+                      style: const TextStyle(fontSize: 13, height: 1.35),
+                    ),
+                  ],
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  List<Widget> _buildMenuSection(String title, dynamic items) {
+    if (items is! List || items.isEmpty) return const [];
+    return [
+      const SizedBox(height: 16),
+      Text(title,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 8),
+      ...items.whereType<Map>().map((e) {
+        final m = Map<String, dynamic>.from(e);
+        final nameOriginal = (m['nameOriginal'] ?? '').toString().trim();
+        final nameTranslated = (m['name'] ?? '').toString().trim();
+
+        final displayName = nameOriginal.isNotEmpty
+            ? (nameTranslated.isNotEmpty && nameTranslated.toLowerCase() != nameOriginal.toLowerCase()
+            ? '$nameOriginal ($nameTranslated)'
+            : nameOriginal)
+            : nameTranslated;
+
+        final desc = (m['shortDesc'] ?? '').toString();
+        final priceLabel = _priceLabelFromItem(m);
+
+        final mk = buildMenuKey(nameOriginal, nameTranslated);
+        final effectivePrice = (_convertedPriceByMenuKey[mk] ?? priceLabel)?.trim();
+        final showPrice = effectivePrice != null && effectivePrice.isNotEmpty;
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                displayName,
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              ),
+              if (showPrice) ...[
+  const SizedBox(height: 4),
+  InkWell(
+    borderRadius: BorderRadius.circular(8),
+    onTap: () => _toggleSinglePriceConversion(m),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(
+          child: Text(
+            effectivePrice!,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          ),
+        ),
+        const SizedBox(width: 6),
+        if (_singlePriceLoadingMenuKeys.contains(mk))
+          const CupertinoActivityIndicator(radius: 7)
+        else
+          Icon(
+            Icons.currency_exchange,
+            size: 16,
+            color: _convertedPriceByMenuKey.containsKey(mk)
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).iconTheme.color?.withOpacity(0.7),
+          ),
+      ],
+    ),
+  ),
+],
+              if (desc.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(desc, style: const TextStyle(fontSize: 12)),
+              ],
+            ],
+          ),
+        );
+      }).toList(),
+    ];
+  }
+
+
+// ===== Price label helpers =====
+String? _currencyCodeFromItem(Map<String, dynamic> item) {
+  String? code;
+  final prices = item['prices'];
+  if (prices is Map) {
+    final p = Map<String, dynamic>.from(prices as Map);
+    code = (p['currency'] ?? p['currencyCode'])?.toString();
+  }
+  code ??= (item['currency'] ?? item['currencyCode'] ?? item['priceCurrency'])?.toString();
+  if (code == null) return null;
+  final c = code.trim();
+  if (c.isEmpty) return null;
+  return c.toUpperCase();
+}
+
+String? _symbolForCurrency(String? code) {
+  if (code == null) return null;
+  switch (code.toUpperCase()) {
+    case 'KRW':
+      return '₩';
+    case 'JPY':
+      return '¥';
+    case 'CNY':
+      return '¥';
+    case 'USD':
+      return r'$';
+    case 'EUR':
+      return '€';
+    case 'GBP':
+      return '£';
+    case 'VND':
+      return '₫';
+    case 'THB':
+      return '฿';
+    case 'PHP':
+      return '₱';
+    case 'INR':
+      return '₹';
+    default:
+      return null;
+  }
+}
+
+bool _isAmbiguousSymbol(String symbol) => symbol == r'$' || symbol == '¥';
+
+String _commaInt(int n) {
+  final sign = n < 0 ? '-' : '';
+  var s = n.abs().toString();
+  final buf = StringBuffer();
+  for (int i = 0; i < s.length; i++) {
+    final idxFromEnd = s.length - i;
+    buf.write(s[i]);
+    if (idxFromEnd > 1 && idxFromEnd % 3 == 1) {
+      buf.write(',');
+    }
+  }
+  return sign + buf.toString();
+}
+
+String _formatAmount(double v) {
+  // 정수면 소수점 제거
+  if ((v - v.roundToDouble()).abs() < 0.000001) {
+    return _commaInt(v.round());
+  }
+  var s = v.toStringAsFixed(2);
+  s = s.replaceAll(RegExp(r'\.?0+$'), ''); // 12.00 -> 12, 12.50 -> 12.5
+  final parts = s.split('.');
+  final i = int.tryParse(parts[0]) ?? 0;
+  final head = _commaInt(i);
+  if (parts.length == 2) return '$head.${parts[1]}';
+  return head;
+}
+
+String _formatMoney(double amount, {String? currencyCode, String? symbolHint, bool includeCodeIfAmbiguous = true}) {
+  final sym = _symbolForCurrency(currencyCode) ?? symbolHint;
+  final a = _formatAmount(amount);
+  if (sym != null && sym.isNotEmpty) {
+    final base = '$sym$a';
+    if (currencyCode != null && includeCodeIfAmbiguous && _isAmbiguousSymbol(sym)) {
+      return '$base ($currencyCode)';
+    }
+    return base;
+  }
+  if (currencyCode != null && currencyCode.isNotEmpty) return '$currencyCode $a';
+  return a;
+}
+
+String _formatMoneyRange(double min, double max, {String? currencyCode, String? symbolHint}) {
+  final sym = _symbolForCurrency(currencyCode) ?? symbolHint;
+  final aMin = _formatAmount(min);
+  final aMax = _formatAmount(max);
+
+  if (sym != null && sym.isNotEmpty) {
+    var base = '$sym$aMin~$sym$aMax';
+    if (currencyCode != null && _isAmbiguousSymbol(sym)) {
+      base += ' ($currencyCode)';
+    }
+    return base;
+  }
+  if (currencyCode != null && currencyCode.isNotEmpty) {
+    return '$currencyCode $aMin~$aMax';
+  }
+  return '$aMin~$aMax';
+}
+
+String? _priceLabelFromItem(Map<String, dynamic> item) {
+  final code = _currencyCodeFromItem(item);
+  String? localHint;
+  if (item['price'] is String) {
+    localHint = _extractCurrencySymbolFromText(item['price'] as String);
+  }
+  final hint = localHint ?? _currencySymbolHint;
+
+  final vals = <double>[];
+  final prices = item['prices'];
+  if (prices is Map) {
+    for (final k in const ['single', 'small', 'medium', 'large']) {
+      final a = _parseAmountAny(prices[k]);
+      if (a != null && a > 0) vals.add(a);
+    }
+  }
+  if (vals.isEmpty) {
+    final a2 = _parseAmountAny(item['price']);
+    if (a2 != null && a2 > 0) vals.add(a2);
+  }
+  if (vals.isEmpty) return null;
+  vals.sort();
+
+  if (vals.length == 1) {
+    return _formatMoney(vals.first, currencyCode: code, symbolHint: hint);
+  }
+  return _formatMoneyRange(vals.first, vals.last, currencyCode: code, symbolHint: hint);
+}
+
+
+
+
+// ===== FX: quick convert prices to "system" target currency (toggle) =====
+String? _targetCurrencyCode; // e.g., 'KRW','USD'
+bool _isBulkConvertingPrices = false;
+bool _bulkPricesConverted = false;
+final Map<String, String> _convertedPriceByMenuKey = <String, String>{};
+final Set<String> _singlePriceLoadingMenuKeys = <String>{};
+
+Future<String> _ensureTargetCurrencyCode() async {
+  if (_targetCurrencyCode != null && _targetCurrencyCode!.trim().isNotEmpty) {
+    return _targetCurrencyCode!;
+  }
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    const keys = <String>[
+      'fx_target_currency',
+      'fxTargetCurrency',
+      'target_currency',
+      'preferred_currency',
+      'home_currency',
+    ];
+    for (final k in keys) {
+      final v = prefs.getString(k);
+      if (v != null && v.trim().length >= 3) {
+        final code = v.trim().toUpperCase();
+        _targetCurrencyCode = code;
+        return code;
+      }
+    }
+  } catch (_) {}
+
+  // Fallback: device locale country -> currency
+  final cc = ui.PlatformDispatcher.instance.locale.countryCode?.toUpperCase();
+  final byLocale = (cc != null) ? kCountryToCurrency[cc] : null;
+  final code = (byLocale ?? 'USD').toUpperCase();
+  _targetCurrencyCode = code;
+  return code;
+}
+
+List<double> _extractPriceValuesFromItem(Map<String, dynamic> item) {
+  final vals = <double>[];
+  final prices = item['prices'];
+  if (prices is Map) {
+    for (final k in const ['single', 'small', 'medium', 'large']) {
+      final a = _parseAmountAny(prices[k]);
+      if (a != null && a > 0) vals.add(a);
+    }
+  }
+  if (vals.isEmpty) {
+    final a2 = _parseAmountAny(item['price']);
+    if (a2 != null && a2 > 0) vals.add(a2);
+  }
+  vals.sort();
+  return vals;
+}
+
+List<Map<String, dynamic>> _collectAllMenuItemsForFx() {
+  final out = <Map<String, dynamic>>[];
+  out.addAll(_getRecommendedItems());
+
+  final j = _aiJson;
+  if (j == null) return out;
+
+  final rawFm = j['fullMenu'] ?? j['full_menu'] ?? j['menu'] ?? j['menus'];
+  if (rawFm is Map) {
+    if (rawFm['items'] is Map) {
+      final itemsMap = Map<String, dynamic>.from(rawFm['items'] as Map);
+      for (final v in itemsMap.values) {
+        if (v is List) {
+          for (final e in v.whereType<Map>()) {
+            out.add(Map<String, dynamic>.from(e));
+          }
+        }
+      }
+    } else {
+      for (final v in rawFm.values) {
+        if (v is List) {
+          for (final e in v.whereType<Map>()) {
+            out.add(Map<String, dynamic>.from(e));
+          }
+        }
+      }
+    }
+  }
+  return out;
+}
+
+Future<Map<String, FxDoc>> _fetchFxDocsOnce(Iterable<String> bases) async {
+  final ids = bases.map((e) => e.toUpperCase()).toSet().toList();
+  final limited = ids.take(10).toList();
+  final snap = await FirebaseFirestore.instance
+      .collection('fx_core')
+      .where(FieldPath.documentId, whereIn: limited)
+      .get();
+
+  final m = <String, FxDoc>{};
+  for (final d in snap.docs) {
+    final fx = FxDoc.fromSnap(d);
+    if (fx != null) m[d.id.toUpperCase()] = fx;
+  }
+  return m;
+}
+
+Future<String?> _convertPriceValuesToLabel({
+  required List<double> vals,
+  required String from,
+  required String to,
+}) async {
+  if (vals.isEmpty) return null;
+  final toU = to.toUpperCase();
+  final fromU = from.toUpperCase();
+
+  if (toU == fromU) {
+    if (vals.length == 1) {
+      return _formatMoney(vals.first, currencyCode: fromU, symbolHint: currencySymbol(fromU));
+    }
+    return _formatMoneyRange(vals.first, vals.last, currencyCode: fromU, symbolHint: currencySymbol(fromU));
+  }
+
+  final bases = <String>{toU, 'USD', 'EUR', 'KRW', 'JPY', 'CNY'};
+  final docs = await _fetchFxDocsOnce(bases);
+  final baseDoc = pickBestBaseDoc(from: fromU, to: toU, docs: docs);
+  if (baseDoc == null) return null;
+
+  double? cMin = convertViaBase(amount: vals.first, from: fromU, to: toU, baseDoc: baseDoc);
+  double? cMax = convertViaBase(amount: vals.last, from: fromU, to: toU, baseDoc: baseDoc);
+  if (cMin == null || cMax == null) return null;
+
+  cMin = double.parse(cMin.toStringAsFixed(2));
+  cMax = double.parse(cMax.toStringAsFixed(2));
+
+  if ((cMin - cMax).abs() < 0.000001) {
+    return _formatMoney(cMin, currencyCode: toU, symbolHint: currencySymbol(toU));
+  }
+  return _formatMoneyRange(cMin, cMax, currencyCode: toU, symbolHint: currencySymbol(toU));
+}
+
+Future<void> _toggleBulkPriceConversion() async {
+  if (_isBulkConvertingPrices) return;
+
+  if (_bulkPricesConverted) {
+    setState(() {
+      _bulkPricesConverted = false;
+      _convertedPriceByMenuKey.clear();
+    });
+    return;
+  }
+
+  final allItems = _collectAllMenuItemsForFx();
+  if (allItems.isEmpty) return;
+
+  setState(() => _isBulkConvertingPrices = true);
+
+  try {
+    final to = await _ensureTargetCurrencyCode();
+
+    final groups = <String, List<Map<String, dynamic>>>{};
+    for (final item in allItems) {
+      final vals = _extractPriceValuesFromItem(item);
+      if (vals.isEmpty) continue;
+
+      final code = _currencyCodeFromItem(item);
+      String? localHint;
+      if (item['price'] is String) {
+        localHint = _extractCurrencySymbolFromText(item['price'] as String);
+      }
+      final from = (code ??
+              pickLocalCurrency(
+                detectedCountryCode: _isoCountryCode,
+                currencySymbolHint: localHint ?? _currencySymbolHint,
+              ))
+          .toUpperCase();
+
+      groups.putIfAbsent(from, () => <Map<String, dynamic>>[]).add(item);
+    }
+
+    if (groups.isEmpty) return;
+
+    final converted = <String, String>{};
+
+    for (final entry in groups.entries) {
+      final from = entry.key;
+      for (final item in entry.value) {
+        final vals = _extractPriceValuesFromItem(item);
+        if (vals.isEmpty) continue;
+
+        final label = await _convertPriceValuesToLabel(vals: vals, from: from, to: to);
+        if (label == null) continue;
+
+        final nameOriginal = (item['nameOriginal'] ?? '').toString().trim();
+        final nameTranslated = (item['name'] ?? item['nameTranslated'] ?? '').toString().trim();
+        final mk = buildMenuKey(nameOriginal, nameTranslated);
+        converted[mk] = label;
+      }
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _convertedPriceByMenuKey
+        ..clear()
+        ..addAll(converted);
+      _bulkPricesConverted = converted.isNotEmpty;
+    });
+  } catch (_) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('환율 정보를 불러오지 못했어요. 네트워크 상태를 확인해 주세요.')),
+    );
+  } finally {
+    if (mounted) setState(() => _isBulkConvertingPrices = false);
+  }
+}
+
+Future<void> _toggleSinglePriceConversion(Map<String, dynamic> item) async {
+  final nameOriginal = (item['nameOriginal'] ?? '').toString().trim();
+  final nameTranslated = (item['name'] ?? item['nameTranslated'] ?? '').toString().trim();
+  final mk = buildMenuKey(nameOriginal, nameTranslated);
+
+  if (_singlePriceLoadingMenuKeys.contains(mk)) return;
+
+  // 이미 변환된 상태면, 이 항목만 원래 통화로 되돌림
+  if (_convertedPriceByMenuKey.containsKey(mk)) {
+    setState(() => _convertedPriceByMenuKey.remove(mk));
+    return;
+  }
+
+  final vals = _extractPriceValuesFromItem(item);
+  if (vals.isEmpty) return;
+
+  setState(() => _singlePriceLoadingMenuKeys.add(mk));
+
+  try {
+    final to = await _ensureTargetCurrencyCode();
+
+    final code = _currencyCodeFromItem(item);
+    String? localHint;
+    if (item['price'] is String) {
+      localHint = _extractCurrencySymbolFromText(item['price'] as String);
+    }
+    final from = (code ??
+            pickLocalCurrency(
+              detectedCountryCode: _isoCountryCode,
+              currencySymbolHint: localHint ?? _currencySymbolHint,
+            ))
+        .toUpperCase();
+
+    final label = await _convertPriceValuesToLabel(vals: vals, from: from, to: to);
+    if (label == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('해당 금액의 환율 변환에 실패했어요.')),
+        );
+      }
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _convertedPriceByMenuKey[mk] = label;
+    });
+  } catch (_) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('환율 정보를 불러오지 못했어요. 네트워크 상태를 확인해 주세요.')),
+    );
+  } finally {
+    if (mounted) setState(() => _singlePriceLoadingMenuKeys.remove(mk));
+  }
+}
+
+
+  Widget _buildDishRow(Map<String, dynamic> item, Color textColor) {
+    final nameOriginal = (item['nameOriginal'] ?? '').toString().trim();
+    final nameTranslated = (item['name'] ?? '').toString().trim();
+    final desc = (item['shortDesc'] ?? '').toString();
+    final priceLabel = _priceLabelFromItem(item);
+
+    final key = _menuKeyForIcon(nameOriginal, nameTranslated);
+
+    final tags = (item['tags'] is List)
+        ? (item['tags'] as List).map((e) => e.toString()).toList()
+        : <String>[];
+
+    final pair = _MenuNamePair(original: nameOriginal, translated: nameTranslated);
+    final menuKey = buildMenuKey(pair.original, pair.translated);
+
+    // ✅ 이름 2줄 위젯(너가 만든 것 유지하되 폰트만 조금 조정 추천)
+
+Widget buildDualName() {
+  final o = nameOriginal.trim();
+  final t = nameTranslated.trim();
+  final showTranslation = t.isNotEmpty && o.isNotEmpty && t.toLowerCase() != o.toLowerCase();
+  final primary = o.isNotEmpty ? o : t;
+  final secondary = showTranslation ? t : '';
+
+  final effectivePrice = (_convertedPriceByMenuKey[menuKey] ?? priceLabel)?.trim();
+  final showPrice = effectivePrice != null && effectivePrice.isNotEmpty;
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text(
+        primary,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontFamily: 'SFPro',
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+          color: textColor,
+          height: 1.08,
+        ),
+      ),
+      if (secondary.isNotEmpty) ...[
+        const SizedBox(height: 3),
+        Text(
+          secondary,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontFamily: 'SFPro',
+            fontSize: 16,
+            color: textColor.withOpacity(0.78),
+            height: 1.05,
+            decoration: TextDecoration.underline,
+            decorationThickness: 1.0,
+            decorationColor: textColor.withOpacity(0.35),
+          ),
+        ),
+      ],
+      if (showPrice) ...[
+  const SizedBox(height: 6),
+  InkWell(
+    borderRadius: BorderRadius.circular(8),
+    onTap: () => _toggleSinglePriceConversion(item),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(
+          child: Text(
+            effectivePrice!,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontFamily: 'SFPro',
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+              color: textColor.withOpacity(0.92),
+              height: 1.05,
+            ),
+          ),
+        ),
+        const SizedBox(width: 6),
+        if (_singlePriceLoadingMenuKeys.contains(menuKey))
+          const CupertinoActivityIndicator(radius: 7)
+        else
+          Icon(
+            Icons.currency_exchange,
+            size: 16,
+            color: _convertedPriceByMenuKey.containsKey(menuKey)
+                ? Theme.of(context).colorScheme.primary
+                : textColor.withOpacity(0.65),
+          ),
+      ],
+    ),
+  ),
+],
+    ],
+  );
+}
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ✅ 아이콘을 Stack으로 오버레이 (Row에서 제거)
+          Stack(
+            children: [
+              // 왼쪽 컨텐츠 영역: 오른쪽 아이콘 공간만큼 패딩 확보
+              Padding(
+                padding: const EdgeInsets.only(right: 84), // 아이콘 영역 확보(=size+여백)
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    buildDualName(),
+                    if (desc.isNotEmpty) ...[
+                      const SizedBox(height: 10), // ✅ 이름-설명 간격 (원하는 값으로)
+                      Text(
+                        desc,
+                        style: TextStyle(
+                          fontFamily: 'SFPro',
+                          fontSize: 13,
+                          color: textColor,
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+              // 오른쪽 상단에 떠있는 아이콘(레이아웃 높이에 영향 X)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: AiFoodImageButton(
+                  menuKey: menuKey,
+                  menu: pair.toMap(),
+                  shortDesc: desc,
+                  tags: tags,
+                  searchedMenuDocId: _searchedMenuDocId, // ✅ 이 문서에 url도 같이 기록
+                  size: 80,
+                ),
+              ),
+            ],
+          ),
+
+          // ✅ 태그는 설명 아래로 바로 붙음 (이제 공백 없음)
+          if (tags.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: tags.take(6).map((t) {
+                return _tagChipPhosphor(rawTag: t, textColor: textColor);
+              }).toList(),
+            ),
+          ],
+
+          const SizedBox(height: 12),
+          Divider(height: 1, color: textColor.withOpacity(0.12)),
+        ],
+      ),
+    );
+  }
+  Widget _tagChipPhosphor({
+    required String rawTag,
+    required Color textColor,
+  }) {
+    final code = MenuTagRegistry.normalizeCode(rawTag);
+    final icon = MenuTagRegistry.iconForCode(code);
+    final bg = MenuTagRegistry.backgroundForCode(code);
+    final showCheck = MenuTagRegistry.isCheckTag(code);
+
+    // 배경색이 밝으니 아이콘/텍스트는 다크톤으로 통일(테마 무관하게 깔끔)
+    const foreground = Color(0xFF1F2937);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.black.withOpacity(0.08)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: foreground),
+          const SizedBox(width: 8),
+          Text(
+            rawTag, // 지금은 원문 태그 그대로 표시 (나중에 code->l10n 라벨로 바꾸면 됨)
+            style: const TextStyle(
+              fontFamily: 'SFPro',
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: foreground,
+              height: 1.0,
+            ),
+          ),
+          if (showCheck) ...[
+            const SizedBox(width: 10),
+            Icon(Icons.check_rounded, size: 14, color: foreground),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ✅ NEW: New main card UI (fallback to old text if JSON not available)
+  Widget _buildScanResultCard({
+    required AppLocalizations localizations,
+    required Color textColor,
+    required BoxDecoration boxDecoration,
+  }) {
+    final rec = _getRecommendedItems();
+    final canShowMenu = _aiJson != null;
+
+    // Fallback: 기존 텍스트 카드(현재 로직 유지)
+    final hasFast = _fastRecommend.isNotEmpty;
+    final hasJsonRec = rec.isNotEmpty;
+    if (!hasFast && !hasJsonRec) {
+      final fallbackText = widget.responses.isNotEmpty
+          ? widget.responses.join()
+          : _aiStreamBuffer.toString();
+      return Container(
+        decoration: boxDecoration,
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  localizations.aiAnswer,
+                  style: TextStyle(
+                    fontFamily: 'SFPro',
+                    fontWeight: FontWeight.bold,
+                    color: textColor,
+                  ),
+                ),
+                const Spacer(),
+                if ((_amountFromResponses ?? 0) > 0)
+                  FxQuickFxButton(
+                    initialAmount: _amountFromResponses ?? 0,
+                    detectedCountryCode: _isoCountryCode,
+                    currencySymbolHint: _currencySymbolHint,
+                    initialTarget: TargetCurrency.usd,
+                    iconSize: 18,
+                    padding: EdgeInsets.zero,
+                    parsedAmounts: _amountCandidates,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 5),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child:
+                  AnimatedDotsText(
+                    baseText: 'Analyzing',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white60
+                          : CupertinoColors.systemGrey2,
+                      decoration: TextDecoration.none,
+                    ),
+                  )
+                ),
+                Builder(builder: (_) {
+                  final nutritionData =
+                  parseNutritionalData(widget.responses.join('\n\n'));
+                  if (nutritionData.containsKey('calories')) {
+                    return Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: SizedBox(
+                        width: 60,
+                        height: 60,
+                        child: NutritionChart(
+                          calories: nutritionData['calories'],
+                          protein: nutritionData['protein'] ?? 0,
+                          carbs: nutritionData['carbs'] ?? 0,
+                          fat: nutritionData['fat'] ?? 0,
+                        ),
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                }),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.copy, color: Colors.blue, size: 20),
+                  onPressed: () =>
+                      _copyTextToClipboard(widget.responses.join('\n\n')),
+                ),
+                IconButton(
+                  icon: const Icon(CupertinoIcons.square_arrow_up,
+                      color: Colors.blue, size: 24),
+                  onPressed: () => Platform.isIOS
+                      ? _shareToPlatform(context, 'shareToSystem')
+                      : _showShareOptions(context),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    // ✅ JSON UI
+// ✅ Chips use JSON recommended when available, otherwise fast RECOMMEND from stream
+// - 추천 칩에는 "환율/가격 UI"를 넣지 않고, 이름만 간단히 보여줍니다.
+final chipLabels = rec.isNotEmpty
+    ? rec
+        .map((e) {
+          final o = (e['nameOriginal'] ?? '').toString().trim();
+          final t = (e['name'] ?? e['nameTranslated'] ?? '').toString().trim();
+          final pair = _MenuNamePair(original: o, translated: t);
+          return pair.display;
+        })
+        .where((e) => e.isNotEmpty)
+        .toList()
+    : _fastRecommend;
+
+// ✅ FX 버튼(중복 제거): 추천 칩에는 두지 않고, 제목 라인(본문)에서만 노출
+final _jsonPriceAmounts = _extractAmountsFromRecommendedPrices(rec);
+final _fxAmounts = <double>[
+  ..._jsonPriceAmounts,
+  ..._amountCandidates,
+  if ((_amountFromResponses ?? 0) > 0) _amountFromResponses!,
+];
+final _seenFx = <String>{};
+final _fxUniq = <double>[];
+for (final a in _fxAmounts) {
+  if (a <= 0) continue;
+  final key = a.toStringAsFixed(2);
+  if (_seenFx.add(key)) _fxUniq.add(a);
+}
+
+
+    return Container(
+      decoration: boxDecoration,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          Row(
+            children: [
+              Text(
+                'Recommended Dishes',
+                style: TextStyle(
+                  fontFamily: 'SFPro',
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: textColor,
+                ),
+              ),
+              const Spacer(),
+              
+if (_fxUniq.isNotEmpty)
+                (_isBulkConvertingPrices
+                    ? const CupertinoActivityIndicator(radius: 9)
+                    : IconButton(
+                        iconSize: 18,
+                        splashRadius: 18,
+                        padding: EdgeInsets.zero,
+                        tooltip: _bulkPricesConverted
+                            ? '원래 통화로 되돌리기'
+                            : '시스템 통화(${_targetCurrencyCode ?? '자동'})로 변환',
+                        icon: Icon(
+                          Icons.currency_exchange,
+                          color: _bulkPricesConverted
+                              ? Theme.of(context).colorScheme.primary
+                              : textColor.withOpacity(0.92),
+                        ),
+                        onPressed: _toggleBulkPriceConversion,
+                      )),
+            ],
+          ),
+          const SizedBox(height: 12),          // ✅ 추천 메뉴 칩: 1개 먼저 선명, 나머지는 블러(스트림 완료 후 순차 공개)
+if (chipLabels.isNotEmpty) ...[
+  Wrap(
+    spacing: 8,
+    runSpacing: 8,
+    children: List.generate(chipLabels.length, (i) {
+      final visible = i < _revealRecommendedCount;
+      final label = chipLabels[i];
+
+      Widget chip = Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: textColor.withOpacity(0.18)),
+          color: Theme.of(context).cardColor,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'SFPro',
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: textColor,
+          ),
+        ),
+      );
+
+      if (!visible) {
+        chip = Opacity(
+          opacity: 0.35,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: BackdropFilter(
+              filter: ui.ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+              child: chip,
+            ),
+          ),
+        );
+      }
+
+      return AnimatedOpacity(
+        duration: const Duration(milliseconds: 220),
+        opacity: visible ? 1.0 : 0.35,
+        child: chip,
+      );
+    }),
+  ),
+  const SizedBox(height: 14),
+],
+          // ✅ 추천칩 이후, 전체 결과가 아직이면 로딩 표시
+          if (_isWaitingFullMenu) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const CupertinoActivityIndicator(radius: 10),
+                const SizedBox(width: 10),
+                Text(
+                  'Loading full menu…',
+                  style: TextStyle(
+                    fontFamily: 'SFPro',
+                    fontSize: 12,
+                    color: textColor.withOpacity(0.75),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+          ],
+
+
+          ...rec.map((item) => _buildDishRow(item, textColor)).toList(),
+
+
+          const SizedBox(height: 10),
+
+
+          Center(
+            child:
+
+            TextButton(
+              onPressed: canShowMenu ? _showFullMenuSheet : null,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!canShowMenu) ...[
+                    const CupertinoActivityIndicator(radius: 8),
+                    const SizedBox(width: 8),
+                  ],
+                  Text(canShowMenu ? 'View Full Menu' : 'Preparing menu…'),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
 
   /// AI 응답에서 1번 메뉴만 추출
   /// - "1.", "1)", "1).", "1]", "1:", "1-" 등 허용
   /// - "1." 형태가 없으면 null 반환(=저장 스킵)
-  String? _extractMenuOnlyFromAiResponses() {
+// (기존 1번 파싱 로직) legacy: "1. ..."에서만 메뉴명 추출
+  String? _extractMenuFirstLineLegacy() {
     final joined = widget.responses.join('\n').replaceAll('\r', '');
     final lines = joined.split('\n');
 
@@ -149,14 +1489,12 @@ class _ResultScreenState extends State<ResultScreen> {
       final line = rawLine.trim();
       if (line.isEmpty) continue;
 
-      // ✅ 1번 표기 모두 허용
       final reFirstItemPrefix = RegExp(r'^\s*1\s*[\.\)\]\:\-]\.?\s*');
       final m = reFirstItemPrefix.firstMatch(line);
 
       if (m != null) {
         first = line.substring(m.end).trim();
 
-        // ✅ 같은 줄에 "2.", "2)", "2:"... 붙어 있으면 여기서 컷
         final nextItem = RegExp(r'\s*[2-9]\s*[\.\)\]\:\-]\.?\s*');
         final cut = nextItem.firstMatch(first);
         if (cut != null && cut.start > 0) {
@@ -168,47 +1506,98 @@ class _ResultScreenState extends State<ResultScreen> {
 
     if (first == null || first.isEmpty) return null;
 
-    // 꼬리 설명 컷
     final cutTokens = <String>[' - ', ' – ', ' — ', ': ', '(', '[', '|'];
     for (final t in cutTokens) {
       final idx = first!.indexOf(t);
-      if (idx > 0) {
-        first = first.substring(0, idx).trim();
-      }
+      if (idx > 0) first = first.substring(0, idx).trim();
     }
 
-    // 끝에 붙은 가격/숫자 제거 (예: "Kimchi 12000")
     first = first!.replaceAll(RegExp(r'\s*[0-9][0-9,\.\s]*$'), '').trim();
-
     if (first.length < 2) return null;
     return first;
+  }
+
+// ✅ JSON(recommended[0])에서 original+translated 추출
+  _MenuNamePair? _extractPrimaryMenuPairFromJson() {
+    final rec = _getRecommendedItems();
+    if (rec.isEmpty) return null;
+
+    final item = rec.first;
+    final o = (item['nameOriginal'] ?? item['original'] ?? '').toString().trim();
+    final t = (item['name'] ?? item['translated'] ?? '').toString().trim();
+
+    final pair = _MenuNamePair(original: o, translated: t);
+    return pair.hasAny ? pair : null;
+  }
+
+// ✅ 최종 primary pair (JSON 우선, 없으면 legacy)
+  _MenuNamePair? _extractPrimaryMenuPair() {
+    final jsonPair = _extractPrimaryMenuPairFromJson();
+    if (jsonPair != null) return jsonPair;
+
+    final legacy = _extractMenuFirstLineLegacy();
+    if (legacy == null) return null;
+
+    // "Original (Translated)" 형태면 분해
+    final mm = RegExp(r'^(.*?)\s*\((.*?)\)\s*$').firstMatch(legacy);
+    if (mm != null) {
+      return _MenuNamePair(
+        original: mm.group(1)!.trim(),
+        translated: mm.group(2)!.trim(),
+      );
+    }
+
+    return _MenuNamePair(original: legacy, translated: '');
+  }
+
+// (기존 시그니처 유지) 저장/표시용 문자열
+  String? _extractMenuOnlyFromAiResponses() {
+    final pair = _extractPrimaryMenuPair();
+    if (pair == null) return null;
+
+    final o = pair.original.trim();
+    final t = pair.translated.trim();
+
+    if (o.isNotEmpty && t.isNotEmpty && o.toLowerCase() != t.toLowerCase()) {
+      return '$o ($t)';
+    }
+    return pair.display;
   }
 
   /// searched menu 컬렉션에 (geohash + 메뉴명 + 시스템언어)만 비동기로 저장
   void _saveSearchedMenuFireAndForget() {
     if (widget.isTutorial) return;
-    if (widget.isFromHistory) return; // 히스토리 진입 시 중복 저장 방지
+    if (widget.isFromHistory) return;
     if (_geohash == null) return;
 
-    final menuName = _extractMenuOnlyFromAiResponses();
-    if (menuName == null) return;
+    // ✅ 스트리밍이면 JSON이 아직 없을 수 있으니 onDone에서 저장
+    if (widget.responseStream != null && !_aiStreamDone) {
+      _pendingSearchedMenuSave = true;
+      return;
+    }
+
+    final pair = _extractPrimaryMenuPair(); // ✅ JSON 우선
+    if (pair == null) return;
 
     final systemLang = ui.PlatformDispatcher.instance.locale.languageCode;
     final user = FirebaseAuth.instance.currentUser;
 
     unawaited(() async {
       try {
-        await FirebaseFirestore.instance.collection('searched menu').add({
-          'menu_name': menuName,
+        final docRef = FirebaseFirestore.instance.collection('searched menu').doc();
+        _searchedMenuDocId = docRef.id;
+
+        await docRef.set({
+          'menu': pair.toMap(),
+          'menu_name': pair.display,
+          'menu_key': pair.key,
           'geohash': _geohash,
           'lang': systemLang,
           'timestamp': DateTime.now().toIso8601String(),
           if (user != null) 'uid': user.uid,
         });
       } catch (e) {
-        if (kDebugMode) {
-          print('❌ searched_menu 저장 실패: $e');
-        }
+        if (kDebugMode) print('❌ searched_menu 저장 실패: $e');
       }
     }());
   }
@@ -218,6 +1607,8 @@ class _ResultScreenState extends State<ResultScreen> {
     if (len <= 0) return geohash;
     return geohash.substring(0, geohash.length < len ? geohash.length : len);
   }
+
+
 
   /// 저장된 값이 꼬였을 때(한 줄에 2.,3. 붙은 케이스) 표시용으로만 정리
   String _sanitizeMenuName(String raw) {
@@ -403,7 +1794,68 @@ class _ResultScreenState extends State<ResultScreen> {
   @override
   void initState() {
     super.initState();
+    _parseAiJson(); // ✅ NEW: parse JSON response (if any)
+    _fastRecommend = List<String>.from(widget.initialFastRecommend);
+    if (_fastRecommend.isNotEmpty) {
+      _revealRecommendedCount = 1; // 첫 칩 선공개
+    }
+
+// ✅ 스트리밍이 있으면: Result에서 바로 받아서 RECOMMEND 먼저 반영
+if (widget.responseStream != null) {
+  _aiStreamSub = widget.responseStream!.listen(
+    (delta) {
+      _aiStreamBuffer.write(delta);
+
+      // RECOMMEND 라인이 오면 즉시 칩 1개 선공개
+      final s = _aiStreamBuffer.toString();
+      final m = RegExp(r'RECOMMEND:\s*(.*)\n').firstMatch(s);
+      if (m != null) {
+        final oneLine = (m.group(1) ?? '').trim();
+        final items = oneLine
+            .split('|')
+            .map((e) => e.trim())
+            .where((e) => e.isNotEmpty && e != '-' && e != '—')
+            .toList();
+
+        if (items.isNotEmpty && _fastRecommend.isEmpty) {
+          _fastRecommend = items;
+          _revealRecommendedCount = 1;
+          _kickoffRecommendedReveal();
+        }
+      }
+
+      if (mounted) setState(() {});
+    },
+    onError: (_) {},
+    onDone: () {
+      _aiStreamDone = true;
+      print('✅ stream done. fullLen=${_aiStreamBuffer.length}');
+
+      final full = _aiStreamBuffer.toString().trim();
+      print('✅ full head: ${full.substring(0, full.length > 180 ? 180 : full.length)}');
+      print('✅ hasJsonStart=${full.contains("{")} hasJsonEnd=${full.contains("}")}');
+      if (full.isNotEmpty) {
+        widget.responses.add(full);
+      }
+
+      _parseAiJson();
+      _kickoffRecommendedReveal();
+
+      if (_pendingSearchedMenuSave) {
+        _pendingSearchedMenuSave = false;
+        _saveSearchedMenuFireAndForget();
+      }
+
+      if (mounted) setState(() {});
+    },
+  );
+} else {
+  _kickoffRecommendedReveal();
+}
+
+
     print("▶️ [ResultScreen] initState at ${DateTime.now().toIso8601String()}");
+
 
     _initCountryCurrencyHints();
 
@@ -463,8 +1915,8 @@ class _ResultScreenState extends State<ResultScreen> {
         // ✅ searched menu 저장(비동기)
         _saveSearchedMenuFireAndForget();
 
-        _fetchRAGData();
-        _fetchFoodDetail();
+      //  _fetchRAGData();
+        // _fetchFoodDetail();
       } else if (widget.isFromHistory) {
         setState(() {
           _address = widget.location ?? 'Location not available';
@@ -487,7 +1939,7 @@ class _ResultScreenState extends State<ResultScreen> {
 
         _fetchExistingReview();
         if (_ragDetail == null) {
-          _fetchRAGData();
+        //  _fetchRAGData();
         }
         _fetchFoodDetail();
       } else {
@@ -612,6 +2064,8 @@ class _ResultScreenState extends State<ResultScreen> {
     }
     _mergedImageBytes = null;
     _timer?.cancel();
+    _aiStreamSub?.cancel();
+    _revealTimer?.cancel();
     _storeNameController.dispose();
     _reviewController.dispose();
     super.dispose();
@@ -721,7 +2175,7 @@ class _ResultScreenState extends State<ResultScreen> {
           print('⚠️ Firestore 저장 중단: _imageUrl is null');
           return;
         }
-
+        final primary = _extractMenuOnlyFromAiResponses(); // 대표 메뉴명 (JSON 있으면 recommended[0] 우선)
         final docId = '${_geohash ?? 'nogeo'}_${widget.captureTime.toIso8601String()}';
         final docRef = FirebaseFirestore.instance
             .collection('user_data')
@@ -742,8 +2196,11 @@ class _ResultScreenState extends State<ResultScreen> {
           'rag_detail': _ragDetail,
           'food_detail': _foodDetail,
           'liked': _isLiked,
+          if (primary != null) 'primary_menu': primary,
+          // ✅ 나중에 준비되면 이 필드도 같이 저장하면 “대표 음식사진” 표시 가능
+          // 'food_image_url': foodImageUrl,
           'review': _reviewController.text.trim(),
-        });
+        }, SetOptions(merge: true));
 
         print('Data saved to Firestore with ID: $docId');
       } else {
@@ -1169,50 +2626,50 @@ class _ResultScreenState extends State<ResultScreen> {
     }
   }
 
-  Future<void> _fetchRAGData() async {
-    if (_geohash == null) return;
+ // Future<void> _fetchRAGData() async {
+ //   if (_geohash == null) return;
 
-    try {
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('rag_data')
-          .where('geohashes', arrayContains: _geohash)
-          .limit(1)
-          .get();
+    //try {
+    //  QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+    //      .collection('rag_data')
+    //      .where('geohashes', arrayContains: _geohash)
+    //      .limit(1)
+    //      .get();
 
-      if (querySnapshot.docs.isNotEmpty) {
-        DocumentSnapshot doc = querySnapshot.docs.first;
-        Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
+      //if (querySnapshot.docs.isNotEmpty) {
+      //  DocumentSnapshot doc = querySnapshot.docs.first;
+       // Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
 
-        if (data != null) {
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          String? langCode = prefs.getString('languageCode');
-          langCode ??= Localizations.localeOf(context).toLanguageTag();
-          langCode = langCode.replaceAll('-', '_');
+        //if (data != null) {
+        //  SharedPreferences prefs = await SharedPreferences.getInstance();
+         // String? langCode = prefs.getString('languageCode');
+         // langCode ??= Localizations.localeOf(context).toLanguageTag();
+         // langCode = langCode.replaceAll('-', '_');
 
-          String detailField = 'detail_$langCode';
+         // String detailField = 'detail_$langCode';
 
-          setState(() {
-            _ragDetail =
-            data.containsKey(detailField) ? data[detailField] : data['detail_en'];
-          });
-        } else {
-          setState(() {
-            _ragDetail = null;
-          });
-          await _trySendImpressions();
-        }
-      } else {
-        setState(() {
-          _ragDetail = null;
-        });
-      }
-    } catch (e) {
-      print('Failed to fetch RAG data: $e');
-      setState(() {
-        _ragDetail = null;
-      });
-    }
-  }
+         // setState(() {
+         //   _ragDetail =
+          //  data.containsKey(detailField) ? data[detailField] : data['detail_en'];
+         // });
+       // } else {
+        //  setState(() {
+         //   _ragDetail = null;
+         // });
+         // await _trySendImpressions();
+       // }
+     // } else {
+       // setState(() {
+         // _ragDetail = null;
+       // });
+     // }
+   // } catch (e) {
+     // print('Failed to fetch RAG data: $e');
+      // setState(() {
+       // _ragDetail = null;
+     // });
+   // }
+ // }
 
   void _showFullImage({required List<File> files, required int initialIndex}) {
     _viewerImages = files;
@@ -1325,95 +2782,13 @@ class _ResultScreenState extends State<ResultScreen> {
                   ),
                   SizedBox(height: 16),
 
-                  // ─── AI 응답 카드 ───
-                  Container(
-                    decoration: boxDecoration,
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              localizations!.aiAnswer,
-                              style: TextStyle(
-                                fontFamily: 'SFPro',
-                                fontWeight: FontWeight.bold,
-                                color: textColor,
-                              ),
-                            ),
-                            const Spacer(),
-                            if ((_amountFromResponses ?? 0) > 0)
-                              FxQuickFxButton(
-                                initialAmount: _amountFromResponses ?? 0,
-                                detectedCountryCode: _isoCountryCode,
-                                currencySymbolHint: _currencySymbolHint,
-                                initialTarget: TargetCurrency.usd,
-                                iconSize: 18,
-                                padding: EdgeInsets.zero,
-                                parsedAmounts: _amountCandidates,
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 5),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                widget.responses.join('\n\n'),
-                                style: TextStyle(
-                                  fontFamily: 'SFPro',
-                                  fontSize: 12,
-                                  color: textColor,
-                                ),
-                              ),
-                            ),
-                            Builder(builder: (_) {
-                              final nutritionData = parseNutritionalData(
-                                  widget.responses.join('\n\n'));
-                              if (nutritionData.containsKey('calories')) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(left: 8),
-                                  child: SizedBox(
-                                    width: 60,
-                                    height: 60,
-                                    child: NutritionChart(
-                                      calories: nutritionData['calories'],
-                                      protein: nutritionData['protein'] ?? 0,
-                                      carbs: nutritionData['carbs'] ?? 0,
-                                      fat: nutritionData['fat'] ?? 0,
-                                    ),
-                                  ),
-                                );
-                              }
-                              return SizedBox.shrink();
-                            }),
-                          ],
-                        ),
-                        SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.copy,
-                                  color: Colors.blue, size: 20),
-                              onPressed: () =>
-                                  _copyTextToClipboard(widget.responses.join('\n\n')),
-                            ),
-                            IconButton(
-                              icon: Icon(CupertinoIcons.square_arrow_up,
-                                  color: Colors.blue, size: 24),
-                              onPressed: () => Platform.isIOS
-                                  ? _shareToPlatform(context, 'shareToSystem')
-                                  : _showShareOptions(context),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                  // ✅ NEW UI (JSON-based) with fallback to old text
+                  _buildScanResultCard(
+                    localizations: localizations!,
+                    textColor: textColor,
+                    boxDecoration: boxDecoration,
                   ),
+
 
                   // ✅ 여기! 결과 카드 바깥 바로 아래에 “근처 타인 메뉴 태그”
                   _buildNearbyMenuTags(),
@@ -1578,5 +2953,233 @@ class _ResultScreenState extends State<ResultScreen> {
         ),
       ),
     );
+  }
+}
+
+class AiSparkleIconButton extends StatefulWidget {
+  final bool isLoading;
+  final VoidCallback onTap;
+  final double size;
+
+  const AiSparkleIconButton({
+    super.key,
+    required this.isLoading,
+    required this.onTap,
+    this.size = 44,
+  });
+
+  @override
+  State<AiSparkleIconButton> createState() => _AiSparkleIconButtonState();
+}
+
+class _AiSparkleIconButtonState extends State<AiSparkleIconButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c;
+
+  @override
+  void initState() {
+    super.initState();
+    _c = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    if (widget.isLoading) _c.repeat();
+  }
+
+  @override
+  void didUpdateWidget(covariant AiSparkleIconButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isLoading && !_c.isAnimating) {
+      _c.repeat();
+    } else if (!widget.isLoading && _c.isAnimating) {
+      _c.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.size;
+
+    return InkWell(
+      onTap: widget.onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: SizedBox(
+        width: s,
+        height: s,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: Image.asset(
+                  'assets/icons/aifood.png',
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+
+            // ✅ "스파클만" 반짝이기 (로딩일 때만)
+            if (widget.isLoading)
+              Positioned(
+                // 스파클이 있는 쪽(좌상단)만 덮기. 필요하면 값 튜닝.
+                left: s * 0.08,   // ✅ 오른쪽으로 약간
+                top:  s * 0.10,   // ✅ 아래로 약간
+                width:  s * 0.50, // ✅ 영역도 살짝 줄여 중앙 느낌
+                height: s * 0.55,
+                child: IgnorePointer(
+                  child: AnimatedBuilder(
+                    animation: _c,
+                    builder: (_, __) {
+                      final t = _c.value; // 0..1
+                      return CustomPaint(
+                        painter: _SparkleTwinklePainter(t: t),
+                      );
+                    },
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SparkleTwinklePainter extends CustomPainter {
+  final double t;
+  _SparkleTwinklePainter({required this.t});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // 3개의 별을 서로 다른 위상으로 "반짝"이게
+    _drawStar(
+      canvas,
+      size,
+      center: Offset(size.width * 0.30, size.height * 0.30),
+      baseRadius: size.shortestSide * 0.07,
+      phase: 0.0,
+    );
+    _drawStar(
+      canvas,
+      size,
+      center: Offset(size.width * 0.55, size.height * 0.18),
+      baseRadius: size.shortestSide * 0.05,
+      phase: 0.33,
+    );
+    _drawStar(
+      canvas,
+      size,
+      center: Offset(size.width * 0.18, size.height * 0.55),
+      baseRadius: size.shortestSide * 0.04,
+      phase: 0.66,
+    );
+  }
+
+  void _drawStar(
+      Canvas canvas,
+      Size size, {
+        required Offset center,
+        required double baseRadius,
+        required double phase,
+      }) {
+    // 트윙클: opacity + scale
+    final wave = (math.sin((t + phase) * math.pi * 2) + 1) / 2; // 0..1
+    final opacity = ui.lerpDouble(0.15, 1.0, wave)!;
+    final scale = ui.lerpDouble(0.85, 1.18, wave)!;
+
+    final rOuter = baseRadius * scale;
+    final rInner = rOuter * 0.45;
+
+    // glow(blur) 먼저
+    final glowPaint = Paint()
+      ..color = const Color(0xFFFFF3B0).withOpacity(0.55 * opacity)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+
+    canvas.drawCircle(center, rOuter * 0.95, glowPaint);
+
+    // star 본체
+    final starPaint = Paint()
+      ..color = const Color(0xFFFFE08A).withOpacity(opacity)
+      ..style = PaintingStyle.fill;
+
+    final path = Path();
+    const points = 4; // 4방 별(스파클 느낌)
+    final step = math.pi / points;
+    double angle = -math.pi / 2;
+
+    for (int i = 0; i < points * 2; i++) {
+      final radius = (i.isEven) ? rOuter : rInner;
+      final x = center.dx + math.cos(angle) * radius;
+      final y = center.dy + math.sin(angle) * radius;
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+      angle += step;
+    }
+    path.close();
+    canvas.drawPath(path, starPaint);
+
+    // 하이라이트(작은 점) — 반짝이는 맛 추가
+    final dotPaint = Paint()
+      ..color = Colors.white.withOpacity(0.75 * opacity)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
+    canvas.drawCircle(center.translate(rOuter * 0.35, -rOuter * 0.15), rOuter * 0.12, dotPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _SparkleTwinklePainter oldDelegate) {
+    return oldDelegate.t != t;
+  }
+}
+
+class AnimatedDotsText extends StatefulWidget {
+  final String baseText;
+  final TextStyle? style;
+  final Duration period; // 전체 주기
+  const AnimatedDotsText({
+    super.key,
+    required this.baseText,
+    this.style,
+    this.period = const Duration(milliseconds: 900),
+  });
+
+  @override
+  State<AnimatedDotsText> createState() => _AnimatedDotsTextState();
+}
+
+class _AnimatedDotsTextState extends State<AnimatedDotsText> {
+  Timer? _timer;
+  int _dots = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(
+      Duration(milliseconds: widget.period.inMilliseconds ~/ 3),
+          (_) {
+        if (!mounted) return;
+        setState(() => _dots = (_dots + 1) % 4); // 0~3
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dotStr = '.' * _dots;
+    return Text('${widget.baseText}$dotStr', style: widget.style);
   }
 }

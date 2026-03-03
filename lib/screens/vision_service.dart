@@ -9,14 +9,30 @@ class VisionService {
   static Future<String> analyzeImage(
       File imageFile, {
         String? promptContext,
-        int maxOutputTokens = 1000, // ✅ 추가
+        int maxOutputTokens = 3000, // ✅ 추가
       }) async {
 
     try {
       final bytes = await imageFile.readAsBytes();
+      final kb = bytes.length / 1024;
+      print('🗜️ [Vision] bytes=${kb.toStringAsFixed(1)}KB file=${imageFile.path}');
+
+      final tEncode0 = DateTime.now();
       final base64Image = base64Encode(bytes);
+      print('⏱️ [Vision] base64Encode ${DateTime.now().difference(tEncode0).inMilliseconds}ms');
+
 
       final presetId = await SettingsHelper.getPreset();
+      const String _streamProtocol = '''[OUTPUT PROTOCOL]
+1) First, output exactly ONE line (no extra lines):
+RECOMMEND: <dish1> | <dish2> | <dish3>
+- Prefer translated names for the selected output language.
+- No extra text.
+2) Then output ONLY ONE JSON object using the existing app schema (same fields as before).
+- No markdown/code fences.
+- No additional text outside JSON.
+''';
+
       final question = await SettingsHelper.getQuestionByPreset(presetId);
 
       // 1) RAG + 프리셋 질문을 하나로 합친 텍스트
@@ -206,13 +222,18 @@ Yemekle ilgili görünmüyorsa, sadece belirtin.
 // ragPrefixMap에서 해당 언어 템플릿 가져와서 context, question 대체
       final template = ragPrefixMap[langCode] ?? ragPrefixMap['en']!;
       final mergedPrompt = template
-          .replaceAll('{promptContext}', promptContext ?? '')
+          .replaceAll('{promptContext}', '') // ✅ RAG OFF
+
+          //rag fix .replaceAll('{promptContext}', promptContext ?? '')//
           .replaceAll('{question}', question ?? '');
+
+      final mergedPromptWithProtocol = _streamProtocol + "\n" + mergedPrompt;
+
 
       final List<Map<String, dynamic>> contentList = [
         {
           'type': 'text',
-          'text': mergedPrompt,
+          'text': mergedPromptWithProtocol,
         },
         {
           'type': 'image_url',
@@ -231,6 +252,9 @@ Yemekle ilgili görünmüyorsa, sadece belirtin.
       };
 
 
+      final tReq0 = DateTime.now();
+      print('🚀 [Vision] request start ${tReq0.toIso8601String()} maxTokens=$maxOutputTokens model=gpt-5-mini');
+
       final response = await http.post(
         Uri.parse('https://api.openai.com/v1/chat/completions'),
         headers: {
@@ -240,15 +264,23 @@ Yemekle ilgili görünmüyorsa, sadece belirtin.
         body: jsonEncode(payload),
       );
 
+      final reqMs = DateTime.now().difference(tReq0).inMilliseconds;
+      print('⏱️ [Vision] response in ${reqMs}ms status=${response.statusCode}');
+
       if (response.statusCode == 200) {
         final json = jsonDecode(utf8.decode(response.bodyBytes));
         final content = json['choices']?[0]?['message']?['content'];
         final text = (content is String) ? content : (content?.toString() ?? '');
+        print('🧾 [Vision] contentLen=${text.trim().length}');
+        if (text.trim().isEmpty) {
+          print('⚠️ [Vision] EMPTY content body=${utf8.decode(response.bodyBytes)}');
+        }
         return text;
 
 
       } else {
         final body = utf8.decode(response.bodyBytes);
+        print('❌ [Vision] error body=$body');
         throw Exception('GPT 응답 실패: ${response.statusCode}\n$body');
       }
 
@@ -256,4 +288,140 @@ Yemekle ilgili görünmüyorsa, sadece belirtin.
       throw Exception('Vision 분석 중 오류: $e');
     }
   }
+  /// ✅ Streaming version: yields incremental text chunks (SSE)
+  static Stream<String> analyzeImageStream(
+    File imageFile, {
+    String? promptContext,
+    int maxOutputTokens = 3000,
+  }) async* {
+    final bytes = await imageFile.readAsBytes();
+    final base64Image = base64Encode(bytes);
+
+    final presetId = await SettingsHelper.getPreset();
+    final question = await SettingsHelper.getQuestionByPreset(presetId);
+
+    const String _streamProtocol = '''[OUTPUT PROTOCOL]
+1) First, output exactly ONE line (no extra lines):
+RECOMMEND: <dish1> | <dish2> | <dish3>
+- Prefer translated names for the selected output language.
+- No extra text.
+2) Then output ONLY ONE JSON object using the existing app schema (same fields as before).
+- No markdown/code fences.
+- No additional text outside JSON.
+''';
+
+    final lang = (await SettingsHelper.getLanguageCode()).toString();
+
+    // same templates as analyzeImage (subset; unknown langs fall back to en)
+    final Map<String, String> ragPrefixMap = {
+      'ko': '''[장소 메모]
+{promptContext}
+
+이 이미지가 음식 메뉴나 음식 사진이라면, 내용을 번역하고 설명 및 추천해 주세요.
+음식과 관련 없어 보이면 그렇게 말씀해 주세요.
+
+{question}
+''',
+      'en': '''[Location Memo]
+{promptContext}
+
+If this image is a food menu or food photo, please translate, describe, and recommend it.
+If it doesn’t seem food-related, just say so.
+
+{question}
+''',
+      'ja': '''[Location Memo]
+{promptContext}
+
+この画像が料理のメニューや料理の写真であれば、翻訳して説明し、推薦してください。
+食べ物に関係がないようであれば、そのように言ってください。
+
+{question}
+''',
+      'zh': '''[Location Memo]
+{promptContext}
+
+如果此图像是食物菜单或食物照片，请翻译、描述并推荐。
+如果看起来与食物无关，请指出。
+
+{question}
+''',
+    };
+
+    final template = ragPrefixMap[lang] ?? ragPrefixMap['en']!;
+    final mergedPrompt = template
+        .replaceAll('{promptContext}', promptContext ?? '')
+        .replaceAll('{question}', question ?? '');
+
+    final mergedPromptWithProtocol = _streamProtocol + "\n" + mergedPrompt;
+
+    final List<Map<String, dynamic>> contentList = [
+      {'type': 'text', 'text': mergedPromptWithProtocol},
+      {
+        'type': 'image_url',
+        'image_url': {'url': 'data:image/jpeg;base64,$base64Image'},
+      },
+    ];
+
+    final payload = {
+      'model': 'gpt-5-mini',
+      'messages': [
+        {'role': 'user', 'content': contentList}
+      ],
+      'reasoning_effort': 'low',
+      'max_completion_tokens': maxOutputTokens,
+      'stream': true,
+    };
+
+    final request = http.Request(
+      'POST',
+      Uri.parse('https://api.openai.com/v1/chat/completions'),
+    );
+    request.headers.addAll({
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ${dotenv.env['API_KEY']}',
+    });
+    request.body = jsonEncode(payload);
+
+    final streamedResponse = await request.send();
+    if (streamedResponse.statusCode != 200) {
+      final errBody = await streamedResponse.stream.bytesToString();
+      throw Exception('Stream request failed: ${streamedResponse.statusCode} $errBody');
+    }
+
+    final decoder = utf8.decoder;
+    String sseBuffer = '';
+
+    await for (final chunk in streamedResponse.stream.transform(decoder)) {
+      sseBuffer += chunk;
+
+      while (true) {
+        final splitIdx = sseBuffer.indexOf('\n\n');
+        if (splitIdx == -1) break;
+
+        final event = sseBuffer.substring(0, splitIdx);
+        sseBuffer = sseBuffer.substring(splitIdx + 2);
+
+        for (final line in event.split('\n')) {
+          final l = line.trim();
+          if (!l.startsWith('data:')) continue;
+
+          final data = l.substring(5).trim();
+          if (data == '[DONE]') return;
+
+          try {
+            final j = jsonDecode(data);
+            final delta = j['choices']?[0]?['delta']?['content'];
+            if (delta is String && delta.isNotEmpty) {
+              yield delta;
+            }
+          } catch (_) {
+            // ignore malformed chunk
+          }
+        }
+      }
+    }
+  }
+
+
 }

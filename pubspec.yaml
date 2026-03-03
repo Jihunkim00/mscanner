@@ -3,7 +3,7 @@ description: "mscanner by thj."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 
-version: 1.3.02+117
+version: 1.3.03+118
 
 environment:
   sdk: '>=3.4.3 <4.0.0'
@@ -55,6 +55,9 @@ dependencies:
   mapbox_maps_flutter: ^2.12.0
   firebase_auth: ^6.1.0
   google_sign_in_android: ^7.2.1
+  phosphor_flutter: ^2.1.0
+  cloud_functions: ^6.0.6
+  crypto: ^3.0.7
 
 
 dependency_overrides:
@@ -90,6 +93,13 @@ flutter:
     - assets/images/icon.png
     - assets/images/m_zoomout_pin.png
     - assets/images/admscanner.png
+    - assets/icons/aifood.png
+    - assets/images/login_header.jpg
+    - assets/images/tittle.png
+    - assets/images/apple_light.png
+    - assets/images/apple_dark.png
+    - assets/images/google_light.png
+    - assets/images/google_dark.png
 
 
 
