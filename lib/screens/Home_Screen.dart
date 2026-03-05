@@ -1079,7 +1079,7 @@ class _HomeContentState extends State<HomeContent> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'Search Ai food image...',
+                AppLocalizations.of(context)?.home_searchAiFoodImage ?? 'Search Ai food image...',
                 style: TextStyle(
                   fontSize: 14,
                   color: isDarkMode ? Colors.white70 : Colors.black54,
@@ -1130,7 +1130,7 @@ class _HomeContentState extends State<HomeContent> {
             if (!isAdRemoved) ...[
               Center(
                 child: Text(
-                  'AD',
+                  AppLocalizations.of(context)?.home_adLabel ?? 'AD',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -1165,7 +1165,7 @@ class _HomeContentState extends State<HomeContent> {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  "What's Trending Near You",
+                  localizations?.home_trendingNearYou ?? "What's Trending Near You",
                   style: TextStyle(
                     fontFamily: 'SFProDisplay',
                     fontSize: 18,
@@ -1504,7 +1504,7 @@ class _HomeContentState extends State<HomeContent> {
       messenger
         ..hideCurrentSnackBar()
         ..showSnackBar(SnackBar(
-          content: Text('Error saving data: $e'),
+          content: Text('${AppLocalizations.of(context)?.home_errorSavingData ?? 'Error saving data'}: $e'),
           backgroundColor: Colors.red,
         ));
     } finally {
@@ -1527,7 +1527,7 @@ class _HomeContentState extends State<HomeContent> {
       child: Row(
         children: [
           Text(
-            "Mscanner's Picks",
+            AppLocalizations.of(context)?.home_mscannerPicks ?? "Mscanner's Picks",
             style: TextStyle(
               fontFamily: 'SFProDisplay',
               fontSize: 18,
@@ -1562,8 +1562,8 @@ class _HomeContentState extends State<HomeContent> {
               ),
             ),
             child: Row(
-              children: const [
-                Text('View All'),
+              children: [
+                Text(AppLocalizations.of(context)?.home_viewAll ?? 'View All'),
                 SizedBox(width: 4),
                 Icon(CupertinoIcons.chevron_right, size: 14),
               ],
@@ -1582,9 +1582,9 @@ class _HomeContentState extends State<HomeContent> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return Center(child: Text('Error loading cards'));
+          return Center(child: Text(AppLocalizations.of(context)?.home_errorLoadingCards ?? 'Error loading cards'));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text('No data available'));
+          return Center(child: Text(AppLocalizations.of(context)?.home_noDataAvailable ?? 'No data available'));
         } else {
           final cardData = snapshot.data!;
           if (!_sentMainCardsImpression && cardData.isNotEmpty) {

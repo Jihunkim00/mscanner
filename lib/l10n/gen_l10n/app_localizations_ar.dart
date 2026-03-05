@@ -727,4 +727,230 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get viewOnMap => 'عرض على الخريطة';
+
+  @override
+  String get login_welcomeBack => 'مرحبًا بعودتك';
+
+  @override
+  String get login_subtitle => 'اكتشف عالم الطعام بسهولة أكبر مع الذكاء الاصطناعي. لنبدأ الآن.';
+
+  @override
+  String get login_emailLabel => 'البريد الإلكتروني';
+
+  @override
+  String get login_emailHint => 'name@example.com';
+
+  @override
+  String get login_orContinueWith => 'أو المتابعة باستخدام';
+
+  @override
+  String get login_google => 'المتابعة باستخدام Google';
+
+  @override
+  String get login_apple => 'المتابعة باستخدام Apple';
+
+  @override
+  String get login_noAccount => 'ليس لديك حساب؟';
+
+  @override
+  String get login_signUpFree => 'إنشاء حساب مجانًا';
+
+  @override
+  String get signup_subtitle => 'أنشئ حسابًا لحفظ عمليات المسح وإدارة الإعدادات المسبقة وفتح الميزات المميزة.';
+
+  @override
+  String get signup_emailLabel => 'البريد الإلكتروني';
+
+  @override
+  String get signup_emailHint => 'name@example.com';
+
+  @override
+  String get signup_logIn => 'تسجيل الدخول';
+
+  @override
+  String get map_noTitle => 'بدون عنوان';
+
+  @override
+  String get map_cuisine => 'المطبخ';
+
+  @override
+  String get map_location => 'الموقع';
+
+  @override
+  String get map_searchHistory => 'سجل البحث';
+
+  @override
+  String get map_recent => 'الأحدث';
+
+  @override
+  String get map_topRated => 'الأعلى تقييمًا';
+
+  @override
+  String get map_date => 'التاريخ';
+
+  @override
+  String get map_clear => 'مسح';
+
+  @override
+  String get map_noResults => 'لا توجد نتائج';
+
+  @override
+  String get map_unknown => 'غير معروف';
+
+  @override
+  String get howto_title => 'كيفية استخدام Mscanner';
+
+  @override
+  String get howto_step1 => '1. مسح';
+
+  @override
+  String get howto_desc1 => 'قائمة أو طبق';
+
+  @override
+  String get howto_step2 => '2. تحليل';
+
+  @override
+  String get howto_desc2 => 'الذكاء الاصطناعي يحلّ لالصورة';
+
+  @override
+  String get howto_step3 => '3. استمتع';
+
+  @override
+  String get howto_desc3 => 'يوصي بأفضل خيارات تناسبك';
+
+  @override
+  String get home_searchAiFoodImage => 'ابحث عن صورة طعام بالذكاء الاصطناعي...';
+
+  @override
+  String get home_adLabel => 'إعلان';
+
+  @override
+  String get home_trendingNearYou => 'الأكثر رواجًا قربك';
+
+  @override
+  String get home_mscannerPicks => 'اختيارات Mscanner';
+
+  @override
+  String get home_viewAll => 'عرض الكل';
+
+  @override
+  String get home_errorLoadingCards => 'حدث خطأ أثناء تحميل البطاقات';
+
+  @override
+  String get home_noDataAvailable => 'لا توجد بيانات';
+
+  @override
+  String get home_errorSavingData => 'حدث خطأ أثناء حفظ البيانات';
+
+  @override
+  String get favoriteList_searchHistory => 'سجل البحث';
+
+  @override
+  String get favoriteList_all => 'الكل';
+
+  @override
+  String get favoriteList_recent => 'الأحدث';
+
+  @override
+  String get favoriteList_topRated => 'الأعلى تقييمًا';
+
+  @override
+  String get favoriteList_date => 'التاريخ';
+
+  @override
+  String get favoriteList_country => 'الدولة';
+
+  @override
+  String get favoriteList_noDate => 'لا يوجد تاريخ';
+
+  @override
+  String get favoriteList_noHistoryFound => 'لا توجد سجلات';
+
+  @override
+  String get favoriteList_thisWeek => 'هذا الأسبوع';
+
+  @override
+  String favoriteList_entries(Object count) {
+    return '$count عناصر';
+  }
+
+  @override
+  String get favorite_fullMenu => 'القائمة كاملة';
+
+  @override
+  String get favorite_menuMain => 'رئيسي';
+
+  @override
+  String get favorite_menuSide => 'جانبي';
+
+  @override
+  String get favorite_menuMeal => 'وجبات';
+
+  @override
+  String get favorite_menuDrink => 'مشروبات';
+
+  @override
+  String get favorite_menuBeverage => 'مشروبات';
+
+  @override
+  String get favorite_menuOther => 'أخرى';
+
+  @override
+  String get favorite_summaryTruncated => 'ملخص (قصير)';
+
+  @override
+  String get favorite_summary => 'الملخص';
+
+  @override
+  String get favorite_noResponses => 'لا توجد معلومات متاحة';
+
+  @override
+  String get favorite_viewFullMenu => 'عرض القائمة كاملة';
+
+  @override
+  String get favorite_unknownRestaurant => 'مطعم غير معروف';
+
+  @override
+  String get favorite_failedSaveChanges => 'تعذر حفظ التغييرات';
+
+  @override
+  String get favorite_renderNotReady => 'خطأ: الشاشة غير جاهزة.';
+
+  @override
+  String get favorite_restaurantNameHint => 'اسم المطعم';
+
+  @override
+  String get result_fxRateLoadFailed => 'تعذر تحميل أسعار الصرف. يرجى التحقق من الاتصال.';
+
+  @override
+  String get result_fxConvertFailed => 'تعذر تحويل هذا المبلغ.';
+
+  @override
+  String get result_restoreOriginalCurrency => 'استعادة العملة الأصلية';
+
+  @override
+  String result_convertToSystemCurrency(Object currency) {
+    return 'التحويل إلى عملة النظام ($currency)';
+  }
+
+  @override
+  String get result_auto => 'تلقائي';
+
+  @override
+  String get result_viewFullMenu => 'عرض القائمة كاملة';
+
+  @override
+  String get result_preparingMenu => 'جارٍ تجهيز القائمة التفصيلية…';
+
+  @override
+  String get result_failedLoadSettings => 'تعذر تحميل الإعدادات. تم تفعيل الحفظ السحابي افتراضيًا.';
+
+  @override
+  String get result_imageUploadFailed => 'فشل رفع الصورة. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get result_analyzing => 'جارٍ تحليل معلومات الطعام';
+
+  @override
+  String get result_loadingFullMenu => 'جارٍ تحميل القائمة كاملة…';
 }

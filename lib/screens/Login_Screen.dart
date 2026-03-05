@@ -316,7 +316,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 Text(
-                                  'Welcome back',
+                                  localizations?.login_welcomeBack ?? 'Welcome back',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontFamily: 'SFPro',
@@ -329,7 +329,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 const SizedBox(height: 10),
                                 Text(
-                                  'Discover the world through its flavors with AI intelligence. Your culinary journey continues here.',
+                                  localizations?.login_subtitle ?? 'Discover the world through its flavors with AI intelligence. Your culinary journey continues here.',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontFamily: 'SFPro',
@@ -353,9 +353,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                     color: isDarkMode ? Colors.white : Colors.black,
                                   ),
                                   decoration: _fieldDecoration(
-                                    label: 'Email Address',
+                                    label: localizations?.login_emailLabel ?? 'Email Address',
                                     icon: Icons.mail_outline,
-                                    hint: 'name@example.com',
+                                    hint: localizations?.login_emailHint ?? 'name@example.com',
                                   ),
                                 ),
                                 const SizedBox(height: 12),
@@ -447,7 +447,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       padding:
                                       const EdgeInsets.symmetric(horizontal: 10),
                                       child: Text(
-                                        'OR CONTINUE WITH',
+                                        localizations?.login_orContinueWith ?? 'OR CONTINUE WITH',
                                         style: TextStyle(
                                           fontFamily: 'SFPro',
                                           fontSize: 12,
@@ -478,7 +478,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                             if (user != null) _navigateAfterSignIn(user);
                                           },
                                           icon: _authIcon(googleIconAsset, box: 22, scale: 1.0),
-                                          label: const Text('Google'),
+                                          label: Text(localizations?.login_google ?? 'Google'),
                                           style: OutlinedButton.styleFrom(
                                             foregroundColor: isDarkMode ? Colors.white : Colors.black,
                                             side: BorderSide(color: dividerColor),
@@ -501,7 +501,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           }
                                               : null,
                                           icon: _authIcon(appleIconAsset, box: 22, scale: appleScale),
-                                          label: const Text('Apple'),
+                                          label: Text(localizations?.login_apple ?? 'Apple'),
                                           style: OutlinedButton.styleFrom(
                                             foregroundColor: isDarkMode ? Colors.white : Colors.black,
                                             side: BorderSide(color: dividerColor),
@@ -570,7 +570,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "Don't have an account?",
+                        localizations?.login_noAccount ?? "Don't have an account?",
                         style: TextStyle(
                           fontFamily: 'SFPro',
                           color: isDarkMode
@@ -587,8 +587,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 builder: (context) => SignUpScreen()),
                           );
                         },
-                        child: const Text(
-                          'Sign up for free',
+                        child: Text(
+                          localizations?.login_signUpFree ?? 'Sign up for free',
                           style: TextStyle(
                             fontFamily: 'SFPro',
                             fontWeight: FontWeight.w800,

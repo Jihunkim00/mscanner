@@ -726,5 +726,231 @@ class AppLocalizationsFr extends AppLocalizations {
   String get iapRestoreTrying => 'Tentative de restauration des achats...';
 
   @override
-  String get viewOnMap => 'Afficher sur la carte';
+  String get viewOnMap => 'Voir sur la carte';
+
+  @override
+  String get login_welcomeBack => 'Bon retour';
+
+  @override
+  String get login_subtitle => 'Explorez la gastronomie plus facilement avec l’IA. C’est parti !';
+
+  @override
+  String get login_emailLabel => 'Adresse e-mail';
+
+  @override
+  String get login_emailHint => 'name@example.com';
+
+  @override
+  String get login_orContinueWith => 'OU CONTINUER AVEC';
+
+  @override
+  String get login_google => 'Continuer avec Google';
+
+  @override
+  String get login_apple => 'Continuer avec Apple';
+
+  @override
+  String get login_noAccount => 'Vous n’avez pas de compte ?';
+
+  @override
+  String get login_signUpFree => 'S’inscrire gratuitement';
+
+  @override
+  String get signup_subtitle => 'Créez un compte pour enregistrer vos scans, gérer les préréglages et débloquer les fonctionnalités premium.';
+
+  @override
+  String get signup_emailLabel => 'Adresse e-mail';
+
+  @override
+  String get signup_emailHint => 'name@example.com';
+
+  @override
+  String get signup_logIn => 'Se connecter';
+
+  @override
+  String get map_noTitle => 'Sans titre';
+
+  @override
+  String get map_cuisine => 'Cuisine';
+
+  @override
+  String get map_location => 'Lieu';
+
+  @override
+  String get map_searchHistory => 'Historique de recherche';
+
+  @override
+  String get map_recent => 'Récent';
+
+  @override
+  String get map_topRated => 'Les mieux notés';
+
+  @override
+  String get map_date => 'Date';
+
+  @override
+  String get map_clear => 'Effacer';
+
+  @override
+  String get map_noResults => 'Aucun résultat';
+
+  @override
+  String get map_unknown => 'Inconnu';
+
+  @override
+  String get howto_title => 'Comment utiliser Mscanner';
+
+  @override
+  String get howto_step1 => '1. SCANNER';
+
+  @override
+  String get howto_desc1 => 'Menu ou plat';
+
+  @override
+  String get howto_step2 => '2. ANALYSER';
+
+  @override
+  String get howto_desc2 => 'L’IA analyse la photo';
+
+  @override
+  String get howto_step3 => '3. PROFITER';
+
+  @override
+  String get howto_desc3 => 'Des recommandations adaptées';
+
+  @override
+  String get home_searchAiFoodImage => 'Rechercher une image de plat avec l’IA...';
+
+  @override
+  String get home_adLabel => 'PUB';
+
+  @override
+  String get home_trendingNearYou => 'Tendances près de vous';
+
+  @override
+  String get home_mscannerPicks => 'Sélections Mscanner';
+
+  @override
+  String get home_viewAll => 'Tout voir';
+
+  @override
+  String get home_errorLoadingCards => 'Erreur de chargement des cartes';
+
+  @override
+  String get home_noDataAvailable => 'Aucune donnée disponible';
+
+  @override
+  String get home_errorSavingData => 'Erreur lors de l’enregistrement';
+
+  @override
+  String get favoriteList_searchHistory => 'Historique de recherche';
+
+  @override
+  String get favoriteList_all => 'Tous';
+
+  @override
+  String get favoriteList_recent => 'Récent';
+
+  @override
+  String get favoriteList_topRated => 'Les mieux notés';
+
+  @override
+  String get favoriteList_date => 'Date';
+
+  @override
+  String get favoriteList_country => 'Pays';
+
+  @override
+  String get favoriteList_noDate => 'Sans date';
+
+  @override
+  String get favoriteList_noHistoryFound => 'Aucun historique';
+
+  @override
+  String get favoriteList_thisWeek => 'Cette semaine';
+
+  @override
+  String favoriteList_entries(Object count) {
+    return '$count éléments';
+  }
+
+  @override
+  String get favorite_fullMenu => 'Menu complet';
+
+  @override
+  String get favorite_menuMain => 'Principal';
+
+  @override
+  String get favorite_menuSide => 'Accompagnements';
+
+  @override
+  String get favorite_menuMeal => 'Repas';
+
+  @override
+  String get favorite_menuDrink => 'Boissons';
+
+  @override
+  String get favorite_menuBeverage => 'Boissons';
+
+  @override
+  String get favorite_menuOther => 'Autre';
+
+  @override
+  String get favorite_summaryTruncated => 'Résumé (court)';
+
+  @override
+  String get favorite_summary => 'Résumé';
+
+  @override
+  String get favorite_noResponses => 'Aucune information disponible';
+
+  @override
+  String get favorite_viewFullMenu => 'Voir le menu complet';
+
+  @override
+  String get favorite_unknownRestaurant => 'Restaurant inconnu';
+
+  @override
+  String get favorite_failedSaveChanges => 'Impossible d’enregistrer les modifications';
+
+  @override
+  String get favorite_renderNotReady => 'Erreur : l’écran n’est pas prêt.';
+
+  @override
+  String get favorite_restaurantNameHint => 'Nom du restaurant';
+
+  @override
+  String get result_fxRateLoadFailed => 'Impossible de charger les taux de change. Vérifiez votre connexion.';
+
+  @override
+  String get result_fxConvertFailed => 'Impossible de convertir le montant.';
+
+  @override
+  String get result_restoreOriginalCurrency => 'Rétablir la devise d’origine';
+
+  @override
+  String result_convertToSystemCurrency(Object currency) {
+    return 'Convertir en devise système ($currency)';
+  }
+
+  @override
+  String get result_auto => 'Auto';
+
+  @override
+  String get result_viewFullMenu => 'Voir le menu complet';
+
+  @override
+  String get result_preparingMenu => 'Préparation du menu détaillé…';
+
+  @override
+  String get result_failedLoadSettings => 'Impossible de charger les réglages. La sauvegarde cloud est activée par défaut.';
+
+  @override
+  String get result_imageUploadFailed => 'Échec de l’envoi de l’image. Réessayez.';
+
+  @override
+  String get result_analyzing => 'Analyse des informations du plat';
+
+  @override
+  String get result_loadingFullMenu => 'Chargement du menu complet…';
 }

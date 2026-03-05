@@ -280,7 +280,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                 padding: const EdgeInsets.all(16),
                 children: [
                   Text(
-                    'Full Menu',
+                    AppLocalizations.of(context)?.favorite_fullMenu ?? 'Full Menu',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -289,18 +289,18 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  ..._buildMenuSection('Main', itemsMap?['main'], textColor),
-                  ..._buildMenuSection('Side', itemsMap?['side'], textColor),
-                  ..._buildMenuSection('Meal', itemsMap?['meal'], textColor),
-                  ..._buildMenuSection('Drink', itemsMap?['drink'], textColor),
-                  ..._buildMenuSection('Beverage', itemsMap?['beverage'], textColor),
-                  ..._buildMenuSection('Other', itemsMap?['unknown'], textColor),
+                  ..._buildMenuSection(AppLocalizations.of(context)?.favorite_menuMain ?? 'Main', itemsMap?['main'], textColor),
+                  ..._buildMenuSection(AppLocalizations.of(context)?.favorite_menuSide ?? 'Side', itemsMap?['side'], textColor),
+                  ..._buildMenuSection(AppLocalizations.of(context)?.favorite_menuMeal ?? 'Meal', itemsMap?['meal'], textColor),
+                  ..._buildMenuSection(AppLocalizations.of(context)?.favorite_menuDrink ?? 'Drink', itemsMap?['drink'], textColor),
+                  ..._buildMenuSection(AppLocalizations.of(context)?.favorite_menuBeverage ?? 'Beverage', itemsMap?['beverage'], textColor),
+                  ..._buildMenuSection(AppLocalizations.of(context)?.favorite_menuOther ?? 'Other', itemsMap?['unknown'], textColor),
 
                   // ✅ new schema summary 표시
                   if ((summary ?? '').isNotEmpty) ...[
                     const SizedBox(height: 18),
                     Text(
-                      truncated ? 'Summary (truncated)' : 'Summary',
+                      truncated ? (AppLocalizations.of(context)?.favorite_summaryTruncated ?? 'Summary (truncated)') : (AppLocalizations.of(context)?.favorite_summary ?? 'Summary'),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -494,7 +494,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              responseText.isNotEmpty ? responseText : 'No responses available',
+              responseText.isNotEmpty ? responseText : (AppLocalizations.of(context)?.favorite_noResponses ?? 'No responses available'),
               style: TextStyle(fontSize: 12, color: textColor),
             ),
             const SizedBox(height: 10),
@@ -545,7 +545,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
               Expanded(
                 child: TextButton(
                   onPressed: () => _showFullMenuSheet(textColor),
-                  child: const Text('View Full Menu'),
+                  child: Text(AppLocalizations.of(context)?.favorite_viewFullMenu ?? 'View Full Menu'),
                 ),
               ),
               IconButton(
@@ -596,7 +596,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to save changes: $e'),
+            content: Text('${AppLocalizations.of(context)?.favorite_failedSaveChanges ?? 'Failed to save changes'}: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -619,7 +619,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
           print('RenderRepaintBoundary is still null');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error: RenderRepaintBoundary is not ready.'),
+              content: Text(AppLocalizations.of(context)?.favorite_renderNotReady ?? 'Error: RenderRepaintBoundary is not ready.'),
               backgroundColor: Colors.red,
             ),
           );
@@ -825,7 +825,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                                     color: Colors.white,
                                   ),
                                   decoration: InputDecoration(
-                                    hintText: '레스토랑 이름',
+                                    hintText: AppLocalizations.of(context)?.favorite_restaurantNameHint ?? '레스토랑 이름',
                                     hintStyle: TextStyle(color: Colors.white70),
                                     border: InputBorder.none,
                                   ),
@@ -954,7 +954,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
   // 지도 화면으로 이동하는 함수
   void _navigateToMapScreen() {
     if (_favoriteData != null) {
-      String restaurantName = _favoriteData?['restaurantName'] ?? 'Unknown Restaurant';
+      String restaurantName = _favoriteData?['restaurantName'] ?? AppLocalizations.of(context)?.favorite_unknownRestaurant ?? 'Unknown Restaurant';
       GeoPoint geoPoint = _favoriteData?['gps'] ?? GeoPoint(0.0, 0.0); // gps 필드가 없을 경우 기본값 설정
 
       double latitude = geoPoint.latitude;

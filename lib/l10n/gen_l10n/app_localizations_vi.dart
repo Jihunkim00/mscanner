@@ -727,4 +727,230 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get viewOnMap => 'Xem trên bản đồ';
+
+  @override
+  String get login_welcomeBack => 'Chào mừng bạn quay lại';
+
+  @override
+  String get login_subtitle => 'Khám phá ẩm thực dễ dàng hơn với AI. Bắt đầu ngay nhé.';
+
+  @override
+  String get login_emailLabel => 'Địa chỉ email';
+
+  @override
+  String get login_emailHint => 'name@example.com';
+
+  @override
+  String get login_orContinueWith => 'HOẶC TIẾP TỤC VỚI';
+
+  @override
+  String get login_google => 'Tiếp tục với Google';
+
+  @override
+  String get login_apple => 'Tiếp tục với Apple';
+
+  @override
+  String get login_noAccount => 'Chưa có tài khoản?';
+
+  @override
+  String get login_signUpFree => 'Đăng ký miễn phí';
+
+  @override
+  String get signup_subtitle => 'Tạo tài khoản để lưu bản quét, quản lý preset và mở khóa tính năng cao cấp.';
+
+  @override
+  String get signup_emailLabel => 'Địa chỉ email';
+
+  @override
+  String get signup_emailHint => 'name@example.com';
+
+  @override
+  String get signup_logIn => 'Đăng nhập';
+
+  @override
+  String get map_noTitle => 'Không có tiêu đề';
+
+  @override
+  String get map_cuisine => 'Ẩm thực';
+
+  @override
+  String get map_location => 'Vị trí';
+
+  @override
+  String get map_searchHistory => 'Lịch sử tìm kiếm';
+
+  @override
+  String get map_recent => 'Gần đây';
+
+  @override
+  String get map_topRated => 'Được đánh giá cao';
+
+  @override
+  String get map_date => 'Ngày';
+
+  @override
+  String get map_clear => 'Xóa';
+
+  @override
+  String get map_noResults => 'Không có kết quả';
+
+  @override
+  String get map_unknown => 'Không rõ';
+
+  @override
+  String get howto_title => 'Cách dùng Mscanner';
+
+  @override
+  String get howto_step1 => '1. QUÉT';
+
+  @override
+  String get howto_desc1 => 'Menu hoặc món ăn';
+
+  @override
+  String get howto_step2 => '2. PHÂN TÍCH';
+
+  @override
+  String get howto_desc2 => 'AI phân tích ảnh';
+
+  @override
+  String get howto_step3 => '3. THƯỞNG THỨC';
+
+  @override
+  String get howto_desc3 => 'Gợi ý món phù hợp cho bạn';
+
+  @override
+  String get home_searchAiFoodImage => 'Tìm ảnh món ăn bằng AI...';
+
+  @override
+  String get home_adLabel => 'QC';
+
+  @override
+  String get home_trendingNearYou => 'Đang thịnh hành gần bạn';
+
+  @override
+  String get home_mscannerPicks => 'Gợi ý từ Mscanner';
+
+  @override
+  String get home_viewAll => 'Xem tất cả';
+
+  @override
+  String get home_errorLoadingCards => 'Lỗi tải thẻ';
+
+  @override
+  String get home_noDataAvailable => 'Không có dữ liệu';
+
+  @override
+  String get home_errorSavingData => 'Lỗi lưu dữ liệu';
+
+  @override
+  String get favoriteList_searchHistory => 'Lịch sử tìm kiếm';
+
+  @override
+  String get favoriteList_all => 'Tất cả';
+
+  @override
+  String get favoriteList_recent => 'Gần đây';
+
+  @override
+  String get favoriteList_topRated => 'Được đánh giá cao';
+
+  @override
+  String get favoriteList_date => 'Ngày';
+
+  @override
+  String get favoriteList_country => 'Quốc gia';
+
+  @override
+  String get favoriteList_noDate => 'Không có ngày';
+
+  @override
+  String get favoriteList_noHistoryFound => 'Không có lịch sử';
+
+  @override
+  String get favoriteList_thisWeek => 'Tuần này';
+
+  @override
+  String favoriteList_entries(Object count) {
+    return '$count mục';
+  }
+
+  @override
+  String get favorite_fullMenu => 'Toàn bộ menu';
+
+  @override
+  String get favorite_menuMain => 'Món chính';
+
+  @override
+  String get favorite_menuSide => 'Món phụ';
+
+  @override
+  String get favorite_menuMeal => 'Bữa ăn';
+
+  @override
+  String get favorite_menuDrink => 'Đồ uống';
+
+  @override
+  String get favorite_menuBeverage => 'Đồ uống';
+
+  @override
+  String get favorite_menuOther => 'Khác';
+
+  @override
+  String get favorite_summaryTruncated => 'Tóm tắt (ngắn)';
+
+  @override
+  String get favorite_summary => 'Tóm tắt';
+
+  @override
+  String get favorite_noResponses => 'Không có nội dung';
+
+  @override
+  String get favorite_viewFullMenu => 'Xem toàn bộ menu';
+
+  @override
+  String get favorite_unknownRestaurant => 'Nhà hàng không rõ';
+
+  @override
+  String get favorite_failedSaveChanges => 'Không thể lưu thay đổi';
+
+  @override
+  String get favorite_renderNotReady => 'Lỗi: màn hình chưa sẵn sàng.';
+
+  @override
+  String get favorite_restaurantNameHint => 'Tên nhà hàng';
+
+  @override
+  String get result_fxRateLoadFailed => 'Không tải được tỷ giá. Vui lòng kiểm tra kết nối mạng.';
+
+  @override
+  String get result_fxConvertFailed => 'Không thể chuyển đổi số tiền này.';
+
+  @override
+  String get result_restoreOriginalCurrency => 'Khôi phục tiền tệ gốc';
+
+  @override
+  String result_convertToSystemCurrency(Object currency) {
+    return 'Đổi sang tiền tệ hệ thống ($currency)';
+  }
+
+  @override
+  String get result_auto => 'Tự động';
+
+  @override
+  String get result_viewFullMenu => 'Xem toàn bộ menu';
+
+  @override
+  String get result_preparingMenu => 'Đang chuẩn bị menu chi tiết…';
+
+  @override
+  String get result_failedLoadSettings => 'Không tải được cài đặt. Lưu đám mây được bật mặc định.';
+
+  @override
+  String get result_imageUploadFailed => 'Tải ảnh lên thất bại. Vui lòng thử lại.';
+
+  @override
+  String get result_analyzing => 'Đang phân tích thông tin món ăn';
+
+  @override
+  String get result_loadingFullMenu => 'Đang tải toàn bộ menu…';
 }

@@ -196,7 +196,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               ),
                               const SizedBox(height: 10),
                               Text(
-                                'Create an account to save scans, manage presets, and access premium features.',
+                                localizations?.signup_subtitle ?? 'Create an account to save scans, manage presets, and access premium features.',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontFamily: 'SFPro',
@@ -230,9 +230,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   color: isDarkMode ? Colors.white : Colors.black,
                                 ),
                                 decoration: _fieldDecoration(
-                                  label: 'Email Address',
+                                  label: localizations?.signup_emailLabel ?? 'Email Address',
                                   icon: Icons.mail_outline,
-                                  hint: 'name@example.com',
+                                  hint: localizations?.signup_emailHint ?? 'name@example.com',
+
                                 ),
                                 onChanged: _validateEmail,
                                 validator: (v) {
@@ -377,9 +378,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                             ? Colors.white70
                                             : const Color(0xFF6B7280),
                                       ),
-                                      children: const [
+                                      children: [
                                         TextSpan(
-                                          text: 'Log in',
+                                          text: localizations?.signup_logIn ?? 'Log in',
                                           style: TextStyle(
                                             fontFamily: 'SFPro',
                                             fontWeight: FontWeight.w800,

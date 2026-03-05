@@ -230,7 +230,7 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
           child: MScannerSearchField(
             controller: _searchController,
-            placeholder: 'Search History',
+            placeholder: AppLocalizations.of(context)?.favoriteList_searchHistory ?? 'Search History',
             onChanged: (v) => setState(() => _searchText = v),
           ),
         ),
@@ -241,19 +241,19 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
             children: [
               // ---- Filters ----
               MScannerPillChip(
-                label: 'All',
+                label: AppLocalizations.of(context)?.favoriteList_all ?? 'All',
                 selected: _activeFilter == 'all',
                 scheme: MScannerAccent.orange,
                 onTap: () => setState(() => _activeFilter = 'all'),
               ),
               MScannerPillChip(
-                label: 'Recent',
+                label: AppLocalizations.of(context)?.favoriteList_recent ?? 'Recent',
                 selected: _activeFilter == 'recent',
                 scheme: MScannerAccent.orange,
                 onTap: () => setState(() => _activeFilter = 'recent'),
               ),
               MScannerPillChip(
-                label: 'Top Rated',
+                label: AppLocalizations.of(context)?.favoriteList_topRated ?? 'Top Rated',
                 selected: _activeFilter == 'top',
                 scheme: MScannerAccent.orange,
                 onTap: () => setState(() => _activeFilter = 'top'),
@@ -263,7 +263,7 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
 
               // ---- Sorting (map_screen처럼 chip로 통일) ----
               MScannerPillChip(
-                label: 'Date',
+                label: AppLocalizations.of(context)?.favoriteList_date ?? 'Date',
                 selected: _currentSort == 'latest',
                 scheme: MScannerAccent.orange,
                 onTap: () {
@@ -273,7 +273,7 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
                 },
               ),
               MScannerPillChip(
-                label: 'Country',
+                label: AppLocalizations.of(context)?.favoriteList_country ?? 'Country',
                 selected: _currentSort == 'country',
                 scheme: MScannerAccent.orange,
                 onTap: () {
@@ -299,7 +299,7 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
     final restaurant = _restaurantName(data);
     final rating = _parseRating(data);
     final dt = _parseTimestamp(data);
-    final dateText = dt != null ? DateFormat('MMM d, h:mm a').format(dt) : 'No date';
+    final dateText = dt != null ? DateFormat('MMM d, h:mm a').format(dt) : AppLocalizations.of(context)?.favoriteList_noDate ?? 'No date';
 
     final showMenu = _showMenuPhotoIds.contains(doc.id);
     final img = showMenu ? _menuImageUrl(data) : _foodImageUrl(data);
@@ -608,7 +608,7 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
                 Expanded(
                   child: _favoriteResults.isEmpty
                       ? Center(
-                    child: Text('No History Found', style: TextStyle(color: textColor)),
+                    child: Text(AppLocalizations.of(context)?.favoriteList_noHistoryFound ?? 'No History Found', style: TextStyle(color: textColor)),
                   )
                       : Builder(builder: (_) {
                     final filtered = _applySearch(_applyFilter(_favoriteResults));
@@ -628,7 +628,7 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
                       itemBuilder: (context, sectionIdx) {
                         final key = keys[sectionIdx];
                         final items = grouped[key] ?? const <DocumentSnapshot>[];
-                        final title = key == 'THIS_WEEK' ? 'This Week' : key;
+                        final title = key == 'THIS_WEEK' ? (AppLocalizations.of(context)?.favoriteList_thisWeek ?? 'This Week') : key;
 
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -648,7 +648,7 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
                                     ),
                                   ),
                                   Text(
-                                    '${items.length} entries'.toUpperCase(),
+                                    AppLocalizations.of(context)!.favoriteList_entries(items.length).toUpperCase(),
                                     style: TextStyle(
                                       color: textColor.withOpacity(0.45),
                                       fontWeight: FontWeight.w700,

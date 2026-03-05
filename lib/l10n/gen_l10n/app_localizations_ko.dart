@@ -629,7 +629,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get premiumFunctionMessage => '프리미엄 서비스 전용';
 
   @override
-  String get multiScan => '일괄 스캔';
+  String get multiScan => '다중 스캔';
 
   @override
   String maxScanImages(int maxCount) {
@@ -727,4 +727,230 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get viewOnMap => '지도에서 보기';
+
+  @override
+  String get login_welcomeBack => '다시 오신 것을 환영합니다';
+
+  @override
+  String get login_subtitle => 'AI와 함께 하는 편리한 미식의 세계 지금 시작됩니다.';
+
+  @override
+  String get login_emailLabel => '이메일 주소';
+
+  @override
+  String get login_emailHint => 'name@example.com';
+
+  @override
+  String get login_orContinueWith => '또는 다음으로 계속';
+
+  @override
+  String get login_google => 'Google로 로그인';
+
+  @override
+  String get login_apple => 'Apple로 로그인';
+
+  @override
+  String get login_noAccount => '계정이 없으신가요?';
+
+  @override
+  String get login_signUpFree => '무료로 가입하기';
+
+  @override
+  String get signup_subtitle => '계정을 생성하여 스캔을 저장하고, 프리셋을 관리하며, 프리미엄 기능을 이용하세요.';
+
+  @override
+  String get signup_emailLabel => '이메일 주소';
+
+  @override
+  String get signup_emailHint => 'name@example.com';
+
+  @override
+  String get signup_logIn => '로그인';
+
+  @override
+  String get map_noTitle => '제목 없음';
+
+  @override
+  String get map_cuisine => '음식 종류';
+
+  @override
+  String get map_location => '위치';
+
+  @override
+  String get map_searchHistory => '검색 기록';
+
+  @override
+  String get map_recent => '최근';
+
+  @override
+  String get map_topRated => '평점 높은 순';
+
+  @override
+  String get map_date => '날짜';
+
+  @override
+  String get map_clear => '지우기';
+
+  @override
+  String get map_noResults => '결과 없음';
+
+  @override
+  String get map_unknown => '알 수 없음';
+
+  @override
+  String get howto_title => 'Mscanner 사용 방법';
+
+  @override
+  String get howto_step1 => '1. 스캔';
+
+  @override
+  String get howto_desc1 => '메뉴 또는 요리';
+
+  @override
+  String get howto_step2 => '2. 분석';
+
+  @override
+  String get howto_desc2 => 'AI가 사진을 분석';
+
+  @override
+  String get howto_step3 => '3. 결과';
+
+  @override
+  String get howto_desc3 => '적절한 음식을 추천';
+
+  @override
+  String get home_searchAiFoodImage => 'AI 음식 이미지 검색...';
+
+  @override
+  String get home_adLabel => '광고';
+
+  @override
+  String get home_trendingNearYou => '내 주변 인기 메뉴';
+
+  @override
+  String get home_mscannerPicks => 'Mscanner 추천';
+
+  @override
+  String get home_viewAll => '전체 보기';
+
+  @override
+  String get home_errorLoadingCards => '카드 불러오기 오류';
+
+  @override
+  String get home_noDataAvailable => '데이터가 없습니다';
+
+  @override
+  String get home_errorSavingData => '데이터 저장 오류';
+
+  @override
+  String get favoriteList_searchHistory => '검색 기록';
+
+  @override
+  String get favoriteList_all => '전체';
+
+  @override
+  String get favoriteList_recent => '최근';
+
+  @override
+  String get favoriteList_topRated => '평점 높은 순';
+
+  @override
+  String get favoriteList_date => '날짜';
+
+  @override
+  String get favoriteList_country => '국가';
+
+  @override
+  String get favoriteList_noDate => '날짜 없음';
+
+  @override
+  String get favoriteList_noHistoryFound => '저장된 기록이 없습니다';
+
+  @override
+  String get favoriteList_thisWeek => '이번 주';
+
+  @override
+  String favoriteList_entries(Object count) {
+    return '$count개';
+  }
+
+  @override
+  String get favorite_fullMenu => '전체 메뉴';
+
+  @override
+  String get favorite_menuMain => '메인';
+
+  @override
+  String get favorite_menuSide => '사이드';
+
+  @override
+  String get favorite_menuMeal => '식사';
+
+  @override
+  String get favorite_menuDrink => '음료';
+
+  @override
+  String get favorite_menuBeverage => '음료';
+
+  @override
+  String get favorite_menuOther => '기타';
+
+  @override
+  String get favorite_summaryTruncated => '요약(일부)';
+
+  @override
+  String get favorite_summary => '요약';
+
+  @override
+  String get favorite_noResponses => '응답이 없습니다';
+
+  @override
+  String get favorite_viewFullMenu => '전체 메뉴 보기';
+
+  @override
+  String get favorite_unknownRestaurant => '알 수 없는 식당';
+
+  @override
+  String get favorite_failedSaveChanges => '변경 사항 저장 실패';
+
+  @override
+  String get favorite_renderNotReady => '오류: 화면이 준비되지 않았습니다.';
+
+  @override
+  String get favorite_restaurantNameHint => '식당 이름';
+
+  @override
+  String get result_fxRateLoadFailed => '환율 데이터를 불러오지 못했습니다.';
+
+  @override
+  String get result_fxConvertFailed => '금액을 변환하지 못했습니다.';
+
+  @override
+  String get result_restoreOriginalCurrency => '원래 통화로 복원';
+
+  @override
+  String result_convertToSystemCurrency(Object currency) {
+    return '시스템 통화($currency)로 변환';
+  }
+
+  @override
+  String get result_auto => '자동';
+
+  @override
+  String get result_viewFullMenu => '전체 메뉴 보기';
+
+  @override
+  String get result_preparingMenu => '세부 메뉴 준비 중…';
+
+  @override
+  String get result_failedLoadSettings => '설정을 불러오지 못했습니다. 클라우드 저장은 활성화됩니다.';
+
+  @override
+  String get result_imageUploadFailed => '이미지 업로드에 실패했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get result_analyzing => '음식 정보 분석 중';
+
+  @override
+  String get result_loadingFullMenu => '전체 메뉴를 불러오는 중…';
 }

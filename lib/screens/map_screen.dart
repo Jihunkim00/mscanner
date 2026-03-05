@@ -287,7 +287,7 @@ class _MapScreenState extends State<MapScreen> {
 
     // 4) 최후 fallback: restaurant
     final restaurant = _norm(item['restaurantName']);
-    return restaurant.isNotEmpty ? restaurant : 'Unknown';
+    return restaurant.isNotEmpty ? restaurant : (AppLocalizations.of(context)?.map_unknown ?? 'Unknown');
   }
 
   void _applyAllFiltersAndRebuild() {
@@ -380,7 +380,7 @@ class _MapScreenState extends State<MapScreen> {
           onTap: () => setState(() => _selectedId = id),
           infoWindow: InfoWindow(
             title: _norm(item['restaurantName']).isEmpty
-                ? 'No Title'
+                ? AppLocalizations.of(context)?.map_noTitle ?? 'No Title'
                 : _norm(item['restaurantName']),
             snippet: AppLocalizations.of(context)?.shareLocation ?? 'Share location',
             onTap: () => _shareLocation(item),
@@ -419,7 +419,7 @@ class _MapScreenState extends State<MapScreen> {
       context: context,
       isScrollControlled: true,
       builder: (_) => _OptionSheet(
-        title: 'Cuisine',
+        title: AppLocalizations.of(context)?.map_cuisine ?? 'Cuisine',
         current: _selectedCuisine,
         options: options,
       ),
@@ -452,7 +452,7 @@ class _MapScreenState extends State<MapScreen> {
       context: context,
       isScrollControlled: true,
       builder: (_) => _OptionSheet(
-        title: 'Location',
+        title: AppLocalizations.of(context)?.map_location ?? 'Location',
         current: _selectedLocation,
         options: options,
       ),
@@ -560,7 +560,7 @@ class _MapScreenState extends State<MapScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   MScannerSearchField(
-                    placeholder: 'Search History',
+                    placeholder: AppLocalizations.of(context)?.map_searchHistory ?? 'Search History',
                     onChanged: (v) {
                       setState(() => _searchText = v);
                       _applyAllFiltersAndRebuild();
@@ -576,7 +576,7 @@ class _MapScreenState extends State<MapScreen> {
                           child: Row(
                             children: [
                               MScannerPillChip(
-                                label: 'Recent',
+                                label: AppLocalizations.of(context)?.map_recent ?? 'Recent',
                                 selected: _activeFilter == _FilterType.recent,
                                 scheme: MScannerAccent.orange, // ✅ 여기만 오렌지로
                                 onTap: () {
@@ -589,7 +589,7 @@ class _MapScreenState extends State<MapScreen> {
                                 },
                               ),
                               MScannerPillChip(
-                                label: 'Top Rated',
+                                label: AppLocalizations.of(context)?.map_topRated ?? 'Top Rated',
                                 selected: _activeFilter == _FilterType.topRated,
                                 scheme: MScannerAccent.orange, // ✅ 여기만 오렌지로
                                 onTap: () {
@@ -603,13 +603,13 @@ class _MapScreenState extends State<MapScreen> {
                               ),
 
                               MScannerPillChip(
-                                label: 'Date',
+                                label: AppLocalizations.of(context)?.map_date ?? 'Date',
                                 selected: _selectedDateRange != null,
                                 scheme: MScannerAccent.orange, // ✅ 여기만 오렌지로
                                 onTap: _openDatePicker,
                               ),
                               MScannerPillChip(
-                                label: 'Location',
+                                label: AppLocalizations.of(context)?.map_location ?? 'Location',
                                 selected: _selectedLocation != null,
                                 scheme: MScannerAccent.orange, // ✅ 여기만 오렌지로
                                 onTap: _openLocationSheet,
@@ -632,7 +632,7 @@ class _MapScreenState extends State<MapScreen> {
                                 borderRadius: BorderRadius.circular(18),
                               ),
                               child: Text(
-                                'Clear',
+                                AppLocalizations.of(context)?.map_clear ?? 'Clear',
                                 style: TextStyle(
                                   color: _isDarkMode ? Colors.white : Colors.black87,
                                   fontSize: 13,
@@ -658,7 +658,7 @@ class _MapScreenState extends State<MapScreen> {
             child: _filteredItems.isEmpty
                 ? Center(
               child: Text(
-                'No results',
+                AppLocalizations.of(context)?.map_noResults ?? 'No results',
                 style: TextStyle(
                   color: _isDarkMode ? Colors.white70 : Colors.black45,
                   fontSize: 14,
@@ -745,7 +745,7 @@ class _OptionSheet extends StatelessWidget {
                 const Spacer(),
                 TextButton(
                   onPressed: () => Navigator.pop(context, ''), // clear this filter
-                  child: const Text('Clear'),
+                  child: Text(AppLocalizations.of(context)?.map_clear ?? 'Clear'),
                 ),
               ],
             ),

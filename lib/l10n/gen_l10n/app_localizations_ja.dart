@@ -726,5 +726,231 @@ class AppLocalizationsJa extends AppLocalizations {
   String get iapRestoreTrying => '購入の復元を試みています...';
 
   @override
-  String get viewOnMap => '地図で表示';
+  String get viewOnMap => '地図で見る';
+
+  @override
+  String get login_welcomeBack => 'お帰りなさい';
+
+  @override
+  String get login_subtitle => 'AIで味の世界を発見しましょう。あなたの食の旅はここから続きます。';
+
+  @override
+  String get login_emailLabel => 'メールアドレス';
+
+  @override
+  String get login_emailHint => 'name@example.com';
+
+  @override
+  String get login_orContinueWith => 'または次で続行';
+
+  @override
+  String get login_google => 'Googleでログイン';
+
+  @override
+  String get login_apple => 'Appleでログイン';
+
+  @override
+  String get login_noAccount => 'アカウントをお持ちではありませんか？';
+
+  @override
+  String get login_signUpFree => '無料で登録';
+
+  @override
+  String get signup_subtitle => 'アカウントを作成してスキャンを保存し、プリセットを管理し、プレミアム機能にアクセスできます。';
+
+  @override
+  String get signup_emailLabel => 'メールアドレス';
+
+  @override
+  String get signup_emailHint => 'name@example.com';
+
+  @override
+  String get signup_logIn => 'ログイン';
+
+  @override
+  String get map_noTitle => 'タイトルなし';
+
+  @override
+  String get map_cuisine => '料理ジャンル';
+
+  @override
+  String get map_location => '場所';
+
+  @override
+  String get map_searchHistory => '検索履歴';
+
+  @override
+  String get map_recent => '最近';
+
+  @override
+  String get map_topRated => '高評価';
+
+  @override
+  String get map_date => '日付';
+
+  @override
+  String get map_clear => 'クリア';
+
+  @override
+  String get map_noResults => '結果なし';
+
+  @override
+  String get map_unknown => '不明';
+
+  @override
+  String get howto_title => 'Mscannerの使い方';
+
+  @override
+  String get howto_step1 => '1. スキャン';
+
+  @override
+  String get howto_desc1 => 'メニューまたは料理';
+
+  @override
+  String get howto_step2 => '2. 分析';
+
+  @override
+  String get howto_desc2 => 'AIが項目を識別';
+
+  @override
+  String get howto_step3 => '3. 食べる';
+
+  @override
+  String get howto_desc3 => 'お気に入りの料理を発見';
+
+  @override
+  String get home_searchAiFoodImage => 'AI料理画像を検索…';
+
+  @override
+  String get home_adLabel => '広告';
+
+  @override
+  String get home_trendingNearYou => '近くで話題';
+
+  @override
+  String get home_mscannerPicks => 'Mscannerのおすすめ';
+
+  @override
+  String get home_viewAll => 'すべて見る';
+
+  @override
+  String get home_errorLoadingCards => 'カードの読み込みエラー';
+
+  @override
+  String get home_noDataAvailable => 'データがありません';
+
+  @override
+  String get home_errorSavingData => 'データの保存エラー';
+
+  @override
+  String get favoriteList_searchHistory => '検索履歴';
+
+  @override
+  String get favoriteList_all => 'すべて';
+
+  @override
+  String get favoriteList_recent => '最近';
+
+  @override
+  String get favoriteList_topRated => '高評価';
+
+  @override
+  String get favoriteList_date => '日付';
+
+  @override
+  String get favoriteList_country => '国';
+
+  @override
+  String get favoriteList_noDate => '日付なし';
+
+  @override
+  String get favoriteList_noHistoryFound => '履歴が見つかりません';
+
+  @override
+  String get favoriteList_thisWeek => '今週';
+
+  @override
+  String favoriteList_entries(Object count) {
+    return '$count件';
+  }
+
+  @override
+  String get favorite_fullMenu => '全メニュー';
+
+  @override
+  String get favorite_menuMain => 'メイン';
+
+  @override
+  String get favorite_menuSide => 'サイド';
+
+  @override
+  String get favorite_menuMeal => '食事';
+
+  @override
+  String get favorite_menuDrink => 'ドリンク';
+
+  @override
+  String get favorite_menuBeverage => '飲み物';
+
+  @override
+  String get favorite_menuOther => 'その他';
+
+  @override
+  String get favorite_summaryTruncated => '要約（省略）';
+
+  @override
+  String get favorite_summary => '要約';
+
+  @override
+  String get favorite_noResponses => '利用可能な回答はありません';
+
+  @override
+  String get favorite_viewFullMenu => '全メニューを見る';
+
+  @override
+  String get favorite_unknownRestaurant => '不明なレストラン';
+
+  @override
+  String get favorite_failedSaveChanges => '変更の保存に失敗しました';
+
+  @override
+  String get favorite_renderNotReady => 'エラー: RenderRepaintBoundaryの準備ができていません。';
+
+  @override
+  String get favorite_restaurantNameHint => 'レストラン名';
+
+  @override
+  String get result_fxRateLoadFailed => '為替レートデータの読み込みに失敗しました。ネットワークを確認してください。';
+
+  @override
+  String get result_fxConvertFailed => 'この金額を換算できませんでした。';
+
+  @override
+  String get result_restoreOriginalCurrency => '元の通貨に戻す';
+
+  @override
+  String result_convertToSystemCurrency(Object currency) {
+    return 'システム通貨（$currency）に換算';
+  }
+
+  @override
+  String get result_auto => '自動';
+
+  @override
+  String get result_viewFullMenu => '全メニューを見る';
+
+  @override
+  String get result_preparingMenu => 'メニューを準備中…';
+
+  @override
+  String get result_failedLoadSettings => '設定の読み込みに失敗しました。クラウド保存はデフォルトで有効です';
+
+  @override
+  String get result_imageUploadFailed => '画像のアップロードに失敗しました。もう一度お試しください。';
+
+  @override
+  String get result_analyzing => '分析中';
+
+  @override
+  String get result_loadingFullMenu => '全メニューを読み込み中…';
 }

@@ -727,6 +727,232 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get viewOnMap => '在地图上查看';
+
+  @override
+  String get login_welcomeBack => '欢迎回来';
+
+  @override
+  String get login_subtitle => '用 AI 轻松开启美食探索之旅，现在就开始吧。';
+
+  @override
+  String get login_emailLabel => '邮箱地址';
+
+  @override
+  String get login_emailHint => 'name@example.com';
+
+  @override
+  String get login_orContinueWith => '或继续使用';
+
+  @override
+  String get login_google => '使用 Google 继续';
+
+  @override
+  String get login_apple => '使用 Apple 继续';
+
+  @override
+  String get login_noAccount => '还没有账号？';
+
+  @override
+  String get login_signUpFree => '免费注册';
+
+  @override
+  String get signup_subtitle => '创建账号可保存扫描、管理预设，并解锁高级功能。';
+
+  @override
+  String get signup_emailLabel => '邮箱地址';
+
+  @override
+  String get signup_emailHint => 'name@example.com';
+
+  @override
+  String get signup_logIn => '登录';
+
+  @override
+  String get map_noTitle => '无标题';
+
+  @override
+  String get map_cuisine => '菜系';
+
+  @override
+  String get map_location => '位置';
+
+  @override
+  String get map_searchHistory => '搜索记录';
+
+  @override
+  String get map_recent => '最近';
+
+  @override
+  String get map_topRated => '评分最高';
+
+  @override
+  String get map_date => '日期';
+
+  @override
+  String get map_clear => '清除';
+
+  @override
+  String get map_noResults => '无结果';
+
+  @override
+  String get map_unknown => '未知';
+
+  @override
+  String get howto_title => '如何使用 Mscanner';
+
+  @override
+  String get howto_step1 => '1. 扫描';
+
+  @override
+  String get howto_desc1 => '菜单或菜品';
+
+  @override
+  String get howto_step2 => '2. 分析';
+
+  @override
+  String get howto_desc2 => 'AI 分析 照片';
+
+  @override
+  String get howto_step3 => '3. 享用';
+
+  @override
+  String get howto_desc3 => '推荐 适合你的 美食';
+
+  @override
+  String get home_searchAiFoodImage => '搜索 AI 美食图片…';
+
+  @override
+  String get home_adLabel => '广告';
+
+  @override
+  String get home_trendingNearYou => '附近热门';
+
+  @override
+  String get home_mscannerPicks => 'Mscanner 推荐';
+
+  @override
+  String get home_viewAll => '查看全部';
+
+  @override
+  String get home_errorLoadingCards => '加载卡片出错';
+
+  @override
+  String get home_noDataAvailable => '暂无数据';
+
+  @override
+  String get home_errorSavingData => '保存数据出错';
+
+  @override
+  String get favoriteList_searchHistory => '搜索记录';
+
+  @override
+  String get favoriteList_all => '全部';
+
+  @override
+  String get favoriteList_recent => '最近';
+
+  @override
+  String get favoriteList_topRated => '评分最高';
+
+  @override
+  String get favoriteList_date => '日期';
+
+  @override
+  String get favoriteList_country => '国家/地区';
+
+  @override
+  String get favoriteList_noDate => '无日期';
+
+  @override
+  String get favoriteList_noHistoryFound => '暂无记录';
+
+  @override
+  String get favoriteList_thisWeek => '本周';
+
+  @override
+  String favoriteList_entries(Object count) {
+    return '$count 条';
+  }
+
+  @override
+  String get favorite_fullMenu => '完整菜单';
+
+  @override
+  String get favorite_menuMain => '主菜';
+
+  @override
+  String get favorite_menuSide => '配菜';
+
+  @override
+  String get favorite_menuMeal => '餐点';
+
+  @override
+  String get favorite_menuDrink => '饮品';
+
+  @override
+  String get favorite_menuBeverage => '饮品';
+
+  @override
+  String get favorite_menuOther => '其他';
+
+  @override
+  String get favorite_summaryTruncated => '摘要（简版）';
+
+  @override
+  String get favorite_summary => '摘要';
+
+  @override
+  String get favorite_noResponses => '暂无可用内容';
+
+  @override
+  String get favorite_viewFullMenu => '查看完整菜单';
+
+  @override
+  String get favorite_unknownRestaurant => '未知餐厅';
+
+  @override
+  String get favorite_failedSaveChanges => '保存更改失败';
+
+  @override
+  String get favorite_renderNotReady => '错误：页面尚未就绪。';
+
+  @override
+  String get favorite_restaurantNameHint => '餐厅名称';
+
+  @override
+  String get result_fxRateLoadFailed => '加载汇率数据失败，请检查网络连接。';
+
+  @override
+  String get result_fxConvertFailed => '金额换算失败。';
+
+  @override
+  String get result_restoreOriginalCurrency => '恢复原始货币';
+
+  @override
+  String result_convertToSystemCurrency(Object currency) {
+    return '换算为系统货币（$currency）';
+  }
+
+  @override
+  String get result_auto => '自动';
+
+  @override
+  String get result_viewFullMenu => '查看完整菜单';
+
+  @override
+  String get result_preparingMenu => '正在准备详细菜单…';
+
+  @override
+  String get result_failedLoadSettings => '加载设置失败，云端保存默认开启。';
+
+  @override
+  String get result_imageUploadFailed => '图片上传失败，请重试。';
+
+  @override
+  String get result_analyzing => '正在分析菜品信息';
+
+  @override
+  String get result_loadingFullMenu => '正在加载完整菜单…';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -1452,6 +1678,232 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get viewOnMap => '在地图上查看';
+
+  @override
+  String get login_welcomeBack => '欢迎回来';
+
+  @override
+  String get login_subtitle => '用 AI 轻松开启美食探索之旅，现在就开始吧。';
+
+  @override
+  String get login_emailLabel => '邮箱地址';
+
+  @override
+  String get login_emailHint => 'name@example.com';
+
+  @override
+  String get login_orContinueWith => '或继续使用';
+
+  @override
+  String get login_google => '使用 Google 继续';
+
+  @override
+  String get login_apple => '使用 Apple 继续';
+
+  @override
+  String get login_noAccount => '还没有账号？';
+
+  @override
+  String get login_signUpFree => '免费注册';
+
+  @override
+  String get signup_subtitle => '创建账号可保存扫描、管理预设，并解锁高级功能。';
+
+  @override
+  String get signup_emailLabel => '邮箱地址';
+
+  @override
+  String get signup_emailHint => 'name@example.com';
+
+  @override
+  String get signup_logIn => '登录';
+
+  @override
+  String get map_noTitle => '无标题';
+
+  @override
+  String get map_cuisine => '菜系';
+
+  @override
+  String get map_location => '位置';
+
+  @override
+  String get map_searchHistory => '搜索记录';
+
+  @override
+  String get map_recent => '最近';
+
+  @override
+  String get map_topRated => '评分最高';
+
+  @override
+  String get map_date => '日期';
+
+  @override
+  String get map_clear => '清除';
+
+  @override
+  String get map_noResults => '无结果';
+
+  @override
+  String get map_unknown => '未知';
+
+  @override
+  String get howto_title => '如何使用 Mscanner';
+
+  @override
+  String get howto_step1 => '1. 扫描';
+
+  @override
+  String get howto_desc1 => '菜单或菜品';
+
+  @override
+  String get howto_step2 => '2. 分析';
+
+  @override
+  String get howto_desc2 => 'AI 分析 照片';
+
+  @override
+  String get howto_step3 => '3. 享用';
+
+  @override
+  String get howto_desc3 => '推荐 适合你的 美食';
+
+  @override
+  String get home_searchAiFoodImage => '搜索 AI 美食图片…';
+
+  @override
+  String get home_adLabel => '广告';
+
+  @override
+  String get home_trendingNearYou => '附近热门';
+
+  @override
+  String get home_mscannerPicks => 'Mscanner 推荐';
+
+  @override
+  String get home_viewAll => '查看全部';
+
+  @override
+  String get home_errorLoadingCards => '加载卡片出错';
+
+  @override
+  String get home_noDataAvailable => '暂无数据';
+
+  @override
+  String get home_errorSavingData => '保存数据出错';
+
+  @override
+  String get favoriteList_searchHistory => '搜索记录';
+
+  @override
+  String get favoriteList_all => '全部';
+
+  @override
+  String get favoriteList_recent => '最近';
+
+  @override
+  String get favoriteList_topRated => '评分最高';
+
+  @override
+  String get favoriteList_date => '日期';
+
+  @override
+  String get favoriteList_country => '国家/地区';
+
+  @override
+  String get favoriteList_noDate => '无日期';
+
+  @override
+  String get favoriteList_noHistoryFound => '暂无记录';
+
+  @override
+  String get favoriteList_thisWeek => '本周';
+
+  @override
+  String favoriteList_entries(Object count) {
+    return '$count 条';
+  }
+
+  @override
+  String get favorite_fullMenu => '完整菜单';
+
+  @override
+  String get favorite_menuMain => '主菜';
+
+  @override
+  String get favorite_menuSide => '配菜';
+
+  @override
+  String get favorite_menuMeal => '餐点';
+
+  @override
+  String get favorite_menuDrink => '饮品';
+
+  @override
+  String get favorite_menuBeverage => '饮品';
+
+  @override
+  String get favorite_menuOther => '其他';
+
+  @override
+  String get favorite_summaryTruncated => '摘要（简版）';
+
+  @override
+  String get favorite_summary => '摘要';
+
+  @override
+  String get favorite_noResponses => '暂无可用内容';
+
+  @override
+  String get favorite_viewFullMenu => '查看完整菜单';
+
+  @override
+  String get favorite_unknownRestaurant => '未知餐厅';
+
+  @override
+  String get favorite_failedSaveChanges => '保存更改失败';
+
+  @override
+  String get favorite_renderNotReady => '错误：页面尚未就绪。';
+
+  @override
+  String get favorite_restaurantNameHint => '餐厅名称';
+
+  @override
+  String get result_fxRateLoadFailed => '加载汇率数据失败，请检查网络连接。';
+
+  @override
+  String get result_fxConvertFailed => '金额换算失败。';
+
+  @override
+  String get result_restoreOriginalCurrency => '恢复原始货币';
+
+  @override
+  String result_convertToSystemCurrency(Object currency) {
+    return '换算为系统货币（$currency）';
+  }
+
+  @override
+  String get result_auto => '自动';
+
+  @override
+  String get result_viewFullMenu => '查看完整菜单';
+
+  @override
+  String get result_preparingMenu => '正在准备详细菜单…';
+
+  @override
+  String get result_failedLoadSettings => '加载设置失败，云端保存默认开启。';
+
+  @override
+  String get result_imageUploadFailed => '图片上传失败，请重试。';
+
+  @override
+  String get result_analyzing => '正在分析菜品信息';
+
+  @override
+  String get result_loadingFullMenu => '正在加载完整菜单…';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -2177,4 +2629,230 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get viewOnMap => '在地圖上查看';
+
+  @override
+  String get login_welcomeBack => '歡迎回來';
+
+  @override
+  String get login_subtitle => '用 AI 輕鬆探索美食世界，現在就開始吧。';
+
+  @override
+  String get login_emailLabel => '電子郵件';
+
+  @override
+  String get login_emailHint => 'name@example.com';
+
+  @override
+  String get login_orContinueWith => '或使用以下方式繼續';
+
+  @override
+  String get login_google => '使用 Google 繼續';
+
+  @override
+  String get login_apple => '使用 Apple 繼續';
+
+  @override
+  String get login_noAccount => '還沒有帳號？';
+
+  @override
+  String get login_signUpFree => '免費註冊';
+
+  @override
+  String get signup_subtitle => '建立帳號可儲存掃描、管理預設，並解鎖進階功能。';
+
+  @override
+  String get signup_emailLabel => '電子郵件';
+
+  @override
+  String get signup_emailHint => 'name@example.com';
+
+  @override
+  String get signup_logIn => '登入';
+
+  @override
+  String get map_noTitle => '無標題';
+
+  @override
+  String get map_cuisine => '菜系';
+
+  @override
+  String get map_location => '位置';
+
+  @override
+  String get map_searchHistory => '搜尋紀錄';
+
+  @override
+  String get map_recent => '最近';
+
+  @override
+  String get map_topRated => '評分最高';
+
+  @override
+  String get map_date => '日期';
+
+  @override
+  String get map_clear => '清除';
+
+  @override
+  String get map_noResults => '無結果';
+
+  @override
+  String get map_unknown => '未知';
+
+  @override
+  String get howto_title => '如何使用 Mscanner';
+
+  @override
+  String get howto_step1 => '1. 掃描';
+
+  @override
+  String get howto_desc1 => '菜單或餐點';
+
+  @override
+  String get howto_step2 => '2. 分析';
+
+  @override
+  String get howto_desc2 => 'AI 分析 照片';
+
+  @override
+  String get howto_step3 => '3. 享用';
+
+  @override
+  String get howto_desc3 => '推薦 適合你的 美食';
+
+  @override
+  String get home_searchAiFoodImage => '搜尋 AI 美食圖片…';
+
+  @override
+  String get home_adLabel => '廣告';
+
+  @override
+  String get home_trendingNearYou => '你附近的熱門';
+
+  @override
+  String get home_mscannerPicks => 'Mscanner 精選';
+
+  @override
+  String get home_viewAll => '查看全部';
+
+  @override
+  String get home_errorLoadingCards => '載入卡片錯誤';
+
+  @override
+  String get home_noDataAvailable => '沒有可用資料';
+
+  @override
+  String get home_errorSavingData => '儲存資料錯誤';
+
+  @override
+  String get favoriteList_searchHistory => '搜尋紀錄';
+
+  @override
+  String get favoriteList_all => '全部';
+
+  @override
+  String get favoriteList_recent => '最近';
+
+  @override
+  String get favoriteList_topRated => '評分最高';
+
+  @override
+  String get favoriteList_date => '日期';
+
+  @override
+  String get favoriteList_country => '國家/地區';
+
+  @override
+  String get favoriteList_noDate => '無日期';
+
+  @override
+  String get favoriteList_noHistoryFound => '找不到紀錄';
+
+  @override
+  String get favoriteList_thisWeek => '本週';
+
+  @override
+  String favoriteList_entries(Object count) {
+    return '$count 筆';
+  }
+
+  @override
+  String get favorite_fullMenu => '完整菜單';
+
+  @override
+  String get favorite_menuMain => '主菜';
+
+  @override
+  String get favorite_menuSide => '配菜';
+
+  @override
+  String get favorite_menuMeal => '餐點';
+
+  @override
+  String get favorite_menuDrink => '飲品';
+
+  @override
+  String get favorite_menuBeverage => '飲品';
+
+  @override
+  String get favorite_menuOther => '其他';
+
+  @override
+  String get favorite_summaryTruncated => '摘要（簡版）';
+
+  @override
+  String get favorite_summary => '摘要';
+
+  @override
+  String get favorite_noResponses => '沒有可用內容';
+
+  @override
+  String get favorite_viewFullMenu => '查看完整菜單';
+
+  @override
+  String get favorite_unknownRestaurant => '未知餐廳';
+
+  @override
+  String get favorite_failedSaveChanges => '儲存變更失敗';
+
+  @override
+  String get favorite_renderNotReady => '錯誤：頁面尚未就緒。';
+
+  @override
+  String get favorite_restaurantNameHint => '餐廳名稱';
+
+  @override
+  String get result_fxRateLoadFailed => '載入匯率資料失敗，請檢查網路連線。';
+
+  @override
+  String get result_fxConvertFailed => '金額換算失敗。';
+
+  @override
+  String get result_restoreOriginalCurrency => '還原原始貨幣';
+
+  @override
+  String result_convertToSystemCurrency(Object currency) {
+    return '換算為系統貨幣（$currency）';
+  }
+
+  @override
+  String get result_auto => '自動';
+
+  @override
+  String get result_viewFullMenu => '查看完整菜單';
+
+  @override
+  String get result_preparingMenu => '正在準備詳細菜單…';
+
+  @override
+  String get result_failedLoadSettings => '載入設定失敗，雲端儲存預設開啟。';
+
+  @override
+  String get result_imageUploadFailed => '圖片上傳失敗，請再試一次。';
+
+  @override
+  String get result_analyzing => '正在分析餐點資訊';
+
+  @override
+  String get result_loadingFullMenu => '正在載入完整菜單…';
 }

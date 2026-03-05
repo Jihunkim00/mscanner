@@ -727,4 +727,230 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get viewOnMap => 'Показать на карте';
+
+  @override
+  String get login_welcomeBack => 'С возвращением';
+
+  @override
+  String get login_subtitle => 'Удобный гастрономический поиск с ИИ — начнём прямо сейчас.';
+
+  @override
+  String get login_emailLabel => 'Электронная почта';
+
+  @override
+  String get login_emailHint => 'name@example.com';
+
+  @override
+  String get login_orContinueWith => 'ИЛИ ПРОДОЛЖИТЬ С';
+
+  @override
+  String get login_google => 'Продолжить с Google';
+
+  @override
+  String get login_apple => 'Продолжить с Apple';
+
+  @override
+  String get login_noAccount => 'Нет аккаунта?';
+
+  @override
+  String get login_signUpFree => 'Зарегистрироваться бесплатно';
+
+  @override
+  String get signup_subtitle => 'Создайте аккаунт, чтобы сохранять сканы, управлять пресетами и открывать премиум-функции.';
+
+  @override
+  String get signup_emailLabel => 'Электронная почта';
+
+  @override
+  String get signup_emailHint => 'name@example.com';
+
+  @override
+  String get signup_logIn => 'Войти';
+
+  @override
+  String get map_noTitle => 'Без названия';
+
+  @override
+  String get map_cuisine => 'Кухня';
+
+  @override
+  String get map_location => 'Местоположение';
+
+  @override
+  String get map_searchHistory => 'История поиска';
+
+  @override
+  String get map_recent => 'Недавние';
+
+  @override
+  String get map_topRated => 'Лучшие по рейтингу';
+
+  @override
+  String get map_date => 'Дата';
+
+  @override
+  String get map_clear => 'Очистить';
+
+  @override
+  String get map_noResults => 'Нет результатов';
+
+  @override
+  String get map_unknown => 'Неизвестно';
+
+  @override
+  String get howto_title => 'Как пользоваться Mscanner';
+
+  @override
+  String get howto_step1 => '1. СКАНИРОВАТЬ';
+
+  @override
+  String get howto_desc1 => 'Меню или блюдо';
+
+  @override
+  String get howto_step2 => '2. АНАЛИЗИРОВАТЬ';
+
+  @override
+  String get howto_desc2 => 'ИИ анализирует фото';
+
+  @override
+  String get howto_step3 => '3. НАСЛАЖДАТЬСЯ';
+
+  @override
+  String get howto_desc3 => 'Рекомендуем подходящие варианты';
+
+  @override
+  String get home_searchAiFoodImage => 'Поиск изображения еды с ИИ...';
+
+  @override
+  String get home_adLabel => 'РЕКЛАМА';
+
+  @override
+  String get home_trendingNearYou => 'Популярное рядом';
+
+  @override
+  String get home_mscannerPicks => 'Выбор Mscanner';
+
+  @override
+  String get home_viewAll => 'Смотреть все';
+
+  @override
+  String get home_errorLoadingCards => 'Ошибка загрузки карточек';
+
+  @override
+  String get home_noDataAvailable => 'Нет данных';
+
+  @override
+  String get home_errorSavingData => 'Ошибка сохранения данных';
+
+  @override
+  String get favoriteList_searchHistory => 'История поиска';
+
+  @override
+  String get favoriteList_all => 'Все';
+
+  @override
+  String get favoriteList_recent => 'Недавние';
+
+  @override
+  String get favoriteList_topRated => 'Лучшие по рейтингу';
+
+  @override
+  String get favoriteList_date => 'Дата';
+
+  @override
+  String get favoriteList_country => 'Страна';
+
+  @override
+  String get favoriteList_noDate => 'Без даты';
+
+  @override
+  String get favoriteList_noHistoryFound => 'Записей нет';
+
+  @override
+  String get favoriteList_thisWeek => 'На этой неделе';
+
+  @override
+  String favoriteList_entries(Object count) {
+    return '$count шт.';
+  }
+
+  @override
+  String get favorite_fullMenu => 'Полное меню';
+
+  @override
+  String get favorite_menuMain => 'Основное';
+
+  @override
+  String get favorite_menuSide => 'Закуски';
+
+  @override
+  String get favorite_menuMeal => 'Блюда';
+
+  @override
+  String get favorite_menuDrink => 'Напитки';
+
+  @override
+  String get favorite_menuBeverage => 'Напитки';
+
+  @override
+  String get favorite_menuOther => 'Другое';
+
+  @override
+  String get favorite_summaryTruncated => 'Кратко';
+
+  @override
+  String get favorite_summary => 'Описание';
+
+  @override
+  String get favorite_noResponses => 'Нет доступной информации';
+
+  @override
+  String get favorite_viewFullMenu => 'Посмотреть полное меню';
+
+  @override
+  String get favorite_unknownRestaurant => 'Неизвестное место';
+
+  @override
+  String get favorite_failedSaveChanges => 'Не удалось сохранить изменения';
+
+  @override
+  String get favorite_renderNotReady => 'Ошибка: экран ещё не готов.';
+
+  @override
+  String get favorite_restaurantNameHint => 'Название заведения';
+
+  @override
+  String get result_fxRateLoadFailed => 'Не удалось загрузить курсы валют. Проверьте подключение.';
+
+  @override
+  String get result_fxConvertFailed => 'Не удалось конвертировать сумму.';
+
+  @override
+  String get result_restoreOriginalCurrency => 'Вернуть исходную валюту';
+
+  @override
+  String result_convertToSystemCurrency(Object currency) {
+    return 'Конвертировать в валюту системы ($currency)';
+  }
+
+  @override
+  String get result_auto => 'Авто';
+
+  @override
+  String get result_viewFullMenu => 'Посмотреть полное меню';
+
+  @override
+  String get result_preparingMenu => 'Готовим подробное меню…';
+
+  @override
+  String get result_failedLoadSettings => 'Не удалось загрузить настройки. Облачное сохранение включено по умолчанию.';
+
+  @override
+  String get result_imageUploadFailed => 'Не удалось загрузить изображение. Попробуйте ещё раз.';
+
+  @override
+  String get result_analyzing => 'Анализ информации о блюде';
+
+  @override
+  String get result_loadingFullMenu => 'Загрузка полного меню…';
 }

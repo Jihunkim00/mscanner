@@ -923,7 +923,7 @@ Future<void> _toggleBulkPriceConversion() async {
   } catch (_) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('환율 정보를 불러오지 못했어요. 네트워크 상태를 확인해 주세요.')),
+      SnackBar(content: Text(AppLocalizations.of(context)?.result_fxRateLoadFailed ?? '환율 정보를 불러오지 못했어요. 네트워크 상태를 확인해 주세요.')),
     );
   } finally {
     if (mounted) setState(() => _isBulkConvertingPrices = false);
@@ -967,7 +967,7 @@ Future<void> _toggleSinglePriceConversion(Map<String, dynamic> item) async {
     if (label == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('해당 금액의 환율 변환에 실패했어요.')),
+          SnackBar(content: Text(AppLocalizations.of(context)?.result_fxConvertFailed ?? '해당 금액의 환율 변환에 실패했어요.')),
         );
       }
       return;
@@ -980,7 +980,7 @@ Future<void> _toggleSinglePriceConversion(Map<String, dynamic> item) async {
   } catch (_) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('환율 정보를 불러오지 못했어요. 네트워크 상태를 확인해 주세요.')),
+      SnackBar(content: Text(AppLocalizations.of(context)?.result_fxRateLoadFailed ?? '환율 정보를 불러오지 못했어요. 네트워크 상태를 확인해 주세요.')),
     );
   } finally {
     if (mounted) setState(() => _singlePriceLoadingMenuKeys.remove(mk));
@@ -1250,9 +1250,11 @@ Widget buildDualName() {
                 Expanded(
                   child:
                   AnimatedDotsText(
-                    baseText: 'Analyzing',
+                    baseText:
+                    AppLocalizations.of(context)?.result_analyzing ??
+                        'Analyzing',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 16,
                       color: Theme.of(context).brightness == Brightness.dark
                           ? Colors.white60
                           : CupertinoColors.systemGrey2,
@@ -1364,8 +1366,8 @@ if (_fxUniq.isNotEmpty)
                         splashRadius: 18,
                         padding: EdgeInsets.zero,
                         tooltip: _bulkPricesConverted
-                            ? '원래 통화로 되돌리기'
-                            : '시스템 통화(${_targetCurrencyCode ?? '자동'})로 변환',
+                            ? (AppLocalizations.of(context)?.result_restoreOriginalCurrency ?? '원래 통화로 되돌리기')
+                            : AppLocalizations.of(context)!.result_convertToSystemCurrency(_targetCurrencyCode ?? (AppLocalizations.of(context)?.result_auto ?? '자동')),
                         icon: Icon(
                           Icons.currency_exchange,
                           color: _bulkPricesConverted
@@ -1433,7 +1435,8 @@ if (chipLabels.isNotEmpty) ...[
                 const CupertinoActivityIndicator(radius: 10),
                 const SizedBox(width: 10),
                 Text(
-                  'Loading full menu…',
+                  AppLocalizations.of(context)?.result_loadingFullMenu ??
+                      'Loading full menu…',
                   style: TextStyle(
                     fontFamily: 'SFPro',
                     fontSize: 12,
@@ -1464,7 +1467,7 @@ if (chipLabels.isNotEmpty) ...[
                     const CupertinoActivityIndicator(radius: 8),
                     const SizedBox(width: 8),
                   ],
-                  Text(canShowMenu ? 'View Full Menu' : 'Preparing menu…'),
+                  Text(canShowMenu ? (AppLocalizations.of(context)?.result_viewFullMenu ?? 'View Full Menu') : (AppLocalizations.of(context)?.result_preparingMenu ?? 'Preparing menu…')),
                 ],
               ),
             ),
@@ -2125,7 +2128,7 @@ if (widget.responseStream != null) {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to load settings, cloud save enabled by default'),
+          content: Text(AppLocalizations.of(context)?.result_failedLoadSettings ?? 'Failed to load settings, cloud save enabled by default'),
           backgroundColor: Colors.red,
         ),
       );
@@ -2319,7 +2322,7 @@ if (widget.responseStream != null) {
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Image upload failed, please try again.'),
+          content: Text(AppLocalizations.of(context)?.result_imageUploadFailed ?? 'Image upload failed, please try again.'),
           backgroundColor: Colors.red,
         ),
       );

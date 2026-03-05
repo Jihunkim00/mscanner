@@ -726,5 +726,231 @@ class AppLocalizationsMr extends AppLocalizations {
   String get iapRestoreTrying => 'खरेदी पुनर्स्थापित करण्याचा प्रयत्न करत आहे...';
 
   @override
-  String get viewOnMap => 'नकाशावर पहा';
+  String get viewOnMap => 'नकाशावर 보기';
+
+  @override
+  String get login_welcomeBack => 'पुन्हा स्वागत आहे';
+
+  @override
+  String get login_subtitle => 'AI सोबत सोप्या पद्धतीने स्वादिष्ट शोध—आता सुरू करा.';
+
+  @override
+  String get login_emailLabel => 'ईमेल पत्ता';
+
+  @override
+  String get login_emailHint => 'name@example.com';
+
+  @override
+  String get login_orContinueWith => 'किंवा पुढील पर्यायाने सुरू ठेवा';
+
+  @override
+  String get login_google => 'Google ने पुढे जा';
+
+  @override
+  String get login_apple => 'Apple ने पुढे जा';
+
+  @override
+  String get login_noAccount => 'खाते नाहीये?';
+
+  @override
+  String get login_signUpFree => 'मोफत साइन अप करा';
+
+  @override
+  String get signup_subtitle => 'खाते तयार करा—स्कॅन्स जतन करा, प्रीसेट्स व्यवस्थापित करा आणि प्रीमियम वैशिष्ट्ये वापरा.';
+
+  @override
+  String get signup_emailLabel => 'ईमेल पत्ता';
+
+  @override
+  String get signup_emailHint => 'name@example.com';
+
+  @override
+  String get signup_logIn => 'लॉग इन';
+
+  @override
+  String get map_noTitle => 'शीर्षक नाही';
+
+  @override
+  String get map_cuisine => 'पाकप्रकार';
+
+  @override
+  String get map_location => 'ठिकाण';
+
+  @override
+  String get map_searchHistory => 'शोध इतिहास';
+
+  @override
+  String get map_recent => 'अलीकडील';
+
+  @override
+  String get map_topRated => 'उच्च रेटिंग';
+
+  @override
+  String get map_date => 'दिनांक';
+
+  @override
+  String get map_clear => 'क्लिअर';
+
+  @override
+  String get map_noResults => 'निकाल नाही';
+
+  @override
+  String get map_unknown => 'अज्ञात';
+
+  @override
+  String get howto_title => 'Mscanner वापरण्याची पद्धत';
+
+  @override
+  String get howto_step1 => '1. स्कॅन';
+
+  @override
+  String get howto_desc1 => 'मेनू किंवा डिश';
+
+  @override
+  String get howto_step2 => '2. विश्लेषण';
+
+  @override
+  String get howto_desc2 => 'AI फोटोचे विश्लेषण करते';
+
+  @override
+  String get howto_step3 => '3. आनंद घ्या';
+
+  @override
+  String get howto_desc3 => 'तुमच्यासाठी योग्य शिफारसी';
+
+  @override
+  String get home_searchAiFoodImage => 'AI फूड इमेज शोधा...';
+
+  @override
+  String get home_adLabel => 'जाहिरात';
+
+  @override
+  String get home_trendingNearYou => 'तुमच्या आसपास लोकप्रिय';
+
+  @override
+  String get home_mscannerPicks => 'Mscanner शिफारसी';
+
+  @override
+  String get home_viewAll => 'सर्व पहा';
+
+  @override
+  String get home_errorLoadingCards => 'कार्ड लोड करताना त्रुटी';
+
+  @override
+  String get home_noDataAvailable => 'डेटा उपलब्ध नाही';
+
+  @override
+  String get home_errorSavingData => 'डेटा जतन करताना त्रुटी';
+
+  @override
+  String get favoriteList_searchHistory => 'शोध इतिहास';
+
+  @override
+  String get favoriteList_all => 'सर्व';
+
+  @override
+  String get favoriteList_recent => 'अलीकडील';
+
+  @override
+  String get favoriteList_topRated => 'उच्च रेटिंग';
+
+  @override
+  String get favoriteList_date => 'दिनांक';
+
+  @override
+  String get favoriteList_country => 'देश';
+
+  @override
+  String get favoriteList_noDate => 'दिनांक नाही';
+
+  @override
+  String get favoriteList_noHistoryFound => 'नोंदी सापडल्या नाहीत';
+
+  @override
+  String get favoriteList_thisWeek => 'या आठवड्यात';
+
+  @override
+  String favoriteList_entries(Object count) {
+    return '$count आयटम';
+  }
+
+  @override
+  String get favorite_fullMenu => 'संपूर्ण मेनू';
+
+  @override
+  String get favorite_menuMain => 'मुख्य';
+
+  @override
+  String get favorite_menuSide => 'साइड';
+
+  @override
+  String get favorite_menuMeal => 'जेवण';
+
+  @override
+  String get favorite_menuDrink => 'ड्रिंक';
+
+  @override
+  String get favorite_menuBeverage => 'पेय';
+
+  @override
+  String get favorite_menuOther => 'इतर';
+
+  @override
+  String get favorite_summaryTruncated => 'सारांश (संक्षिप्त)';
+
+  @override
+  String get favorite_summary => 'सारांश';
+
+  @override
+  String get favorite_noResponses => 'माहिती उपलब्ध नाही';
+
+  @override
+  String get favorite_viewFullMenu => 'संपूर्ण मेनू पहा';
+
+  @override
+  String get favorite_unknownRestaurant => 'अज्ञात रेस्टॉरंट';
+
+  @override
+  String get favorite_failedSaveChanges => 'बदल जतन करता आले नाहीत';
+
+  @override
+  String get favorite_renderNotReady => 'त्रुटी: स्क्रीन तयार नाही.';
+
+  @override
+  String get favorite_restaurantNameHint => 'रेस्टॉरंटचे नाव';
+
+  @override
+  String get result_fxRateLoadFailed => 'विनिमय दर डेटा लोड करता आला नाही. कृपया नेटवर्क तपासा.';
+
+  @override
+  String get result_fxConvertFailed => 'ही रक्कम रूपांतरित करता आली नाही.';
+
+  @override
+  String get result_restoreOriginalCurrency => 'मूळ चलन परत करा';
+
+  @override
+  String result_convertToSystemCurrency(Object currency) {
+    return 'सिस्टम चलनात ($currency) रूपांतरित करा';
+  }
+
+  @override
+  String get result_auto => 'स्वयंचलित';
+
+  @override
+  String get result_viewFullMenu => 'संपूर्ण मेनू पहा';
+
+  @override
+  String get result_preparingMenu => 'सविस्तर मेनू तयार करत आहे…';
+
+  @override
+  String get result_failedLoadSettings => 'सेटिंग्ज लोड करता आल्या नाहीत. क्लाउड सेव्ह डीफॉल्टने सुरू आहे.';
+
+  @override
+  String get result_imageUploadFailed => 'इमेज अपलोड अयशस्वी. कृपया पुन्हा प्रयत्न करा.';
+
+  @override
+  String get result_analyzing => 'अन्नाची माहिती विश्लेषित करत आहे';
+
+  @override
+  String get result_loadingFullMenu => 'संपूर्ण मेनू लोड करत आहे…';
 }

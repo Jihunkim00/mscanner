@@ -35,7 +35,7 @@ import 'app_localizations_zh.dart';
 /// `supportedLocales` list. For example:
 ///
 /// ```dart
-/// import 'gen_l10n/app_localizations.dart';
+/// import 'l10n/app_localizations.dart';
 ///
 /// return MaterialApp(
 ///   localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -1547,6 +1547,450 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View on map'**
   String get viewOnMap;
+
+  /// No description provided for @login_welcomeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back'**
+  String get login_welcomeBack;
+
+  /// No description provided for @login_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A smarter, easier way to explore food with AI—let’s get started.'**
+  String get login_subtitle;
+
+  /// No description provided for @login_emailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email Address'**
+  String get login_emailLabel;
+
+  /// No description provided for @login_emailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'name@example.com'**
+  String get login_emailHint;
+
+  /// No description provided for @login_orContinueWith.
+  ///
+  /// In en, this message translates to:
+  /// **'OR CONTINUE WITH'**
+  String get login_orContinueWith;
+
+  /// No description provided for @login_google.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get login_google;
+
+  /// No description provided for @login_apple.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Apple'**
+  String get login_apple;
+
+  /// No description provided for @login_noAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account?'**
+  String get login_noAccount;
+
+  /// No description provided for @login_signUpFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up for free'**
+  String get login_signUpFree;
+
+  /// No description provided for @signup_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create an account to save scans, manage presets, and unlock premium features.'**
+  String get signup_subtitle;
+
+  /// No description provided for @signup_emailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email Address'**
+  String get signup_emailLabel;
+
+  /// No description provided for @signup_emailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'name@example.com'**
+  String get signup_emailHint;
+
+  /// No description provided for @signup_logIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in'**
+  String get signup_logIn;
+
+  /// No description provided for @map_noTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No Title'**
+  String get map_noTitle;
+
+  /// No description provided for @map_cuisine.
+  ///
+  /// In en, this message translates to:
+  /// **'Cuisine'**
+  String get map_cuisine;
+
+  /// No description provided for @map_location.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get map_location;
+
+  /// No description provided for @map_searchHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Search History'**
+  String get map_searchHistory;
+
+  /// No description provided for @map_recent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get map_recent;
+
+  /// No description provided for @map_topRated.
+  ///
+  /// In en, this message translates to:
+  /// **'Top Rated'**
+  String get map_topRated;
+
+  /// No description provided for @map_date.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get map_date;
+
+  /// No description provided for @map_clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get map_clear;
+
+  /// No description provided for @map_noResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No results'**
+  String get map_noResults;
+
+  /// No description provided for @map_unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get map_unknown;
+
+  /// No description provided for @howto_title.
+  ///
+  /// In en, this message translates to:
+  /// **'How to use Mscanner'**
+  String get howto_title;
+
+  /// No description provided for @howto_step1.
+  ///
+  /// In en, this message translates to:
+  /// **'1. SCAN'**
+  String get howto_step1;
+
+  /// No description provided for @howto_desc1.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu or Dish'**
+  String get howto_desc1;
+
+  /// No description provided for @howto_step2.
+  ///
+  /// In en, this message translates to:
+  /// **'2. ANALYZE'**
+  String get howto_step2;
+
+  /// No description provided for @howto_desc2.
+  ///
+  /// In en, this message translates to:
+  /// **'AI analyzes your photo'**
+  String get howto_desc2;
+
+  /// No description provided for @howto_step3.
+  ///
+  /// In en, this message translates to:
+  /// **'3. ENJOY'**
+  String get howto_step3;
+
+  /// No description provided for @howto_desc3.
+  ///
+  /// In en, this message translates to:
+  /// **'Get recommendations that fit you'**
+  String get howto_desc3;
+
+  /// No description provided for @home_searchAiFoodImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Search AI food image...'**
+  String get home_searchAiFoodImage;
+
+  /// No description provided for @home_adLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'AD'**
+  String get home_adLabel;
+
+  /// No description provided for @home_trendingNearYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Trending Near You'**
+  String get home_trendingNearYou;
+
+  /// No description provided for @home_mscannerPicks.
+  ///
+  /// In en, this message translates to:
+  /// **'Mscanner Picks'**
+  String get home_mscannerPicks;
+
+  /// No description provided for @home_viewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View All'**
+  String get home_viewAll;
+
+  /// No description provided for @home_errorLoadingCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading cards'**
+  String get home_errorLoadingCards;
+
+  /// No description provided for @home_noDataAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No data available'**
+  String get home_noDataAvailable;
+
+  /// No description provided for @home_errorSavingData.
+  ///
+  /// In en, this message translates to:
+  /// **'Error saving data'**
+  String get home_errorSavingData;
+
+  /// No description provided for @favoriteList_searchHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Search History'**
+  String get favoriteList_searchHistory;
+
+  /// No description provided for @favoriteList_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get favoriteList_all;
+
+  /// No description provided for @favoriteList_recent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get favoriteList_recent;
+
+  /// No description provided for @favoriteList_topRated.
+  ///
+  /// In en, this message translates to:
+  /// **'Top Rated'**
+  String get favoriteList_topRated;
+
+  /// No description provided for @favoriteList_date.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get favoriteList_date;
+
+  /// No description provided for @favoriteList_country.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get favoriteList_country;
+
+  /// No description provided for @favoriteList_noDate.
+  ///
+  /// In en, this message translates to:
+  /// **'No date'**
+  String get favoriteList_noDate;
+
+  /// No description provided for @favoriteList_noHistoryFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No history found'**
+  String get favoriteList_noHistoryFound;
+
+  /// No description provided for @favoriteList_thisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get favoriteList_thisWeek;
+
+  /// No description provided for @favoriteList_entries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items'**
+  String favoriteList_entries(Object count);
+
+  /// No description provided for @favorite_fullMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Menu'**
+  String get favorite_fullMenu;
+
+  /// No description provided for @favorite_menuMain.
+  ///
+  /// In en, this message translates to:
+  /// **'Main'**
+  String get favorite_menuMain;
+
+  /// No description provided for @favorite_menuSide.
+  ///
+  /// In en, this message translates to:
+  /// **'Sides'**
+  String get favorite_menuSide;
+
+  /// No description provided for @favorite_menuMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Meals'**
+  String get favorite_menuMeal;
+
+  /// No description provided for @favorite_menuDrink.
+  ///
+  /// In en, this message translates to:
+  /// **'Drinks'**
+  String get favorite_menuDrink;
+
+  /// No description provided for @favorite_menuBeverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Beverages'**
+  String get favorite_menuBeverage;
+
+  /// No description provided for @favorite_menuOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get favorite_menuOther;
+
+  /// No description provided for @favorite_summaryTruncated.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary (short)'**
+  String get favorite_summaryTruncated;
+
+  /// No description provided for @favorite_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get favorite_summary;
+
+  /// No description provided for @favorite_noResponses.
+  ///
+  /// In en, this message translates to:
+  /// **'No responses available'**
+  String get favorite_noResponses;
+
+  /// No description provided for @favorite_viewFullMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'View Full Menu'**
+  String get favorite_viewFullMenu;
+
+  /// No description provided for @favorite_unknownRestaurant.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Restaurant'**
+  String get favorite_unknownRestaurant;
+
+  /// No description provided for @favorite_failedSaveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save changes'**
+  String get favorite_failedSaveChanges;
+
+  /// No description provided for @favorite_renderNotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: Screen is not ready.'**
+  String get favorite_renderNotReady;
+
+  /// No description provided for @favorite_restaurantNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Restaurant name'**
+  String get favorite_restaurantNameHint;
+
+  /// No description provided for @result_fxRateLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load exchange rates. Please check your connection.'**
+  String get result_fxRateLoadFailed;
+
+  /// No description provided for @result_fxConvertFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t convert this amount.'**
+  String get result_fxConvertFailed;
+
+  /// No description provided for @result_restoreOriginalCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore original currency'**
+  String get result_restoreOriginalCurrency;
+
+  /// No description provided for @result_convertToSystemCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert to system currency ({currency})'**
+  String result_convertToSystemCurrency(Object currency);
+
+  /// No description provided for @result_auto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get result_auto;
+
+  /// No description provided for @result_viewFullMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'View Full Menu'**
+  String get result_viewFullMenu;
+
+  /// No description provided for @result_preparingMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing detailed menu…'**
+  String get result_preparingMenu;
+
+  /// No description provided for @result_failedLoadSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load settings. Cloud save is enabled by default.'**
+  String get result_failedLoadSettings;
+
+  /// No description provided for @result_imageUploadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Image upload failed. Please try again.'**
+  String get result_imageUploadFailed;
+
+  /// No description provided for @result_analyzing.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing food details'**
+  String get result_analyzing;
+
+  /// No description provided for @result_loadingFullMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading full menu…'**
+  String get result_loadingFullMenu;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

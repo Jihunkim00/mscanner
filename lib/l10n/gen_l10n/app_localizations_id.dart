@@ -727,4 +727,230 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get viewOnMap => 'Lihat di peta';
+
+  @override
+  String get login_welcomeBack => 'Selamat datang kembali';
+
+  @override
+  String get login_subtitle => 'Jelajahi dunia kuliner dengan lebih mudah bersama AI. Yuk mulai!';
+
+  @override
+  String get login_emailLabel => 'Alamat Email';
+
+  @override
+  String get login_emailHint => 'name@example.com';
+
+  @override
+  String get login_orContinueWith => 'ATAU LANJUTKAN DENGAN';
+
+  @override
+  String get login_google => 'Lanjutkan dengan Google';
+
+  @override
+  String get login_apple => 'Lanjutkan dengan Apple';
+
+  @override
+  String get login_noAccount => 'Belum punya akun?';
+
+  @override
+  String get login_signUpFree => 'Daftar gratis';
+
+  @override
+  String get signup_subtitle => 'Buat akun untuk menyimpan pemindaian, mengelola preset, dan membuka fitur premium.';
+
+  @override
+  String get signup_emailLabel => 'Alamat Email';
+
+  @override
+  String get signup_emailHint => 'name@example.com';
+
+  @override
+  String get signup_logIn => 'Masuk';
+
+  @override
+  String get map_noTitle => 'Tanpa Judul';
+
+  @override
+  String get map_cuisine => 'Masakan';
+
+  @override
+  String get map_location => 'Lokasi';
+
+  @override
+  String get map_searchHistory => 'Riwayat Pencarian';
+
+  @override
+  String get map_recent => 'Terbaru';
+
+  @override
+  String get map_topRated => 'Rating Tertinggi';
+
+  @override
+  String get map_date => 'Tanggal';
+
+  @override
+  String get map_clear => 'Hapus';
+
+  @override
+  String get map_noResults => 'Tidak ada hasil';
+
+  @override
+  String get map_unknown => 'Tidak diketahui';
+
+  @override
+  String get howto_title => 'Cara menggunakan Mscanner';
+
+  @override
+  String get howto_step1 => '1. PINDAI';
+
+  @override
+  String get howto_desc1 => 'Menu atau hidangan';
+
+  @override
+  String get howto_step2 => '2. ANALISIS';
+
+  @override
+  String get howto_desc2 => 'AI menganalisis foto';
+
+  @override
+  String get howto_step3 => '3. NIKMATI';
+
+  @override
+  String get howto_desc3 => 'Rekomendasi makanan yang pas';
+
+  @override
+  String get home_searchAiFoodImage => 'Cari gambar makanan AI...';
+
+  @override
+  String get home_adLabel => 'IKLAN';
+
+  @override
+  String get home_trendingNearYou => 'Sedang tren di dekatmu';
+
+  @override
+  String get home_mscannerPicks => 'Pilihan Mscanner';
+
+  @override
+  String get home_viewAll => 'Lihat Semua';
+
+  @override
+  String get home_errorLoadingCards => 'Gagal memuat kartu';
+
+  @override
+  String get home_noDataAvailable => 'Tidak ada data';
+
+  @override
+  String get home_errorSavingData => 'Gagal menyimpan data';
+
+  @override
+  String get favoriteList_searchHistory => 'Riwayat Pencarian';
+
+  @override
+  String get favoriteList_all => 'Semua';
+
+  @override
+  String get favoriteList_recent => 'Terbaru';
+
+  @override
+  String get favoriteList_topRated => 'Rating Tertinggi';
+
+  @override
+  String get favoriteList_date => 'Tanggal';
+
+  @override
+  String get favoriteList_country => 'Negara';
+
+  @override
+  String get favoriteList_noDate => 'Tanpa tanggal';
+
+  @override
+  String get favoriteList_noHistoryFound => 'Tidak ada riwayat';
+
+  @override
+  String get favoriteList_thisWeek => 'Minggu ini';
+
+  @override
+  String favoriteList_entries(Object count) {
+    return '$count item';
+  }
+
+  @override
+  String get favorite_fullMenu => 'Menu Lengkap';
+
+  @override
+  String get favorite_menuMain => 'Utama';
+
+  @override
+  String get favorite_menuSide => 'Sampingan';
+
+  @override
+  String get favorite_menuMeal => 'Makanan';
+
+  @override
+  String get favorite_menuDrink => 'Minuman';
+
+  @override
+  String get favorite_menuBeverage => 'Minuman';
+
+  @override
+  String get favorite_menuOther => 'Lainnya';
+
+  @override
+  String get favorite_summaryTruncated => 'Ringkasan (singkat)';
+
+  @override
+  String get favorite_summary => 'Ringkasan';
+
+  @override
+  String get favorite_noResponses => 'Tidak ada informasi';
+
+  @override
+  String get favorite_viewFullMenu => 'Lihat Menu Lengkap';
+
+  @override
+  String get favorite_unknownRestaurant => 'Restoran tidak dikenal';
+
+  @override
+  String get favorite_failedSaveChanges => 'Tidak bisa menyimpan perubahan';
+
+  @override
+  String get favorite_renderNotReady => 'Error: layar belum siap.';
+
+  @override
+  String get favorite_restaurantNameHint => 'Nama restoran';
+
+  @override
+  String get result_fxRateLoadFailed => 'Gagal memuat kurs. Periksa koneksi internet Anda.';
+
+  @override
+  String get result_fxConvertFailed => 'Tidak dapat mengonversi jumlah ini.';
+
+  @override
+  String get result_restoreOriginalCurrency => 'Kembalikan mata uang asli';
+
+  @override
+  String result_convertToSystemCurrency(Object currency) {
+    return 'Konversi ke mata uang sistem ($currency)';
+  }
+
+  @override
+  String get result_auto => 'Otomatis';
+
+  @override
+  String get result_viewFullMenu => 'Lihat Menu Lengkap';
+
+  @override
+  String get result_preparingMenu => 'Menyiapkan menu detail…';
+
+  @override
+  String get result_failedLoadSettings => 'Gagal memuat pengaturan. Penyimpanan cloud aktif secara default.';
+
+  @override
+  String get result_imageUploadFailed => 'Unggah gambar gagal. Silakan coba lagi.';
+
+  @override
+  String get result_analyzing => 'Menganalisis informasi makanan';
+
+  @override
+  String get result_loadingFullMenu => 'Memuat menu lengkap…';
 }

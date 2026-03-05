@@ -727,4 +727,230 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get viewOnMap => 'মানচিত্রে দেখুন';
+
+  @override
+  String get login_welcomeBack => 'আবার স্বাগতম';
+
+  @override
+  String get login_subtitle => 'AI-এর সাথে আরও সহজভাবে খাবার আবিষ্কার করুন—এখনই শুরু করুন।';
+
+  @override
+  String get login_emailLabel => 'ইমেইল ঠিকানা';
+
+  @override
+  String get login_emailHint => 'name@example.com';
+
+  @override
+  String get login_orContinueWith => 'অথবা চালিয়ে যান';
+
+  @override
+  String get login_google => 'Google দিয়ে চালিয়ে যান';
+
+  @override
+  String get login_apple => 'Apple দিয়ে চালিয়ে যান';
+
+  @override
+  String get login_noAccount => 'অ্যাকাউন্ট নেই?';
+
+  @override
+  String get login_signUpFree => 'ফ্রি সাইন আপ করুন';
+
+  @override
+  String get signup_subtitle => 'স্ক্যান সংরক্ষণ, প্রিসেট ম্যানেজ এবং প্রিমিয়াম ফিচার আনলক করতে অ্যাকাউন্ট তৈরি করুন।';
+
+  @override
+  String get signup_emailLabel => 'ইমেইল ঠিকানা';
+
+  @override
+  String get signup_emailHint => 'name@example.com';
+
+  @override
+  String get signup_logIn => 'লগইন';
+
+  @override
+  String get map_noTitle => 'শিরোনাম নেই';
+
+  @override
+  String get map_cuisine => 'খাবারের ধরন';
+
+  @override
+  String get map_location => 'অবস্থান';
+
+  @override
+  String get map_searchHistory => 'সার্চ ইতিহাস';
+
+  @override
+  String get map_recent => 'সাম্প্রতিক';
+
+  @override
+  String get map_topRated => 'সর্বোচ্চ রেটেড';
+
+  @override
+  String get map_date => 'তারিখ';
+
+  @override
+  String get map_clear => 'মুছুন';
+
+  @override
+  String get map_noResults => 'কোনও ফলাফল নেই';
+
+  @override
+  String get map_unknown => 'অজানা';
+
+  @override
+  String get howto_title => 'Mscanner কীভাবে ব্যবহার করবেন';
+
+  @override
+  String get howto_step1 => '1. স্ক্যান';
+
+  @override
+  String get howto_desc1 => 'মেনু বা ডিশ';
+
+  @override
+  String get howto_step2 => '2. বিশ্লেষণ';
+
+  @override
+  String get howto_desc2 => 'AI ছবি বিশ্লেষণ করে';
+
+  @override
+  String get howto_step3 => '3. উপভোগ';
+
+  @override
+  String get howto_desc3 => 'উপযুক্ত খাবার সুপারিশ';
+
+  @override
+  String get home_searchAiFoodImage => 'AI খাবারের ছবি খুঁজুন...';
+
+  @override
+  String get home_adLabel => 'বিজ্ঞাপন';
+
+  @override
+  String get home_trendingNearYou => 'আপনার কাছাকাছি জনপ্রিয়';
+
+  @override
+  String get home_mscannerPicks => 'Mscanner-এর পছন্দ';
+
+  @override
+  String get home_viewAll => 'সব দেখুন';
+
+  @override
+  String get home_errorLoadingCards => 'কার্ড লোড করতে ত্রুটি';
+
+  @override
+  String get home_noDataAvailable => 'কোনও ডেটা নেই';
+
+  @override
+  String get home_errorSavingData => 'ডেটা সংরক্ষণে ত্রুটি';
+
+  @override
+  String get favoriteList_searchHistory => 'সার্চ ইতিহাস';
+
+  @override
+  String get favoriteList_all => 'সব';
+
+  @override
+  String get favoriteList_recent => 'সাম্প্রতিক';
+
+  @override
+  String get favoriteList_topRated => 'সর্বোচ্চ রেটেড';
+
+  @override
+  String get favoriteList_date => 'তারিখ';
+
+  @override
+  String get favoriteList_country => 'দেশ';
+
+  @override
+  String get favoriteList_noDate => 'তারিখ নেই';
+
+  @override
+  String get favoriteList_noHistoryFound => 'কোনও রেকর্ড নেই';
+
+  @override
+  String get favoriteList_thisWeek => 'এই সপ্তাহ';
+
+  @override
+  String favoriteList_entries(Object count) {
+    return '$countটি আইটেম';
+  }
+
+  @override
+  String get favorite_fullMenu => 'সম্পূর্ণ মেনু';
+
+  @override
+  String get favorite_menuMain => 'মেইন';
+
+  @override
+  String get favorite_menuSide => 'সাইড';
+
+  @override
+  String get favorite_menuMeal => 'খাবার';
+
+  @override
+  String get favorite_menuDrink => 'পানীয়';
+
+  @override
+  String get favorite_menuBeverage => 'পানীয়';
+
+  @override
+  String get favorite_menuOther => 'অন্যান্য';
+
+  @override
+  String get favorite_summaryTruncated => 'সারাংশ (সংক্ষিপ্ত)';
+
+  @override
+  String get favorite_summary => 'সারাংশ';
+
+  @override
+  String get favorite_noResponses => 'কোনও তথ্য নেই';
+
+  @override
+  String get favorite_viewFullMenu => 'সম্পূর্ণ মেনু দেখুন';
+
+  @override
+  String get favorite_unknownRestaurant => 'অজানা রেস্টুরেন্ট';
+
+  @override
+  String get favorite_failedSaveChanges => 'পরিবর্তন সংরক্ষণ করা যায়নি';
+
+  @override
+  String get favorite_renderNotReady => 'ত্রুটি: স্ক্রিন প্রস্তুত নয়।';
+
+  @override
+  String get favorite_restaurantNameHint => 'রেস্টুরেন্টের নাম';
+
+  @override
+  String get result_fxRateLoadFailed => 'বিনিময় হার লোড করা যায়নি। নেটওয়ার্ক চেক করুন।';
+
+  @override
+  String get result_fxConvertFailed => 'এই পরিমাণ রূপান্তর করা যায়নি।';
+
+  @override
+  String get result_restoreOriginalCurrency => 'মূল মুদ্রা ফিরিয়ে আনুন';
+
+  @override
+  String result_convertToSystemCurrency(Object currency) {
+    return 'সিস্টেম মুদ্রায় ($currency) রূপান্তর করুন';
+  }
+
+  @override
+  String get result_auto => 'অটো';
+
+  @override
+  String get result_viewFullMenu => 'সম্পূর্ণ মেনু দেখুন';
+
+  @override
+  String get result_preparingMenu => 'বিস্তারিত মেনু প্রস্তুত করা হচ্ছে…';
+
+  @override
+  String get result_failedLoadSettings => 'সেটিংস লোড হয়নি। ক্লাউড সেভ ডিফল্টভাবে চালু আছে।';
+
+  @override
+  String get result_imageUploadFailed => 'ছবি আপলোড ব্যর্থ। আবার চেষ্টা করুন।';
+
+  @override
+  String get result_analyzing => 'খাবারের তথ্য বিশ্লেষণ চলছে';
+
+  @override
+  String get result_loadingFullMenu => 'সম্পূর্ণ মেনু লোড হচ্ছে…';
 }

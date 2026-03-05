@@ -726,5 +726,231 @@ class AppLocalizationsTe extends AppLocalizations {
   String get iapRestoreTrying => 'కొనుగోళ్లను పునరుద్ధరించడానికి ప్రయత్నిస్తున్నాం...';
 
   @override
-  String get viewOnMap => 'నక్షాపై చూడండి';
+  String get viewOnMap => 'మ్యాప్‌లో చూడండి';
+
+  @override
+  String get login_welcomeBack => 'మళ్లీ స్వాగతం';
+
+  @override
+  String get login_subtitle => 'AIతో మరింత సులభంగా రుచికరమైన ఆహారాన్ని అన్వేషించండి—ఇప్పుడే ప్రారంభించండి.';
+
+  @override
+  String get login_emailLabel => 'ఇమెయిల్ చిరునామా';
+
+  @override
+  String get login_emailHint => 'name@example.com';
+
+  @override
+  String get login_orContinueWith => 'లేదా దీనితో కొనసాగండి';
+
+  @override
+  String get login_google => 'Googleతో కొనసాగండి';
+
+  @override
+  String get login_apple => 'Appleతో కొనసాగండి';
+
+  @override
+  String get login_noAccount => 'ఖాతా లేదా?';
+
+  @override
+  String get login_signUpFree => 'ఉచితంగా నమోదు చేసుకోండి';
+
+  @override
+  String get signup_subtitle => 'ఖాతా సృష్టించి స్కాన్‌లను సేవ్ చేయండి, ప్రీసెట్‌లను నిర్వహించండి, ప్రీమియమ్ ఫీచర్లను ఉపయోగించండి.';
+
+  @override
+  String get signup_emailLabel => 'ఇమెయిల్ చిరునామా';
+
+  @override
+  String get signup_emailHint => 'name@example.com';
+
+  @override
+  String get signup_logIn => 'లాగిన్';
+
+  @override
+  String get map_noTitle => 'శీర్షిక లేదు';
+
+  @override
+  String get map_cuisine => 'వంటకాలు';
+
+  @override
+  String get map_location => 'స్థానం';
+
+  @override
+  String get map_searchHistory => 'శోధన చరిత్ర';
+
+  @override
+  String get map_recent => 'ఇటీవలి';
+
+  @override
+  String get map_topRated => 'అధిక రేటింగ్';
+
+  @override
+  String get map_date => 'తేదీ';
+
+  @override
+  String get map_clear => 'తొలగించు';
+
+  @override
+  String get map_noResults => 'ఫలితాలు లేవు';
+
+  @override
+  String get map_unknown => 'తెలియదు';
+
+  @override
+  String get howto_title => 'Mscanner ఎలా ఉపయోగించాలి';
+
+  @override
+  String get howto_step1 => '1. స్కాన్';
+
+  @override
+  String get howto_desc1 => 'మెనూ లేదా వంటకం';
+
+  @override
+  String get howto_step2 => '2. విశ్లేషణ';
+
+  @override
+  String get howto_desc2 => 'AI ఫోటోను విశ్లేషిస్తుంది';
+
+  @override
+  String get howto_step3 => '3. ఆస్వాదించండి';
+
+  @override
+  String get howto_desc3 => 'మీకు సరిపోయే ఆహారాన్ని సిఫార్సు చేస్తుంది';
+
+  @override
+  String get home_searchAiFoodImage => 'AI ఆహార చిత్రాన్ని శోధించండి...';
+
+  @override
+  String get home_adLabel => 'ప్రకటన';
+
+  @override
+  String get home_trendingNearYou => 'మీ దగ్గర ట్రెండింగ్';
+
+  @override
+  String get home_mscannerPicks => 'Mscanner సిఫార్సులు';
+
+  @override
+  String get home_viewAll => 'అన్నీ చూడండి';
+
+  @override
+  String get home_errorLoadingCards => 'కార్డులు లోడ్ చేయడంలో లోపం';
+
+  @override
+  String get home_noDataAvailable => 'డేటా అందుబాటులో లేదు';
+
+  @override
+  String get home_errorSavingData => 'డేటా సేవ్ చేయడంలో లోపం';
+
+  @override
+  String get favoriteList_searchHistory => 'శోధన చరిత్ర';
+
+  @override
+  String get favoriteList_all => 'అన్నీ';
+
+  @override
+  String get favoriteList_recent => 'ఇటీవలి';
+
+  @override
+  String get favoriteList_topRated => 'అధిక రేటింగ్';
+
+  @override
+  String get favoriteList_date => 'తేదీ';
+
+  @override
+  String get favoriteList_country => 'దేశం';
+
+  @override
+  String get favoriteList_noDate => 'తేదీ లేదు';
+
+  @override
+  String get favoriteList_noHistoryFound => 'రికార్డులు లేవు';
+
+  @override
+  String get favoriteList_thisWeek => 'ఈ వారం';
+
+  @override
+  String favoriteList_entries(Object count) {
+    return '$count అంశాలు';
+  }
+
+  @override
+  String get favorite_fullMenu => 'పూర్తి మెనూ';
+
+  @override
+  String get favorite_menuMain => 'మెయిన్';
+
+  @override
+  String get favorite_menuSide => 'సైడ్';
+
+  @override
+  String get favorite_menuMeal => 'భోజనం';
+
+  @override
+  String get favorite_menuDrink => 'పానీయం';
+
+  @override
+  String get favorite_menuBeverage => 'పానీయం';
+
+  @override
+  String get favorite_menuOther => 'ఇతర';
+
+  @override
+  String get favorite_summaryTruncated => 'సారాంశం (సంక్షిప్తం)';
+
+  @override
+  String get favorite_summary => 'సారాంశం';
+
+  @override
+  String get favorite_noResponses => 'సమాచారం అందుబాటులో లేదు';
+
+  @override
+  String get favorite_viewFullMenu => 'పూర్తి మెనూ చూడండి';
+
+  @override
+  String get favorite_unknownRestaurant => 'తెలియని రెస్టారెంట్';
+
+  @override
+  String get favorite_failedSaveChanges => 'మార్పులను సేవ్ చేయలేకపోయాం';
+
+  @override
+  String get favorite_renderNotReady => 'లోపం: స్క్రీన్ సిద్ధంగా లేదు.';
+
+  @override
+  String get favorite_restaurantNameHint => 'రెస్టారెంట్ పేరు';
+
+  @override
+  String get result_fxRateLoadFailed => 'ఎక్స్చేంజ్ రేట్ డేటా లోడ్ కాలేదు. నెట్‌వర్క్‌ను తనిఖీ చేయండి.';
+
+  @override
+  String get result_fxConvertFailed => 'ఈ మొత్తాన్ని మార్చలేకపోయాం.';
+
+  @override
+  String get result_restoreOriginalCurrency => 'మూల కరెన్సీకి తిరిగి';
+
+  @override
+  String result_convertToSystemCurrency(Object currency) {
+    return 'సిస్టమ్ కరెన్సీ ($currency)కి మార్చండి';
+  }
+
+  @override
+  String get result_auto => 'ఆటో';
+
+  @override
+  String get result_viewFullMenu => 'పూర్తి మెనూ చూడండి';
+
+  @override
+  String get result_preparingMenu => 'వివరమైన మెనూను సిద్ధం చేస్తున్నాం…';
+
+  @override
+  String get result_failedLoadSettings => 'సెట్టింగ్‌లు లోడ్ కాలేదు. క్లౌడ్ సేవ్ డిఫాల్ట్‌గా ఆన్‌లో ఉంటుంది.';
+
+  @override
+  String get result_imageUploadFailed => 'చిత్రం అప్లోడ్ విఫలమైంది. మళ్లీ ప్రయత్నించండి.';
+
+  @override
+  String get result_analyzing => 'ఆహార సమాచారం విశ్లేషణలో ఉంది';
+
+  @override
+  String get result_loadingFullMenu => 'పూర్తి మెనూ లోడ్ అవుతోంది…';
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 
 /// "How to use Mscanner" 카드 (스샷 스타일)
 /// - 카드 전체 탭 시 [url]을 외부 브라우저로 오픈
@@ -56,7 +57,7 @@ class HowToUseMscannerCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 Text(
-                  'How to use Mscanner',
+                  AppLocalizations.of(context)?.howto_title ?? 'How to use Mscanner',
                   style: TextStyle(
                     fontFamily: 'SFProDisplay',
                     fontSize: 16,
@@ -73,24 +74,24 @@ class HowToUseMscannerCard extends StatelessWidget {
                 Expanded(
                   child: _HowToStep(
                     icon: PhosphorIconsRegular.camera,
-                    step: '1. SCAN',
-                    desc: 'Menu or Dish',
+                    step: AppLocalizations.of(context)?.howto_step1 ?? '1. SCAN',
+                    desc: AppLocalizations.of(context)?.howto_desc1 ?? 'Menu or Dish',
                     isDarkMode: isDarkMode,
                   ),
                 ),
                 Expanded(
                   child: _HowToStep(
                     icon: PhosphorIconsRegular.sparkle,
-                    step: '2. ANALYZE',
-                    desc: 'AI identifies\nitems',
+                    step: AppLocalizations.of(context)?.howto_step2 ?? '2. ANALYZE',
+                    desc: AppLocalizations.of(context)?.howto_desc2 ?? 'AI identifies\nitems',
                     isDarkMode: isDarkMode,
                   ),
                 ),
                 Expanded(
                   child: _HowToStep(
                     icon: PhosphorIconsRegular.forkKnife,
-                    step: '3. EAT',
-                    desc: 'Discover\nfavorites',
+                    step: AppLocalizations.of(context)?.howto_step3 ?? '3. EAT',
+                    desc: AppLocalizations.of(context)?.howto_desc3 ?? 'Discover\nfavorites',
                     isDarkMode: isDarkMode,
                   ),
                 ),
@@ -164,7 +165,7 @@ class _HowToStep extends StatelessWidget {
           softWrap: true,
           style: TextStyle(
             fontFamily: 'SFProText',
-            fontSize: 12,
+            fontSize: 11,
             height: 1.2,
             color: isDarkMode ? Colors.white70 : const Color(0xFF6B6B6B),
           ),

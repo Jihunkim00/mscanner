@@ -727,4 +727,230 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get viewOnMap => 'ดูบนแผนที่';
+
+  @override
+  String get login_welcomeBack => 'ยินดีต้อนรับกลับมา';
+
+  @override
+  String get login_subtitle => 'สำรวจโลกของอาหารได้ง่ายขึ้นด้วย AI เริ่มกันเลย!';
+
+  @override
+  String get login_emailLabel => 'อีเมล';
+
+  @override
+  String get login_emailHint => 'name@example.com';
+
+  @override
+  String get login_orContinueWith => 'หรือดำเนินการต่อด้วย';
+
+  @override
+  String get login_google => 'ดำเนินการต่อด้วย Google';
+
+  @override
+  String get login_apple => 'ดำเนินการต่อด้วย Apple';
+
+  @override
+  String get login_noAccount => 'ยังไม่มีบัญชีใช่ไหม?';
+
+  @override
+  String get login_signUpFree => 'สมัครฟรี';
+
+  @override
+  String get signup_subtitle => 'สร้างบัญชีเพื่อบันทึกการสแกน จัดการพรีเซ็ต และปลดล็อกฟีเจอร์พรีเมียม';
+
+  @override
+  String get signup_emailLabel => 'อีเมล';
+
+  @override
+  String get signup_emailHint => 'name@example.com';
+
+  @override
+  String get signup_logIn => 'เข้าสู่ระบบ';
+
+  @override
+  String get map_noTitle => 'ไม่มีชื่อ';
+
+  @override
+  String get map_cuisine => 'อาหาร';
+
+  @override
+  String get map_location => 'ตำแหน่ง';
+
+  @override
+  String get map_searchHistory => 'ประวัติการค้นหา';
+
+  @override
+  String get map_recent => 'ล่าสุด';
+
+  @override
+  String get map_topRated => 'คะแนนสูงสุด';
+
+  @override
+  String get map_date => 'วันที่';
+
+  @override
+  String get map_clear => 'ล้าง';
+
+  @override
+  String get map_noResults => 'ไม่พบผลลัพธ์';
+
+  @override
+  String get map_unknown => 'ไม่ทราบ';
+
+  @override
+  String get howto_title => 'วิธีใช้ Mscanner';
+
+  @override
+  String get howto_step1 => '1. สแกน';
+
+  @override
+  String get howto_desc1 => 'เมนูหรืออาหาร';
+
+  @override
+  String get howto_step2 => '2. วิเคราะห์';
+
+  @override
+  String get howto_desc2 => 'AI วิเคราะห์ รูปภาพ';
+
+  @override
+  String get howto_step3 => '3. เพลิดเพลิน';
+
+  @override
+  String get howto_desc3 => 'แนะนำ อาหารที่ เหมาะกับคุณ';
+
+  @override
+  String get home_searchAiFoodImage => 'ค้นหารูปอาหารด้วย AI...';
+
+  @override
+  String get home_adLabel => 'โฆษณา';
+
+  @override
+  String get home_trendingNearYou => 'กำลังฮิตใกล้คุณ';
+
+  @override
+  String get home_mscannerPicks => 'แนะนำโดย Mscanner';
+
+  @override
+  String get home_viewAll => 'ดูทั้งหมด';
+
+  @override
+  String get home_errorLoadingCards => 'เกิดข้อผิดพลาดในการโหลดการ์ด';
+
+  @override
+  String get home_noDataAvailable => 'ไม่มีข้อมูล';
+
+  @override
+  String get home_errorSavingData => 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
+
+  @override
+  String get favoriteList_searchHistory => 'ประวัติการค้นหา';
+
+  @override
+  String get favoriteList_all => 'ทั้งหมด';
+
+  @override
+  String get favoriteList_recent => 'ล่าสุด';
+
+  @override
+  String get favoriteList_topRated => 'คะแนนสูงสุด';
+
+  @override
+  String get favoriteList_date => 'วันที่';
+
+  @override
+  String get favoriteList_country => 'ประเทศ';
+
+  @override
+  String get favoriteList_noDate => 'ไม่มีวันที่';
+
+  @override
+  String get favoriteList_noHistoryFound => 'ไม่พบประวัติ';
+
+  @override
+  String get favoriteList_thisWeek => 'สัปดาห์นี้';
+
+  @override
+  String favoriteList_entries(Object count) {
+    return '$count รายการ';
+  }
+
+  @override
+  String get favorite_fullMenu => 'เมนูทั้งหมด';
+
+  @override
+  String get favorite_menuMain => 'เมนูหลัก';
+
+  @override
+  String get favorite_menuSide => 'เมนูเสริม';
+
+  @override
+  String get favorite_menuMeal => 'มื้ออาหาร';
+
+  @override
+  String get favorite_menuDrink => 'เครื่องดื่ม';
+
+  @override
+  String get favorite_menuBeverage => 'เครื่องดื่ม';
+
+  @override
+  String get favorite_menuOther => 'อื่นๆ';
+
+  @override
+  String get favorite_summaryTruncated => 'สรุป (แบบย่อ)';
+
+  @override
+  String get favorite_summary => 'สรุป';
+
+  @override
+  String get favorite_noResponses => 'ไม่มีข้อมูล';
+
+  @override
+  String get favorite_viewFullMenu => 'ดูเมนูทั้งหมด';
+
+  @override
+  String get favorite_unknownRestaurant => 'ร้านอาหารไม่ทราบชื่อ';
+
+  @override
+  String get favorite_failedSaveChanges => 'บันทึกการเปลี่ยนแปลงไม่สำเร็จ';
+
+  @override
+  String get favorite_renderNotReady => 'ข้อผิดพลาด: หน้าจอยังไม่พร้อม';
+
+  @override
+  String get favorite_restaurantNameHint => 'ชื่อร้านอาหาร';
+
+  @override
+  String get result_fxRateLoadFailed => 'โหลดข้อมูลอัตราแลกเปลี่ยนไม่สำเร็จ กรุณาตรวจสอบการเชื่อมต่อ';
+
+  @override
+  String get result_fxConvertFailed => 'ไม่สามารถแปลงจำนวนเงินนี้ได้';
+
+  @override
+  String get result_restoreOriginalCurrency => 'คืนค่าเป็นสกุลเงินเดิม';
+
+  @override
+  String result_convertToSystemCurrency(Object currency) {
+    return 'แปลงเป็นสกุลเงินระบบ ($currency)';
+  }
+
+  @override
+  String get result_auto => 'อัตโนมัติ';
+
+  @override
+  String get result_viewFullMenu => 'ดูเมนูทั้งหมด';
+
+  @override
+  String get result_preparingMenu => 'กำลังเตรียมเมนูรายละเอียด…';
+
+  @override
+  String get result_failedLoadSettings => 'โหลดการตั้งค่าไม่สำเร็จ ระบบเปิดบันทึกลงคลาวด์เป็นค่าเริ่มต้น';
+
+  @override
+  String get result_imageUploadFailed => 'อัปโหลดรูปภาพไม่สำเร็จ โปรดลองอีกครั้ง';
+
+  @override
+  String get result_analyzing => 'กำลังวิเคราะห์ข้อมูลอาหาร';
+
+  @override
+  String get result_loadingFullMenu => 'กำลังโหลดเมนูทั้งหมด…';
 }

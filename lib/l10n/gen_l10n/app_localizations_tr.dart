@@ -727,4 +727,230 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get viewOnMap => 'Haritada görüntüle';
+
+  @override
+  String get login_welcomeBack => 'Tekrar hoş geldiniz';
+
+  @override
+  String get login_subtitle => 'Yapay zekâ ile lezzet keşfi artık çok daha kolay. Hemen başlayın.';
+
+  @override
+  String get login_emailLabel => 'E-posta Adresi';
+
+  @override
+  String get login_emailHint => 'name@example.com';
+
+  @override
+  String get login_orContinueWith => 'VEYA ŞUNUNLA DEVAM ET';
+
+  @override
+  String get login_google => 'Google ile devam et';
+
+  @override
+  String get login_apple => 'Apple ile devam et';
+
+  @override
+  String get login_noAccount => 'Hesabınız yok mu?';
+
+  @override
+  String get login_signUpFree => 'Ücretsiz kaydol';
+
+  @override
+  String get signup_subtitle => 'Hesap oluşturarak taramaları kaydedin, ön ayarları yönetin ve premium özelliklere erişin.';
+
+  @override
+  String get signup_emailLabel => 'E-posta Adresi';
+
+  @override
+  String get signup_emailHint => 'name@example.com';
+
+  @override
+  String get signup_logIn => 'Giriş yap';
+
+  @override
+  String get map_noTitle => 'Başlıksız';
+
+  @override
+  String get map_cuisine => 'Mutfak';
+
+  @override
+  String get map_location => 'Konum';
+
+  @override
+  String get map_searchHistory => 'Arama Geçmişi';
+
+  @override
+  String get map_recent => 'Son';
+
+  @override
+  String get map_topRated => 'En yüksek puanlı';
+
+  @override
+  String get map_date => 'Tarih';
+
+  @override
+  String get map_clear => 'Temizle';
+
+  @override
+  String get map_noResults => 'Sonuç yok';
+
+  @override
+  String get map_unknown => 'Bilinmiyor';
+
+  @override
+  String get howto_title => 'Mscanner nasıl kullanılır';
+
+  @override
+  String get howto_step1 => '1. TARA';
+
+  @override
+  String get howto_desc1 => 'Menü veya yemek';
+
+  @override
+  String get howto_step2 => '2. ANALİZ ET';
+
+  @override
+  String get howto_desc2 => 'Yapay zekâ fotoğrafı analiz eder';
+
+  @override
+  String get howto_step3 => '3. KEYFİNİ ÇIKAR';
+
+  @override
+  String get howto_desc3 => 'Size uygun lezzetleri önerir';
+
+  @override
+  String get home_searchAiFoodImage => 'AI yemek görseli ara...';
+
+  @override
+  String get home_adLabel => 'REKLAM';
+
+  @override
+  String get home_trendingNearYou => 'Yakınınızda popüler';
+
+  @override
+  String get home_mscannerPicks => 'Mscanner önerileri';
+
+  @override
+  String get home_viewAll => 'Tümünü Gör';
+
+  @override
+  String get home_errorLoadingCards => 'Kartlar yüklenirken hata';
+
+  @override
+  String get home_noDataAvailable => 'Veri yok';
+
+  @override
+  String get home_errorSavingData => 'Veri kaydedilirken hata';
+
+  @override
+  String get favoriteList_searchHistory => 'Arama Geçmişi';
+
+  @override
+  String get favoriteList_all => 'Tümü';
+
+  @override
+  String get favoriteList_recent => 'Son';
+
+  @override
+  String get favoriteList_topRated => 'En yüksek puanlı';
+
+  @override
+  String get favoriteList_date => 'Tarih';
+
+  @override
+  String get favoriteList_country => 'Ülke';
+
+  @override
+  String get favoriteList_noDate => 'Tarih yok';
+
+  @override
+  String get favoriteList_noHistoryFound => 'Kayıt bulunamadı';
+
+  @override
+  String get favoriteList_thisWeek => 'Bu hafta';
+
+  @override
+  String favoriteList_entries(Object count) {
+    return '$count öğe';
+  }
+
+  @override
+  String get favorite_fullMenu => 'Tüm Menü';
+
+  @override
+  String get favorite_menuMain => 'Ana';
+
+  @override
+  String get favorite_menuSide => 'Yan';
+
+  @override
+  String get favorite_menuMeal => 'Yemek';
+
+  @override
+  String get favorite_menuDrink => 'İçecek';
+
+  @override
+  String get favorite_menuBeverage => 'İçecek';
+
+  @override
+  String get favorite_menuOther => 'Diğer';
+
+  @override
+  String get favorite_summaryTruncated => 'Özet (kısa)';
+
+  @override
+  String get favorite_summary => 'Özet';
+
+  @override
+  String get favorite_noResponses => 'Bilgi yok';
+
+  @override
+  String get favorite_viewFullMenu => 'Tüm Menüyü Gör';
+
+  @override
+  String get favorite_unknownRestaurant => 'Bilinmeyen restoran';
+
+  @override
+  String get favorite_failedSaveChanges => 'Değişiklikler kaydedilemedi';
+
+  @override
+  String get favorite_renderNotReady => 'Hata: ekran hazır değil.';
+
+  @override
+  String get favorite_restaurantNameHint => 'Restoran adı';
+
+  @override
+  String get result_fxRateLoadFailed => 'Kur verileri yüklenemedi. Lütfen bağlantınızı kontrol edin.';
+
+  @override
+  String get result_fxConvertFailed => 'Bu tutar dönüştürülemedi.';
+
+  @override
+  String get result_restoreOriginalCurrency => 'Orijinal para birimine dön';
+
+  @override
+  String result_convertToSystemCurrency(Object currency) {
+    return 'Sistem para birimine dönüştür ($currency)';
+  }
+
+  @override
+  String get result_auto => 'Otomatik';
+
+  @override
+  String get result_viewFullMenu => 'Tüm Menüyü Gör';
+
+  @override
+  String get result_preparingMenu => 'Detaylı menü hazırlanıyor…';
+
+  @override
+  String get result_failedLoadSettings => 'Ayarlar yüklenemedi. Bulut kaydı varsayılan olarak açıktır.';
+
+  @override
+  String get result_imageUploadFailed => 'Görsel yüklenemedi. Lütfen tekrar deneyin.';
+
+  @override
+  String get result_analyzing => 'Yemek bilgileri analiz ediliyor';
+
+  @override
+  String get result_loadingFullMenu => 'Tüm menü yükleniyor…';
 }
