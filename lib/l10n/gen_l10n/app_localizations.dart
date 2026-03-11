@@ -1371,7 +1371,7 @@ abstract class AppLocalizations {
   /// No description provided for @multiScan.
   ///
   /// In en, this message translates to:
-  /// **'Batch Scan'**
+  /// **'Photos'**
   String get multiScan;
 
   /// Snackbar message shown when user selects more images than the max allowed
@@ -1713,7 +1713,7 @@ abstract class AppLocalizations {
   /// No description provided for @howto_desc2.
   ///
   /// In en, this message translates to:
-  /// **'AI analyzes your photo'**
+  /// **'AI analyzes\nyour photo'**
   String get howto_desc2;
 
   /// No description provided for @howto_step3.
@@ -1725,7 +1725,7 @@ abstract class AppLocalizations {
   /// No description provided for @howto_desc3.
   ///
   /// In en, this message translates to:
-  /// **'Get recommendations that fit you'**
+  /// **'Get recommendations\nthat fit you'**
   String get howto_desc3;
 
   /// No description provided for @home_searchAiFoodImage.
@@ -1991,6 +1991,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loading full menu…'**
   String get result_loadingFullMenu;
+
+  /// No description provided for @howto_detail_link.
+  ///
+  /// In en, this message translates to:
+  /// **'See more details'**
+  String get howto_detail_link;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

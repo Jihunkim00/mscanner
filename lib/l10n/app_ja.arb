@@ -206,7 +206,7 @@
   "buy": "購入",
   "guestPurchaseMessage": "ゲストユーザーは購入できません",
   "premiumFunctionMessage": "プレミアムサービスのみ",
-  "multiScan": "一括スキャン",
+  "multiScan": "写真",
   "maxScanImages": "最初の{maxCount}枚の画像のみがスキャンされます。",
   "@maxScanImages": {
     "description": "Snackbar message shown when user selects more images than the max allowed",
@@ -275,9 +275,9 @@
   "howto_step1": "1. スキャン",
   "howto_desc1": "メニューまたは料理",
   "howto_step2": "2. 分析",
-  "howto_desc2": "AIが項目を識別",
+  "howto_desc2": "AIが写真を\n分析します",
+  "howto_desc3": "あなたに合う\nおすすめを表示",
   "howto_step3": "3. 食べる",
-  "howto_desc3": "お気に入りの料理を発見",
   "home_searchAiFoodImage": "AI料理画像を検索…",
   "home_adLabel": "広告",
   "home_trendingNearYou": "近くで話題",
@@ -323,5 +323,6 @@
   "result_failedLoadSettings": "設定の読み込みに失敗しました。クラウド保存はデフォルトで有効です",
   "result_imageUploadFailed": "画像のアップロードに失敗しました。もう一度お試しください。",
   "result_analyzing": "分析中",
-  "result_loadingFullMenu": "全メニューを読み込み中…"
+  "result_loadingFullMenu": "全メニューを読み込み中…",
+  "howto_detail_link": "詳しく見る"
 }

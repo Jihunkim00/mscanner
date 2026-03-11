@@ -629,7 +629,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get premiumFunctionMessage => 'خدمة مميزة فقط';
 
   @override
-  String get multiScan => 'المسح الضوئي بالجملة';
+  String get multiScan => 'صور';
 
   @override
   String maxScanImages(int maxCount) {
@@ -810,13 +810,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get howto_step2 => '2. تحليل';
 
   @override
-  String get howto_desc2 => 'الذكاء الاصطناعي يحلّ لالصورة';
+  String get howto_desc2 => 'يحلل الذكاء الاصطناعي\nصورتك';
 
   @override
   String get howto_step3 => '3. استمتع';
 
   @override
-  String get howto_desc3 => 'يوصي بأفضل خيارات تناسبك';
+  String get howto_desc3 => 'احصل على توصيات\nتناسبك';
 
   @override
   String get home_searchAiFoodImage => 'ابحث عن صورة طعام بالذكاء الاصطناعي...';
@@ -953,4 +953,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get result_loadingFullMenu => 'جارٍ تحميل القائمة كاملة…';
+
+  @override
+  String get howto_detail_link => 'عرض المزيد من التفاصيل';
 }

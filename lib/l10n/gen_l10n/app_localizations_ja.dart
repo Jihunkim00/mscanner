@@ -629,7 +629,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get premiumFunctionMessage => 'プレミアムサービスのみ';
 
   @override
-  String get multiScan => '一括スキャン';
+  String get multiScan => '写真';
 
   @override
   String maxScanImages(int maxCount) {
@@ -810,13 +810,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get howto_step2 => '2. 分析';
 
   @override
-  String get howto_desc2 => 'AIが項目を識別';
+  String get howto_desc2 => 'AIが写真を\n分析します';
 
   @override
   String get howto_step3 => '3. 食べる';
 
   @override
-  String get howto_desc3 => 'お気に入りの料理を発見';
+  String get howto_desc3 => 'あなたに合う\nおすすめを表示';
 
   @override
   String get home_searchAiFoodImage => 'AI料理画像を検索…';
@@ -953,4 +953,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get result_loadingFullMenu => '全メニューを読み込み中…';
+
+  @override
+  String get howto_detail_link => '詳しく見る';
 }

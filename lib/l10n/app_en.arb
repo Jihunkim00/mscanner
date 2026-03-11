@@ -206,7 +206,7 @@
   "buy": "Buy",
   "guestPurchaseMessage": "Guest users can't purchase",
   "premiumFunctionMessage": "Premium service only",
-  "multiScan": "Batch Scan",
+  "multiScan": "Photos",
   "maxScanImages": "Only the first {maxCount} images will be scanned.",
   "@maxScanImages": {
     "description": "Snackbar message shown when user selects more images than the max allowed",
@@ -275,9 +275,9 @@
   "howto_step1": "1. SCAN",
   "howto_desc1": "Menu or Dish",
   "howto_step2": "2. ANALYZE",
-  "howto_desc2": "AI analyzes your photo",
+  "howto_desc2": "AI analyzes\nyour photo",
   "howto_step3": "3. ENJOY",
-  "howto_desc3": "Get recommendations that fit you",
+  "howto_desc3": "Get recommendations\nthat fit you",
   "home_searchAiFoodImage": "Search AI food image...",
   "home_adLabel": "AD",
   "home_trendingNearYou": "Trending Near You",
@@ -323,5 +323,6 @@
   "result_failedLoadSettings": "Couldn't load settings. Cloud save is enabled by default.",
   "result_imageUploadFailed": "Image upload failed. Please try again.",
   "result_analyzing": "Analyzing food details",
-  "result_loadingFullMenu": "Loading full menu…"
+  "result_loadingFullMenu": "Loading full menu…",
+  "howto_detail_link": "See more details"
 }

@@ -206,7 +206,7 @@
   "buy": "కొనుగోలు చేయండి",
   "guestPurchaseMessage": "అతిథి వినియోగదారులు కొనుగోలు చేయలేరు",
   "premiumFunctionMessage": "ప్రీమియం సేవ మాత్రమే",
-  "multiScan": "బ్యాచ్ స్కాన్",
+  "multiScan": "ఫోటోలు",
   "maxScanImages": "మొదటి {maxCount} చిత్రాలు మాత్రమే స్కాన్ చేయబడతాయి.",
   "@maxScanImages": {
     "description": "Snackbar message shown when user selects more images than the max allowed",
@@ -275,9 +275,9 @@
   "howto_step1": "1. స్కాన్",
   "howto_desc1": "మెనూ లేదా వంటకం",
   "howto_step2": "2. విశ్లేషణ",
-  "howto_desc2": "AI ఫోటోను విశ్లేషిస్తుంది",
+  "howto_desc2": "AI మీ ఫోటోను\nవిశ్లేషిస్తుంది",
   "howto_step3": "3. ఆస్వాదించండి",
-  "howto_desc3": "మీకు సరిపోయే ఆహారాన్ని సిఫార్సు చేస్తుంది",
+  "howto_desc3": "మీకు సరిపోయే\nసిఫార్సులను పొందండి",
   "home_searchAiFoodImage": "AI ఆహార చిత్రాన్ని శోధించండి...",
   "home_adLabel": "ప్రకటన",
   "home_trendingNearYou": "మీ దగ్గర ట్రెండింగ్",
@@ -327,5 +327,6 @@
   "result_failedLoadSettings": "సెట్టింగ్‌లు లోడ్ కాలేదు. క్లౌడ్ సేవ్ డిఫాల్ట్‌గా ఆన్‌లో ఉంటుంది.",
   "result_imageUploadFailed": "చిత్రం అప్లోడ్ విఫలమైంది. మళ్లీ ప్రయత్నించండి.",
   "result_analyzing": "ఆహార సమాచారం విశ్లేషణలో ఉంది",
-  "result_loadingFullMenu": "పూర్తి మెనూ లోడ్ అవుతోంది…"
+  "result_loadingFullMenu": "పూర్తి మెనూ లోడ్ అవుతోంది…",
+  "howto_detail_link": "మరిన్ని వివరాలు చూడండి"
 }

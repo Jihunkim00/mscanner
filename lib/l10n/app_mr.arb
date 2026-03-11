@@ -206,7 +206,7 @@
   "buy": "खरेदा",
   "guestPurchaseMessage": "अतिथी वापरकर्ते खरेदी करू शकत नाहीत",
   "premiumFunctionMessage": "फक्त प्रीमियम सेवा",
-  "multiScan": "बॅच स्कॅन",
+  "multiScan": "फोटो",
   "maxScanImages": "फक्त पहिले {maxCount} चित्रे स्कॅन केली जातील.",
   "@maxScanImages": {
     "description": "Snackbar message shown when user selects more images than the max allowed",
@@ -275,9 +275,9 @@
   "howto_step1": "1. स्कॅन",
   "howto_desc1": "मेनू किंवा डिश",
   "howto_step2": "2. विश्लेषण",
-  "howto_desc2": "AI फोटोचे विश्लेषण करते",
+  "howto_desc2": "AI तुमचा फोटो\nविश्लेषित करते",
   "howto_step3": "3. आनंद घ्या",
-  "howto_desc3": "तुमच्यासाठी योग्य शिफारसी",
+  "howto_desc3": "तुमच्यासाठी योग्य\nशिफारसी मिळवा",
   "home_searchAiFoodImage": "AI फूड इमेज शोधा...",
   "home_adLabel": "जाहिरात",
   "home_trendingNearYou": "तुमच्या आसपास लोकप्रिय",
@@ -327,5 +327,6 @@
   "result_failedLoadSettings": "सेटिंग्ज लोड करता आल्या नाहीत. क्लाउड सेव्ह डीफॉल्टने सुरू आहे.",
   "result_imageUploadFailed": "इमेज अपलोड अयशस्वी. कृपया पुन्हा प्रयत्न करा.",
   "result_analyzing": "अन्नाची माहिती विश्लेषित करत आहे",
-  "result_loadingFullMenu": "संपूर्ण मेनू लोड करत आहे…"
+  "result_loadingFullMenu": "संपूर्ण मेनू लोड करत आहे…",
+  "howto_detail_link": "अधिक तपशील पहा"
 }

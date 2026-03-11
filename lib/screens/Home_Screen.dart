@@ -1121,8 +1121,17 @@ class _HomeContentState extends State<HomeContent> {
 
             const SizedBox(height: 16),
 
-            // 도움말 배너 (How to use) — 기존 링크 유지
-            const HowToUseMscannerCard(),
+            HowToUseMscannerCard(
+              onCardTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (ctx) => CameraScreen(
+                      onCancel: () => Navigator.of(ctx).pop(),
+                    ),
+                  ),
+                );
+              },
+            ),
 
             const SizedBox(height: 16),
 

@@ -629,7 +629,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get premiumFunctionMessage => '프리미엄 서비스 전용';
 
   @override
-  String get multiScan => '다중 스캔';
+  String get multiScan => '사진첩';
 
   @override
   String maxScanImages(int maxCount) {
@@ -810,13 +810,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get howto_step2 => '2. 분석';
 
   @override
-  String get howto_desc2 => 'AI가 사진을 분석';
+  String get howto_desc2 => 'AI가 사진을\n분석해요';
 
   @override
   String get howto_step3 => '3. 결과';
 
   @override
-  String get howto_desc3 => '적절한 음식을 추천';
+  String get howto_desc3 => '나에게 맞는\n추천을 받아보세요';
 
   @override
   String get home_searchAiFoodImage => 'AI 음식 이미지 검색...';
@@ -953,4 +953,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get result_loadingFullMenu => '전체 메뉴를 불러오는 중…';
+
+  @override
+  String get howto_detail_link => '자세한 내용 보기';
 }

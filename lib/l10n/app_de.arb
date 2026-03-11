@@ -206,7 +206,7 @@
   "buy": "Kaufen",
   "guestPurchaseMessage": "Gastbenutzer können keinen Kauf tätigen",
   "premiumFunctionMessage": "Nur Premium-Service",
-  "multiScan": "Stapel-Scan",
+  "multiScan": "Fotos",
   "maxScanImages": "Es werden nur die ersten {maxCount} Bilder gescannt.",
   "@maxScanImages": {
     "description": "Snackbar message shown when user selects more images than the max allowed",
@@ -275,9 +275,9 @@
   "howto_step1": "1. SCANNEN",
   "howto_desc1": "Menü oder Gericht",
   "howto_step2": "2. ANALYSIEREN",
-  "howto_desc2": "KI analysiert das Foto",
+  "howto_desc2": "Die KI analysiert\nIhr Foto",
   "howto_step3": "3. GENIESSEN",
-  "howto_desc3": "Passende Empfehlungen bekommen",
+  "howto_desc3": "Erhalten Sie passende\nEmpfehlungen",
   "home_searchAiFoodImage": "KI-Essensbild suchen...",
   "home_adLabel": "ANZEIGE",
   "home_trendingNearYou": "Beliebt in deiner Nähe",
@@ -323,5 +323,6 @@
   "result_failedLoadSettings": "Einstellungen konnten nicht geladen werden. Cloud-Speicherung ist standardmäßig aktiviert.",
   "result_imageUploadFailed": "Bild-Upload fehlgeschlagen. Bitte erneut versuchen.",
   "result_analyzing": "Lebensmittelinformationen werden analysiert",
-  "result_loadingFullMenu": "Komplettes Menü wird geladen…"
+  "result_loadingFullMenu": "Komplettes Menü wird geladen…",
+  "howto_detail_link": "Mehr Details anzeigen"
 }

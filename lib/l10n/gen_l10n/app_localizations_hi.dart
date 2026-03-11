@@ -629,7 +629,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get premiumFunctionMessage => 'केवल प्रीमियम सेवा';
 
   @override
-  String get multiScan => 'बैच स्कैन';
+  String get multiScan => 'फ़ोटो';
 
   @override
   String maxScanImages(int maxCount) {
@@ -810,13 +810,13 @@ class AppLocalizationsHi extends AppLocalizations {
   String get howto_step2 => '2. विश्लेषण';
 
   @override
-  String get howto_desc2 => 'AI फोटो का विश्लेषण करता है';
+  String get howto_desc2 => 'AI आपके फ़ोटो का\nविश्लेषण करता है';
 
   @override
   String get howto_step3 => '3. आनंद लें';
 
   @override
-  String get howto_desc3 => 'आपके लिए सही भोजन सुझाए';
+  String get howto_desc3 => 'आपके लिए उपयुक्त\nसिफारिशें पाएँ';
 
   @override
   String get home_searchAiFoodImage => 'AI भोजन छवि खोजें...';
@@ -953,4 +953,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get result_loadingFullMenu => 'पूरा मेनू लोड हो रहा है…';
+
+  @override
+  String get howto_detail_link => 'और विवरण देखें';
 }

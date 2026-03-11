@@ -810,13 +810,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get howto_step2 => '2. 分析';
 
   @override
-  String get howto_desc2 => 'AI 分析 照片';
+  String get howto_desc2 => 'AI 分析\n你的照片';
 
   @override
   String get howto_step3 => '3. 享用';
 
   @override
-  String get howto_desc3 => '推荐 适合你的 美食';
+  String get howto_desc3 => '获取适合你的\n推荐';
 
   @override
   String get home_searchAiFoodImage => '搜索 AI 美食图片…';
@@ -953,6 +953,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get result_loadingFullMenu => '正在加载完整菜单…';
+
+  @override
+  String get howto_detail_link => '查看更多详情';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -1904,6 +1907,9 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get result_loadingFullMenu => '正在加载完整菜单…';
+
+  @override
+  String get howto_detail_link => '查看更多详情';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -2855,4 +2861,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get result_loadingFullMenu => '正在載入完整菜單…';
+
+  @override
+  String get howto_detail_link => '查看更多內容';
 }

@@ -206,7 +206,7 @@
   "buy": "Mua",
   "guestPurchaseMessage": "Người dùng khách không thể mua hàng",
   "premiumFunctionMessage": "Chỉ dành cho dịch vụ cao cấp",
-  "multiScan": "Quét hàng loạt",
+  "multiScan": "Ảnh",
   "maxScanImages": "Chỉ có {maxCount} hình ảnh đầu tiên sẽ được quét.",
   "@maxScanImages": {
     "description": "Snackbar message shown when user selects more images than the max allowed",
@@ -275,9 +275,9 @@
   "howto_step1": "1. QUÉT",
   "howto_desc1": "Menu hoặc món ăn",
   "howto_step2": "2. PHÂN TÍCH",
-  "howto_desc2": "AI phân tích ảnh",
+  "howto_desc2": "AI phân tích\nảnh của bạn",
   "howto_step3": "3. THƯỞNG THỨC",
-  "howto_desc3": "Gợi ý món phù hợp cho bạn",
+  "howto_desc3": "Nhận gợi ý\nphù hợp với bạn",
   "home_searchAiFoodImage": "Tìm ảnh món ăn bằng AI...",
   "home_adLabel": "QC",
   "home_trendingNearYou": "Đang thịnh hành gần bạn",
@@ -323,5 +323,6 @@
   "result_failedLoadSettings": "Không tải được cài đặt. Lưu đám mây được bật mặc định.",
   "result_imageUploadFailed": "Tải ảnh lên thất bại. Vui lòng thử lại.",
   "result_analyzing": "Đang phân tích thông tin món ăn",
-  "result_loadingFullMenu": "Đang tải toàn bộ menu…"
+  "result_loadingFullMenu": "Đang tải toàn bộ menu…",
+  "howto_desc2": "AI phân tích\nảnh của bạn"
 }

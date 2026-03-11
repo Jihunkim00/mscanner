@@ -629,7 +629,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get premiumFunctionMessage => 'Serviço premium apenas';
 
   @override
-  String get multiScan => 'Digitalização em lote';
+  String get multiScan => 'Fotos';
 
   @override
   String maxScanImages(int maxCount) {
@@ -810,13 +810,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get howto_step2 => '2. ANALISAR';
 
   @override
-  String get howto_desc2 => 'A IA analisa a foto';
+  String get howto_desc2 => 'A IA analisa\nsua foto';
 
   @override
   String get howto_step3 => '3. APROVEITAR';
 
   @override
-  String get howto_desc3 => 'Recomenda opções ideais';
+  String get howto_desc3 => 'Receba recomendações\nque combinam com você';
 
   @override
   String get home_searchAiFoodImage => 'Pesquisar imagem de comida com IA...';
@@ -953,6 +953,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get result_loadingFullMenu => 'Carregando o menu completo…';
+
+  @override
+  String get howto_detail_link => 'Ver mais detalhes';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -1580,7 +1583,7 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get premiumFunctionMessage => 'Serviço premium apenas';
 
   @override
-  String get multiScan => 'Digitalização em Lote';
+  String get multiScan => 'Fotos';
 
   @override
   String maxScanImages(int maxCount) {
@@ -1761,13 +1764,13 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get howto_step2 => '2. ANALISAR';
 
   @override
-  String get howto_desc2 => 'A IA analisa a foto';
+  String get howto_desc2 => 'A IA analisa\nsua foto';
 
   @override
   String get howto_step3 => '3. APROVEITAR';
 
   @override
-  String get howto_desc3 => 'Recomenda opções na medida';
+  String get howto_desc3 => 'Receba recomendações\nque combinam com você';
 
   @override
   String get home_searchAiFoodImage => 'Buscar imagem de comida com IA...';
@@ -1904,4 +1907,7 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get result_loadingFullMenu => 'Carregando o menu completo…';
+
+  @override
+  String get howto_detail_link => 'Ver mais detalhes';
 }

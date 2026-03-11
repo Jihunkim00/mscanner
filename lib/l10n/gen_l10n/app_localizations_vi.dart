@@ -629,7 +629,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get premiumFunctionMessage => 'Chỉ dành cho dịch vụ cao cấp';
 
   @override
-  String get multiScan => 'Quét hàng loạt';
+  String get multiScan => 'Ảnh';
 
   @override
   String maxScanImages(int maxCount) {
@@ -810,13 +810,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get howto_step2 => '2. PHÂN TÍCH';
 
   @override
-  String get howto_desc2 => 'AI phân tích ảnh';
+  String get howto_desc2 => 'AI phân tích\nảnh của bạn';
 
   @override
   String get howto_step3 => '3. THƯỞNG THỨC';
 
   @override
-  String get howto_desc3 => 'Gợi ý món phù hợp cho bạn';
+  String get howto_desc3 => 'Nhận gợi ý\nphù hợp với bạn';
 
   @override
   String get home_searchAiFoodImage => 'Tìm ảnh món ăn bằng AI...';
@@ -953,4 +953,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get result_loadingFullMenu => 'Đang tải toàn bộ menu…';
+
+  @override
+  String get howto_detail_link => 'See more details';
 }

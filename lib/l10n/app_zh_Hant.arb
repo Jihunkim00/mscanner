@@ -323,5 +323,6 @@
   "result_failedLoadSettings": "載入設定失敗，雲端儲存預設開啟。",
   "result_imageUploadFailed": "圖片上傳失敗，請再試一次。",
   "result_analyzing": "正在分析餐點資訊",
-  "result_loadingFullMenu": "正在載入完整菜單…"
+  "result_loadingFullMenu": "正在載入完整菜單…",
+  "howto_detail_link": "查看更多內容"
 }

@@ -629,7 +629,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get premiumFunctionMessage => 'Nur Premium-Service';
 
   @override
-  String get multiScan => 'Stapel-Scan';
+  String get multiScan => 'Fotos';
 
   @override
   String maxScanImages(int maxCount) {
@@ -810,13 +810,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get howto_step2 => '2. ANALYSIEREN';
 
   @override
-  String get howto_desc2 => 'KI analysiert das Foto';
+  String get howto_desc2 => 'Die KI analysiert\nIhr Foto';
 
   @override
   String get howto_step3 => '3. GENIESSEN';
 
   @override
-  String get howto_desc3 => 'Passende Empfehlungen bekommen';
+  String get howto_desc3 => 'Erhalten Sie passende\nEmpfehlungen';
 
   @override
   String get home_searchAiFoodImage => 'KI-Essensbild suchen...';
@@ -953,4 +953,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get result_loadingFullMenu => 'Komplettes Menü wird geladen…';
+
+  @override
+  String get howto_detail_link => 'Mehr Details anzeigen';
 }

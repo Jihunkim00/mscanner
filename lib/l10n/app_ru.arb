@@ -206,7 +206,7 @@
   "buy": "Купить",
   "guestPurchaseMessage": "Гостевые пользователи не могут совершать покупки",
   "premiumFunctionMessage": "Только премиум-сервис",
-  "multiScan": "Пакетное сканирование",
+  "multiScan": "Фото",
   "maxScanImages": "Будут сканироваться только первые {maxCount} изображений.",
   "@maxScanImages": {
     "description": "Snackbar message shown when user selects more images than the max allowed",
@@ -275,9 +275,9 @@
   "howto_step1": "1. СКАНИРОВАТЬ",
   "howto_desc1": "Меню или блюдо",
   "howto_step2": "2. АНАЛИЗИРОВАТЬ",
-  "howto_desc2": "ИИ анализирует фото",
+  "howto_desc2": "ИИ анализирует\nваше фото",
   "howto_step3": "3. НАСЛАЖДАТЬСЯ",
-  "howto_desc3": "Рекомендуем подходящие варианты",
+  "howto_desc3": "Получайте подходящие\nвам рекомендации",
   "home_searchAiFoodImage": "Поиск изображения еды с ИИ...",
   "home_adLabel": "РЕКЛАМА",
   "home_trendingNearYou": "Популярное рядом",
@@ -323,5 +323,6 @@
   "result_failedLoadSettings": "Не удалось загрузить настройки. Облачное сохранение включено по умолчанию.",
   "result_imageUploadFailed": "Не удалось загрузить изображение. Попробуйте ещё раз.",
   "result_analyzing": "Анализ информации о блюде",
-  "result_loadingFullMenu": "Загрузка полного меню…"
+  "result_loadingFullMenu": "Загрузка полного меню…",
+  "howto_detail_link": "Подробнее"
 }

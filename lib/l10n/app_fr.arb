@@ -206,7 +206,7 @@
   "buy": "Acheter",
   "guestPurchaseMessage": "Les utilisateurs invités ne peuvent pas effectuer d'achats.",
   "premiumFunctionMessage": "Service premium uniquement",
-  "multiScan": "Numérisation par lots",
+  "multiScan": "Galerie",
   "maxScanImages": "Seules les {maxCount} premières images seront analysées.",
   "@maxScanImages": {
     "description": "Snackbar message shown when user selects more images than the max allowed",
@@ -275,9 +275,9 @@
   "howto_step1": "1. SCANNER",
   "howto_desc1": "Menu ou plat",
   "howto_step2": "2. ANALYSER",
-  "howto_desc2": "L’IA analyse la photo",
+  "howto_desc2": "L’IA analyse\nvotre photo",
   "howto_step3": "3. PROFITER",
-  "howto_desc3": "Des recommandations adaptées",
+  "howto_desc3": "Recevez des\nrecommandations adaptées",
   "home_searchAiFoodImage": "Rechercher une image de plat avec l’IA...",
   "home_adLabel": "PUB",
   "home_trendingNearYou": "Tendances près de vous",
@@ -323,5 +323,6 @@
   "result_failedLoadSettings": "Impossible de charger les réglages. La sauvegarde cloud est activée par défaut.",
   "result_imageUploadFailed": "Échec de l’envoi de l’image. Réessayez.",
   "result_analyzing": "Analyse des informations du plat",
-  "result_loadingFullMenu": "Chargement du menu complet…"
+  "result_loadingFullMenu": "Chargement du menu complet…",
+  "howto_detail_link": "Voir plus de détails"
 }

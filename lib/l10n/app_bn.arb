@@ -206,7 +206,7 @@
   "buy": "কিনুন",
   "guestPurchaseMessage": "অতিথি ব্যবহারকারীরা কেনাকাটা করতে পারবেন না।",
   "premiumFunctionMessage": "শুধুমাত্র প্রিমিয়াম সেবা",
-  "multiScan": "ব্যাচ স্ক্যান",
+  "multiScan": "ছবি",
   "maxScanImages": "শুধুমাত্র প্রথম {maxCount} টি ছবি স্ক্যান করা হবে।",
   "@maxScanImages": {
     "description": "Snackbar message shown when user selects more images than the max allowed",
@@ -275,9 +275,9 @@
   "howto_step1": "1. স্ক্যান",
   "howto_desc1": "মেনু বা ডিশ",
   "howto_step2": "2. বিশ্লেষণ",
-  "howto_desc2": "AI ছবি বিশ্লেষণ করে",
+  "howto_desc2": "AI আপনার ছবি\nবিশ্লেষণ করে",
   "howto_step3": "3. উপভোগ",
-  "howto_desc3": "উপযুক্ত খাবার সুপারিশ",
+  "howto_desc3": "আপনার জন্য মানানসই\nসুপারিশ পান",
   "home_searchAiFoodImage": "AI খাবারের ছবি খুঁজুন...",
   "home_adLabel": "বিজ্ঞাপন",
   "home_trendingNearYou": "আপনার কাছাকাছি জনপ্রিয়",
@@ -323,5 +323,6 @@
   "result_failedLoadSettings": "সেটিংস লোড হয়নি। ক্লাউড সেভ ডিফল্টভাবে চালু আছে।",
   "result_imageUploadFailed": "ছবি আপলোড ব্যর্থ। আবার চেষ্টা করুন।",
   "result_analyzing": "খাবারের তথ্য বিশ্লেষণ চলছে",
-  "result_loadingFullMenu": "সম্পূর্ণ মেনু লোড হচ্ছে…"
+  "result_loadingFullMenu": "সম্পূর্ণ মেনু লোড হচ্ছে…",
+  "howto_detail_link": "আরও বিস্তারিত দেখুন"
 }

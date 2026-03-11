@@ -206,7 +206,7 @@
   "buy": "구매",
   "guestPurchaseMessage": "게스트 회원은 구매할 수 없습니다",
   "premiumFunctionMessage": "프리미엄 서비스 전용",
-  "multiScan": "다중 스캔",
+  "multiScan": "사진첩",
   "maxScanImages": "처음 {maxCount}개의 이미지까지만 스캔됩니다.",
   "@maxScanImages": {
     "description": "Snackbar message shown when user selects more images than the max allowed",
@@ -275,9 +275,9 @@
   "howto_step1": "1. 스캔",
   "howto_desc1": "메뉴 또는 요리",
   "howto_step2": "2. 분석",
-  "howto_desc2": "AI가 사진을 분석",
+  "howto_desc2": "AI가 사진을\n분석해요",
   "howto_step3": "3. 결과",
-  "howto_desc3": "적절한 음식을 추천",
+  "howto_desc3": "나에게 맞는\n추천을 받아보세요",
   "home_searchAiFoodImage": "AI 음식 이미지 검색...",
   "home_adLabel": "광고",
   "home_trendingNearYou": "내 주변 인기 메뉴",
@@ -327,5 +327,6 @@
   "result_failedLoadSettings": "설정을 불러오지 못했습니다. 클라우드 저장은 활성화됩니다.",
   "result_imageUploadFailed": "이미지 업로드에 실패했습니다. 다시 시도해 주세요.",
   "result_analyzing": "음식 정보 분석 중",
-  "result_loadingFullMenu": "전체 메뉴를 불러오는 중…"
+  "result_loadingFullMenu": "전체 메뉴를 불러오는 중…",
+  "howto_detail_link": "자세한 내용 보기"
 }

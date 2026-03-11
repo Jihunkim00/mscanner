@@ -250,7 +250,6 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     final rawFm = j['fullMenu'] ?? j['full_menu'] ?? j['menu'] ?? j['menus'];
     if (rawFm is! Map) return;
 
-    // ✅ new schema: fullMenu.items.{main/side/...} + summary + truncated
     Map<String, dynamic>? itemsMap;
     String? summary;
     bool truncated = false;
@@ -260,63 +259,194 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
       summary = (rawFm['summary'] ?? '').toString().trim();
       truncated = rawFm['truncated'] == true;
     } else {
-      // ✅ old schema: fullMenu.{main/side/...} is List
       itemsMap = Map<String, dynamic>.from(rawFm);
       summary = null;
       truncated = false;
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final sheetBg = isDark ? const Color(0xFF1C1C1E) : const Color(0xFFFCFCFD);
+    final cardBg = isDark ? const Color(0xFF26262A) : Colors.white;
+    final summaryBg = isDark ? const Color(0xFF2C2C31) : const Color(0xFFF6F7F9);
+    final borderColor =
+    isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE5E7EB);
+    final titleColor = isDark ? Colors.white : const Color(0xFF111827);
+    final subColor = isDark ? Colors.white70 : const Color(0xFF6B7280);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withOpacity(0.18),
       builder: (_) {
-        return SafeArea(
-          child: DraggableScrollableSheet(
-            expand: false,
-            initialChildSize: 0.85,
-            builder: (context, scrollController) {
-              return ListView(
-                controller: scrollController,
-                padding: const EdgeInsets.all(16),
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.82,
+          minChildSize: 0.55,
+          maxChildSize: 0.94,
+          builder: (context, scrollController) {
+            return Container(
+              decoration: BoxDecoration(
+                color: sheetBg,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
+              ),
+              child: Column(
                 children: [
-                  Text(
-                    AppLocalizations.of(context)?.favorite_fullMenu ?? 'Full Menu',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: textColor,
+                  const SizedBox(height: 12),
+                  Container(
+                    width: 44,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: subColor.withOpacity(0.28),
+                      borderRadius: BorderRadius.circular(999),
                     ),
                   ),
-                  const SizedBox(height: 12),
-
-                  ..._buildMenuSection(AppLocalizations.of(context)?.favorite_menuMain ?? 'Main', itemsMap?['main'], textColor),
-                  ..._buildMenuSection(AppLocalizations.of(context)?.favorite_menuSide ?? 'Side', itemsMap?['side'], textColor),
-                  ..._buildMenuSection(AppLocalizations.of(context)?.favorite_menuMeal ?? 'Meal', itemsMap?['meal'], textColor),
-                  ..._buildMenuSection(AppLocalizations.of(context)?.favorite_menuDrink ?? 'Drink', itemsMap?['drink'], textColor),
-                  ..._buildMenuSection(AppLocalizations.of(context)?.favorite_menuBeverage ?? 'Beverage', itemsMap?['beverage'], textColor),
-                  ..._buildMenuSection(AppLocalizations.of(context)?.favorite_menuOther ?? 'Other', itemsMap?['unknown'], textColor),
-
-                  // ✅ new schema summary 표시
-                  if ((summary ?? '').isNotEmpty) ...[
-                    const SizedBox(height: 18),
-                    Text(
-                      truncated ? (AppLocalizations.of(context)?.favorite_summaryTruncated ?? 'Summary (truncated)') : (AppLocalizations.of(context)?.favorite_summary ?? 'Summary'),
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: textColor,
-                      ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 12, 10),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: summaryBg,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: borderColor),
+                          ),
+                          child: Icon(
+                            CupertinoIcons.square_list,
+                            size: 18,
+                            color: titleColor,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            AppLocalizations.of(context)?.favorite_fullMenu ??
+                                'Full Menu',
+                            style: TextStyle(
+                              fontFamily: 'SFPro',
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: titleColor,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          splashRadius: 20,
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: Icon(
+                            CupertinoIcons.xmark_circle_fill,
+                            color: subColor,
+                            size: 24,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      summary!,
-                      style: TextStyle(fontSize: 13, height: 1.35, color: textColor),
+                  ),
+                  Expanded(
+                    child: ListView(
+                      controller: scrollController,
+                      padding: const EdgeInsets.fromLTRB(20, 6, 20, 24),
+                      children: [
+                        if ((summary ?? '').isNotEmpty) ...[
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: summaryBg,
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(color: borderColor),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  truncated
+                                      ? (AppLocalizations.of(context)
+                                      ?.favorite_summaryTruncated ??
+                                      'Summary (truncated)')
+                                      : (AppLocalizations.of(context)
+                                      ?.favorite_summary ??
+                                      'Summary'),
+                                  style: TextStyle(
+                                    fontFamily: 'SFPro',
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: titleColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  summary!,
+                                  style: TextStyle(
+                                    fontFamily: 'SFPro',
+                                    fontSize: 13,
+                                    height: 1.45,
+                                    color: subColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                        ],
+                        ..._buildMenuSection(
+                          AppLocalizations.of(context)?.favorite_menuMain ?? 'Main',
+                          itemsMap?['main'],
+                          textColor,
+                        ),
+                        ..._buildMenuSection(
+                          AppLocalizations.of(context)?.favorite_menuSide ?? 'Side',
+                          itemsMap?['side'],
+                          textColor,
+                        ),
+                        ..._buildMenuSection(
+                          AppLocalizations.of(context)?.favorite_menuMeal ?? 'Meal',
+                          itemsMap?['meal'],
+                          textColor,
+                        ),
+                        ..._buildMenuSection(
+                          AppLocalizations.of(context)?.favorite_menuDrink ?? 'Drink',
+                          itemsMap?['drink'],
+                          textColor,
+                        ),
+                        ..._buildMenuSection(
+                          AppLocalizations.of(context)?.favorite_menuBeverage ?? 'Beverage',
+                          itemsMap?['beverage'],
+                          textColor,
+                        ),
+                        ..._buildMenuSection(
+                          AppLocalizations.of(context)?.favorite_menuOther ?? 'Other',
+                          itemsMap?['unknown'],
+                          textColor,
+                        ),
+                        if ((itemsMap ?? {}).isEmpty)
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: cardBg,
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(color: borderColor),
+                            ),
+                            child: Text(
+                              AppLocalizations.of(context)?.favorite_noResponses ??
+                                  'No menu items found.',
+                              style: TextStyle(
+                                fontFamily: 'SFPro',
+                                fontSize: 13,
+                                color: subColor,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
-                  ],
+                  ),
                 ],
-              );
-            },
-          ),
+              ),
+            );
+          },
         );
       },
     );
@@ -324,49 +454,123 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
 
   List<Widget> _buildMenuSection(String title, dynamic items, Color textColor) {
     if (items is! List || items.isEmpty) return const [];
-    return [
-      const SizedBox(height: 16),
-      Text(title,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: textColor,
-          )),
-      const SizedBox(height: 8),
-      ...items.whereType<Map>().map((e) {
-        final m = Map<String, dynamic>.from(e);
-        final nameOriginal = (m['nameOriginal'] ?? '').toString().trim();
-        final nameTranslated = (m['name'] ?? '').toString().trim();
-        final displayName = nameOriginal.isNotEmpty
-            ? (nameTranslated.isNotEmpty &&
-            nameTranslated.toLowerCase() != nameOriginal.toLowerCase()
-            ? '$nameOriginal ($nameTranslated)'
-            : nameOriginal)
-            : nameTranslated;
-        final desc = (m['shortDesc'] ?? '').toString();
-        final price = (m['price'] ?? '').toString().trim();
 
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                price.isEmpty ? displayName : '$displayName  ·  $price',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: textColor,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final sectionBg = isDark ? const Color(0xFF26262A) : Colors.white;
+    final borderColor =
+    isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE5E7EB);
+    final titleColor = isDark ? Colors.white : const Color(0xFF111827);
+    final subColor = isDark ? Colors.white70 : const Color(0xFF6B7280);
+    final priceBg =
+    isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFF3F4F6);
+
+    final menuItems = items
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
+
+    return [
+      Text(
+        title,
+        style: TextStyle(
+          fontFamily: 'SFPro',
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+          color: titleColor,
+        ),
+      ),
+      const SizedBox(height: 10),
+      Container(
+        decoration: BoxDecoration(
+          color: sectionBg,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: borderColor),
+        ),
+        child: Column(
+          children: List.generate(menuItems.length, (index) {
+            final m = menuItems[index];
+            final nameOriginal = (m['nameOriginal'] ?? '').toString().trim();
+            final nameTranslated = (m['name'] ?? '').toString().trim();
+
+            final displayName = nameOriginal.isNotEmpty
+                ? (nameTranslated.isNotEmpty &&
+                nameTranslated.toLowerCase() != nameOriginal.toLowerCase()
+                ? '$nameOriginal ($nameTranslated)'
+                : nameOriginal)
+                : nameTranslated;
+
+            final desc = (m['shortDesc'] ?? '').toString();
+            final price = (m['price'] ?? '').toString().trim();
+
+            return Column(
+              children: [
+                if (index > 0)
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: borderColor,
+                  ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 14,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        displayName,
+                        style: TextStyle(
+                          fontFamily: 'SFPro',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: titleColor,
+                          height: 1.25,
+                        ),
+                      ),
+                      if (price.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 7,
+                          ),
+                          decoration: BoxDecoration(
+                            color: priceBg,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            price,
+                            style: TextStyle(
+                              fontFamily: 'SFPro',
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: titleColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                      if (desc.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          desc,
+                          style: TextStyle(
+                            fontFamily: 'SFPro',
+                            fontSize: 12,
+                            height: 1.4,
+                            color: subColor,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-              ),
-              if (desc.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(desc, style: TextStyle(fontSize: 12, color: textColor)),
               ],
-            ],
-          ),
-        );
-      }).toList(),
+            );
+          }),
+        ),
+      ),
+      const SizedBox(height: 18),
     ];
   }
 
@@ -543,19 +747,95 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
           Row(
             children: [
               Expanded(
-                child: TextButton(
-                  onPressed: () => _showFullMenuSheet(textColor),
-                  child: Text(AppLocalizations.of(context)?.favorite_viewFullMenu ?? 'View Full Menu'),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () => _showFullMenuSheet(textColor),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    decoration: BoxDecoration(
+                      color: _isDarkMode
+                          ? const Color(0xFF2A2A2E)
+                          : const Color(0xFFF6F7F9),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: _isDarkMode
+                            ? Colors.white.withOpacity(0.08)
+                            : const Color(0xFFE5E7EB),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          CupertinoIcons.square_list,
+                          size: 18,
+                          color: textColor.withOpacity(0.86),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          AppLocalizations.of(context)?.favorite_viewFullMenu ??
+                              'View Full Menu',
+                          style: TextStyle(
+                            fontFamily: 'SFPro',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: textColor,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Icon(
+                          CupertinoIcons.chevron_up_chevron_down,
+                          size: 13,
+                          color: textColor.withOpacity(0.45),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.copy, color: Colors.blue, size: 20),
-                onPressed: () => _copyTextToClipboard(responseText),
+              const SizedBox(width: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: _isDarkMode
+                      ? const Color(0xFF2A2A2E)
+                      : const Color(0xFFF6F7F9),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: _isDarkMode
+                        ? Colors.white.withOpacity(0.08)
+                        : const Color(0xFFE5E7EB),
+                  ),
+                ),
+                child: IconButton(
+                  icon: Icon(
+                    Icons.copy,
+                    color: textColor.withOpacity(0.86),
+                    size: 20,
+                  ),
+                  onPressed: () => _copyTextToClipboard(responseText),
+                ),
               ),
-              IconButton(
-                icon: const Icon(CupertinoIcons.square_arrow_up,
-                    color: Colors.blue, size: 24),
-                onPressed: _shareCapturedImage,
+              const SizedBox(width: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: _isDarkMode
+                      ? const Color(0xFF2A2A2E)
+                      : const Color(0xFFF6F7F9),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: _isDarkMode
+                        ? Colors.white.withOpacity(0.08)
+                        : const Color(0xFFE5E7EB),
+                  ),
+                ),
+                child: IconButton(
+                  icon: Icon(
+                    CupertinoIcons.square_arrow_up,
+                    color: textColor.withOpacity(0.86),
+                    size: 22,
+                  ),
+                  onPressed: _shareCapturedImage,
+                ),
               ),
             ],
           ),
@@ -666,16 +946,26 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final Color backgroundColor = _isDarkMode ? Colors.black : Color(0xFFEFEFF4);
-    final Color textColor = _isDarkMode ? Colors.white : Colors.black;
+    final Color backgroundColor =
+    _isDarkMode ? Colors.black : const Color(0xFFF5F6F8);
+    final Color textColor =
+    _isDarkMode ? Colors.white : const Color(0xFF111827);
+
     final BoxDecoration boxDecoration = BoxDecoration(
-      color: _isDarkMode ? Colors.grey[850] : Colors.white,
-      borderRadius: BorderRadius.circular(8),
+      color: _isDarkMode ? const Color(0xFF1F1F22) : Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(
+        color: _isDarkMode
+            ? Colors.white.withOpacity(0.06)
+            : const Color(0xFFE5E7EB),
+      ),
       boxShadow: [
         BoxShadow(
-          color: Colors.black12,
-          offset: Offset(0, 2),
-          blurRadius: 6,
+          color: _isDarkMode
+              ? Colors.black.withOpacity(0.18)
+              : Colors.black.withOpacity(0.04),
+          offset: const Offset(0, 8),
+          blurRadius: 24,
         ),
       ],
     );
@@ -739,7 +1029,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                             Colors.black.withOpacity(0.3),
                             BlendMode.darken,
                           ),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(16),
                           child: Padding(
                             padding: const EdgeInsets.all(12.0),
                             child: Column(
@@ -871,7 +1161,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                   ),
                   SizedBox(height: 16),
                   Container(
-                    padding: EdgeInsets.all(8),
+                    padding: EdgeInsets.all(16),
                     decoration: boxDecoration,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -921,17 +1211,32 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                 alignment: Alignment.center,
                 child: SizedBox(
                   width: 100,
-                  child: ElevatedButton(
+                  child:
+                  ElevatedButton(
                     onPressed: _isLoading ? null : _saveChanges,
                     style: ElevatedButton.styleFrom(
-                      foregroundColor: _isDarkMode ? Colors.grey : Colors.white,
-                      backgroundColor: _isDarkMode ? Colors.grey[800] : Colors.grey,
-                      textStyle: TextStyle(
+                      elevation: 0,
+                      foregroundColor: _isDarkMode ? Colors.white : const Color(0xFF111827),
+                      backgroundColor:
+                      _isDarkMode ? const Color(0xFF2A2A2E) : const Color(0xFFF6F7F9),
+                      disabledForegroundColor: (_isDarkMode ? Colors.white : const Color(0xFF111827))
+                          .withOpacity(0.4),
+                      disabledBackgroundColor:
+                      (_isDarkMode ? const Color(0xFF2A2A2E) : const Color(0xFFF6F7F9))
+                          .withOpacity(0.7),
+                      textStyle: const TextStyle(
                         fontFamily: 'SFPro',
                         fontSize: 14,
+                        fontWeight: FontWeight.w600,
                       ),
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(14),
+                        side: BorderSide(
+                          color: _isDarkMode
+                              ? Colors.white.withOpacity(0.08)
+                              : const Color(0xFFE5E7EB),
+                        ),
                       ),
                     ),
                     child: Text(AppLocalizations.of(context)!.save),

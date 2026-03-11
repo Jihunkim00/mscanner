@@ -45,6 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+
   Future<User?> _signInWithGoogle() async {
     await LogService().logLoginAttempt(method: 'google');
     try {
@@ -240,6 +241,52 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     }
+
+    Widget _socialLoginButton({
+      required VoidCallback? onPressed,
+      required String label,
+      required String iconAsset,
+      required double iconScale,
+      required bool isDarkMode,
+      required Color dividerColor,
+    }) {
+      return SizedBox(
+        height: 52,
+        child: OutlinedButton(
+          onPressed: onPressed,
+          style: OutlinedButton.styleFrom(
+            foregroundColor: isDarkMode ? Colors.white : Colors.black,
+            side: BorderSide(color: dividerColor),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _authIcon(iconAsset, box: 20, scale: iconScale),
+              const SizedBox(width: 6),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    softWrap: false,
+                    style: const TextStyle(
+                      fontFamily: 'SFPro',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     return Scaffold(
       backgroundColor: bgColor,
       body: SafeArea(
@@ -320,7 +367,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontFamily: 'SFPro',
-                                    fontSize: 28,
+                                    fontSize: 25,
                                     fontWeight: FontWeight.w800,
                                     color: isDarkMode
                                         ? Colors.white
@@ -334,7 +381,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   style: TextStyle(
                                     fontFamily: 'SFPro',
                                     height: 1.35,
-                                    fontSize: 16,
+                                    fontSize: 14,
                                     color: isDarkMode
                                         ? Colors.white70
                                         : const Color(0xFF6B7280),
@@ -470,46 +517,32 @@ class _LoginScreenState extends State<LoginScreen> {
                                 Row(
                                   children: [
                                     Expanded(
-                                      child: SizedBox(
-                                        height: 52,
-                                        child: OutlinedButton.icon(
-                                          onPressed: () async {
-                                            User? user = await _signInWithGoogle();
-                                            if (user != null) _navigateAfterSignIn(user);
-                                          },
-                                          icon: _authIcon(googleIconAsset, box: 22, scale: 1.0),
-                                          label: Text(localizations?.login_google ?? 'Google'),
-                                          style: OutlinedButton.styleFrom(
-                                            foregroundColor: isDarkMode ? Colors.white : Colors.black,
-                                            side: BorderSide(color: dividerColor),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(16),
-                                            ),
-                                          ),
-                                        ),
+                                      child: _socialLoginButton(
+                                        onPressed: () async {
+                                          User? user = await _signInWithGoogle();
+                                          if (user != null) _navigateAfterSignIn(user);
+                                        },
+                                        label: localizations?.login_google ?? 'Google Sign In',
+                                        iconAsset: googleIconAsset,
+                                        iconScale: 1.0,
+                                        isDarkMode: isDarkMode,
+                                        dividerColor: dividerColor,
                                       ),
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
-                                      child: SizedBox(
-                                        height: 52,
-                                        child: OutlinedButton.icon(
-                                          onPressed: Platform.isIOS
-                                              ? () async {
-                                            User? user = await _signInWithApple();
-                                            if (user != null) _navigateAfterSignIn(user);
-                                          }
-                                              : null,
-                                          icon: _authIcon(appleIconAsset, box: 22, scale: appleScale),
-                                          label: Text(localizations?.login_apple ?? 'Apple'),
-                                          style: OutlinedButton.styleFrom(
-                                            foregroundColor: isDarkMode ? Colors.white : Colors.black,
-                                            side: BorderSide(color: dividerColor),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(16),
-                                            ),
-                                          ),
-                                        ),
+                                      child: _socialLoginButton(
+                                        onPressed: Platform.isIOS
+                                            ? () async {
+                                          User? user = await _signInWithApple();
+                                          if (user != null) _navigateAfterSignIn(user);
+                                        }
+                                            : null,
+                                        label: localizations?.login_apple ?? 'Apple Sign In',
+                                        iconAsset: appleIconAsset,
+                                        iconScale: appleScale,
+                                        isDarkMode: isDarkMode,
+                                        dividerColor: dividerColor,
                                       ),
                                     ),
                                   ],

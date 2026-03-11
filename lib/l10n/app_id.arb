@@ -206,7 +206,7 @@
   "buy": "Beli",
   "guestPurchaseMessage": "Pengguna tamu tidak dapat melakukan pembelian",
   "premiumFunctionMessage": "Layanan premium saja",
-  "multiScan": "Pindai Massal",
+  "multiScan": "Foto",
   "maxScanImages": "Hanya {maxCount} gambar pertama yang akan dipindai.",
   "@maxScanImages": {
     "description": "Snackbar message shown when user selects more images than the max allowed",
@@ -275,9 +275,9 @@
   "howto_step1": "1. PINDAI",
   "howto_desc1": "Menu atau hidangan",
   "howto_step2": "2. ANALISIS",
-  "howto_desc2": "AI menganalisis foto",
+  "howto_desc2": "AI menganalisis\nfoto Anda",
   "howto_step3": "3. NIKMATI",
-  "howto_desc3": "Rekomendasi makanan yang pas",
+  "howto_desc3": "Dapatkan rekomendasi\nyang cocok untuk Anda",
   "home_searchAiFoodImage": "Cari gambar makanan AI...",
   "home_adLabel": "IKLAN",
   "home_trendingNearYou": "Sedang tren di dekatmu",
@@ -323,5 +323,6 @@
   "result_failedLoadSettings": "Gagal memuat pengaturan. Penyimpanan cloud aktif secara default.",
   "result_imageUploadFailed": "Unggah gambar gagal. Silakan coba lagi.",
   "result_analyzing": "Menganalisis informasi makanan",
-  "result_loadingFullMenu": "Memuat menu lengkap…"
+  "result_loadingFullMenu": "Memuat menu lengkap…",
+  "howto_detail_link": "Lihat detail selengkapnya"
 }

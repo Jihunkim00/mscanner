@@ -629,7 +629,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get premiumFunctionMessage => 'Sadece premium hizmet';
 
   @override
-  String get multiScan => 'Toplu Tarama';
+  String get multiScan => 'Foto';
 
   @override
   String maxScanImages(int maxCount) {
@@ -810,13 +810,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get howto_step2 => '2. ANALİZ ET';
 
   @override
-  String get howto_desc2 => 'Yapay zekâ fotoğrafı analiz eder';
+  String get howto_desc2 => 'Yapay zekâ\nfotoğrafınızı analiz eder';
 
   @override
   String get howto_step3 => '3. KEYFİNİ ÇIKAR';
 
   @override
-  String get howto_desc3 => 'Size uygun lezzetleri önerir';
+  String get howto_desc3 => 'Size uygun\nöneriler alın';
 
   @override
   String get home_searchAiFoodImage => 'AI yemek görseli ara...';
@@ -953,4 +953,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get result_loadingFullMenu => 'Tüm menü yükleniyor…';
+
+  @override
+  String get howto_detail_link => 'Daha fazla ayrıntı görün';
 }

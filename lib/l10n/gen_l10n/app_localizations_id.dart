@@ -629,7 +629,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get premiumFunctionMessage => 'Layanan premium saja';
 
   @override
-  String get multiScan => 'Pindai Massal';
+  String get multiScan => 'Foto';
 
   @override
   String maxScanImages(int maxCount) {
@@ -810,13 +810,13 @@ class AppLocalizationsId extends AppLocalizations {
   String get howto_step2 => '2. ANALISIS';
 
   @override
-  String get howto_desc2 => 'AI menganalisis foto';
+  String get howto_desc2 => 'AI menganalisis\nfoto Anda';
 
   @override
   String get howto_step3 => '3. NIKMATI';
 
   @override
-  String get howto_desc3 => 'Rekomendasi makanan yang pas';
+  String get howto_desc3 => 'Dapatkan rekomendasi\nyang cocok untuk Anda';
 
   @override
   String get home_searchAiFoodImage => 'Cari gambar makanan AI...';
@@ -953,4 +953,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get result_loadingFullMenu => 'Memuat menu lengkap…';
+
+  @override
+  String get howto_detail_link => 'Lihat detail selengkapnya';
 }

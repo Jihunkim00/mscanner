@@ -206,7 +206,7 @@
   "buy": "خریدیں",
   "guestPurchaseMessage": "مہمان صارفین خریداری نہیں کر سکتے۔",
   "premiumFunctionMessage": "صرف پریمیم سروس",
-  "multiScan": "بیچ اسکین",
+  "multiScan": "تصاویر",
   "maxScanImages": "صرف پہلے {maxCount} تصاویر اسکین کی جائیں گی۔",
   "@maxScanImages": {
     "description": "Snackbar message shown when user selects more images than the max allowed",
@@ -275,9 +275,9 @@
   "howto_step1": "1. اسکین",
   "howto_desc1": "مینو یا ڈش",
   "howto_step2": "2. تجزیہ",
-  "howto_desc2": "AI تصویر کا تجزیہ کرتا ہے",
+  "howto_desc2": "AI آپ کی تصویر کا\nتجزیہ کرتا ہے",
   "howto_step3": "3. لطف اٹھائیں",
-  "howto_desc3": "مناسب کھانے کی سفارش",
+  "howto_desc3": "اپنے لیے موزوں\nسفارشات حاصل کریں",
   "home_searchAiFoodImage": "AI فوڈ امیج تلاش کریں...",
   "home_adLabel": "اشتہار",
   "home_trendingNearYou": "آپ کے قریب مقبول",
@@ -323,5 +323,6 @@
   "result_failedLoadSettings": "سیٹنگز لوڈ نہیں ہو سکیں۔ کلاؤڈ سیو ڈیفالٹ طور پر فعال ہے۔",
   "result_imageUploadFailed": "تصویر اپلوڈ ناکام۔ براہ کرم دوبارہ کوشش کریں۔",
   "result_analyzing": "کھانے کی معلومات کا تجزیہ جاری ہے",
-  "result_loadingFullMenu": "مکمل مینو لوڈ ہو رہا ہے…"
+  "result_loadingFullMenu": "مکمل مینو لوڈ ہو رہا ہے…",
+  "howto_detail_link": "مزید تفصیل دیکھیں"
 }

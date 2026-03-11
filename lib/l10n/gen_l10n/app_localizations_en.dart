@@ -629,7 +629,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get premiumFunctionMessage => 'Premium service only';
 
   @override
-  String get multiScan => 'Batch Scan';
+  String get multiScan => 'Photos';
 
   @override
   String maxScanImages(int maxCount) {
@@ -810,13 +810,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get howto_step2 => '2. ANALYZE';
 
   @override
-  String get howto_desc2 => 'AI analyzes your photo';
+  String get howto_desc2 => 'AI analyzes\nyour photo';
 
   @override
   String get howto_step3 => '3. ENJOY';
 
   @override
-  String get howto_desc3 => 'Get recommendations that fit you';
+  String get howto_desc3 => 'Get recommendations\nthat fit you';
 
   @override
   String get home_searchAiFoodImage => 'Search AI food image...';
@@ -953,4 +953,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get result_loadingFullMenu => 'Loading full menu…';
+
+  @override
+  String get howto_detail_link => 'See more details';
 }

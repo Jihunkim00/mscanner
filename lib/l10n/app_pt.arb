@@ -206,7 +206,7 @@
   "buy": "Comprar",
   "guestPurchaseMessage": "Usuários convidados não podem comprar",
   "premiumFunctionMessage": "Serviço premium apenas",
-  "multiScan": "Digitalização em lote",
+  "multiScan": "Fotos",
   "maxScanImages": "Apenas as primeiras {maxCount} imagens serão escaneadas.",
   "@maxScanImages": {
     "description": "Snackbar message shown when user selects more images than the max allowed",
@@ -275,9 +275,9 @@
   "howto_step1": "1. ESCANEAR",
   "howto_desc1": "Menu ou prato",
   "howto_step2": "2. ANALISAR",
-  "howto_desc2": "A IA analisa a foto",
+  "howto_desc2": "A IA analisa\nsua foto",
   "howto_step3": "3. APROVEITAR",
-  "howto_desc3": "Recomenda opções ideais",
+  "howto_desc3": "Receba recomendações\nque combinam com você",
   "home_searchAiFoodImage": "Pesquisar imagem de comida com IA...",
   "home_adLabel": "ANÚNCIO",
   "home_trendingNearYou": "Em alta perto de você",
@@ -323,5 +323,6 @@
   "result_failedLoadSettings": "Não foi possível carregar as configurações. O salvamento na nuvem está ativado por padrão.",
   "result_imageUploadFailed": "Falha ao enviar a imagem. Tente novamente.",
   "result_analyzing": "Analisando informações do prato",
-  "result_loadingFullMenu": "Carregando o menu completo…"
+  "result_loadingFullMenu": "Carregando o menu completo…",
+  "howto_detail_link": "Ver mais detalhes"
 }

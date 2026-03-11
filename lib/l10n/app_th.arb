@@ -206,7 +206,7 @@
   "buy": "ซื้อ",
   "guestPurchaseMessage": "ผู้ใช้ที่เป็นแขกไม่สามารถซื้อสินค้าได้",
   "premiumFunctionMessage": "บริการพรีเมียมเท่านั้น",
-  "multiScan": "สแกนเป็นชุด",
+  "multiScan": "รูปภาพ",
   "maxScanImages": "จะสแกนเฉพาะภาพ {maxCount} ภาพแรกเท่านั้น",
   "@maxScanImages": {
     "description": "Snackbar message shown when user selects more images than the max allowed",
@@ -275,9 +275,9 @@
   "howto_step1": "1. สแกน",
   "howto_desc1": "เมนูหรืออาหาร",
   "howto_step2": "2. วิเคราะห์",
-  "howto_desc2": "AI วิเคราะห์ รูปภาพ",
+  "howto_desc2": "AI จะวิเคราะห์\nรูปภาพของคุณ",
   "howto_step3": "3. เพลิดเพลิน",
-  "howto_desc3": "แนะนำ อาหารที่ เหมาะกับคุณ",
+  "howto_desc3": "รับคำแนะนำ\nที่เหมาะกับคุณ",
   "home_searchAiFoodImage": "ค้นหารูปอาหารด้วย AI...",
   "home_adLabel": "โฆษณา",
   "home_trendingNearYou": "กำลังฮิตใกล้คุณ",
@@ -323,5 +323,6 @@
   "result_failedLoadSettings": "โหลดการตั้งค่าไม่สำเร็จ ระบบเปิดบันทึกลงคลาวด์เป็นค่าเริ่มต้น",
   "result_imageUploadFailed": "อัปโหลดรูปภาพไม่สำเร็จ โปรดลองอีกครั้ง",
   "result_analyzing": "กำลังวิเคราะห์ข้อมูลอาหาร",
-  "result_loadingFullMenu": "กำลังโหลดเมนูทั้งหมด…"
+  "result_loadingFullMenu": "กำลังโหลดเมนูทั้งหมด…",
+  "howto_detail_link": "ดูรายละเอียดเพิ่มเติม"
 }

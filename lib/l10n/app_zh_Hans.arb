@@ -323,5 +323,6 @@
   "result_failedLoadSettings": "加载设置失败，云端保存默认开启。",
   "result_imageUploadFailed": "图片上传失败，请重试。",
   "result_analyzing": "正在分析菜品信息",
-  "result_loadingFullMenu": "正在加载完整菜单…"
+  "result_loadingFullMenu": "正在加载完整菜单…",
+  "howto_detail_link": "查看更多详情"
 }

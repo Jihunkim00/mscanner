@@ -31,6 +31,8 @@ import 'package:meta/meta.dart';
 import 'package:mscanner/widgets/menu_tag_registry.dart'; // 네 경로에 맞춰
 import 'dart:math' as math;
 import '/widgets/ai_food_image_button.dart'; // 파일 경로 맞게
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/rendering.dart';
 
 
 
@@ -433,7 +435,6 @@ void _kickoffRecommendedReveal() {
     final rawFm = j['fullMenu'] ?? j['full_menu'] ?? j['menu'] ?? j['menus'];
     if (rawFm is! Map) return;
 
-    // ✅ new schema: fullMenu.items.{main/side/...} + summary + truncated
     Map<String, dynamic>? itemsMap;
     String? summary;
     bool truncated = false;
@@ -443,63 +444,161 @@ void _kickoffRecommendedReveal() {
       summary = (rawFm['summary'] ?? '').toString().trim();
       truncated = rawFm['truncated'] == true;
     } else {
-      // ✅ old schema: fullMenu.{main/side/...} is List
       itemsMap = Map<String, dynamic>.from(rawFm);
-      summary = null;
-      truncated = false;
     }
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final sheetBg = isDark ? const Color(0xFF1C1C1E) : const Color(0xFFFCFCFD);
+    final cardBg = isDark ? const Color(0xFF26262A) : Colors.white;
+    final summaryBg = isDark ? const Color(0xFF2C2C31) : const Color(0xFFF6F7F9);
+    final borderColor =
+    isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE5E7EB);
+    final titleColor = isDark ? Colors.white : const Color(0xFF111827);
+    final subColor = isDark ? Colors.white70 : const Color(0xFF6B7280);
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withOpacity(0.18),
       builder: (_) {
-        return SafeArea(
-          child: DraggableScrollableSheet(
-            expand: false,
-            initialChildSize: 0.8,
-            builder: (context, scrollController) {
-              return ListView(
-                controller: scrollController,
-                padding: const EdgeInsets.all(16),
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.82,
+          minChildSize: 0.55,
+          maxChildSize: 0.94,
+          builder: (context, scrollController) {
+            return Container(
+              decoration: BoxDecoration(
+                color: sheetBg,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
+              ),
+              child: Column(
                 children: [
-                  const Text(
-                    'Full Menu',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
                   const SizedBox(height: 12),
-
-                  // ✅ 메뉴 섹션들 (new/old 둘 다)
-                  ..._buildMenuSection('Main', itemsMap?['main']),
-                  ..._buildMenuSection('Side', itemsMap?['side']),
-                  ..._buildMenuSection('Meal', itemsMap?['meal']),
-                  ..._buildMenuSection('Drink', itemsMap?['drink']),
-                  ..._buildMenuSection('Beverage', itemsMap?['beverage']),
-                  ..._buildMenuSection('Other', itemsMap?['unknown']),
-
-                  // ✅ new schema summary 표시
-                  if ((summary ?? '').isNotEmpty) ...[
-                    const SizedBox(height: 18),
-                    Row(
+                  Container(
+                    width: 44,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: subColor.withOpacity(0.28),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 12, 10),
+                    child: Row(
                       children: [
-                        Text(
-                          truncated ? 'Summary (truncated)' : 'Summary',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: summaryBg,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: borderColor),
+                          ),
+                          child: Icon(
+                            CupertinoIcons.square_list,
+                            size: 18,
+                            color: titleColor,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            AppLocalizations.of(context)?.result_viewFullMenu ??
+                                'Full Menu',
+                            style: TextStyle(
+                              fontFamily: 'SFPro',
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: titleColor,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          splashRadius: 20,
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: Icon(
+                            CupertinoIcons.xmark_circle_fill,
+                            color: subColor,
+                            size: 24,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      summary!,
-                      style: const TextStyle(fontSize: 13, height: 1.35),
+                  ),
+                  Expanded(
+                    child: ListView(
+                      controller: scrollController,
+                      padding: const EdgeInsets.fromLTRB(20, 6, 20, 24),
+                      children: [
+                        if ((summary ?? '').isNotEmpty) ...[
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: summaryBg,
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(color: borderColor),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  truncated ? 'Menu Summary' : 'Summary',
+                                  style: TextStyle(
+                                    fontFamily: 'SFPro',
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: titleColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  summary!,
+                                  style: TextStyle(
+                                    fontFamily: 'SFPro',
+                                    fontSize: 13,
+                                    height: 1.45,
+                                    color: subColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                        ],
+                        ..._buildMenuSection('Main', itemsMap?['main']),
+                        ..._buildMenuSection('Side', itemsMap?['side']),
+                        ..._buildMenuSection('Meal', itemsMap?['meal']),
+                        ..._buildMenuSection('Drink', itemsMap?['drink']),
+                        ..._buildMenuSection('Beverage', itemsMap?['beverage']),
+                        ..._buildMenuSection('Other', itemsMap?['unknown']),
+                        if ((itemsMap ?? {}).isEmpty)
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: cardBg,
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(color: borderColor),
+                            ),
+                            child: Text(
+                              'No menu items found.',
+                              style: TextStyle(
+                                fontFamily: 'SFPro',
+                                fontSize: 13,
+                                color: subColor,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
-                  ],
+                  ),
                 ],
-              );
-            },
-          ),
+              ),
+            );
+          },
         );
       },
     );
@@ -507,76 +606,148 @@ void _kickoffRecommendedReveal() {
 
   List<Widget> _buildMenuSection(String title, dynamic items) {
     if (items is! List || items.isEmpty) return const [];
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final sectionBg = isDark ? const Color(0xFF26262A) : Colors.white;
+    final borderColor =
+    isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE5E7EB);
+    final titleColor = isDark ? Colors.white : const Color(0xFF111827);
+    final subColor = isDark ? Colors.white70 : const Color(0xFF6B7280);
+    final priceBg =
+    isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFF3F4F6);
+
+    final menuItems = items
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
+
     return [
-      const SizedBox(height: 16),
-      Text(title,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-      const SizedBox(height: 8),
-      ...items.whereType<Map>().map((e) {
-        final m = Map<String, dynamic>.from(e);
-        final nameOriginal = (m['nameOriginal'] ?? '').toString().trim();
-        final nameTranslated = (m['name'] ?? '').toString().trim();
-
-        final displayName = nameOriginal.isNotEmpty
-            ? (nameTranslated.isNotEmpty && nameTranslated.toLowerCase() != nameOriginal.toLowerCase()
-            ? '$nameOriginal ($nameTranslated)'
-            : nameOriginal)
-            : nameTranslated;
-
-        final desc = (m['shortDesc'] ?? '').toString();
-        final priceLabel = _priceLabelFromItem(m);
-
-        final mk = buildMenuKey(nameOriginal, nameTranslated);
-        final effectivePrice = (_convertedPriceByMenuKey[mk] ?? priceLabel)?.trim();
-        final showPrice = effectivePrice != null && effectivePrice.isNotEmpty;
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                displayName,
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-              ),
-              if (showPrice) ...[
-  const SizedBox(height: 4),
-  InkWell(
-    borderRadius: BorderRadius.circular(8),
-    onTap: () => _toggleSinglePriceConversion(m),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Flexible(
-          child: Text(
-            effectivePrice!,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-          ),
+      Text(
+        title,
+        style: TextStyle(
+          fontFamily: 'SFPro',
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+          color: titleColor,
         ),
-        const SizedBox(width: 6),
-        if (_singlePriceLoadingMenuKeys.contains(mk))
-          const CupertinoActivityIndicator(radius: 7)
-        else
-          Icon(
-            Icons.currency_exchange,
-            size: 16,
-            color: _convertedPriceByMenuKey.containsKey(mk)
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).iconTheme.color?.withOpacity(0.7),
-          ),
-      ],
-    ),
-  ),
-],
-              if (desc.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(desc, style: const TextStyle(fontSize: 12)),
+      ),
+      const SizedBox(height: 10),
+      Container(
+        decoration: BoxDecoration(
+          color: sectionBg,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: borderColor),
+        ),
+        child: Column(
+          children: List.generate(menuItems.length, (index) {
+            final m = menuItems[index];
+            final nameOriginal = (m['nameOriginal'] ?? '').toString().trim();
+            final nameTranslated = (m['name'] ?? '').toString().trim();
+
+            final displayName = nameOriginal.isNotEmpty
+                ? (nameTranslated.isNotEmpty &&
+                nameTranslated.toLowerCase() != nameOriginal.toLowerCase()
+                ? '$nameOriginal ($nameTranslated)'
+                : nameOriginal)
+                : nameTranslated;
+
+            final desc = (m['shortDesc'] ?? '').toString();
+            final priceLabel = _priceLabelFromItem(m);
+
+            final mk = buildMenuKey(nameOriginal, nameTranslated);
+            final effectivePrice =
+            (_convertedPriceByMenuKey[mk] ?? priceLabel)?.trim();
+            final showPrice = effectivePrice != null && effectivePrice.isNotEmpty;
+
+            return Column(
+              children: [
+                if (index > 0)
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: borderColor,
+                  ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 14,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        displayName,
+                        style: TextStyle(
+                          fontFamily: 'SFPro',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: titleColor,
+                          height: 1.25,
+                        ),
+                      ),
+                      if (showPrice) ...[
+                        const SizedBox(height: 8),
+                        InkWell(
+                          borderRadius: BorderRadius.circular(999),
+                          onTap: () => _toggleSinglePriceConversion(m),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 7,
+                            ),
+                            decoration: BoxDecoration(
+                              color: priceBg,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  effectivePrice!,
+                                  style: TextStyle(
+                                    fontFamily: 'SFPro',
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: titleColor,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                if (_singlePriceLoadingMenuKeys.contains(mk))
+                                  const CupertinoActivityIndicator(radius: 7)
+                                else
+                                  Icon(
+                                    Icons.currency_exchange,
+                                    size: 15,
+                                    color: _convertedPriceByMenuKey.containsKey(mk)
+                                        ? Theme.of(context).colorScheme.primary
+                                        : subColor,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                      if (desc.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          desc,
+                          style: TextStyle(
+                            fontFamily: 'SFPro',
+                            fontSize: 12,
+                            height: 1.4,
+                            color: subColor,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ],
-            ],
-          ),
-        );
-      }).toList(),
+            );
+          }),
+        ),
+      ),
+      const SizedBox(height: 18),
     ];
   }
 
@@ -1285,22 +1456,61 @@ Widget buildDualName() {
               ],
             ),
             const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.copy, color: Colors.blue, size: 20),
-                  onPressed: () =>
-                      _copyTextToClipboard(widget.responses.join('\n\n')),
-                ),
-                IconButton(
-                  icon: const Icon(CupertinoIcons.square_arrow_up,
-                      color: Colors.blue, size: 24),
-                  onPressed: () => Platform.isIOS
-                      ? _shareToPlatform(context, 'shareToSystem')
-                      : _showShareOptions(context),
-                ),
-              ],
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: _isDarkMode
+                          ? const Color(0xFF2A2A2E)
+                          : const Color(0xFFF6F7F9),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: _isDarkMode
+                            ? Colors.white.withOpacity(0.08)
+                            : const Color(0xFFE5E7EB),
+                      ),
+                    ),
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.copy,
+                        color: textColor.withOpacity(0.86),
+                        size: 20,
+                      ),
+                      onPressed: () {
+                        final copySource = widget.responses.isNotEmpty
+                            ? widget.responses.join('\n\n')
+                            : _aiStreamBuffer.toString();
+                        _copyTextToClipboard(copySource);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: _isDarkMode
+                          ? const Color(0xFF2A2A2E)
+                          : const Color(0xFFF6F7F9),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: _isDarkMode
+                            ? Colors.white.withOpacity(0.08)
+                            : const Color(0xFFE5E7EB),
+                      ),
+                    ),
+                    child: IconButton(
+                      icon: Icon(
+                        CupertinoIcons.square_arrow_up,
+                        color: textColor.withOpacity(0.86),
+                        size: 22,
+                      ),
+                      onPressed: _shareCapturedImage,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -1357,7 +1567,7 @@ for (final a in _fxAmounts) {
                 ),
               ),
               const Spacer(),
-              
+
 if (_fxUniq.isNotEmpty)
                 (_isBulkConvertingPrices
                     ? const CupertinoActivityIndicator(radius: 9)
@@ -1455,22 +1665,135 @@ if (chipLabels.isNotEmpty) ...[
           const SizedBox(height: 10),
 
 
-          Center(
-            child:
-
-            TextButton(
-              onPressed: canShowMenu ? _showFullMenuSheet : null,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (!canShowMenu) ...[
-                    const CupertinoActivityIndicator(radius: 8),
-                    const SizedBox(width: 8),
-                  ],
-                  Text(canShowMenu ? (AppLocalizations.of(context)?.result_viewFullMenu ?? 'View Full Menu') : (AppLocalizations.of(context)?.result_preparingMenu ?? 'Preparing menu…')),
-                ],
+          Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: canShowMenu ? _showFullMenuSheet : null,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                    decoration: BoxDecoration(
+                      color: canShowMenu
+                          ? (_isDarkMode
+                          ? const Color(0xFF2A2A2E)
+                          : const Color(0xFFF6F7F9))
+                          : (_isDarkMode
+                          ? const Color(0xFF232326)
+                          : const Color(0xFFF3F4F6)),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: canShowMenu
+                            ? (_isDarkMode
+                            ? Colors.white.withOpacity(0.08)
+                            : const Color(0xFFE5E7EB))
+                            : (_isDarkMode
+                            ? Colors.white.withOpacity(0.05)
+                            : const Color(0xFFEAECF0)),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (!canShowMenu) ...[
+                          const CupertinoActivityIndicator(radius: 8),
+                          const SizedBox(width: 8),
+                        ] else ...[
+                          Icon(
+                            CupertinoIcons.square_list,
+                            size: 18,
+                            color: textColor.withOpacity(0.86),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                        Flexible(
+                          child: Text(
+                            canShowMenu
+                                ? (AppLocalizations.of(context)?.result_viewFullMenu ??
+                                'View Full Menu')
+                                : (AppLocalizations.of(context)?.result_preparingMenu ??
+                                'Preparing...'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontFamily: 'SFPro',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: canShowMenu
+                                  ? textColor
+                                  : textColor.withOpacity(0.65),
+                            ),
+                          ),
+                        ),
+                        if (canShowMenu) ...[
+                          const SizedBox(width: 6),
+                          Icon(
+                            CupertinoIcons.chevron_up_chevron_down,
+                            size: 13,
+                            color: textColor.withOpacity(0.45),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
               ),
-            ),
+
+              // ✅ 로딩 끝난 뒤에만 copy/share 노출
+              if (canShowMenu) ...[
+                const SizedBox(width: 8),
+                Container(
+                  decoration: BoxDecoration(
+                    color: _isDarkMode
+                        ? const Color(0xFF2A2A2E)
+                        : const Color(0xFFF6F7F9),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: _isDarkMode
+                          ? Colors.white.withOpacity(0.08)
+                          : const Color(0xFFE5E7EB),
+                    ),
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.copy,
+                      color: textColor.withOpacity(0.86),
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      final copySource = widget.responses.isNotEmpty
+                          ? widget.responses.join('\n\n')
+                          : _aiStreamBuffer.toString();
+                      _copyTextToClipboard(copySource);
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  decoration: BoxDecoration(
+                    color: _isDarkMode
+                        ? const Color(0xFF2A2A2E)
+                        : const Color(0xFFF6F7F9),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: _isDarkMode
+                          ? Colors.white.withOpacity(0.08)
+                          : const Color(0xFFE5E7EB),
+                    ),
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      CupertinoIcons.square_arrow_up,
+                      color: textColor.withOpacity(0.86),
+                      size: 22,
+                    ),
+                    onPressed: _shareCapturedImage,
+                  ),
+                ),
+              ],
+            ],
           ),
         ],
       ),
@@ -1793,6 +2116,7 @@ if (chipLabels.isNotEmpty) ...[
   String? _foodDetail; // Variable to store foodDetail
   List<File> _viewerImages = [];
   int _viewerInitialIndex = 0;
+  final GlobalKey _shareWidgetKey = GlobalKey();
 
   @override
   void initState() {
@@ -2412,6 +2736,52 @@ if (widget.responseStream != null) {
     );
   }
 
+  void _shareCapturedImage() async {
+    try {
+      await LogService().logShareClick(dest: 'system', context: 'result');
+
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final boundary =
+        _shareWidgetKey.currentContext?.findRenderObject()
+        as RenderRepaintBoundary?;
+
+        if (boundary == null) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)?.favorite_renderNotReady ??
+                    'Error: RenderRepaintBoundary is not ready.',
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+
+        final pixelRatio = MediaQuery.of(context).devicePixelRatio * 2;
+        final image = await boundary.toImage(pixelRatio: pixelRatio);
+        final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+
+        if (byteData == null) return;
+
+        final pngBytes = byteData.buffer.asUint8List();
+
+        final tempDir = await getTemporaryDirectory();
+        final file = await File('${tempDir.path}/result_shared_image.png').create();
+        await file.writeAsBytes(pngBytes);
+
+        await Share.shareXFiles(
+          [XFile(file.path)],
+          text: AppLocalizations.of(context)?.checkOutContent ??
+              'Check out this content!',
+        );
+      });
+    } catch (e) {
+      debugPrint('Error sharing captured image: $e');
+    }
+  }
+
   Future<void> _shareToPlatform(BuildContext context, String platform) async {
     await LogService().logShareClick(dest: 'system', context: 'result');
     String message =
@@ -2720,16 +3090,26 @@ if (widget.responseStream != null) {
   Widget build(BuildContext context) {
     print("▶️ [ResultScreen] build() at ${DateTime.now().toIso8601String()}");
     final localizations = AppLocalizations.of(context);
-    final Color backgroundColor = _isDarkMode ? Colors.black : Color(0xFFEFEFF4);
-    final Color textColor = _isDarkMode ? Colors.white : Colors.black;
+    final Color backgroundColor =
+    _isDarkMode ? Colors.black : const Color(0xFFF5F6F8);
+    final Color textColor =
+    _isDarkMode ? Colors.white : const Color(0xFF111827);
+
     final BoxDecoration boxDecoration = BoxDecoration(
-      color: _isDarkMode ? Colors.grey[850] : Colors.white,
-      borderRadius: BorderRadius.circular(8),
+      color: _isDarkMode ? const Color(0xFF1F1F22) : Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(
+        color: _isDarkMode
+            ? Colors.white.withOpacity(0.06)
+            : const Color(0xFFE5E7EB),
+      ),
       boxShadow: [
         BoxShadow(
-          color: Colors.black12,
-          offset: Offset(0, 2),
-          blurRadius: 6,
+          color: _isDarkMode
+              ? Colors.black.withOpacity(0.18)
+              : Colors.black.withOpacity(0.04),
+          offset: const Offset(0, 8),
+          blurRadius: 24,
         ),
       ],
     );
@@ -2766,9 +3146,11 @@ if (widget.responseStream != null) {
         ),
         body: Stack(
           children: [
-            SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
+        SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: RepaintBoundary(
+          key: _shareWidgetKey,
+          child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ImageGridViewer(
@@ -2952,6 +3334,7 @@ if (widget.responseStream != null) {
                 ],
               ),
             ),
+        ),
           ],
         ),
       ),
@@ -3016,13 +3399,19 @@ class _AiSparkleIconButtonState extends State<AiSparkleIconButton>
         width: s,
         height: s,
         child: Stack(
+          clipBehavior: Clip.none,
           children: [
             Positioned.fill(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: Image.asset(
-                  'assets/icons/aifood.png',
-                  fit: BoxFit.contain,
+                child: Center(
+                  child: OverflowBox(
+                    maxWidth: s * 1.2,
+                    maxHeight: s * 1.2,
+                    child: Image.asset(
+                      'assets/icons/aifood.png',
+                      width: s * 1.2,
+                      height: s * 1.2,
+                      fit: BoxFit.contain,
+                    ),
                 ),
               ),
             ),
@@ -3031,10 +3420,10 @@ class _AiSparkleIconButtonState extends State<AiSparkleIconButton>
             if (widget.isLoading)
               Positioned(
                 // 스파클이 있는 쪽(좌상단)만 덮기. 필요하면 값 튜닝.
-                left: s * 0.08,   // ✅ 오른쪽으로 약간
-                top:  s * 0.10,   // ✅ 아래로 약간
-                width:  s * 0.50, // ✅ 영역도 살짝 줄여 중앙 느낌
-                height: s * 0.55,
+                left: s * 0.00,
+                top:  s * 0.01,
+                width:  s * 0.75,  // 50% 정도 확대
+                height: s * 0.82,  // 50% 정도 확대
                 child: IgnorePointer(
                   child: AnimatedBuilder(
                     animation: _c,
@@ -3065,21 +3454,21 @@ class _SparkleTwinklePainter extends CustomPainter {
       canvas,
       size,
       center: Offset(size.width * 0.30, size.height * 0.30),
-      baseRadius: size.shortestSide * 0.07,
+      baseRadius: size.shortestSide * 0.10, // 0.07 -> 0.10
       phase: 0.0,
     );
     _drawStar(
       canvas,
       size,
       center: Offset(size.width * 0.55, size.height * 0.18),
-      baseRadius: size.shortestSide * 0.05,
+      baseRadius: size.shortestSide * 0.075, // 0.05 -> 0.075
       phase: 0.33,
     );
     _drawStar(
       canvas,
       size,
       center: Offset(size.width * 0.18, size.height * 0.55),
-      baseRadius: size.shortestSide * 0.04,
+      baseRadius: size.shortestSide * 0.06, // 0.04 -> 0.06
       phase: 0.66,
     );
   }

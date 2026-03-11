@@ -206,7 +206,7 @@
   "buy": "شراء",
   "guestPurchaseMessage": "المستخدمون الضيوف لا يمكنهم الشراء",
   "premiumFunctionMessage": "خدمة مميزة فقط",
-  "multiScan": "المسح الضوئي بالجملة",
+  "multiScan": "صور",
   "maxScanImages": "سيتم مسح الصور الأولى فقط {maxCount}.",
   "@maxScanImages": {
     "description": "Snackbar message shown when user selects more images than the max allowed",
@@ -275,9 +275,9 @@
   "howto_step1": "1. مسح",
   "howto_desc1": "قائمة أو طبق",
   "howto_step2": "2. تحليل",
-  "howto_desc2": "الذكاء الاصطناعي يحلّ لالصورة",
+  "howto_desc2": "يحلل الذكاء الاصطناعي\nصورتك",
   "howto_step3": "3. استمتع",
-  "howto_desc3": "يوصي بأفضل خيارات تناسبك",
+  "howto_desc3": "احصل على توصيات\nتناسبك",
   "home_searchAiFoodImage": "ابحث عن صورة طعام بالذكاء الاصطناعي...",
   "home_adLabel": "إعلان",
   "home_trendingNearYou": "الأكثر رواجًا قربك",
@@ -323,5 +323,6 @@
   "result_failedLoadSettings": "تعذر تحميل الإعدادات. تم تفعيل الحفظ السحابي افتراضيًا.",
   "result_imageUploadFailed": "فشل رفع الصورة. يرجى المحاولة مرة أخرى.",
   "result_analyzing": "جارٍ تحليل معلومات الطعام",
-  "result_loadingFullMenu": "جارٍ تحميل القائمة كاملة…"
+  "result_loadingFullMenu": "جارٍ تحميل القائمة كاملة…",
+  "howto_detail_link": "عرض المزيد من التفاصيل"
 }
