@@ -16,6 +16,7 @@ import 'mapscreen.dart';
 import 'package:getwidget/getwidget.dart'; // GetWidget 패키지 임포트
 import 'dart:convert';
 import 'package:mscanner/widgets/menu_tag_registry.dart';
+import 'package:mscanner/utils/ai_result_copy_formatter.dart';
 
 class FavoriteScreen extends StatefulWidget {
   final String documentId;
@@ -61,10 +62,34 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     return candidate;
   }
 
+  String _buildReadableCopyText() {
+    return AiResultCopyFormatter.buildReadableText(
+      aiJson: _aiJson,
+      fallbackResponses: _normalizedResponses,
+      priceLabelBuilder: (item) {
+        final price = (item['price'] ?? '').toString().trim();
+        return price.isEmpty ? null : price;
+      },
+      labels: AiResultCopyFormatterLabels(
+        recommendedTitle:
+        AppLocalizations.of(context)?.aiAnswer ?? 'Recommended Dishes',
+        summaryTitle:
+        AppLocalizations.of(context)?.favorite_summary ?? 'Summary',
+        priceLabel: '가격',
+        tagsLabel: '태그',
+        noContentFallback:
+        AppLocalizations.of(context)?.favorite_noResponses ??
+            'No responses available',
+      ),
+    );
+  }
+
   // ✅ JSON(칩 UI) 지원
   Map<String, dynamic>? _aiJson;
   String? _aiJsonError;
   List<String> _normalizedResponses = const [];
+
+
 
   @override
   void initState() {
@@ -79,6 +104,8 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
       _isDarkMode = savedThemeMode == AdaptiveThemeMode.dark;
     });
   }
+
+
 
   Future<void> _fetchFavoriteData() async {
     User? user = FirebaseAuth.instance.currentUser;
@@ -812,7 +839,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                     color: textColor.withOpacity(0.86),
                     size: 20,
                   ),
-                  onPressed: () => _copyTextToClipboard(responseText),
+                  onPressed: () => _copyTextToClipboard(_buildReadableCopyText())
                 ),
               ),
               const SizedBox(width: 8),

@@ -33,6 +33,7 @@ import 'dart:math' as math;
 import '/widgets/ai_food_image_button.dart'; // 파일 경로 맞게
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/rendering.dart';
+import 'package:mscanner/utils/ai_result_copy_formatter.dart';
 
 
 
@@ -110,7 +111,6 @@ class _MenuNamePair {
   };
 }
 
-bool _pendingSearchedMenuSave = false; // ✅ 스트림 끝나고 저장하기 위한 플래그
 
 
 class _ResultScreenState extends State<ResultScreen> {
@@ -156,6 +156,9 @@ class _ResultScreenState extends State<ResultScreen> {
     return uniq;
   }
 
+  final Set<String> _aiButtonReadyKeys = <String>{};
+
+
 // ===== Streaming AI response =====
 StreamSubscription<String>? _aiStreamSub;
 final StringBuffer _aiStreamBuffer = StringBuffer();
@@ -187,11 +190,10 @@ Timer? _revealTimer;
 
 
   final Set<String> _aiIconLoading = <String>{};
+  final Set<String> _aiImageCheckingKeys = <String>{};
+  final Set<String> _aiImageCheckedKeys = <String>{};
+  final Map<String, String> _existingAiImageUrlByMenuKey = <String, String>{};
 
-  String _menuKeyForIcon(String nameOriginal, String nameTranslated) {
-    final base = (nameOriginal.isNotEmpty ? nameOriginal : nameTranslated).trim().toLowerCase();
-    return base; // 나중에 lang까지 붙여도 됨: '${lang}_$base'
-  }
 
 
 
@@ -405,6 +407,24 @@ Timer? _revealTimer;
           .toList();
     }
     return const [];
+  }
+
+  String _buildReadableCopyText() {
+    return AiResultCopyFormatter.buildReadableText(
+      aiJson: _aiJson,
+      fallbackResponses: widget.responses,
+      fallbackStreamText: _aiStreamBuffer.toString(),
+      priceLabelBuilder: _priceLabelFromItem,
+      labels: AiResultCopyFormatterLabels(
+        recommendedTitle:
+        AppLocalizations.of(context)?.aiAnswer ?? 'Recommended Dishes',
+        summaryTitle:
+        AppLocalizations.of(context)?.favorite_summary ?? 'Summary',
+        priceLabel: '가격',
+        tagsLabel: '태그',
+        noContentFallback: 'No content available',
+      ),
+    );
   }
 
 void _kickoffRecommendedReveal() {
@@ -1158,6 +1178,81 @@ Future<void> _toggleSinglePriceConversion(Map<String, dynamic> item) async {
   }
 }
 
+  Future<void> _ensureAiImageChecked({
+    required String menuKey,
+    required String nameOriginal,
+    required String nameTranslated,
+  }) async {
+    if (_aiImageCheckingKeys.contains(menuKey)) return;
+    if (_aiImageCheckedKeys.contains(menuKey)) return;
+
+    _aiImageCheckingKeys.add(menuKey);
+
+    try {
+      QuerySnapshot<Map<String, dynamic>> snap = await FirebaseFirestore.instance
+          .collection('menu_images')
+          .where('menu_key', isEqualTo: menuKey)
+          .limit(1)
+          .get();
+
+      if (snap.docs.isEmpty && nameOriginal.trim().isNotEmpty) {
+        snap = await FirebaseFirestore.instance
+            .collection('menu_images')
+            .where('menu_original', isEqualTo: nameOriginal.trim())
+            .limit(1)
+            .get();
+      }
+
+      if (snap.docs.isEmpty && nameTranslated.trim().isNotEmpty) {
+        snap = await FirebaseFirestore.instance
+            .collection('menu_images')
+            .where('menu_translated', isEqualTo: nameTranslated.trim())
+            .limit(1)
+            .get();
+      }
+
+      if (snap.docs.isNotEmpty) {
+        final data = snap.docs.first.data();
+        final imageUrl = (data['imageUrl'] ?? data['image_url'] ?? '')
+            .toString()
+            .trim();
+
+        if (imageUrl.isNotEmpty) {
+          _existingAiImageUrlByMenuKey[menuKey] = imageUrl;
+        }
+      }
+    } catch (e) {
+      debugPrint('AI image check failed for $menuKey: $e');
+    } finally {
+      _aiImageCheckingKeys.remove(menuKey);
+      _aiImageCheckedKeys.add(menuKey);
+      _aiButtonReadyKeys.add(menuKey);
+
+      if (mounted) {
+        setState(() {});
+      }
+    }
+  }
+
+  void _showAiImagePreview(String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(16),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: InteractiveViewer(
+            child: Image.network(
+              imageUrl,
+              fit: BoxFit.contain,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
 
   Widget _buildDishRow(Map<String, dynamic> item, Color textColor) {
     final nameOriginal = (item['nameOriginal'] ?? '').toString().trim();
@@ -1165,14 +1260,25 @@ Future<void> _toggleSinglePriceConversion(Map<String, dynamic> item) async {
     final desc = (item['shortDesc'] ?? '').toString();
     final priceLabel = _priceLabelFromItem(item);
 
-    final key = _menuKeyForIcon(nameOriginal, nameTranslated);
+
 
     final tags = (item['tags'] is List)
         ? (item['tags'] as List).map((e) => e.toString()).toList()
         : <String>[];
 
     final pair = _MenuNamePair(original: nameOriginal, translated: nameTranslated);
+
     final menuKey = buildMenuKey(pair.original, pair.translated);
+    if (!_aiImageCheckedKeys.contains(menuKey) &&
+        !_aiImageCheckingKeys.contains(menuKey)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _ensureAiImageChecked(
+          menuKey: menuKey,
+          nameOriginal: pair.original,
+          nameTranslated: pair.translated,
+        );
+      });
+    }
 
     // ✅ 이름 2줄 위젯(너가 만든 것 유지하되 폰트만 조금 조정 추천)
 
@@ -1295,13 +1401,46 @@ Widget buildDualName() {
               Positioned(
                 top: 0,
                 right: 0,
-                child: AiFoodImageButton(
-                  menuKey: menuKey,
-                  menu: pair.toMap(),
-                  shortDesc: desc,
-                  tags: tags,
-                  searchedMenuDocId: _searchedMenuDocId, // ✅ 이 문서에 url도 같이 기록
-                  size: 80,
+                child: SizedBox(
+                  width: 80,
+                  height: 80,
+                  child: (!_aiButtonReadyKeys.contains(menuKey) || _searchedMenuDocId == null)
+                      ? const SizedBox.shrink()
+                      : (_existingAiImageUrlByMenuKey[menuKey]?.isNotEmpty == true)
+                      ? GestureDetector(
+                    onTap: () {
+                      final imageUrl =
+                      _existingAiImageUrlByMenuKey[menuKey]!;
+                      _showAiImagePreview(imageUrl);
+                    },
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.network(
+                        _existingAiImageUrlByMenuKey[menuKey]!,
+                        width: 80,
+                        height: 80,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) {
+                          return AiFoodImageButton(
+                            menuKey: menuKey,
+                            menu: pair.toMap(),
+                            shortDesc: desc,
+                            tags: tags,
+                            searchedMenuDocId: _searchedMenuDocId,
+                            size: 80,
+                          );
+                        },
+                      ),
+                    ),
+                  )
+                      : AiFoodImageButton(
+                    menuKey: menuKey,
+                    menu: pair.toMap(),
+                    shortDesc: desc,
+                    tags: tags,
+                    searchedMenuDocId: _searchedMenuDocId,
+                    size: 80,
+                  ),
                 ),
               ),
             ],
@@ -1483,7 +1622,7 @@ Widget buildDualName() {
                         final copySource = widget.responses.isNotEmpty
                             ? widget.responses.join('\n\n')
                             : _aiStreamBuffer.toString();
-                        _copyTextToClipboard(copySource);
+                        _copyTextToClipboard(_buildReadableCopyText());
                       },
                     ),
                   ),
@@ -1890,33 +2029,65 @@ if (chipLabels.isNotEmpty) ...[
     return pair.display;
   }
 
-  /// searched menu 컬렉션에 (geohash + 메뉴명 + 시스템언어)만 비동기로 저장
+  List<String> _buildSearchKeywords({
+    required String original,
+    required String translated,
+    List<String> tags = const [],
+  }) {
+    final set = <String>{};
+
+    void addValue(String v) {
+      final s = v.trim().toLowerCase();
+      if (s.isNotEmpty) set.add(s);
+    }
+
+    addValue(original);
+    addValue(translated);
+
+    for (final tag in tags) {
+      addValue(tag);
+    }
+
+    return set.toList();
+  }
+
   void _saveSearchedMenuFireAndForget() {
     if (widget.isTutorial) return;
     if (widget.isFromHistory) return;
     if (_geohash == null) return;
 
-    // ✅ 스트리밍이면 JSON이 아직 없을 수 있으니 onDone에서 저장
     if (widget.responseStream != null && !_aiStreamDone) {
       _pendingSearchedMenuSave = true;
       return;
     }
 
-    final pair = _extractPrimaryMenuPair(); // ✅ JSON 우선
+    final pair = _extractPrimaryMenuPair();
     if (pair == null) return;
 
     final systemLang = ui.PlatformDispatcher.instance.locale.languageCode;
     final user = FirebaseAuth.instance.currentUser;
+
+    final searchKeywords = _buildSearchKeywords(
+      original: pair.original,
+      translated: pair.translated,
+    );
 
     unawaited(() async {
       try {
         final docRef = FirebaseFirestore.instance.collection('searched menu').doc();
         _searchedMenuDocId = docRef.id;
 
+        if (mounted) {
+          setState(() {});
+        }
+
         await docRef.set({
           'menu': pair.toMap(),
           'menu_name': pair.display,
           'menu_key': pair.key,
+          'menu_original': pair.original,
+          'menu_translated': pair.translated,
+          'search_keywords': searchKeywords,
           'geohash': _geohash,
           'lang': systemLang,
           'timestamp': DateTime.now().toIso8601String(),

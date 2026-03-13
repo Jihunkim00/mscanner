@@ -6,21 +6,18 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 
 import 'package:mscanner/screens/result_screen.dart';
-// ⚠️ 너 프로젝트 경로에 맞게 수정
-// AiSparkleIconButton 타입을 쓰기 위해 import가 필요함.
-// 만약 순환 import 생기면 AiSparkleIconButton만 별도 파일로 빼는 게 깔끔함.
 
 String buildMenuKey(String original, String translated) {
   final base = '${original.trim()}|${translated.trim()}'.toLowerCase();
-  return sha1.convert(utf8.encode(base)).toString(); // doc id로 안전(40 chars)
+  return sha1.convert(utf8.encode(base)).toString();
 }
 
-class AiFoodImageButton extends StatelessWidget {
+class AiFoodImageButton extends StatefulWidget {
   final String menuKey;
   final Map<String, dynamic> menu; // {original, translated}
   final String? shortDesc;
   final List<String> tags;
-  final String? searchedMenuDocId; // 이번 스캔에서 저장한 searched menu 문서 id
+  final String? searchedMenuDocId;
   final double size;
 
   const AiFoodImageButton({
@@ -33,19 +30,33 @@ class AiFoodImageButton extends StatelessWidget {
     this.size = 80,
   });
 
-  Future<void> _requestGenerate(BuildContext context) async {
+  @override
+  State<AiFoodImageButton> createState() => _AiFoodImageButtonState();
+}
+
+class _AiFoodImageButtonState extends State<AiFoodImageButton> {
+  bool _localLoading = false;
+
+  Future<void> _requestGenerate() async {
+    if (_localLoading) return;
+
+    setState(() => _localLoading = true);
+
     try {
       final functions = FirebaseFunctions.instanceFor(region: 'asia-northeast3');
       final callable = functions.httpsCallable('generateMenuImage');
+
       await callable.call({
-        'menuKey': menuKey,
-        'menu': menu,
-        'shortDesc': (shortDesc ?? '').trim(),
-        'tags': tags,
-        if (searchedMenuDocId != null) 'searchedMenuDocId': searchedMenuDocId,
+        'menuKey': widget.menuKey,
+        'menu': widget.menu,
+        'shortDesc': (widget.shortDesc ?? '').trim(),
+        'tags': widget.tags,
+        if (widget.searchedMenuDocId != null)
+          'searchedMenuDocId': widget.searchedMenuDocId,
       });
     } catch (e) {
-      // 너무 시끄럽지 않게 스낵바 정도
+      if (!mounted) return;
+      setState(() => _localLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('AI food image failed: $e')),
       );
@@ -54,7 +65,8 @@ class AiFoodImageButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final docRef = FirebaseFirestore.instance.collection('menu_images').doc(menuKey);
+    final docRef =
+    FirebaseFirestore.instance.collection('menu_images').doc(widget.menuKey);
 
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
       stream: docRef.snapshots(),
@@ -63,28 +75,35 @@ class AiFoodImageButton extends StatelessWidget {
         final status = (data?['status'] ?? '').toString();
         final thumbUrl = (data?['thumb_url'] ?? '').toString();
 
-        final isLoading = status == 'pending';
         final isReady = status == 'ready' && thumbUrl.isNotEmpty;
+        final isLoading = _localLoading || status == 'pending';
+
+        if ((_localLoading && status == 'pending') || isReady) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && _localLoading) {
+              setState(() => _localLoading = false);
+            }
+          });
+        }
 
         if (isReady) {
           return InkWell(
             onTap: () {
-              // 원하면 탭 시 full 이미지 팝업 등 가능
+              // 필요하면 여기서 full 이미지 팝업
             },
             borderRadius: BorderRadius.circular(14),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(14),
               child: Image.network(
                 thumbUrl,
-                width: size,
-                height: size,
+                width: widget.size,
+                height: widget.size,
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) {
-                  // 썸네일 깨지면 다시 요청 버튼 제공
                   return AiSparkleIconButton(
-                    isLoading: false,
-                    onTap: () => _requestGenerate(context),
-                    size: size,
+                    isLoading: isLoading,
+                    onTap: isLoading ? () {} : _requestGenerate,
+                    size: widget.size,
                   );
                 },
               ),
@@ -92,11 +111,10 @@ class AiFoodImageButton extends StatelessWidget {
           );
         }
 
-        // 없거나 pending이면 기존 aifood 아이콘(+스파클 로딩)
         return AiSparkleIconButton(
           isLoading: isLoading,
-          onTap: isLoading ? () {} : () => _requestGenerate(context),
-          size: size,
+          onTap: isLoading ? () {} : _requestGenerate,
+          size: widget.size,
         );
       },
     );
