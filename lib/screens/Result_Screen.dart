@@ -160,18 +160,18 @@ class _ResultScreenState extends State<ResultScreen> {
 
 
 // ===== Streaming AI response =====
-StreamSubscription<String>? _aiStreamSub;
-final StringBuffer _aiStreamBuffer = StringBuffer();
-bool _aiStreamDone = false;
+  StreamSubscription<String>? _aiStreamSub;
+  final StringBuffer _aiStreamBuffer = StringBuffer();
+  bool _aiStreamDone = false;
 
-bool get _isWaitingFullMenu => widget.responseStream != null && !_aiStreamDone;
+  bool get _isWaitingFullMenu => widget.responseStream != null && !_aiStreamDone;
 
 // RECOMMEND: line fast chips
-List<String> _fastRecommend = <String>[];
+  List<String> _fastRecommend = <String>[];
 
 // Reveal chips: 1 first, then others after stream done
-int _revealRecommendedCount = 1;
-Timer? _revealTimer;
+  int _revealRecommendedCount = 1;
+  Timer? _revealTimer;
 
   // === Auto FX: detected hints ===
   String? _isoCountryCode;                 // e.g., 'KR', 'JP'
@@ -427,25 +427,25 @@ Timer? _revealTimer;
     );
   }
 
-void _kickoffRecommendedReveal() {
-  _revealTimer?.cancel();
+  void _kickoffRecommendedReveal() {
+    _revealTimer?.cancel();
 
-  final jsonRec = _getRecommendedItems();
-  final total = jsonRec.isNotEmpty ? jsonRec.length : _fastRecommend.length;
-  if (total <= 0) return;
+    final jsonRec = _getRecommendedItems();
+    final total = jsonRec.isNotEmpty ? jsonRec.length : _fastRecommend.length;
+    if (total <= 0) return;
 
-  if (_revealRecommendedCount <= 0) _revealRecommendedCount = 1;
-  if (mounted) setState(() {});
+    if (_revealRecommendedCount <= 0) _revealRecommendedCount = 1;
+    if (mounted) setState(() {});
 
-  // If streaming and not done yet, keep only the first revealed chip.
-  if (widget.responseStream != null && !_aiStreamDone) return;
+    // If streaming and not done yet, keep only the first revealed chip.
+    if (widget.responseStream != null && !_aiStreamDone) return;
 
-  _revealTimer = Timer.periodic(const Duration(milliseconds: 220), (t) {
-    if (!mounted) return t.cancel();
-    if (_revealRecommendedCount >= total) return t.cancel();
-    setState(() => _revealRecommendedCount += 1);
-  });
-}
+    _revealTimer = Timer.periodic(const Duration(milliseconds: 220), (t) {
+      if (!mounted) return t.cancel();
+      if (_revealRecommendedCount >= total) return t.cancel();
+      setState(() => _revealRecommendedCount += 1);
+    });
+  }
 
 
   void _showFullMenuSheet() {
@@ -773,301 +773,374 @@ void _kickoffRecommendedReveal() {
 
 
 // ===== Price label helpers =====
-String? _currencyCodeFromItem(Map<String, dynamic> item) {
-  String? code;
-  final prices = item['prices'];
-  if (prices is Map) {
-    final p = Map<String, dynamic>.from(prices as Map);
-    code = (p['currency'] ?? p['currencyCode'])?.toString();
+  String? _currencyCodeFromItem(Map<String, dynamic> item) {
+    String? code;
+    final prices = item['prices'];
+    if (prices is Map) {
+      final p = Map<String, dynamic>.from(prices as Map);
+      code = (p['currency'] ?? p['currencyCode'])?.toString();
+    }
+    code ??= (item['currency'] ?? item['currencyCode'] ?? item['priceCurrency'])?.toString();
+    if (code == null) return null;
+    final c = code.trim();
+    if (c.isEmpty) return null;
+    return c.toUpperCase();
   }
-  code ??= (item['currency'] ?? item['currencyCode'] ?? item['priceCurrency'])?.toString();
-  if (code == null) return null;
-  final c = code.trim();
-  if (c.isEmpty) return null;
-  return c.toUpperCase();
-}
 
-String? _symbolForCurrency(String? code) {
-  if (code == null) return null;
-  switch (code.toUpperCase()) {
-    case 'KRW':
-      return '₩';
-    case 'JPY':
-      return '¥';
-    case 'CNY':
-      return '¥';
-    case 'USD':
-      return r'$';
-    case 'EUR':
-      return '€';
-    case 'GBP':
-      return '£';
-    case 'VND':
-      return '₫';
-    case 'THB':
-      return '฿';
-    case 'PHP':
-      return '₱';
-    case 'INR':
-      return '₹';
-    default:
-      return null;
-  }
-}
-
-bool _isAmbiguousSymbol(String symbol) => symbol == r'$' || symbol == '¥';
-
-String _commaInt(int n) {
-  final sign = n < 0 ? '-' : '';
-  var s = n.abs().toString();
-  final buf = StringBuffer();
-  for (int i = 0; i < s.length; i++) {
-    final idxFromEnd = s.length - i;
-    buf.write(s[i]);
-    if (idxFromEnd > 1 && idxFromEnd % 3 == 1) {
-      buf.write(',');
+  String? _symbolForCurrency(String? code) {
+    if (code == null) return null;
+    switch (code.toUpperCase()) {
+      case 'KRW':
+        return '₩';
+      case 'JPY':
+        return '¥';
+      case 'CNY':
+        return '¥';
+      case 'USD':
+        return r'$';
+      case 'EUR':
+        return '€';
+      case 'GBP':
+        return '£';
+      case 'VND':
+        return '₫';
+      case 'THB':
+        return '฿';
+      case 'PHP':
+        return '₱';
+      case 'INR':
+        return '₹';
+      default:
+        return null;
     }
   }
-  return sign + buf.toString();
-}
 
-String _formatAmount(double v) {
-  // 정수면 소수점 제거
-  if ((v - v.roundToDouble()).abs() < 0.000001) {
-    return _commaInt(v.round());
-  }
-  var s = v.toStringAsFixed(2);
-  s = s.replaceAll(RegExp(r'\.?0+$'), ''); // 12.00 -> 12, 12.50 -> 12.5
-  final parts = s.split('.');
-  final i = int.tryParse(parts[0]) ?? 0;
-  final head = _commaInt(i);
-  if (parts.length == 2) return '$head.${parts[1]}';
-  return head;
-}
+  bool _isAmbiguousSymbol(String symbol) => symbol == r'$' || symbol == '¥';
 
-String _formatMoney(double amount, {String? currencyCode, String? symbolHint, bool includeCodeIfAmbiguous = true}) {
-  final sym = _symbolForCurrency(currencyCode) ?? symbolHint;
-  final a = _formatAmount(amount);
-  if (sym != null && sym.isNotEmpty) {
-    final base = '$sym$a';
-    if (currencyCode != null && includeCodeIfAmbiguous && _isAmbiguousSymbol(sym)) {
-      return '$base ($currencyCode)';
+  String _commaInt(int n) {
+    final sign = n < 0 ? '-' : '';
+    var s = n.abs().toString();
+    final buf = StringBuffer();
+    for (int i = 0; i < s.length; i++) {
+      final idxFromEnd = s.length - i;
+      buf.write(s[i]);
+      if (idxFromEnd > 1 && idxFromEnd % 3 == 1) {
+        buf.write(',');
+      }
     }
-    return base;
+    return sign + buf.toString();
   }
-  if (currencyCode != null && currencyCode.isNotEmpty) return '$currencyCode $a';
-  return a;
-}
 
-String _formatMoneyRange(double min, double max, {String? currencyCode, String? symbolHint}) {
-  final sym = _symbolForCurrency(currencyCode) ?? symbolHint;
-  final aMin = _formatAmount(min);
-  final aMax = _formatAmount(max);
-
-  if (sym != null && sym.isNotEmpty) {
-    var base = '$sym$aMin~$sym$aMax';
-    if (currencyCode != null && _isAmbiguousSymbol(sym)) {
-      base += ' ($currencyCode)';
+  String _formatAmount(double v) {
+    // 정수면 소수점 제거
+    if ((v - v.roundToDouble()).abs() < 0.000001) {
+      return _commaInt(v.round());
     }
-    return base;
+    var s = v.toStringAsFixed(2);
+    s = s.replaceAll(RegExp(r'\.?0+$'), ''); // 12.00 -> 12, 12.50 -> 12.5
+    final parts = s.split('.');
+    final i = int.tryParse(parts[0]) ?? 0;
+    final head = _commaInt(i);
+    if (parts.length == 2) return '$head.${parts[1]}';
+    return head;
   }
-  if (currencyCode != null && currencyCode.isNotEmpty) {
-    return '$currencyCode $aMin~$aMax';
-  }
-  return '$aMin~$aMax';
-}
 
-String? _priceLabelFromItem(Map<String, dynamic> item) {
-  final code = _currencyCodeFromItem(item);
-  String? localHint;
-  if (item['price'] is String) {
-    localHint = _extractCurrencySymbolFromText(item['price'] as String);
-  }
-  final hint = localHint ?? _currencySymbolHint;
-
-  final vals = <double>[];
-  final prices = item['prices'];
-  if (prices is Map) {
-    for (final k in const ['single', 'small', 'medium', 'large']) {
-      final a = _parseAmountAny(prices[k]);
-      if (a != null && a > 0) vals.add(a);
+  String _formatMoney(double amount, {String? currencyCode, String? symbolHint, bool includeCodeIfAmbiguous = true}) {
+    final sym = _symbolForCurrency(currencyCode) ?? symbolHint;
+    final a = _formatAmount(amount);
+    if (sym != null && sym.isNotEmpty) {
+      final base = '$sym$a';
+      if (currencyCode != null && includeCodeIfAmbiguous && _isAmbiguousSymbol(sym)) {
+        return '$base ($currencyCode)';
+      }
+      return base;
     }
+    if (currencyCode != null && currencyCode.isNotEmpty) return '$currencyCode $a';
+    return a;
   }
-  if (vals.isEmpty) {
-    final a2 = _parseAmountAny(item['price']);
-    if (a2 != null && a2 > 0) vals.add(a2);
-  }
-  if (vals.isEmpty) return null;
-  vals.sort();
 
-  if (vals.length == 1) {
-    return _formatMoney(vals.first, currencyCode: code, symbolHint: hint);
+  String _formatMoneyRange(double min, double max, {String? currencyCode, String? symbolHint}) {
+    final sym = _symbolForCurrency(currencyCode) ?? symbolHint;
+    final aMin = _formatAmount(min);
+    final aMax = _formatAmount(max);
+
+    if (sym != null && sym.isNotEmpty) {
+      var base = '$sym$aMin~$sym$aMax';
+      if (currencyCode != null && _isAmbiguousSymbol(sym)) {
+        base += ' ($currencyCode)';
+      }
+      return base;
+    }
+    if (currencyCode != null && currencyCode.isNotEmpty) {
+      return '$currencyCode $aMin~$aMax';
+    }
+    return '$aMin~$aMax';
   }
-  return _formatMoneyRange(vals.first, vals.last, currencyCode: code, symbolHint: hint);
-}
+
+  String? _priceLabelFromItem(Map<String, dynamic> item) {
+    final code = _currencyCodeFromItem(item);
+    String? localHint;
+    if (item['price'] is String) {
+      localHint = _extractCurrencySymbolFromText(item['price'] as String);
+    }
+    final hint = localHint ?? _currencySymbolHint;
+
+    final vals = <double>[];
+    final prices = item['prices'];
+    if (prices is Map) {
+      for (final k in const ['single', 'small', 'medium', 'large']) {
+        final a = _parseAmountAny(prices[k]);
+        if (a != null && a > 0) vals.add(a);
+      }
+    }
+    if (vals.isEmpty) {
+      final a2 = _parseAmountAny(item['price']);
+      if (a2 != null && a2 > 0) vals.add(a2);
+    }
+    if (vals.isEmpty) return null;
+    vals.sort();
+
+    if (vals.length == 1) {
+      return _formatMoney(vals.first, currencyCode: code, symbolHint: hint);
+    }
+    return _formatMoneyRange(vals.first, vals.last, currencyCode: code, symbolHint: hint);
+  }
 
 
 
 
 // ===== FX: quick convert prices to "system" target currency (toggle) =====
-String? _targetCurrencyCode; // e.g., 'KRW','USD'
-bool _isBulkConvertingPrices = false;
-bool _bulkPricesConverted = false;
-final Map<String, String> _convertedPriceByMenuKey = <String, String>{};
-final Set<String> _singlePriceLoadingMenuKeys = <String>{};
+  String? _targetCurrencyCode; // e.g., 'KRW','USD'
+  bool _isBulkConvertingPrices = false;
+  bool _bulkPricesConverted = false;
+  final Map<String, String> _convertedPriceByMenuKey = <String, String>{};
+  final Set<String> _singlePriceLoadingMenuKeys = <String>{};
 
-Future<String> _ensureTargetCurrencyCode() async {
-  if (_targetCurrencyCode != null && _targetCurrencyCode!.trim().isNotEmpty) {
-    return _targetCurrencyCode!;
+  Future<String> _ensureTargetCurrencyCode() async {
+    if (_targetCurrencyCode != null && _targetCurrencyCode!.trim().isNotEmpty) {
+      return _targetCurrencyCode!;
+    }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      const keys = <String>[
+        'fx_target_currency',
+        'fxTargetCurrency',
+        'target_currency',
+        'preferred_currency',
+        'home_currency',
+      ];
+      for (final k in keys) {
+        final v = prefs.getString(k);
+        if (v != null && v.trim().length >= 3) {
+          final code = v.trim().toUpperCase();
+          _targetCurrencyCode = code;
+          return code;
+        }
+      }
+    } catch (_) {}
+
+    // Fallback: device locale country -> currency
+    final cc = ui.PlatformDispatcher.instance.locale.countryCode?.toUpperCase();
+    final byLocale = (cc != null) ? kCountryToCurrency[cc] : null;
+    final code = (byLocale ?? 'USD').toUpperCase();
+    _targetCurrencyCode = code;
+    return code;
   }
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    const keys = <String>[
-      'fx_target_currency',
-      'fxTargetCurrency',
-      'target_currency',
-      'preferred_currency',
-      'home_currency',
-    ];
-    for (final k in keys) {
-      final v = prefs.getString(k);
-      if (v != null && v.trim().length >= 3) {
-        final code = v.trim().toUpperCase();
-        _targetCurrencyCode = code;
-        return code;
+
+  List<double> _extractPriceValuesFromItem(Map<String, dynamic> item) {
+    final vals = <double>[];
+    final prices = item['prices'];
+    if (prices is Map) {
+      for (final k in const ['single', 'small', 'medium', 'large']) {
+        final a = _parseAmountAny(prices[k]);
+        if (a != null && a > 0) vals.add(a);
       }
     }
-  } catch (_) {}
-
-  // Fallback: device locale country -> currency
-  final cc = ui.PlatformDispatcher.instance.locale.countryCode?.toUpperCase();
-  final byLocale = (cc != null) ? kCountryToCurrency[cc] : null;
-  final code = (byLocale ?? 'USD').toUpperCase();
-  _targetCurrencyCode = code;
-  return code;
-}
-
-List<double> _extractPriceValuesFromItem(Map<String, dynamic> item) {
-  final vals = <double>[];
-  final prices = item['prices'];
-  if (prices is Map) {
-    for (final k in const ['single', 'small', 'medium', 'large']) {
-      final a = _parseAmountAny(prices[k]);
-      if (a != null && a > 0) vals.add(a);
+    if (vals.isEmpty) {
+      final a2 = _parseAmountAny(item['price']);
+      if (a2 != null && a2 > 0) vals.add(a2);
     }
+    vals.sort();
+    return vals;
   }
-  if (vals.isEmpty) {
-    final a2 = _parseAmountAny(item['price']);
-    if (a2 != null && a2 > 0) vals.add(a2);
-  }
-  vals.sort();
-  return vals;
-}
 
-List<Map<String, dynamic>> _collectAllMenuItemsForFx() {
-  final out = <Map<String, dynamic>>[];
-  out.addAll(_getRecommendedItems());
+  List<Map<String, dynamic>> _collectAllMenuItemsForFx() {
+    final out = <Map<String, dynamic>>[];
+    out.addAll(_getRecommendedItems());
 
-  final j = _aiJson;
-  if (j == null) return out;
+    final j = _aiJson;
+    if (j == null) return out;
 
-  final rawFm = j['fullMenu'] ?? j['full_menu'] ?? j['menu'] ?? j['menus'];
-  if (rawFm is Map) {
-    if (rawFm['items'] is Map) {
-      final itemsMap = Map<String, dynamic>.from(rawFm['items'] as Map);
-      for (final v in itemsMap.values) {
-        if (v is List) {
-          for (final e in v.whereType<Map>()) {
-            out.add(Map<String, dynamic>.from(e));
+    final rawFm = j['fullMenu'] ?? j['full_menu'] ?? j['menu'] ?? j['menus'];
+    if (rawFm is Map) {
+      if (rawFm['items'] is Map) {
+        final itemsMap = Map<String, dynamic>.from(rawFm['items'] as Map);
+        for (final v in itemsMap.values) {
+          if (v is List) {
+            for (final e in v.whereType<Map>()) {
+              out.add(Map<String, dynamic>.from(e));
+            }
+          }
+        }
+      } else {
+        for (final v in rawFm.values) {
+          if (v is List) {
+            for (final e in v.whereType<Map>()) {
+              out.add(Map<String, dynamic>.from(e));
+            }
           }
         }
       }
-    } else {
-      for (final v in rawFm.values) {
-        if (v is List) {
-          for (final e in v.whereType<Map>()) {
-            out.add(Map<String, dynamic>.from(e));
-          }
+    }
+    return out;
+  }
+
+  Future<Map<String, FxDoc>> _fetchFxDocsOnce(Iterable<String> bases) async {
+    final ids = bases.map((e) => e.toUpperCase()).toSet().toList();
+    final limited = ids.take(10).toList();
+    final snap = await FirebaseFirestore.instance
+        .collection('fx_core')
+        .where(FieldPath.documentId, whereIn: limited)
+        .get();
+
+    final m = <String, FxDoc>{};
+    for (final d in snap.docs) {
+      final fx = FxDoc.fromSnap(d);
+      if (fx != null) m[d.id.toUpperCase()] = fx;
+    }
+    return m;
+  }
+
+  Future<String?> _convertPriceValuesToLabel({
+    required List<double> vals,
+    required String from,
+    required String to,
+  }) async {
+    if (vals.isEmpty) return null;
+    final toU = to.toUpperCase();
+    final fromU = from.toUpperCase();
+
+    if (toU == fromU) {
+      if (vals.length == 1) {
+        return _formatMoney(vals.first, currencyCode: fromU, symbolHint: currencySymbol(fromU));
+      }
+      return _formatMoneyRange(vals.first, vals.last, currencyCode: fromU, symbolHint: currencySymbol(fromU));
+    }
+
+    final bases = <String>{toU, 'USD', 'EUR', 'KRW', 'JPY', 'CNY'};
+    final docs = await _fetchFxDocsOnce(bases);
+    final baseDoc = pickBestBaseDoc(from: fromU, to: toU, docs: docs);
+    if (baseDoc == null) return null;
+
+    double? cMin = convertViaBase(amount: vals.first, from: fromU, to: toU, baseDoc: baseDoc);
+    double? cMax = convertViaBase(amount: vals.last, from: fromU, to: toU, baseDoc: baseDoc);
+    if (cMin == null || cMax == null) return null;
+
+    cMin = double.parse(cMin.toStringAsFixed(2));
+    cMax = double.parse(cMax.toStringAsFixed(2));
+
+    if ((cMin - cMax).abs() < 0.000001) {
+      return _formatMoney(cMin, currencyCode: toU, symbolHint: currencySymbol(toU));
+    }
+    return _formatMoneyRange(cMin, cMax, currencyCode: toU, symbolHint: currencySymbol(toU));
+  }
+
+  Future<void> _toggleBulkPriceConversion() async {
+    if (_isBulkConvertingPrices) return;
+
+    if (_bulkPricesConverted) {
+      setState(() {
+        _bulkPricesConverted = false;
+        _convertedPriceByMenuKey.clear();
+      });
+      return;
+    }
+
+    final allItems = _collectAllMenuItemsForFx();
+    if (allItems.isEmpty) return;
+
+    setState(() => _isBulkConvertingPrices = true);
+
+    try {
+      final to = await _ensureTargetCurrencyCode();
+
+      final groups = <String, List<Map<String, dynamic>>>{};
+      for (final item in allItems) {
+        final vals = _extractPriceValuesFromItem(item);
+        if (vals.isEmpty) continue;
+
+        final code = _currencyCodeFromItem(item);
+        String? localHint;
+        if (item['price'] is String) {
+          localHint = _extractCurrencySymbolFromText(item['price'] as String);
+        }
+        final from = (code ??
+            pickLocalCurrency(
+              detectedCountryCode: _isoCountryCode,
+              currencySymbolHint: localHint ?? _currencySymbolHint,
+            ))
+            .toUpperCase();
+
+        groups.putIfAbsent(from, () => <Map<String, dynamic>>[]).add(item);
+      }
+
+      if (groups.isEmpty) return;
+
+      final converted = <String, String>{};
+
+      for (final entry in groups.entries) {
+        final from = entry.key;
+        for (final item in entry.value) {
+          final vals = _extractPriceValuesFromItem(item);
+          if (vals.isEmpty) continue;
+
+          final label = await _convertPriceValuesToLabel(vals: vals, from: from, to: to);
+          if (label == null) continue;
+
+          final nameOriginal = (item['nameOriginal'] ?? '').toString().trim();
+          final nameTranslated = (item['name'] ?? item['nameTranslated'] ?? '').toString().trim();
+          final mk = buildMenuKey(nameOriginal, nameTranslated);
+          converted[mk] = label;
         }
       }
+
+      if (!mounted) return;
+      setState(() {
+        _convertedPriceByMenuKey
+          ..clear()
+          ..addAll(converted);
+        _bulkPricesConverted = converted.isNotEmpty;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)?.result_fxRateLoadFailed ?? '환율 정보를 불러오지 못했어요. 네트워크 상태를 확인해 주세요.')),
+      );
+    } finally {
+      if (mounted) setState(() => _isBulkConvertingPrices = false);
     }
   }
-  return out;
-}
 
-Future<Map<String, FxDoc>> _fetchFxDocsOnce(Iterable<String> bases) async {
-  final ids = bases.map((e) => e.toUpperCase()).toSet().toList();
-  final limited = ids.take(10).toList();
-  final snap = await FirebaseFirestore.instance
-      .collection('fx_core')
-      .where(FieldPath.documentId, whereIn: limited)
-      .get();
+  Future<void> _toggleSinglePriceConversion(Map<String, dynamic> item) async {
+    final nameOriginal = (item['nameOriginal'] ?? '').toString().trim();
+    final nameTranslated = (item['name'] ?? item['nameTranslated'] ?? '').toString().trim();
+    final mk = buildMenuKey(nameOriginal, nameTranslated);
 
-  final m = <String, FxDoc>{};
-  for (final d in snap.docs) {
-    final fx = FxDoc.fromSnap(d);
-    if (fx != null) m[d.id.toUpperCase()] = fx;
-  }
-  return m;
-}
+    if (_singlePriceLoadingMenuKeys.contains(mk)) return;
 
-Future<String?> _convertPriceValuesToLabel({
-  required List<double> vals,
-  required String from,
-  required String to,
-}) async {
-  if (vals.isEmpty) return null;
-  final toU = to.toUpperCase();
-  final fromU = from.toUpperCase();
-
-  if (toU == fromU) {
-    if (vals.length == 1) {
-      return _formatMoney(vals.first, currencyCode: fromU, symbolHint: currencySymbol(fromU));
+    // 이미 변환된 상태면, 이 항목만 원래 통화로 되돌림
+    if (_convertedPriceByMenuKey.containsKey(mk)) {
+      setState(() => _convertedPriceByMenuKey.remove(mk));
+      return;
     }
-    return _formatMoneyRange(vals.first, vals.last, currencyCode: fromU, symbolHint: currencySymbol(fromU));
-  }
 
-  final bases = <String>{toU, 'USD', 'EUR', 'KRW', 'JPY', 'CNY'};
-  final docs = await _fetchFxDocsOnce(bases);
-  final baseDoc = pickBestBaseDoc(from: fromU, to: toU, docs: docs);
-  if (baseDoc == null) return null;
+    final vals = _extractPriceValuesFromItem(item);
+    if (vals.isEmpty) return;
 
-  double? cMin = convertViaBase(amount: vals.first, from: fromU, to: toU, baseDoc: baseDoc);
-  double? cMax = convertViaBase(amount: vals.last, from: fromU, to: toU, baseDoc: baseDoc);
-  if (cMin == null || cMax == null) return null;
+    setState(() => _singlePriceLoadingMenuKeys.add(mk));
 
-  cMin = double.parse(cMin.toStringAsFixed(2));
-  cMax = double.parse(cMax.toStringAsFixed(2));
-
-  if ((cMin - cMax).abs() < 0.000001) {
-    return _formatMoney(cMin, currencyCode: toU, symbolHint: currencySymbol(toU));
-  }
-  return _formatMoneyRange(cMin, cMax, currencyCode: toU, symbolHint: currencySymbol(toU));
-}
-
-Future<void> _toggleBulkPriceConversion() async {
-  if (_isBulkConvertingPrices) return;
-
-  if (_bulkPricesConverted) {
-    setState(() {
-      _bulkPricesConverted = false;
-      _convertedPriceByMenuKey.clear();
-    });
-    return;
-  }
-
-  final allItems = _collectAllMenuItemsForFx();
-  if (allItems.isEmpty) return;
-
-  setState(() => _isBulkConvertingPrices = true);
-
-  try {
-    final to = await _ensureTargetCurrencyCode();
-
-    final groups = <String, List<Map<String, dynamic>>>{};
-    for (final item in allItems) {
-      final vals = _extractPriceValuesFromItem(item);
-      if (vals.isEmpty) continue;
+    try {
+      final to = await _ensureTargetCurrencyCode();
 
       final code = _currencyCodeFromItem(item);
       String? localHint;
@@ -1075,108 +1148,35 @@ Future<void> _toggleBulkPriceConversion() async {
         localHint = _extractCurrencySymbolFromText(item['price'] as String);
       }
       final from = (code ??
-              pickLocalCurrency(
-                detectedCountryCode: _isoCountryCode,
-                currencySymbolHint: localHint ?? _currencySymbolHint,
-              ))
+          pickLocalCurrency(
+            detectedCountryCode: _isoCountryCode,
+            currencySymbolHint: localHint ?? _currencySymbolHint,
+          ))
           .toUpperCase();
 
-      groups.putIfAbsent(from, () => <Map<String, dynamic>>[]).add(item);
-    }
-
-    if (groups.isEmpty) return;
-
-    final converted = <String, String>{};
-
-    for (final entry in groups.entries) {
-      final from = entry.key;
-      for (final item in entry.value) {
-        final vals = _extractPriceValuesFromItem(item);
-        if (vals.isEmpty) continue;
-
-        final label = await _convertPriceValuesToLabel(vals: vals, from: from, to: to);
-        if (label == null) continue;
-
-        final nameOriginal = (item['nameOriginal'] ?? '').toString().trim();
-        final nameTranslated = (item['name'] ?? item['nameTranslated'] ?? '').toString().trim();
-        final mk = buildMenuKey(nameOriginal, nameTranslated);
-        converted[mk] = label;
+      final label = await _convertPriceValuesToLabel(vals: vals, from: from, to: to);
+      if (label == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppLocalizations.of(context)?.result_fxConvertFailed ?? '해당 금액의 환율 변환에 실패했어요.')),
+          );
+        }
+        return;
       }
+
+      if (!mounted) return;
+      setState(() {
+        _convertedPriceByMenuKey[mk] = label;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)?.result_fxRateLoadFailed ?? '환율 정보를 불러오지 못했어요. 네트워크 상태를 확인해 주세요.')),
+      );
+    } finally {
+      if (mounted) setState(() => _singlePriceLoadingMenuKeys.remove(mk));
     }
-
-    if (!mounted) return;
-    setState(() {
-      _convertedPriceByMenuKey
-        ..clear()
-        ..addAll(converted);
-      _bulkPricesConverted = converted.isNotEmpty;
-    });
-  } catch (_) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context)?.result_fxRateLoadFailed ?? '환율 정보를 불러오지 못했어요. 네트워크 상태를 확인해 주세요.')),
-    );
-  } finally {
-    if (mounted) setState(() => _isBulkConvertingPrices = false);
   }
-}
-
-Future<void> _toggleSinglePriceConversion(Map<String, dynamic> item) async {
-  final nameOriginal = (item['nameOriginal'] ?? '').toString().trim();
-  final nameTranslated = (item['name'] ?? item['nameTranslated'] ?? '').toString().trim();
-  final mk = buildMenuKey(nameOriginal, nameTranslated);
-
-  if (_singlePriceLoadingMenuKeys.contains(mk)) return;
-
-  // 이미 변환된 상태면, 이 항목만 원래 통화로 되돌림
-  if (_convertedPriceByMenuKey.containsKey(mk)) {
-    setState(() => _convertedPriceByMenuKey.remove(mk));
-    return;
-  }
-
-  final vals = _extractPriceValuesFromItem(item);
-  if (vals.isEmpty) return;
-
-  setState(() => _singlePriceLoadingMenuKeys.add(mk));
-
-  try {
-    final to = await _ensureTargetCurrencyCode();
-
-    final code = _currencyCodeFromItem(item);
-    String? localHint;
-    if (item['price'] is String) {
-      localHint = _extractCurrencySymbolFromText(item['price'] as String);
-    }
-    final from = (code ??
-            pickLocalCurrency(
-              detectedCountryCode: _isoCountryCode,
-              currencySymbolHint: localHint ?? _currencySymbolHint,
-            ))
-        .toUpperCase();
-
-    final label = await _convertPriceValuesToLabel(vals: vals, from: from, to: to);
-    if (label == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)?.result_fxConvertFailed ?? '해당 금액의 환율 변환에 실패했어요.')),
-        );
-      }
-      return;
-    }
-
-    if (!mounted) return;
-    setState(() {
-      _convertedPriceByMenuKey[mk] = label;
-    });
-  } catch (_) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context)?.result_fxRateLoadFailed ?? '환율 정보를 불러오지 못했어요. 네트워크 상태를 확인해 주세요.')),
-    );
-  } finally {
-    if (mounted) setState(() => _singlePriceLoadingMenuKeys.remove(mk));
-  }
-}
 
   Future<void> _ensureAiImageChecked({
     required String menuKey,
@@ -1282,89 +1282,89 @@ Future<void> _toggleSinglePriceConversion(Map<String, dynamic> item) async {
 
     // ✅ 이름 2줄 위젯(너가 만든 것 유지하되 폰트만 조금 조정 추천)
 
-Widget buildDualName() {
-  final o = nameOriginal.trim();
-  final t = nameTranslated.trim();
-  final showTranslation = t.isNotEmpty && o.isNotEmpty && t.toLowerCase() != o.toLowerCase();
-  final primary = o.isNotEmpty ? o : t;
-  final secondary = showTranslation ? t : '';
+    Widget buildDualName() {
+      final o = nameOriginal.trim();
+      final t = nameTranslated.trim();
+      final showTranslation = t.isNotEmpty && o.isNotEmpty && t.toLowerCase() != o.toLowerCase();
+      final primary = o.isNotEmpty ? o : t;
+      final secondary = showTranslation ? t : '';
 
-  final effectivePrice = (_convertedPriceByMenuKey[menuKey] ?? priceLabel)?.trim();
-  final showPrice = effectivePrice != null && effectivePrice.isNotEmpty;
+      final effectivePrice = (_convertedPriceByMenuKey[menuKey] ?? priceLabel)?.trim();
+      final showPrice = effectivePrice != null && effectivePrice.isNotEmpty;
 
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Text(
-        primary,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          fontFamily: 'SFPro',
-          fontWeight: FontWeight.bold,
-          fontSize: 18,
-          color: textColor,
-          height: 1.08,
-        ),
-      ),
-      if (secondary.isNotEmpty) ...[
-        const SizedBox(height: 3),
-        Text(
-          secondary,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontFamily: 'SFPro',
-            fontSize: 16,
-            color: textColor.withOpacity(0.78),
-            height: 1.05,
-            decoration: TextDecoration.underline,
-            decorationThickness: 1.0,
-            decorationColor: textColor.withOpacity(0.35),
-          ),
-        ),
-      ],
-      if (showPrice) ...[
-  const SizedBox(height: 6),
-  InkWell(
-    borderRadius: BorderRadius.circular(8),
-    onTap: () => _toggleSinglePriceConversion(item),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Flexible(
-          child: Text(
-            effectivePrice!,
-            maxLines: 1,
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            primary,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontFamily: 'SFPro',
-              fontWeight: FontWeight.w700,
-              fontSize: 13,
-              color: textColor.withOpacity(0.92),
-              height: 1.05,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: textColor,
+              height: 1.08,
             ),
           ),
-        ),
-        const SizedBox(width: 6),
-        if (_singlePriceLoadingMenuKeys.contains(menuKey))
-          const CupertinoActivityIndicator(radius: 7)
-        else
-          Icon(
-            Icons.currency_exchange,
-            size: 16,
-            color: _convertedPriceByMenuKey.containsKey(menuKey)
-                ? Theme.of(context).colorScheme.primary
-                : textColor.withOpacity(0.65),
-          ),
-      ],
-    ),
-  ),
-],
-    ],
-  );
-}
+          if (secondary.isNotEmpty) ...[
+            const SizedBox(height: 3),
+            Text(
+              secondary,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontFamily: 'SFPro',
+                fontSize: 16,
+                color: textColor.withOpacity(0.78),
+                height: 1.05,
+                decoration: TextDecoration.underline,
+                decorationThickness: 1.0,
+                decorationColor: textColor.withOpacity(0.35),
+              ),
+            ),
+          ],
+          if (showPrice) ...[
+            const SizedBox(height: 6),
+            InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: () => _toggleSinglePriceConversion(item),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      effectivePrice!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontFamily: 'SFPro',
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                        color: textColor.withOpacity(0.92),
+                        height: 1.05,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  if (_singlePriceLoadingMenuKeys.contains(menuKey))
+                    const CupertinoActivityIndicator(radius: 7)
+                  else
+                    Icon(
+                      Icons.currency_exchange,
+                      size: 16,
+                      color: _convertedPriceByMenuKey.containsKey(menuKey)
+                          ? Theme.of(context).colorScheme.primary
+                          : textColor.withOpacity(0.65),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -1558,19 +1558,19 @@ Widget buildDualName() {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child:
-                  AnimatedDotsText(
-                    baseText:
-                    AppLocalizations.of(context)?.result_analyzing ??
-                        'Analyzing',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white60
-                          : CupertinoColors.systemGrey2,
-                      decoration: TextDecoration.none,
-                    ),
-                  )
+                    child:
+                    AnimatedDotsText(
+                      baseText:
+                      AppLocalizations.of(context)?.result_analyzing ??
+                          'Analyzing',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white60
+                            : CupertinoColors.systemGrey2,
+                        decoration: TextDecoration.none,
+                      ),
+                    )
                 ),
                 Builder(builder: (_) {
                   final nutritionData =
@@ -1594,58 +1594,39 @@ Widget buildDualName() {
                 }),
               ],
             ),
-            const SizedBox(height: 10),
-            Align(
-              alignment: Alignment.bottomRight,
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              decoration: BoxDecoration(
+                color: _isDarkMode
+                    ? const Color(0xFF232326)
+                    : const Color(0xFFF3F4F6),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: _isDarkMode
+                      ? Colors.white.withOpacity(0.05)
+                      : const Color(0xFFEAECF0),
+                ),
+              ),
               child: Row(
-                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: _isDarkMode
-                          ? const Color(0xFF2A2A2E)
-                          : const Color(0xFFF6F7F9),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: _isDarkMode
-                            ? Colors.white.withOpacity(0.08)
-                            : const Color(0xFFE5E7EB),
-                      ),
-                    ),
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.copy,
-                        color: textColor.withOpacity(0.86),
-                        size: 20,
-                      ),
-                      onPressed: () {
-                        final copySource = widget.responses.isNotEmpty
-                            ? widget.responses.join('\n\n')
-                            : _aiStreamBuffer.toString();
-                        _copyTextToClipboard(_buildReadableCopyText());
-                      },
-                    ),
-                  ),
+                  const CupertinoActivityIndicator(radius: 8),
                   const SizedBox(width: 8),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: _isDarkMode
-                          ? const Color(0xFF2A2A2E)
-                          : const Color(0xFFF6F7F9),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: _isDarkMode
-                            ? Colors.white.withOpacity(0.08)
-                            : const Color(0xFFE5E7EB),
+                  Flexible(
+                    child: Text(
+                      AppLocalizations.of(context)?.result_preparingMenu ??
+                          'Preparing...',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'SFPro',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: textColor.withOpacity(0.65),
                       ),
-                    ),
-                    child: IconButton(
-                      icon: Icon(
-                        CupertinoIcons.square_arrow_up,
-                        color: textColor.withOpacity(0.86),
-                        size: 22,
-                      ),
-                      onPressed: _shareCapturedImage,
                     ),
                   ),
                 ],
@@ -1659,32 +1640,32 @@ Widget buildDualName() {
     // ✅ JSON UI
 // ✅ Chips use JSON recommended when available, otherwise fast RECOMMEND from stream
 // - 추천 칩에는 "환율/가격 UI"를 넣지 않고, 이름만 간단히 보여줍니다.
-final chipLabels = rec.isNotEmpty
-    ? rec
+    final chipLabels = rec.isNotEmpty
+        ? rec
         .map((e) {
-          final o = (e['nameOriginal'] ?? '').toString().trim();
-          final t = (e['name'] ?? e['nameTranslated'] ?? '').toString().trim();
-          final pair = _MenuNamePair(original: o, translated: t);
-          return pair.display;
-        })
+      final o = (e['nameOriginal'] ?? '').toString().trim();
+      final t = (e['name'] ?? e['nameTranslated'] ?? '').toString().trim();
+      final pair = _MenuNamePair(original: o, translated: t);
+      return pair.display;
+    })
         .where((e) => e.isNotEmpty)
         .toList()
-    : _fastRecommend;
+        : _fastRecommend;
 
 // ✅ FX 버튼(중복 제거): 추천 칩에는 두지 않고, 제목 라인(본문)에서만 노출
-final _jsonPriceAmounts = _extractAmountsFromRecommendedPrices(rec);
-final _fxAmounts = <double>[
-  ..._jsonPriceAmounts,
-  ..._amountCandidates,
-  if ((_amountFromResponses ?? 0) > 0) _amountFromResponses!,
-];
-final _seenFx = <String>{};
-final _fxUniq = <double>[];
-for (final a in _fxAmounts) {
-  if (a <= 0) continue;
-  final key = a.toStringAsFixed(2);
-  if (_seenFx.add(key)) _fxUniq.add(a);
-}
+    final _jsonPriceAmounts = _extractAmountsFromRecommendedPrices(rec);
+    final _fxAmounts = <double>[
+      ..._jsonPriceAmounts,
+      ..._amountCandidates,
+      if ((_amountFromResponses ?? 0) > 0) _amountFromResponses!,
+    ];
+    final _seenFx = <String>{};
+    final _fxUniq = <double>[];
+    for (final a in _fxAmounts) {
+      if (a <= 0) continue;
+      final key = a.toStringAsFixed(2);
+      if (_seenFx.add(key)) _fxUniq.add(a);
+    }
 
 
     return Container(
@@ -1707,75 +1688,75 @@ for (final a in _fxAmounts) {
               ),
               const Spacer(),
 
-if (_fxUniq.isNotEmpty)
+              if (_fxUniq.isNotEmpty)
                 (_isBulkConvertingPrices
                     ? const CupertinoActivityIndicator(radius: 9)
                     : IconButton(
-                        iconSize: 18,
-                        splashRadius: 18,
-                        padding: EdgeInsets.zero,
-                        tooltip: _bulkPricesConverted
-                            ? (AppLocalizations.of(context)?.result_restoreOriginalCurrency ?? '원래 통화로 되돌리기')
-                            : AppLocalizations.of(context)!.result_convertToSystemCurrency(_targetCurrencyCode ?? (AppLocalizations.of(context)?.result_auto ?? '자동')),
-                        icon: Icon(
-                          Icons.currency_exchange,
-                          color: _bulkPricesConverted
-                              ? Theme.of(context).colorScheme.primary
-                              : textColor.withOpacity(0.92),
-                        ),
-                        onPressed: _toggleBulkPriceConversion,
-                      )),
+                  iconSize: 18,
+                  splashRadius: 18,
+                  padding: EdgeInsets.zero,
+                  tooltip: _bulkPricesConverted
+                      ? (AppLocalizations.of(context)?.result_restoreOriginalCurrency ?? '원래 통화로 되돌리기')
+                      : AppLocalizations.of(context)!.result_convertToSystemCurrency(_targetCurrencyCode ?? (AppLocalizations.of(context)?.result_auto ?? '자동')),
+                  icon: Icon(
+                    Icons.currency_exchange,
+                    color: _bulkPricesConverted
+                        ? Theme.of(context).colorScheme.primary
+                        : textColor.withOpacity(0.92),
+                  ),
+                  onPressed: _toggleBulkPriceConversion,
+                )),
             ],
           ),
           const SizedBox(height: 12),          // ✅ 추천 메뉴 칩: 1개 먼저 선명, 나머지는 블러(스트림 완료 후 순차 공개)
-if (chipLabels.isNotEmpty) ...[
-  Wrap(
-    spacing: 8,
-    runSpacing: 8,
-    children: List.generate(chipLabels.length, (i) {
-      final visible = i < _revealRecommendedCount;
-      final label = chipLabels[i];
+          if (chipLabels.isNotEmpty) ...[
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: List.generate(chipLabels.length, (i) {
+                final visible = i < _revealRecommendedCount;
+                final label = chipLabels[i];
 
-      Widget chip = Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: textColor.withOpacity(0.18)),
-          color: Theme.of(context).cardColor,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontFamily: 'SFPro',
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: textColor,
-          ),
-        ),
-      );
+                Widget chip = Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: textColor.withOpacity(0.18)),
+                    color: Theme.of(context).cardColor,
+                  ),
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontFamily: 'SFPro',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: textColor,
+                    ),
+                  ),
+                );
 
-      if (!visible) {
-        chip = Opacity(
-          opacity: 0.35,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-              child: chip,
+                if (!visible) {
+                  chip = Opacity(
+                    opacity: 0.35,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: BackdropFilter(
+                        filter: ui.ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                        child: chip,
+                      ),
+                    ),
+                  );
+                }
+
+                return AnimatedOpacity(
+                  duration: const Duration(milliseconds: 220),
+                  opacity: visible ? 1.0 : 0.35,
+                  child: chip,
+                );
+              }),
             ),
-          ),
-        );
-      }
-
-      return AnimatedOpacity(
-        duration: const Duration(milliseconds: 220),
-        opacity: visible ? 1.0 : 0.35,
-        child: chip,
-      );
-    }),
-  ),
-  const SizedBox(height: 14),
-],
+            const SizedBox(height: 14),
+          ],
           // ✅ 추천칩 이후, 전체 결과가 아직이면 로딩 표시
           if (_isWaitingFullMenu) ...[
             const SizedBox(height: 10),
@@ -2028,6 +2009,8 @@ if (chipLabels.isNotEmpty) ...[
     }
     return pair.display;
   }
+
+
 
   List<String> _buildSearchKeywords({
     required String original,
@@ -2299,57 +2282,57 @@ if (chipLabels.isNotEmpty) ...[
     }
 
 // ✅ 스트리밍이 있으면: Result에서 바로 받아서 RECOMMEND 먼저 반영
-if (widget.responseStream != null) {
-  _aiStreamSub = widget.responseStream!.listen(
-    (delta) {
-      _aiStreamBuffer.write(delta);
+    if (widget.responseStream != null) {
+      _aiStreamSub = widget.responseStream!.listen(
+            (delta) {
+          _aiStreamBuffer.write(delta);
 
-      // RECOMMEND 라인이 오면 즉시 칩 1개 선공개
-      final s = _aiStreamBuffer.toString();
-      final m = RegExp(r'RECOMMEND:\s*(.*)\n').firstMatch(s);
-      if (m != null) {
-        final oneLine = (m.group(1) ?? '').trim();
-        final items = oneLine
-            .split('|')
-            .map((e) => e.trim())
-            .where((e) => e.isNotEmpty && e != '-' && e != '—')
-            .toList();
+          // RECOMMEND 라인이 오면 즉시 칩 1개 선공개
+          final s = _aiStreamBuffer.toString();
+          final m = RegExp(r'RECOMMEND:\s*(.*)\n').firstMatch(s);
+          if (m != null) {
+            final oneLine = (m.group(1) ?? '').trim();
+            final items = oneLine
+                .split('|')
+                .map((e) => e.trim())
+                .where((e) => e.isNotEmpty && e != '-' && e != '—')
+                .toList();
 
-        if (items.isNotEmpty && _fastRecommend.isEmpty) {
-          _fastRecommend = items;
-          _revealRecommendedCount = 1;
+            if (items.isNotEmpty && _fastRecommend.isEmpty) {
+              _fastRecommend = items;
+              _revealRecommendedCount = 1;
+              _kickoffRecommendedReveal();
+            }
+          }
+
+          if (mounted) setState(() {});
+        },
+        onError: (_) {},
+        onDone: () {
+          _aiStreamDone = true;
+          print('✅ stream done. fullLen=${_aiStreamBuffer.length}');
+
+          final full = _aiStreamBuffer.toString().trim();
+          print('✅ full head: ${full.substring(0, full.length > 180 ? 180 : full.length)}');
+          print('✅ hasJsonStart=${full.contains("{")} hasJsonEnd=${full.contains("}")}');
+          if (full.isNotEmpty) {
+            widget.responses.add(full);
+          }
+
+          _parseAiJson();
           _kickoffRecommendedReveal();
-        }
-      }
 
-      if (mounted) setState(() {});
-    },
-    onError: (_) {},
-    onDone: () {
-      _aiStreamDone = true;
-      print('✅ stream done. fullLen=${_aiStreamBuffer.length}');
+          if (_pendingSearchedMenuSave) {
+            _pendingSearchedMenuSave = false;
+            _saveSearchedMenuFireAndForget();
+          }
 
-      final full = _aiStreamBuffer.toString().trim();
-      print('✅ full head: ${full.substring(0, full.length > 180 ? 180 : full.length)}');
-      print('✅ hasJsonStart=${full.contains("{")} hasJsonEnd=${full.contains("}")}');
-      if (full.isNotEmpty) {
-        widget.responses.add(full);
-      }
-
-      _parseAiJson();
+          if (mounted) setState(() {});
+        },
+      );
+    } else {
       _kickoffRecommendedReveal();
-
-      if (_pendingSearchedMenuSave) {
-        _pendingSearchedMenuSave = false;
-        _saveSearchedMenuFireAndForget();
-      }
-
-      if (mounted) setState(() {});
-    },
-  );
-} else {
-  _kickoffRecommendedReveal();
-}
+    }
 
 
     print("▶️ [ResultScreen] initState at ${DateTime.now().toIso8601String()}");
@@ -2413,7 +2396,7 @@ if (widget.responseStream != null) {
         // ✅ searched menu 저장(비동기)
         _saveSearchedMenuFireAndForget();
 
-      //  _fetchRAGData();
+        //  _fetchRAGData();
         // _fetchFoodDetail();
       } else if (widget.isFromHistory) {
         setState(() {
@@ -2437,7 +2420,7 @@ if (widget.responseStream != null) {
 
         _fetchExistingReview();
         if (_ragDetail == null) {
-        //  _fetchRAGData();
+          //  _fetchRAGData();
         }
         _fetchFoodDetail();
       } else {
@@ -3170,50 +3153,50 @@ if (widget.responseStream != null) {
     }
   }
 
- // Future<void> _fetchRAGData() async {
- //   if (_geohash == null) return;
+  // Future<void> _fetchRAGData() async {
+  //   if (_geohash == null) return;
 
-    //try {
-    //  QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-    //      .collection('rag_data')
-    //      .where('geohashes', arrayContains: _geohash)
-    //      .limit(1)
-    //      .get();
+  //try {
+  //  QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+  //      .collection('rag_data')
+  //      .where('geohashes', arrayContains: _geohash)
+  //      .limit(1)
+  //      .get();
 
-      //if (querySnapshot.docs.isNotEmpty) {
-      //  DocumentSnapshot doc = querySnapshot.docs.first;
-       // Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
+  //if (querySnapshot.docs.isNotEmpty) {
+  //  DocumentSnapshot doc = querySnapshot.docs.first;
+  // Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
 
-        //if (data != null) {
-        //  SharedPreferences prefs = await SharedPreferences.getInstance();
-         // String? langCode = prefs.getString('languageCode');
-         // langCode ??= Localizations.localeOf(context).toLanguageTag();
-         // langCode = langCode.replaceAll('-', '_');
+  //if (data != null) {
+  //  SharedPreferences prefs = await SharedPreferences.getInstance();
+  // String? langCode = prefs.getString('languageCode');
+  // langCode ??= Localizations.localeOf(context).toLanguageTag();
+  // langCode = langCode.replaceAll('-', '_');
 
-         // String detailField = 'detail_$langCode';
+  // String detailField = 'detail_$langCode';
 
-         // setState(() {
-         //   _ragDetail =
-          //  data.containsKey(detailField) ? data[detailField] : data['detail_en'];
-         // });
-       // } else {
-        //  setState(() {
-         //   _ragDetail = null;
-         // });
-         // await _trySendImpressions();
-       // }
-     // } else {
-       // setState(() {
-         // _ragDetail = null;
-       // });
-     // }
-   // } catch (e) {
-     // print('Failed to fetch RAG data: $e');
-      // setState(() {
-       // _ragDetail = null;
-     // });
-   // }
- // }
+  // setState(() {
+  //   _ragDetail =
+  //  data.containsKey(detailField) ? data[detailField] : data['detail_en'];
+  // });
+  // } else {
+  //  setState(() {
+  //   _ragDetail = null;
+  // });
+  // await _trySendImpressions();
+  // }
+  // } else {
+  // setState(() {
+  // _ragDetail = null;
+  // });
+  // }
+  // } catch (e) {
+  // print('Failed to fetch RAG data: $e');
+  // setState(() {
+  // _ragDetail = null;
+  // });
+  // }
+  // }
 
   void _showFullImage({required List<File> files, required int initialIndex}) {
     _viewerImages = files;
@@ -3317,41 +3300,71 @@ if (widget.responseStream != null) {
         ),
         body: Stack(
           children: [
-        SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: RepaintBoundary(
-          key: _shareWidgetKey,
-          child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ImageGridViewer(
-                    images: widget.images != null && widget.images!.isNotEmpty
-                        ? widget.images!
-                        : [widget.image],
-                    onTap: (i) {
-                      final files =
-                      widget.images != null && widget.images!.isNotEmpty
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: RepaintBoundary(
+                key: _shareWidgetKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ImageGridViewer(
+                      images: widget.images != null && widget.images!.isNotEmpty
                           ? widget.images!
-                          : [widget.image];
-                      _showFullImage(files: files, initialIndex: i);
-                    },
-                  ),
-                  SizedBox(height: 16),
+                          : [widget.image],
+                      onTap: (i) {
+                        final files =
+                        widget.images != null && widget.images!.isNotEmpty
+                            ? widget.images!
+                            : [widget.image];
+                        _showFullImage(files: files, initialIndex: i);
+                      },
+                    ),
+                    SizedBox(height: 16),
 
-                  // ✅ NEW UI (JSON-based) with fallback to old text
-                  _buildScanResultCard(
-                    localizations: localizations!,
-                    textColor: textColor,
-                    boxDecoration: boxDecoration,
-                  ),
+                    // ✅ NEW UI (JSON-based) with fallback to old text
+                    _buildScanResultCard(
+                      localizations: localizations!,
+                      textColor: textColor,
+                      boxDecoration: boxDecoration,
+                    ),
 
 
-                  // ✅ 여기! 결과 카드 바깥 바로 아래에 “근처 타인 메뉴 태그”
-                  _buildNearbyMenuTags(),
+                    // ✅ 여기! 결과 카드 바깥 바로 아래에 “근처 타인 메뉴 태그”
+                    _buildNearbyMenuTags(),
 
 
-                  // ✅ RAG Answer (허용 사용자만)
-                  if (_isAllowedUser && (_ragDetail?.isNotEmpty ?? false)) ...[
+                    // ✅ RAG Answer (허용 사용자만)
+                    if (_isAllowedUser && (_ragDetail?.isNotEmpty ?? false)) ...[
+                      SizedBox(height: 16),
+                      Container(
+                        decoration: boxDecoration,
+                        padding: EdgeInsets.all(8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'RAG Answer',
+                              style: TextStyle(
+                                fontFamily: 'SFPro',
+                                fontWeight: FontWeight.bold,
+                                color: textColor,
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              _ragDetail!,
+                              style: TextStyle(
+                                fontFamily: 'SFPro',
+                                fontSize: 12,
+                                color: textColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    // ✅ 리뷰 입력
                     SizedBox(height: 16),
                     Container(
                       decoration: boxDecoration,
@@ -3360,152 +3373,122 @@ if (widget.responseStream != null) {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'RAG Answer',
+                            localizations.reviewTitle,
                             style: TextStyle(
                               fontFamily: 'SFPro',
                               fontWeight: FontWeight.bold,
                               color: textColor,
                             ),
                           ),
-                          SizedBox(height: 10),
-                          Text(
-                            _ragDetail!,
+                          SizedBox(height: 8),
+                          TextField(
+                            controller: _reviewController,
+                            maxLines: 3,
                             style: TextStyle(
-                              fontFamily: 'SFPro',
-                              fontSize: 12,
-                              color: textColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-
-                  // ✅ 리뷰 입력
-                  SizedBox(height: 16),
-                  Container(
-                    decoration: boxDecoration,
-                    padding: EdgeInsets.all(8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          localizations.reviewTitle,
-                          style: TextStyle(
-                            fontFamily: 'SFPro',
-                            fontWeight: FontWeight.bold,
-                            color: textColor,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        TextField(
-                          controller: _reviewController,
-                          maxLines: 3,
-                          style: TextStyle(
-                            fontFamily: 'SFPro',
-                            fontSize: 14,
-                            color: textColor,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: localizations.reviewHint,
-                            hintStyle: TextStyle(
                               fontFamily: 'SFPro',
                               fontSize: 14,
-                              color: Colors.grey,
+                              color: textColor,
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  SafeArea(
-                    bottom: true,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0, vertical: 8.0),
-                      child: ElevatedButton(
-                        onPressed: _isLoading
-                            ? null
-                            : () {
-                          final _comment =
-                          _reviewController.text.trim();
-                          LogService().logSaveClick(
-                            hasComment: _comment.isNotEmpty,
-                            contentLength: _comment.length,
-                            context: 'result',
-                          );
-
-                          if (!_isMergeDone) {
-                            if (!_pendingSave) {
-                              setState(() => _pendingSave = true);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(AppLocalizations.of(context)!
-                                      .mergeInProgress),
-                                ),
-                              );
-                            }
-                            return;
-                          }
-                          _saveScanResult();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor:
-                          Theme.of(context).brightness == Brightness.dark
-                              ? Colors.grey
-                              : Colors.white,
-                          backgroundColor:
-                          Theme.of(context).brightness == Brightness.dark
-                              ? Colors.grey[800]
-                              : Colors.grey,
-                          minimumSize: Size(double.infinity, 48),
-                          textStyle:
-                          TextStyle(fontFamily: 'SFPro', fontSize: 14),
-                        ),
-                        child: Text(localizations.save),
-                      ),
-                    ),
-                  ),
-
-                  if (_isLoading)
-                    Container(
-                      color: Colors.black.withOpacity(0.5),
-                      child: Center(
-                        child: CupertinoActivityIndicator(radius: 10.0),
-                      ),
-                    ),
-                  if (_isLoadingError)
-                    Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Icon(
-                            CupertinoIcons.exclamationmark_triangle,
-                            color: _isDarkMode
-                                ? Colors.redAccent
-                                : Colors.red,
-                            size: 40.0,
-                          ),
-                          SizedBox(height: 20),
-                          Text(
-                            localizations.cloudsavingError,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontFamily: 'SFProText',
-                              color: _isDarkMode
-                                  ? Colors.white70
-                                  : CupertinoColors.systemGrey,
-                              decoration: TextDecoration.none,
+                            decoration: InputDecoration(
+                              hintText: localizations.reviewHint,
+                              hintStyle: TextStyle(
+                                fontFamily: 'SFPro',
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                ],
+
+                    SafeArea(
+                      bottom: true,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16.0, vertical: 8.0),
+                        child: ElevatedButton(
+                          onPressed: _isLoading
+                              ? null
+                              : () {
+                            final _comment =
+                            _reviewController.text.trim();
+                            LogService().logSaveClick(
+                              hasComment: _comment.isNotEmpty,
+                              contentLength: _comment.length,
+                              context: 'result',
+                            );
+
+                            if (!_isMergeDone) {
+                              if (!_pendingSave) {
+                                setState(() => _pendingSave = true);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(AppLocalizations.of(context)!
+                                        .mergeInProgress),
+                                  ),
+                                );
+                              }
+                              return;
+                            }
+                            _saveScanResult();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor:
+                            Theme.of(context).brightness == Brightness.dark
+                                ? Colors.grey
+                                : Colors.white,
+                            backgroundColor:
+                            Theme.of(context).brightness == Brightness.dark
+                                ? Colors.grey[800]
+                                : Colors.grey,
+                            minimumSize: Size(double.infinity, 48),
+                            textStyle:
+                            TextStyle(fontFamily: 'SFPro', fontSize: 14),
+                          ),
+                          child: Text(localizations.save),
+                        ),
+                      ),
+                    ),
+
+                    if (_isLoading)
+                      Container(
+                        color: Colors.black.withOpacity(0.5),
+                        child: Center(
+                          child: CupertinoActivityIndicator(radius: 10.0),
+                        ),
+                      ),
+                    if (_isLoadingError)
+                      Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Icon(
+                              CupertinoIcons.exclamationmark_triangle,
+                              color: _isDarkMode
+                                  ? Colors.redAccent
+                                  : Colors.red,
+                              size: 40.0,
+                            ),
+                            SizedBox(height: 20),
+                            Text(
+                              localizations.cloudsavingError,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontFamily: 'SFProText',
+                                color: _isDarkMode
+                                    ? Colors.white70
+                                    : CupertinoColors.systemGrey,
+                                decoration: TextDecoration.none,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
-        ),
           ],
         ),
       ),
@@ -3573,16 +3556,16 @@ class _AiSparkleIconButtonState extends State<AiSparkleIconButton>
           clipBehavior: Clip.none,
           children: [
             Positioned.fill(
-                child: Center(
-                  child: OverflowBox(
-                    maxWidth: s * 1.2,
-                    maxHeight: s * 1.2,
-                    child: Image.asset(
-                      'assets/icons/aifood.png',
-                      width: s * 1.2,
-                      height: s * 1.2,
-                      fit: BoxFit.contain,
-                    ),
+              child: Center(
+                child: OverflowBox(
+                  maxWidth: s * 1.2,
+                  maxHeight: s * 1.2,
+                  child: Image.asset(
+                    'assets/icons/aifood.png',
+                    width: s * 1.2,
+                    height: s * 1.2,
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
             ),
