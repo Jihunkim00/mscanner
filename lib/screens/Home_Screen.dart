@@ -923,12 +923,16 @@ class _HomeContentState extends State<HomeContent> {
   bool _didLoadBanner = false;
 
   TextEditingController _restaurantNameController = TextEditingController();
+  final TextEditingController _topSearchController = TextEditingController();
   bool _isSaving = false; // 추가
   int _rating = 0;
   double _carouselSpacing = 10.0; // Spacing between "도시별 추천"과 GFCard
 
   bool _sentMainCardsImpression = false;
   bool _sentManualImpression = false; // (아래 4번에서 사용)
+  bool _isTopSearching = false;
+  List<Map<String, dynamic>> _topSearchResults = const [];
+  Future<List<String>>? _topSearchChipsFuture;
   String? _extractPrimaryMenuFromResponses(List<String> responses) {
     if (responses.isEmpty) return null;
 
@@ -991,7 +995,7 @@ class _HomeContentState extends State<HomeContent> {
   @override
   void initState() {
     super.initState();
-
+    _topSearchChipsFuture = _loadTopSearchChips();
   }
 
 
@@ -1045,50 +1049,218 @@ class _HomeContentState extends State<HomeContent> {
   @override
   void dispose() {
     _restaurantNameController.dispose();
+    _topSearchController.dispose();
     _adaptiveBanner?.dispose(); // ⬅️ 추가
     super.dispose();
+  }
+
+  String _normalizeKeyword(String input) {
+    return input.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
+  }
+
+  Future<List<String>> _loadTopSearchChips() async {
+    final snap = await FirebaseFirestore.instance
+        .collection('searched menu')
+        .orderBy('timestamp', descending: true)
+        .limit(60)
+        .get();
+
+    final set = <String>{};
+    for (final d in snap.docs) {
+      final data = d.data();
+      final menuName = (data['menu_name'] ?? '').toString().trim();
+      if (menuName.isNotEmpty) set.add(menuName);
+
+      final chips = data['recommended_chip_labels'];
+      if (chips is List) {
+        for (final c in chips) {
+          final label = c.toString().trim();
+          if (label.isNotEmpty) set.add(label);
+        }
+      }
+    }
+    return set.take(12).toList();
+  }
+
+  Future<void> _runTopMenuSearch(String rawQuery) async {
+    final query = _normalizeKeyword(rawQuery);
+    if (query.isEmpty) {
+      if (!mounted) return;
+      setState(() {
+        _topSearchResults = const [];
+      });
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() => _isTopSearching = true);
+
+    try {
+      final exact = await FirebaseFirestore.instance
+          .collection('searched menu')
+          .where('search_keywords', arrayContains: query)
+          .limit(30)
+          .get();
+
+      var docs = exact.docs;
+
+      if (docs.isEmpty) {
+        final fallback = await FirebaseFirestore.instance
+            .collection('searched menu')
+            .orderBy('timestamp', descending: true)
+            .limit(120)
+            .get();
+
+        docs = fallback.docs.where((d) {
+          final data = d.data();
+          final keywords = (data['search_keywords'] is List)
+              ? (data['search_keywords'] as List)
+                  .map((e) => _normalizeKeyword(e.toString()))
+                  .toList()
+              : <String>[];
+
+          final menuName = _normalizeKeyword((data['menu_name'] ?? '').toString());
+          final key = _normalizeKeyword((data['menu_key'] ?? '').toString());
+          final labels = (data['recommended_chip_labels'] is List)
+              ? (data['recommended_chip_labels'] as List)
+                  .map((e) => _normalizeKeyword(e.toString()))
+                  .toList()
+              : <String>[];
+
+          final combined = <String>[menuName, key, ...labels, ...keywords];
+          return combined.any((v) => v.contains(query));
+        }).toList();
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _topSearchResults = docs
+            .map((d) => {'id': d.id, ...d.data()})
+            .cast<Map<String, dynamic>>()
+            .toList();
+      });
+    } finally {
+      if (mounted) setState(() => _isTopSearching = false);
+    }
   }
 
   // ✅ _HomeContentState 안에 추가 (build() 위에 넣으면 됨)
   Widget _buildSearchBar(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (ctx) => CameraScreen(
-              onCancel: () => Navigator.of(ctx).pop(),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: isDarkMode ? Colors.white10 : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            CupertinoIcons.search,
+            size: 18,
+            color: isDarkMode ? Colors.white70 : Colors.black54,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: CupertinoTextField(
+              controller: _topSearchController,
+              placeholder: AppLocalizations.of(context)?.home_searchAiFoodImage ?? 'Search Ai food image...',
+              decoration: const BoxDecoration(color: Colors.transparent),
+              padding: EdgeInsets.zero,
+              style: TextStyle(
+                fontSize: 14,
+                color: isDarkMode ? Colors.white70 : Colors.black87,
+                fontFamily: 'SFProText',
+              ),
+              onSubmitted: _runTopMenuSearch,
             ),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () => _runTopMenuSearch(_topSearchController.text),
+            child: Icon(
+              CupertinoIcons.arrow_right_circle_fill,
+              size: 22,
+              color: isDarkMode ? Colors.white70 : Colors.black54,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopSearchChips() {
+    return FutureBuilder<List<String>>(
+      future: _topSearchChipsFuture,
+      builder: (context, snapshot) {
+        final chips = snapshot.data ?? const <String>[];
+        if (chips.isEmpty) return const SizedBox.shrink();
+
+        return Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: chips.map((chip) {
+              return ActionChip(
+                label: Text(chip),
+                onPressed: () {
+                  _topSearchController.text = chip;
+                  _runTopMenuSearch(chip);
+                },
+              );
+            }).toList(),
           ),
         );
       },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: isDarkMode ? Colors.white10 : Colors.white,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              CupertinoIcons.search,
-              size: 18,
-              color: isDarkMode ? Colors.white70 : Colors.black54,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                AppLocalizations.of(context)?.home_searchAiFoodImage ?? 'Search Ai food image...',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isDarkMode ? Colors.white70 : Colors.black54,
-                  fontFamily: 'SFProText',
+    );
+  }
+
+  Widget _buildTopSearchResults() {
+    if (_isTopSearching) {
+      return const Padding(
+        padding: EdgeInsets.only(top: 12),
+        child: CupertinoActivityIndicator(),
+      );
+    }
+    if (_topSearchResults.isEmpty) return const SizedBox.shrink();
+
+    final textColor = Theme.of(context).textTheme.bodyMedium?.color;
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark ? Colors.white10 : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        children: _topSearchResults.take(5).map((item) {
+          final name = (item['menu_name'] ?? '').toString();
+          final chips = (item['recommended_chip_labels'] is List)
+              ? (item['recommended_chip_labels'] as List).map((e) => e.toString()).take(3).join(' · ')
+              : '';
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(CupertinoIcons.search_circle, size: 18, color: textColor?.withOpacity(0.7)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(name, style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
+                      if (chips.isNotEmpty)
+                        Text(chips, style: TextStyle(color: textColor?.withOpacity(0.65), fontSize: 12)),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -1110,6 +1282,8 @@ class _HomeContentState extends State<HomeContent> {
           children: [
             // 상단 검색바
             _buildSearchBar(context),
+            _buildTopSearchChips(),
+            _buildTopSearchResults(),
             const SizedBox(height: 16),
 
             // 최신 좋아요 콘텐츠 표시 (기존 유지)

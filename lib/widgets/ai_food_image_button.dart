@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:crypto/crypto.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'package:mscanner/screens/result_screen.dart';
@@ -35,6 +36,8 @@ class AiFoodImageButton extends StatelessWidget {
 
   Future<void> _requestGenerate(BuildContext context) async {
     try {
+      await _upsertMenuImageMetadata();
+
       final functions = FirebaseFunctions.instanceFor(region: 'asia-northeast3');
       final callable = functions.httpsCallable('generateMenuImage');
       await callable.call({
@@ -44,12 +47,43 @@ class AiFoodImageButton extends StatelessWidget {
         'tags': tags,
         if (searchedMenuDocId != null) 'searchedMenuDocId': searchedMenuDocId,
       });
+
+      await _upsertMenuImageMetadata();
     } catch (e) {
       // 너무 시끄럽지 않게 스낵바 정도
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('AI food image failed: $e')),
       );
     }
+  }
+
+  Future<void> _upsertMenuImageMetadata() async {
+    final docRef = FirebaseFirestore.instance.collection('menu_images').doc(menuKey);
+    final now = FieldValue.serverTimestamp();
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+
+    final original = (menu['original'] ?? '').toString().trim();
+    final translated = (menu['translated'] ?? '').toString().trim();
+    final display = translated.isNotEmpty ? translated : original;
+
+    final payload = <String, dynamic>{
+      if (searchedMenuDocId != null) 'searched_menu_doc_id': searchedMenuDocId,
+      'menu_key': menuKey,
+      'menu_original': original,
+      'menu_translated': translated,
+      'menu_display': display,
+      'shortDesc': (shortDesc ?? '').trim(),
+      'menu_chips': tags,
+      'updatedAt': now,
+      if (uid != null) 'uid': uid,
+    };
+
+    final snap = await docRef.get();
+    if (!snap.exists) {
+      payload['createdAt'] = now;
+    }
+
+    await docRef.set(payload, SetOptions(merge: true));
   }
 
   @override

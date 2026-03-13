@@ -1890,6 +1890,98 @@ if (chipLabels.isNotEmpty) ...[
     return pair.display;
   }
 
+  List<Map<String, dynamic>> _extractRecommendedMenusForSave() {
+    final rec = _getRecommendedItems();
+    if (rec.isEmpty) {
+      final pair = _extractPrimaryMenuPair();
+      if (pair == null) return const [];
+      return [
+        {
+          'original': pair.original.trim(),
+          'translated': pair.translated.trim(),
+          'display': pair.display,
+          'key': pair.key,
+          'shortDesc': '',
+          'tags': <String>[],
+        }
+      ];
+    }
+
+    final out = <Map<String, dynamic>>[];
+    final seen = <String>{};
+    for (final item in rec) {
+      final original = (item['nameOriginal'] ?? item['original'] ?? '').toString().trim();
+      final translated = (item['name'] ?? item['translated'] ?? '').toString().trim();
+      final pair = _MenuNamePair(original: original, translated: translated);
+      if (!pair.hasAny) continue;
+
+      final tags = (item['tags'] is List)
+          ? (item['tags'] as List).map((e) => e.toString().trim()).where((e) => e.isNotEmpty).toList()
+          : <String>[];
+
+      if (!seen.add(pair.key)) continue;
+
+      out.add({
+        'original': pair.original.trim(),
+        'translated': pair.translated.trim(),
+        'display': pair.display,
+        'key': pair.key,
+        'shortDesc': (item['shortDesc'] ?? '').toString().trim(),
+        'tags': tags,
+      });
+    }
+    return out;
+  }
+
+  List<String> _extractRecommendedChipLabelsForSave(List<Map<String, dynamic>> menus) {
+    final set = <String>{};
+    for (final m in menus) {
+      final display = (m['display'] ?? '').toString().trim();
+      if (display.isNotEmpty) set.add(display);
+      final tags = (m['tags'] is List) ? (m['tags'] as List) : const [];
+      for (final t in tags) {
+        final label = t.toString().trim();
+        if (label.isNotEmpty) set.add(label);
+      }
+    }
+    return set.toList();
+  }
+
+  String _normalizeKeyword(String input) {
+    return input.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
+  }
+
+  List<String> _buildSearchKeywordsForSave({
+    required List<Map<String, dynamic>> menus,
+    required List<String> chipLabels,
+    required String menuName,
+  }) {
+    final set = <String>{};
+
+    void addKeyword(String value) {
+      final normalized = _normalizeKeyword(value);
+      if (normalized.isNotEmpty) set.add(normalized);
+    }
+
+    addKeyword(menuName);
+    for (final m in menus) {
+      addKeyword((m['display'] ?? '').toString());
+      addKeyword((m['original'] ?? '').toString());
+      addKeyword((m['translated'] ?? '').toString());
+
+      final tags = (m['tags'] is List) ? (m['tags'] as List) : const [];
+      for (final t in tags) {
+        addKeyword(t.toString());
+      }
+    }
+
+    for (final c in chipLabels) {
+      addKeyword(c);
+    }
+
+    return set.toList();
+  }
+
   /// searched menu 컬렉션에 (geohash + 메뉴명 + 시스템언어)만 비동기로 저장
   void _saveSearchedMenuFireAndForget() {
     if (widget.isTutorial) return;
@@ -1905,6 +1997,15 @@ if (chipLabels.isNotEmpty) ...[
     final pair = _extractPrimaryMenuPair(); // ✅ JSON 우선
     if (pair == null) return;
 
+    final recommendedMenus = _extractRecommendedMenusForSave();
+    final recommendedChipLabels = _extractRecommendedChipLabelsForSave(recommendedMenus);
+    final menuName = pair.display;
+    final searchKeywords = _buildSearchKeywordsForSave(
+      menus: recommendedMenus,
+      chipLabels: recommendedChipLabels,
+      menuName: menuName,
+    );
+
     final systemLang = ui.PlatformDispatcher.instance.locale.languageCode;
     final user = FirebaseAuth.instance.currentUser;
 
@@ -1915,8 +2016,12 @@ if (chipLabels.isNotEmpty) ...[
 
         await docRef.set({
           'menu': pair.toMap(),
+          'primary_menu': pair.toMap(),
           'menu_name': pair.display,
           'menu_key': pair.key,
+          'recommended_menus': recommendedMenus,
+          'recommended_chip_labels': recommendedChipLabels,
+          'search_keywords': searchKeywords,
           'geohash': _geohash,
           'lang': systemLang,
           'timestamp': DateTime.now().toIso8601String(),
