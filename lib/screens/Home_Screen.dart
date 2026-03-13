@@ -915,6 +915,21 @@ class HomeContent extends StatefulWidget {
   @override
   _HomeContentState createState() => _HomeContentState();
 }
+class _MenuImageSuggestion {
+  final String docId;
+  final String title;
+  final String subtitle;
+  final String shortDesc;
+  final String? imageUrl;
+
+  const _MenuImageSuggestion({
+    required this.docId,
+    required this.title,
+    required this.subtitle,
+    required this.shortDesc,
+    this.imageUrl,
+  });
+}
 
 class _HomeContentState extends State<HomeContent> {
 
@@ -923,7 +938,16 @@ class _HomeContentState extends State<HomeContent> {
   bool _didLoadBanner = false;
 
   TextEditingController _restaurantNameController = TextEditingController();
+  final TextEditingController _topSearchController = TextEditingController();
+  final FocusNode _topSearchFocusNode = FocusNode();
+  Timer? _topSearchDebounce;
+
+  List<_MenuImageSuggestion> _topSearchSuggestions = [];
+  bool _showTopSearchSuggestions = false;
+  bool _isSearchingTopSuggestions = false;
+
   bool _isSaving = false; // 추가
+
   int _rating = 0;
   double _carouselSpacing = 10.0; // Spacing between "도시별 추천"과 GFCard
 
@@ -992,7 +1016,15 @@ class _HomeContentState extends State<HomeContent> {
   void initState() {
     super.initState();
 
+    _topSearchFocusNode.addListener(() {
+      if (!_topSearchFocusNode.hasFocus && mounted) {
+        setState(() {
+          _showTopSearchSuggestions = false;
+        });
+      }
+    });
   }
+
 
 
   @override
@@ -1045,53 +1077,416 @@ class _HomeContentState extends State<HomeContent> {
   @override
   void dispose() {
     _restaurantNameController.dispose();
-    _adaptiveBanner?.dispose(); // ⬅️ 추가
+    _topSearchController.dispose();
+    _topSearchFocusNode.dispose();
+    _topSearchDebounce?.cancel();
+    _adaptiveBanner?.dispose();
     super.dispose();
   }
 
-  // ✅ _HomeContentState 안에 추가 (build() 위에 넣으면 됨)
-  Widget _buildSearchBar(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (ctx) => CameraScreen(
-              onCancel: () => Navigator.of(ctx).pop(),
+  String _normalizeSearchKeyword(String value) {
+    return value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+  }
+  String? _extractMenuImageUrl(Map<String, dynamic> data) {
+    for (final key in [
+      'thumb_url',
+      'image_url',
+      'imageUrl',
+      'generated_image_url',
+      'downloadUrl',
+    ]) {
+      final v = (data[key] ?? '').toString().trim();
+      if (v.isNotEmpty) return v;
+    }
+    return null;
+  }
+
+
+  void _onTopSearchChanged(String value) {
+    _topSearchDebounce?.cancel();
+
+    final q = _normalizeSearchKeyword(value);
+    if (q.isEmpty) {
+      if (!mounted) return;
+      setState(() {
+        _topSearchSuggestions = [];
+        _showTopSearchSuggestions = false;
+        _isSearchingTopSuggestions = false;
+      });
+      return;
+    }
+
+    _topSearchDebounce = Timer(const Duration(milliseconds: 350), () {
+      _loadTopSearchSuggestions(q);
+    });
+  }
+
+  Future<void> _loadTopSearchSuggestions(String keyword) async {
+    final normalized = _normalizeSearchKeyword(keyword);
+    if (normalized.isEmpty) return;
+
+    if (mounted) {
+      setState(() {
+        _isSearchingTopSuggestions = true;
+      });
+    }
+
+
+    try {
+      final snap = await FirebaseFirestore.instance
+          .collection('menu_images')
+          .where('menu_search_keywords', arrayContains: normalized)
+          .limit(10)
+          .get();
+
+      final items = snap.docs.map((doc) {
+        final data = doc.data();
+
+        final display = (data['menu_display'] ?? '').toString().trim();
+        final original = (data['menu_original'] ?? '').toString().trim();
+        final translated = (data['menu_translated'] ?? '').toString().trim();
+        final shortDesc = (data['shortDesc'] ?? '').toString().trim();
+        final imageUrl = _extractMenuImageUrl(data);
+
+        final title = display.isNotEmpty
+            ? display
+            : (original.isNotEmpty ? original : translated);
+
+        final subtitle = [original, translated]
+            .where((e) => e.isNotEmpty && e != title)
+            .toSet()
+            .join(' · ');
+
+        return _MenuImageSuggestion(
+          docId: doc.id,
+          title: title,
+          subtitle: subtitle,
+          shortDesc: shortDesc,
+          imageUrl: imageUrl,
+        );
+      }).where((e) => e.title.isNotEmpty).toList();
+
+      if (!mounted) return;
+      setState(() {
+        _topSearchSuggestions = items;
+        _showTopSearchSuggestions = items.isNotEmpty;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _topSearchSuggestions = [];
+        _showTopSearchSuggestions = false;
+      });
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _isSearchingTopSuggestions = false;
+      });
+    }
+  }
+
+  Future<void> _performTopSearch(String keyword) async {
+    final q = _normalizeSearchKeyword(keyword);
+    if (q.isEmpty) return;
+
+    await _loadTopSearchSuggestions(q);
+    if (!mounted) return;
+
+    if (_topSearchSuggestions.isEmpty) {
+      setState(() {
+        _showTopSearchSuggestions = false;
+      });
+      return;
+    }
+
+
+    if (_topSearchSuggestions.length == 1) {
+      _openMenuPreviewSheet(_topSearchSuggestions.first);
+      return;
+    }
+
+    setState(() {
+      _showTopSearchSuggestions = true;
+    });
+  }
+
+  void _openMenuPreviewSheet(_MenuImageSuggestion item) {
+    _topSearchController.text = item.title;
+    _topSearchFocusNode.unfocus();
+
+    setState(() {
+      _showTopSearchSuggestions = false;
+    });
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final isDarkMode = Theme.of(ctx).brightness == Brightness.dark;
+
+        return Container(
+          decoration: BoxDecoration(
+            color: isDarkMode ? const Color(0xFF1C1C1E) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 42,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withOpacity(0.35),
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    height: MediaQuery.of(ctx).size.height * 0.30,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: item.imageUrl != null
+                          ? CachedNetworkImage(
+                        imageUrl: item.imageUrl!,
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) =>
+                        const Center(child: CupertinoActivityIndicator()),
+                        errorWidget: (_, __, ___) => Container(
+                          color: isDarkMode
+                              ? Colors.white10
+                              : Colors.grey.shade200,
+                          child: const Center(
+                            child: Icon(Icons.restaurant, size: 44),
+                          ),
+                        ),
+                      )
+                          : Container(
+                        color: isDarkMode
+                            ? Colors.white10
+                            : Colors.grey.shade200,
+                        child: const Center(
+                          child: Icon(Icons.restaurant, size: 44),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    item.title,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'SFProDisplay',
+                    ),
+                  ),
+                  if (item.subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      item.subtitle,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDarkMode ? Colors.white70 : Colors.black54,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  Text(
+                    item.shortDesc.isNotEmpty
+                        ? item.shortDesc
+                        : 'No description available.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      height: 1.45,
+                      color: isDarkMode ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
       },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: isDarkMode ? Colors.white10 : Colors.white,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              CupertinoIcons.search,
-              size: 18,
-              color: isDarkMode ? Colors.white70 : Colors.black54,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                AppLocalizations.of(context)?.home_searchAiFoodImage ?? 'Search Ai food image...',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isDarkMode ? Colors.white70 : Colors.black54,
-                  fontFamily: 'SFProText',
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
+
+
+
+
+
+
+
+
+
+
+  Widget _buildSearchBar(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: isDarkMode ? Colors.white10 : Colors.white,
+            borderRadius: BorderRadius.vertical(
+              top: const Radius.circular(18),
+              bottom: Radius.circular(
+                (_showTopSearchSuggestions && _topSearchSuggestions.isNotEmpty) ? 8 : 18,
+              ),
+            ),
+            border: Border.all(
+              color: isDarkMode
+                  ? Colors.white.withOpacity(0.08)
+                  : Colors.grey.shade300,
+            ),
+          ),
+
+
+          child: TextField(
+            controller: _topSearchController,
+            focusNode: _topSearchFocusNode,
+            textInputAction: TextInputAction.search,
+            textAlignVertical: TextAlignVertical.center,
+            onChanged: (_) {
+              setState(() {});
+              _onTopSearchChanged(_topSearchController.text);
+            },
+            onSubmitted: _performTopSearch,
+            style: TextStyle(
+              fontSize: 14,
+              height: 1.2,
+              color: isDarkMode ? Colors.white : Colors.black87,
+              fontFamily: 'SFProText',
+            ),
+            decoration: InputDecoration(
+              isDense: true,
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(vertical: 12),
+              hintText: AppLocalizations.of(context)?.home_searchAiFoodImage ??
+                  'Search Ai food image...',
+              hintStyle: TextStyle(
+                fontSize: 14,
+                height: 1.2,
+                color: isDarkMode ? Colors.white70 : Colors.black54,
+                fontFamily: 'SFProText',
+              ),
+              prefixIconConstraints: const BoxConstraints(
+                minWidth: 36,
+                minHeight: 36,
+              ),
+              prefixIcon: Padding(
+                padding: const EdgeInsets.only(left: 8, right: 8),
+                child: Icon(
+                  CupertinoIcons.search,
+                  size: 18,
+                  color: isDarkMode ? Colors.white70 : Colors.black54,
+                ),
+              ),
+              suffixIcon: _isSearchingTopSuggestions
+                  ? const Padding(
+                padding: EdgeInsets.only(right: 12),
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CupertinoActivityIndicator(radius: 8),
+                ),
+              )
+                  : (_topSearchController.text.trim().isEmpty
+                  ? null
+                  : IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(
+                  minWidth: 36,
+                  minHeight: 36,
+                ),
+                icon: Icon(
+                  CupertinoIcons.clear_circled_solid,
+                  size: 18,
+                  color: isDarkMode ? Colors.white54 : Colors.black38,
+                ),
+                onPressed: () {
+                  _topSearchController.clear();
+                  setState(() {
+                    _topSearchSuggestions = [];
+                    _showTopSearchSuggestions = false;
+                  });
+                },
+              )),
+
+            ),
+          ),
+
+        ),
+    if (_showTopSearchSuggestions && _topSearchSuggestions.isNotEmpty) ...[
+    Transform.translate(
+    offset: const Offset(0, -1),
+    child: Container(
+
+            width: double.infinity,
+            constraints: const BoxConstraints(maxHeight: 220),
+      decoration: BoxDecoration(
+        color: isDarkMode ? const Color(0xFF1C1C1E) : Colors.white,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(8),
+          bottom: Radius.circular(16),
+        ),
+        border: Border.all(
+          color: isDarkMode
+              ? Colors.white.withOpacity(0.08)
+              : Colors.grey.shade300,
+        ),
+      ),
+
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: _topSearchSuggestions.length,
+              separatorBuilder: (_, __) => Divider(
+                height: 1,
+                color: isDarkMode
+                    ? Colors.white.withOpacity(0.06)
+                    : Colors.grey.shade200,
+              ),
+              itemBuilder: (_, index) {
+                final item = _topSearchSuggestions[index];
+
+                return ListTile(
+                  dense: true,
+                  title: Text(
+                    item.title,
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                  subtitle: item.subtitle.isNotEmpty
+                      ? Text(
+                    item.subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 11),
+                  )
+                      : null,
+                  onTap: () => _openMenuPreviewSheet(item),
+                );
+              },
+            ),
+          ),
+    )
+    ],
+
+      ],
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {

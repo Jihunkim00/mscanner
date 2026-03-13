@@ -2015,7 +2015,11 @@ class _ResultScreenState extends State<ResultScreen> {
   List<String> _buildSearchKeywords({
     required String original,
     required String translated,
+    String? display,
     List<String> tags = const [],
+    List<_MenuNamePair> recommendedMenus = const [],
+    List<String> recommendedChipLabels = const [],
+    List<String> recommendedTags = const [],
   }) {
     final set = <String>{};
 
@@ -2026,6 +2030,21 @@ class _ResultScreenState extends State<ResultScreen> {
 
     addValue(original);
     addValue(translated);
+    addValue(display ?? '');
+
+    for (final menu in recommendedMenus) {
+      addValue(menu.original);
+      addValue(menu.translated);
+      addValue(menu.display);
+    }
+
+    for (final label in recommendedChipLabels) {
+      addValue(label);
+    }
+
+    for (final tag in recommendedTags) {
+      addValue(tag);
+    }
 
     for (final tag in tags) {
       addValue(tag);
@@ -2033,6 +2052,50 @@ class _ResultScreenState extends State<ResultScreen> {
 
     return set.toList();
   }
+
+  List<_MenuNamePair> _extractRecommendedMenuPairs() {
+    final pairs = <_MenuNamePair>[];
+    final seen = <String>{};
+
+    for (final item in _getRecommendedItems()) {
+      final original = (item['nameOriginal'] ?? item['original'] ?? '').toString().trim();
+      final translated = (item['name'] ?? item['translated'] ?? '').toString().trim();
+      final pair = _MenuNamePair(original: original, translated: translated);
+      if (!pair.hasAny) continue;
+
+      final dedupeKey = '${pair.original.toLowerCase()}|${pair.translated.toLowerCase()}';
+      if (seen.add(dedupeKey)) {
+        pairs.add(pair);
+      }
+    }
+
+    return pairs;
+  }
+
+  List<String> _extractRecommendedChipLabels() {
+    final labels = <String>{};
+    for (final pair in _extractRecommendedMenuPairs()) {
+      labels.add(pair.display);
+    }
+    return labels.toList();
+  }
+
+  List<String> _extractRecommendedTags() {
+    final tags = <String>{};
+    for (final item in _getRecommendedItems()) {
+      final rawTags = item['tags'];
+      if (rawTags is List) {
+        for (final t in rawTags) {
+          final v = t.toString().trim();
+          if (v.isNotEmpty) tags.add(v);
+        }
+      }
+    }
+    return tags.toList();
+  }
+
+
+
 
   void _saveSearchedMenuFireAndForget() {
     if (widget.isTutorial) return;
@@ -2049,10 +2112,17 @@ class _ResultScreenState extends State<ResultScreen> {
 
     final systemLang = ui.PlatformDispatcher.instance.locale.languageCode;
     final user = FirebaseAuth.instance.currentUser;
+    final recommendedMenus = _extractRecommendedMenuPairs();
+    final recommendedChipLabels = _extractRecommendedChipLabels();
+    final recommendedTags = _extractRecommendedTags();
 
     final searchKeywords = _buildSearchKeywords(
       original: pair.original,
       translated: pair.translated,
+      display: pair.display,
+      recommendedMenus: recommendedMenus,
+      recommendedChipLabels: recommendedChipLabels,
+      recommendedTags: recommendedTags,
     );
 
     unawaited(() async {
@@ -2070,6 +2140,7 @@ class _ResultScreenState extends State<ResultScreen> {
           'menu_key': pair.key,
           'menu_original': pair.original,
           'menu_translated': pair.translated,
+          'recommended_chip_labels': recommendedChipLabels,
           'search_keywords': searchKeywords,
           'geohash': _geohash,
           'lang': systemLang,
