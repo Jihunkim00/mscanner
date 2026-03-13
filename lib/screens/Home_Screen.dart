@@ -1463,7 +1463,10 @@ class _HomeContentState extends State<HomeContent> {
 
                 return ListTile(
                   dense: true,
+                  visualDensity: const VisualDensity(vertical: -2),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
                   title: Text(
+
                     item.title,
                     style: const TextStyle(fontSize: 13),
                   ),
