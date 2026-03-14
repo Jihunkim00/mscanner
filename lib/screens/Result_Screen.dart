@@ -1254,7 +1254,11 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
 
-  Widget _buildDishRow(Map<String, dynamic> item, Color textColor) {
+  Widget _buildDishRow(
+      Map<String, dynamic> item,
+      Color textColor, {
+        required bool isPrimaryRecommended,
+      }){
     final nameOriginal = (item['nameOriginal'] ?? '').toString().trim();
     final nameTranslated = (item['name'] ?? '').toString().trim();
     final desc = (item['shortDesc'] ?? '').toString();
@@ -1267,8 +1271,9 @@ class _ResultScreenState extends State<ResultScreen> {
         : <String>[];
 
     final pair = _MenuNamePair(original: nameOriginal, translated: nameTranslated);
-
     final menuKey = buildMenuKey(pair.original, pair.translated);
+    final searchedMenuDocIdForThisRow =
+    isPrimaryRecommended ? _searchedMenuDocId : null;
     if (!_aiImageCheckedKeys.contains(menuKey) &&
         !_aiImageCheckingKeys.contains(menuKey)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1426,7 +1431,7 @@ class _ResultScreenState extends State<ResultScreen> {
                             menu: pair.toMap(),
                             shortDesc: desc,
                             tags: tags,
-                            searchedMenuDocId: _searchedMenuDocId,
+                            searchedMenuDocId: searchedMenuDocIdForThisRow,
                             size: 80,
                           );
                         },
@@ -1438,7 +1443,7 @@ class _ResultScreenState extends State<ResultScreen> {
                     menu: pair.toMap(),
                     shortDesc: desc,
                     tags: tags,
-                    searchedMenuDocId: _searchedMenuDocId,
+                    searchedMenuDocId: searchedMenuDocIdForThisRow,
                     size: 80,
                   ),
                 ),
@@ -1678,7 +1683,7 @@ class _ResultScreenState extends State<ResultScreen> {
           Row(
             children: [
               Text(
-                'Recommended Dishes',
+                AppLocalizations.of(context)?.home_mscannerPicks ?? 'recommend',
                 style: TextStyle(
                   fontFamily: 'SFPro',
                   fontWeight: FontWeight.bold,
@@ -1779,7 +1784,15 @@ class _ResultScreenState extends State<ResultScreen> {
           ],
 
 
-          ...rec.map((item) => _buildDishRow(item, textColor)).toList(),
+          ...rec.asMap().entries.map((entry) {
+            final index = entry.key;
+            final item = entry.value;
+            return _buildDishRow(
+              item,
+              textColor,
+              isPrimaryRecommended: index == 0,
+            );
+          }).toList(),
 
 
           const SizedBox(height: 10),
@@ -2010,6 +2023,15 @@ class _ResultScreenState extends State<ResultScreen> {
     return pair.display;
   }
 
+  String _extractPrimaryMenuShortDesc() {
+    final rec = _getRecommendedItems();
+    if (rec.isNotEmpty) {
+      final desc = (rec.first['shortDesc'] ?? '').toString().trim();
+      if (desc.isNotEmpty) return desc;
+    }
+    return '';
+  }
+
 
 
   List<String> _buildSearchKeywords({
@@ -2080,18 +2102,160 @@ class _ResultScreenState extends State<ResultScreen> {
     return labels.toList();
   }
 
-  List<String> _extractRecommendedTags() {
-    final tags = <String>{};
-    for (final item in _getRecommendedItems()) {
-      final rawTags = item['tags'];
-      if (rawTags is List) {
-        for (final t in rawTags) {
-          final v = t.toString().trim();
-          if (v.isNotEmpty) tags.add(v);
-        }
-      }
+  List<String> _extractPrimaryMenuTags() {
+    final rec = _getRecommendedItems();
+    if (rec.isEmpty) return const [];
+
+    final rawTags = rec.first['tags'];
+    if (rawTags is! List) return const [];
+
+    return rawTags
+        .map((e) => e.toString().trim())
+        .where((e) => e.isNotEmpty)
+        .toSet()
+        .toList();
+  }
+
+  String _normalizeMenuText(String input) {
+    return input
+        .toLowerCase()
+        .trim()
+        .replaceAll(RegExp(r'\([^)]*\)'), '')
+        .replaceAll(RegExp(r'[^a-z0-9가-힣\s]'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
+  bool _isStrongMenuMatch({
+    required _MenuNamePair source,
+    required Map<String, dynamic> candidate,
+  }) {
+    final sourceKey = _normalizeMenuText(source.key);
+    final sourceOriginal = _normalizeMenuText(source.original);
+    final sourceTranslated = _normalizeMenuText(source.translated);
+
+    final candidateKey =
+    _normalizeMenuText((candidate['menu_key'] ?? '').toString());
+    final candidateOriginal =
+    _normalizeMenuText((candidate['menu_original'] ?? '').toString());
+    final candidateTranslated =
+    _normalizeMenuText((candidate['menu_translated'] ?? '').toString());
+
+    if (sourceKey.isNotEmpty &&
+        candidateKey.isNotEmpty &&
+        sourceKey == candidateKey) {
+      return true;
     }
-    return tags.toList();
+
+    if (sourceOriginal.isNotEmpty &&
+        candidateOriginal.isNotEmpty &&
+        sourceOriginal == candidateOriginal) {
+      return true;
+    }
+
+
+    return false;
+  }
+
+  Future<Map<String, String>?> _findMenuImageFromMenuImages({
+    required _MenuNamePair pair,
+  }) async {
+    final candidates = <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+
+    final snapByKey = await FirebaseFirestore.instance
+        .collection('menu_images')
+        .where('menu_key', isEqualTo: pair.key)
+        .limit(5)
+        .get();
+    candidates.addAll(snapByKey.docs);
+
+    if (pair.original.trim().isNotEmpty) {
+      final snapByOriginal = await FirebaseFirestore.instance
+          .collection('menu_images')
+          .where('menu_original', isEqualTo: pair.original.trim())
+          .limit(5)
+          .get();
+      candidates.addAll(snapByOriginal.docs);
+    }
+
+    if (pair.translated.trim().isNotEmpty) {
+      final snapByTranslated = await FirebaseFirestore.instance
+          .collection('menu_images')
+          .where('menu_translated', isEqualTo: pair.translated.trim())
+          .limit(5)
+          .get();
+      candidates.addAll(snapByTranslated.docs);
+    }
+
+    final seenDocIds = <String>{};
+
+    for (final doc in candidates) {
+      if (!seenDocIds.add(doc.id)) continue;
+
+      final data = doc.data();
+
+      if (!_isStrongMenuMatch(source: pair, candidate: data)) {
+        continue;
+      }
+
+      final thumbUrl = (
+          data['thumb_url'] ??
+              data['thumbUrl'] ??
+              data['image_thumb_url'] ??
+              data['menu_image_thumb_url'] ??
+              data['imageUrl'] ??
+              data['image_url'] ??
+              ''
+      ).toString().trim();
+
+      final fullUrl = (
+          data['image_url'] ??
+              data['imageUrl'] ??
+              data['full_url'] ??
+              data['fullUrl'] ??
+              data['menu_image_full_url'] ??
+              thumbUrl
+      ).toString().trim();
+
+      if (thumbUrl.isEmpty && fullUrl.isEmpty) continue;
+
+      return {
+        'thumb': thumbUrl.isNotEmpty ? thumbUrl : fullUrl,
+        'full': fullUrl.isNotEmpty ? fullUrl : thumbUrl,
+      };
+    }
+
+    return null;
+  }
+
+  Future<Map<String, String>> _resolvePrimaryMenuImageFields(
+      _MenuNamePair pair,
+      ) async {
+    try {
+      final found = await _findMenuImageFromMenuImages(pair: pair);
+      if (found == null) {
+        return {
+          'menu_image_status': 'pending',
+          'menu_image_thumb_url': '',
+          'menu_image_full_url': '',
+        };
+      }
+
+      return {
+        'menu_image_status': 'ready',
+        'menu_image_thumb_url': found['thumb'] ?? '',
+        'menu_image_full_url': found['full'] ?? '',
+      };
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ menu_images 교차 검증 실패: $e');
+      }
+      return {
+        'menu_image_status': 'pending',
+        'menu_image_thumb_url': '',
+        'menu_image_full_url': '',
+      };
+    }
   }
 
 
@@ -2110,29 +2274,30 @@ class _ResultScreenState extends State<ResultScreen> {
     final pair = _extractPrimaryMenuPair();
     if (pair == null) return;
 
+    final primaryShortDesc = _extractPrimaryMenuShortDesc();
     final systemLang = ui.PlatformDispatcher.instance.locale.languageCode;
     final user = FirebaseAuth.instance.currentUser;
-    final recommendedMenus = _extractRecommendedMenuPairs();
-    final recommendedChipLabels = _extractRecommendedChipLabels();
-    final recommendedTags = _extractRecommendedTags();
-
-    final searchKeywords = _buildSearchKeywords(
-      original: pair.original,
-      translated: pair.translated,
-      display: pair.display,
-      recommendedMenus: recommendedMenus,
-      recommendedChipLabels: recommendedChipLabels,
-      recommendedTags: recommendedTags,
-    );
+    final menuTags = _extractPrimaryMenuTags();
 
     unawaited(() async {
       try {
-        final docRef = FirebaseFirestore.instance.collection('searched menu').doc();
+        final docId = _buildSearchedMenuDocId(
+          lang: systemLang,
+          geohash: _geohash!,
+          menuKey: pair.key,
+        );
+
+        final docRef = FirebaseFirestore.instance
+            .collection('searched menu')
+            .doc(docId);
+
         _searchedMenuDocId = docRef.id;
 
         if (mounted) {
           setState(() {});
         }
+
+        final imageFields = await _resolvePrimaryMenuImageFields(pair);
 
         await docRef.set({
           'menu': pair.toMap(),
@@ -2140,13 +2305,20 @@ class _ResultScreenState extends State<ResultScreen> {
           'menu_key': pair.key,
           'menu_original': pair.original,
           'menu_translated': pair.translated,
-          'recommended_chip_labels': recommendedChipLabels,
-          'search_keywords': searchKeywords,
+          'menu_short_desc': primaryShortDesc,
+          'menu_tags': menuTags,
           'geohash': _geohash,
           'lang': systemLang,
           'timestamp': DateTime.now().toIso8601String(),
+          'last_seen_at': DateTime.now().toIso8601String(),
+          'scan_count': FieldValue.increment(1),
+
+          'menu_image_status': imageFields['menu_image_status'],
+          'menu_image_thumb_url': imageFields['menu_image_thumb_url'],
+          'menu_image_full_url': imageFields['menu_image_full_url'],
+
           if (user != null) 'uid': user.uid,
-        });
+        }, SetOptions(merge: true));
       } catch (e) {
         if (kDebugMode) print('❌ searched_menu 저장 실패: $e');
       }
@@ -2157,6 +2329,21 @@ class _ResultScreenState extends State<ResultScreen> {
     if (geohash.isEmpty) return geohash;
     if (len <= 0) return geohash;
     return geohash.substring(0, geohash.length < len ? geohash.length : len);
+  }
+  String _buildSearchedMenuDocId({
+    required String lang,
+    required String geohash,
+    required String menuKey,
+  }) {
+    final geoPrefix = _safePrefix(geohash.trim(), 6).toLowerCase();
+    final normalizedLang = lang.trim().toLowerCase();
+    final normalizedMenuKey = menuKey.trim().toLowerCase();
+
+    final raw = '${normalizedLang}_${geoPrefix}_$normalizedMenuKey';
+
+    return raw
+        .replaceAll(RegExp(r'[^a-z0-9가-힣_-]'), '_')
+        .replaceAll(RegExp(r'_+'), '_');
   }
 
 
@@ -3315,6 +3502,7 @@ class _ResultScreenState extends State<ResultScreen> {
   Widget build(BuildContext context) {
     print("▶️ [ResultScreen] build() at ${DateTime.now().toIso8601String()}");
     final localizations = AppLocalizations.of(context);
+    final bool showResultActions = !_isWaitingFullMenu;
     final Color backgroundColor =
     _isDarkMode ? Colors.black : const Color(0xFFF5F6F8);
     final Color textColor =
@@ -3435,93 +3623,91 @@ class _ResultScreenState extends State<ResultScreen> {
                       ),
                     ],
 
-                    // ✅ 리뷰 입력
-                    SizedBox(height: 16),
-                    Container(
-                      decoration: boxDecoration,
-                      padding: EdgeInsets.all(8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            localizations.reviewTitle,
-                            style: TextStyle(
-                              fontFamily: 'SFPro',
-                              fontWeight: FontWeight.bold,
-                              color: textColor,
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          TextField(
-                            controller: _reviewController,
-                            maxLines: 3,
-                            style: TextStyle(
-                              fontFamily: 'SFPro',
-                              fontSize: 14,
-                              color: textColor,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: localizations.reviewHint,
-                              hintStyle: TextStyle(
+                    if (showResultActions) ...[
+                      SizedBox(height: 16),
+                      Container(
+                        decoration: boxDecoration,
+                        padding: EdgeInsets.all(8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              localizations.reviewTitle,
+                              style: TextStyle(
                                 fontFamily: 'SFPro',
-                                fontSize: 14,
-                                color: Colors.grey,
+                                fontWeight: FontWeight.bold,
+                                color: textColor,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    SafeArea(
-                      bottom: true,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16.0, vertical: 8.0),
-                        child: ElevatedButton(
-                          onPressed: _isLoading
-                              ? null
-                              : () {
-                            final _comment =
-                            _reviewController.text.trim();
-                            LogService().logSaveClick(
-                              hasComment: _comment.isNotEmpty,
-                              contentLength: _comment.length,
-                              context: 'result',
-                            );
-
-                            if (!_isMergeDone) {
-                              if (!_pendingSave) {
-                                setState(() => _pendingSave = true);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(AppLocalizations.of(context)!
-                                        .mergeInProgress),
-                                  ),
-                                );
-                              }
-                              return;
-                            }
-                            _saveScanResult();
-                          },
-                          style: ElevatedButton.styleFrom(
-                            foregroundColor:
-                            Theme.of(context).brightness == Brightness.dark
-                                ? Colors.grey
-                                : Colors.white,
-                            backgroundColor:
-                            Theme.of(context).brightness == Brightness.dark
-                                ? Colors.grey[800]
-                                : Colors.grey,
-                            minimumSize: Size(double.infinity, 48),
-                            textStyle:
-                            TextStyle(fontFamily: 'SFPro', fontSize: 14),
-                          ),
-                          child: Text(localizations.save),
+                            SizedBox(height: 8),
+                            TextField(
+                              controller: _reviewController,
+                              maxLines: 3,
+                              style: TextStyle(
+                                fontFamily: 'SFPro',
+                                fontSize: 14,
+                                color: textColor,
+                              ),
+                              decoration: InputDecoration(
+                                hintText: localizations.reviewHint,
+                                hintStyle: TextStyle(
+                                  fontFamily: 'SFPro',
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
+                    ],
 
+                    if (showResultActions)
+                      SafeArea(
+                        bottom: true,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0, vertical: 8.0),
+                          child: ElevatedButton(
+                            onPressed: _isLoading
+                                ? null
+                                : () {
+                              final _comment = _reviewController.text.trim();
+                              LogService().logSaveClick(
+                                hasComment: _comment.isNotEmpty,
+                                contentLength: _comment.length,
+                                context: 'result',
+                              );
+
+                              if (!_isMergeDone) {
+                                if (!_pendingSave) {
+                                  setState(() => _pendingSave = true);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(AppLocalizations.of(context)!.mergeInProgress),
+                                    ),
+                                  );
+                                }
+                                return;
+                              }
+                              _saveScanResult();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor:
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey
+                                  : Colors.white,
+                              backgroundColor:
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey[800]
+                                  : Colors.grey,
+                              minimumSize: Size(double.infinity, 48),
+                              textStyle: TextStyle(fontFamily: 'SFPro', fontSize: 14),
+                            ),
+                            child: Text(localizations.save),
+                          ),
+                        ),
+                      ),
                     if (_isLoading)
                       Container(
                         color: Colors.black.withOpacity(0.5),

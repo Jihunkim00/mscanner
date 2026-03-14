@@ -55,6 +55,14 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _showPremiumOverlay = false; // 🔹 프리미엄 팝업 표시 여부
   StreamSubscription<User?>? _authSub;
 
+  String _nearbyTrendingText(String lang) {
+    try {
+      return lookupAppLocalizations(Locale(lang)).home_trendingNearYou;
+    } catch (_) {
+      return "What's Trending Near You";
+    }
+  }
+
 
   // ─────────────────────────────────────────────────────────
   // * 메인 카드 데이터, 도시별 추천 데이터를 최초 로딩 시 한 번만 불러오기 위한 Future
@@ -77,10 +85,10 @@ class _HomeScreenState extends State<HomeScreen> {
     _checkPremiumOverlay(); // 🔹 프리미엄 팝업 체크 추가
   }
   @override
-    void didChangeDependencies() {
-        super.didChangeDependencies();
-        // 별도 리스너 불필요 – Provider를 build 시점에 바로 읽습니다.
-      }
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // 별도 리스너 불필요 – Provider를 build 시점에 바로 읽습니다.
+  }
 
   Future<void> _loadGeohash() async {
     try {
@@ -94,6 +102,10 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _currentGeohash = geohash;
       });
+
+      _cachedMainCardData = null;
+      _mainCardDataFuture = null;
+      await _loadInitialData();
 
       print('홈 화면 geohash: $geohash');
     } catch (e) {
@@ -396,20 +408,20 @@ class _HomeScreenState extends State<HomeScreen> {
     // 2: 멀티스캔 탭
     if (index == 2) {
       // 10초 이내 재클릭 방지
-         final now = DateTime.now();
-         if (_lastMultiScanTap != null && now.difference(_lastMultiScanTap!) < Duration(seconds: 1)) {
-           return;
-         }
-         _lastMultiScanTap = now;
-         if (!context.read<AdRemoveProvider>().isSubscribed) {
+      final now = DateTime.now();
+      if (_lastMultiScanTap != null && now.difference(_lastMultiScanTap!) < Duration(seconds: 1)) {
+        return;
+      }
+      _lastMultiScanTap = now;
+      if (!context.read<AdRemoveProvider>().isSubscribed) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(AppLocalizations.of(context)!.premiumFunctionMessage)),
         );
         return;
       }
-         await LogService().logCameraOpen(reason: 'multi_scan_tab'); // ① 변형(멀티스캔 진입 의도)
+      await LogService().logCameraOpen(reason: 'multi_scan_tab'); // ① 변형(멀티스캔 진입 의도)
 
-         Navigator.of(context).push(
+      Navigator.of(context).push(
         MaterialPageRoute(
           builder: (ctx) => CameraScreen(
             isPremium: true,
@@ -477,11 +489,6 @@ class _HomeScreenState extends State<HomeScreen> {
       return _cachedMainCardData!;
     }
 
-    _cachedMainCardData = await _loadDataLocally('mainCardData');
-    if (_cachedMainCardData != null && _cachedMainCardData!.isNotEmpty) {
-      return _cachedMainCardData!;
-    }
-
     try {
       String? country;
       try {
@@ -491,42 +498,194 @@ class _HomeScreenState extends State<HomeScreen> {
         country = 'KR';
       }
 
-      print('현재 위치의 국가: $country');
-      CollectionReference collectionRef = FirebaseFirestore.instance.collection('verified_data');
+      final String lang = PlatformDispatcher.instance.locale.languageCode;
+      final searchedCards = await _fetchNearbySearchedMenuCards(
+        lang: lang,
+        maxItems: 3,
+      );
+      final verifiedCards = await _fetchRandomVerifiedCards(
+        country: country ?? 'KR',
+        lang: lang,
+        count: 5 - searchedCards.length,
+      );
 
-      List<String> docNames = (country == 'JP')
-          ? ['osaka1', 'osaka2', 'osaka3', 'osaka4', 'osaka5']
-          : ['korea1', 'korea2', 'korea3', 'korea4', 'korea5'];
-
-      List<Map<String, String>> dataList = [];
-      String lang = PlatformDispatcher.instance.locale.languageCode;
-
-      for (String docName in docNames) {
-        DocumentSnapshot doc = await collectionRef.doc(docName).get();
-        if (doc.exists) {
-          final data = doc.data() as Map<String, dynamic>?;
-          if (data != null) {
-            dataList.add({
-              'image_url': data['image_url'] ?? '',
-              'image_url_2': data['image_url_2'] ?? '',
-              'image_url_3': data['image_url_3'] ?? '',
-              'image_url_4': data['image_url_4'] ?? '',
-              'image_url_5': data['image_url_5'] ?? '',
-              'title': data['title_$lang'] ?? data['title_en'] ?? 'No Title',
-              'subtitle': data['subtitle_$lang'] ?? data['subtitle_en'] ?? 'No Subtitle',
-              'detail': data['detail_$lang'] ?? data['detail_en'] ?? 'No Detail',
-            });
-          }
-        }
-      }
+      final dataList = <Map<String, String>>[
+        ...searchedCards,
+        ...verifiedCards,
+      ];
 
       _cachedMainCardData = dataList;
-      await _saveDataLocally('mainCardData', dataList);
       return dataList;
     } catch (e) {
       print('Error fetching main card data: $e');
       return [];
     }
+  }
+
+  List<String> _pickVerifiedDocNames(String country) {
+    final normalized = country.toUpperCase();
+    if (normalized == 'JP') {
+      return ['osaka1', 'osaka2', 'osaka3', 'osaka4', 'osaka5'];
+    }
+    return ['korea1', 'korea2', 'korea3', 'korea4', 'korea5'];
+  }
+
+  Map<String, String> _buildVerifiedCardMap(
+      Map<String, dynamic> data,
+      String lang,
+      ) {
+    return {
+      'card_type': 'verified_data',
+      'image_url': (data['image_url'] ?? '').toString(),
+      'image_url_2': (data['image_url_2'] ?? '').toString(),
+      'image_url_3': (data['image_url_3'] ?? '').toString(),
+      'image_url_4': (data['image_url_4'] ?? '').toString(),
+      'image_url_5': (data['image_url_5'] ?? '').toString(),
+      'title': (data['title_$lang'] ?? data['title_en'] ?? 'No Title').toString(),
+      'subtitle': (data['subtitle_$lang'] ?? data['subtitle_en'] ?? 'No Subtitle').toString(),
+      'detail': (data['detail_$lang'] ?? data['detail_en'] ?? 'No Detail').toString(),
+    };
+  }
+
+  Map<String, String> _buildSearchedMenuCardMap(
+      Map<String, dynamic> data,
+      String lang,
+      ) {
+    final menu = Map<String, dynamic>.from((data['menu'] ?? const {}) as Map);
+    final original =
+    (data['menu_original'] ?? menu['original'] ?? '').toString().trim();
+    final translated =
+    (data['menu_translated'] ?? menu['translated'] ?? '').toString().trim();
+    final menuName = (data['menu_name'] ?? '').toString().trim();
+    final shortDesc = (data['menu_short_desc'] ?? '').toString().trim();
+
+    final preferredTitle = () {
+      if (lang == 'ko') {
+        if (translated.isNotEmpty) return translated;
+        if (menuName.isNotEmpty) return menuName;
+        return original;
+      }
+      if (original.isNotEmpty) return original;
+      if (menuName.isNotEmpty) return menuName;
+      return translated;
+    }();
+
+    final secondaryName = () {
+      final candidate = lang == 'ko' ? original : translated;
+      if (candidate.isEmpty) return '';
+      if (candidate == preferredTitle) return '';
+      return candidate;
+    }();
+
+    final tags = ((data['menu_tags'] as List?) ??
+        (data['recommended_chip_labels'] as List?) ??
+        const [])
+        .map((e) => e.toString().trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+
+    final tagPreview = tags.take(2).join(' · ');
+    final subtitleParts = <String>[
+      if (secondaryName.isNotEmpty) secondaryName,
+      if (tagPreview.isNotEmpty) tagPreview,
+    ];
+
+    final imageThumb = (data['menu_image_thumb_url'] ?? '').toString().trim();
+    final imageFull = (data['menu_image_full_url'] ?? '').toString().trim();
+
+    final trendingText = _nearbyTrendingText(lang);
+
+    return {
+      'card_type': 'searched_menu',
+      'image_url': imageThumb.isNotEmpty ? imageThumb : imageFull,
+      'image_full_url': imageFull.isNotEmpty ? imageFull : imageThumb,
+      'title': preferredTitle.isNotEmpty ? preferredTitle : 'Menu',
+      'subtitle': subtitleParts.isNotEmpty
+          ? subtitleParts.join('<br/>')
+          : (shortDesc.isNotEmpty ? shortDesc : trendingText),
+      'detail': shortDesc.isNotEmpty ? shortDesc : trendingText,
+      'short_desc': shortDesc,
+      'menu_tags_csv': tags.join('||'),
+      'menu_key': (data['menu_key'] ?? '').toString(),
+      'timestamp': (data['timestamp'] ?? '').toString(),
+    };
+  }
+
+  Future<List<Map<String, String>>> _fetchNearbySearchedMenuCards({
+    required String lang,
+    int maxItems = 3,
+  }) async {
+    String geohashPrefix = (_currentGeohash ?? '').trim();
+    if (geohashPrefix.isEmpty) {
+      try {
+        geohashPrefix = (await GeohashService().getCurrentGeohash5())!.trim();
+      } catch (_) {
+        geohashPrefix = '';
+      }
+    }
+
+    Query<Map<String, dynamic>> query = FirebaseFirestore.instance
+        .collection('searched menu')
+        .where('lang', isEqualTo: lang);
+
+    if (geohashPrefix.isNotEmpty) {
+      query = query
+          .where('geohash', isGreaterThanOrEqualTo: geohashPrefix)
+          .where('geohash', isLessThan: '$geohashPrefix')
+          .orderBy('geohash')
+          .limit(40);
+    } else {
+      query = query.limit(20);
+    }
+
+    final snap = await query.get();
+    final docs = snap.docs.toList()
+      ..sort((a, b) {
+        final ta = (a.data()['timestamp'] ?? '').toString();
+        final tb = (b.data()['timestamp'] ?? '').toString();
+        return tb.compareTo(ta);
+      });
+
+    final seenKeys = <String>{};
+    final cards = <Map<String, String>>[];
+
+    for (final doc in docs) {
+      final data = doc.data();
+      final imageStatus = (data['menu_image_status'] ?? '').toString().trim();
+      final imageThumb = (data['menu_image_thumb_url'] ?? '').toString().trim();
+      final imageFull = (data['menu_image_full_url'] ?? '').toString().trim();
+      final menuKey = (data['menu_key'] ?? data['menu_name'] ?? doc.id).toString().trim();
+
+      if (imageStatus.isNotEmpty && imageStatus != 'ready') continue;
+      if (imageThumb.isEmpty && imageFull.isEmpty) continue;
+      if (!seenKeys.add(menuKey.toLowerCase())) continue;
+
+      cards.add(_buildSearchedMenuCardMap(data, lang));
+      if (cards.length >= maxItems) break;
+    }
+
+    return cards;
+  }
+
+  Future<List<Map<String, String>>> _fetchRandomVerifiedCards({
+    required String country,
+    required String lang,
+    int count = 2,
+  }) async {
+    final collectionRef = FirebaseFirestore.instance.collection('verified_data');
+    final docNames = _pickVerifiedDocNames(country)..shuffle();
+    final picked = docNames.take(count).toList();
+
+    final docs = await Future.wait(
+      picked.map((docName) => collectionRef.doc(docName).get()),
+    );
+
+    return docs
+        .where((doc) => doc.exists)
+        .map((doc) => doc.data() as Map<String, dynamic>?)
+        .whereType<Map<String, dynamic>>()
+        .map((data) => _buildVerifiedCardMap(data, lang))
+        .toList();
   }
 
 
@@ -648,7 +807,7 @@ class _HomeScreenState extends State<HomeScreen> {
               mainCardDataFuture: _mainCardDataFuture,
               cityDataFuture: _cityDataFuture,
               userGeohash: _currentGeohash ?? 'zzzzzzzz', // ✅ 추가된 부분
-               // ← ⑤ HomeContent 에 상태 전달
+              // ← ⑤ HomeContent 에 상태 전달
             )
                 : _getWidgetOptions().elementAt(_selectedIndex),
             bottomNavigationBar: Theme(
@@ -685,13 +844,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     label: localizations?.camera ?? 'Camera',
                   ),
-              BottomNavigationBarItem(
-                                      icon: Icon(
-                                        Icons.photo_library,
-                                        color: isSubscribed ? null : Colors.grey,
-                                      ),
-                                  label: localizations?.multiScan ?? 'Multi scan',
-                                ),
+                  BottomNavigationBarItem(
+                    icon: Icon(
+                      Icons.photo_library,
+                      color: isSubscribed ? null : Colors.grey,
+                    ),
+                    label: localizations?.multiScan ?? 'Multi scan',
+                  ),
                   BottomNavigationBarItem(
                     icon: Icon(Icons.history),
                     label: localizations?.history ?? 'History',
@@ -777,63 +936,63 @@ class _HomeScreenState extends State<HomeScreen> {
             Positioned.fill(
               child: Container(
                 color: Colors.black54,
-    child: SafeArea( // 👈 추가
-                child: Center(
-                  child: PremiumAdOverlay(
-                    // ⬇︎ 단말 폭 기준으로 적당히 리사이즈해서 디코딩
-                    image: ResizeImage(
-                      const AssetImage('assets/images/admscanner.png'),
-                      width: (MediaQuery.of(context).size.width * 2).toInt(), // 선명도 확보용
-                    ),
-                    locale: Localizations.localeOf(context),
-                    adFreePrice: simpleLocalizedPrice(Localizations.localeOf(context)),
-                    premiumMonthlyPrice: simpleLocalizedPrice(Localizations.localeOf(context)),
-                    // ⬇︎ 화면 꽉 채우되, 중요한 왼쪽 영역이 보이게 정렬
-                    // ⬇️ 이미지 잘림 최소화
-                    imageFit: BoxFit.cover,       // ✅ 세로 기준으로 꽉 차게
-                    imageAlignment: Alignment.topLeft, // ✅ 위쪽 기준
-                    panelOffsetY: -60,                // ✅ 텍스트 위로 올리기
+                child: SafeArea( // 👈 추가
+                  child: Center(
+                      child: PremiumAdOverlay(
+                        // ⬇︎ 단말 폭 기준으로 적당히 리사이즈해서 디코딩
+                        image: ResizeImage(
+                          const AssetImage('assets/images/admscanner.png'),
+                          width: (MediaQuery.of(context).size.width * 2).toInt(), // 선명도 확보용
+                        ),
+                        locale: Localizations.localeOf(context),
+                        adFreePrice: simpleLocalizedPrice(Localizations.localeOf(context)),
+                        premiumMonthlyPrice: simpleLocalizedPrice(Localizations.localeOf(context)),
+                        // ⬇︎ 화면 꽉 채우되, 중요한 왼쪽 영역이 보이게 정렬
+                        // ⬇️ 이미지 잘림 최소화
+                        imageFit: BoxFit.cover,       // ✅ 세로 기준으로 꽉 차게
+                        imageAlignment: Alignment.topLeft, // ✅ 위쪽 기준
+                        panelOffsetY: -60,                // ✅ 텍스트 위로 올리기
 
-                    onPrimaryTap: () async {
-                      await LogService().logPremiumCtaClick(placement: 'overlay', plan: 'subscription'); // ⑰ 프리미엄 CTA
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (_) {
-                          return DraggableScrollableSheet(
-                            initialChildSize: 0.7,
-                            minChildSize: 0.5,
-                            maxChildSize: 0.95,
-                            builder: (ctx, scrollController) {
-                              return Container(
-                                decoration: const BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.only(top: 8),
-                                  child: SingleChildScrollView(
-                                    controller: scrollController,
-                                    child: TestPurchaseWidget(
-                                      onPurchased: () {
-                                        Navigator.of(context).maybePop(); // 바텀시트 닫기
-                                        _closePremiumOverlay();          // 프리미엄 오버레이도 닫기
-                                      },
+                        onPrimaryTap: () async {
+                          await LogService().logPremiumCtaClick(placement: 'overlay', plan: 'subscription'); // ⑰ 프리미엄 CTA
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (_) {
+                              return DraggableScrollableSheet(
+                                initialChildSize: 0.7,
+                                minChildSize: 0.5,
+                                maxChildSize: 0.95,
+                                builder: (ctx, scrollController) {
+                                  return Container(
+                                    decoration: const BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                                     ),
-                                  ),
-                                ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(top: 8),
+                                      child: SingleChildScrollView(
+                                        controller: scrollController,
+                                        child: TestPurchaseWidget(
+                                          onPurchased: () {
+                                            Navigator.of(context).maybePop(); // 바텀시트 닫기
+                                            _closePremiumOverlay();          // 프리미엄 오버레이도 닫기
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
                               );
                             },
                           );
                         },
-                      );
-                    },
-                    onClose: _closePremiumOverlay,
-                  )
+                        onClose: _closePremiumOverlay,
+                      )
+                  ),
                 ),
               ),
-            ),
 
 
             )],
@@ -856,7 +1015,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onRefresh: _fetchLatestLikedData,
         mainCardDataFuture: _mainCardDataFuture,
         cityDataFuture: _cityDataFuture, userGeohash: '',
-            // ← ⑤ HomeContent 에 상태 전달
+        // ← ⑤ HomeContent 에 상태 전달
       ),
 
       // 카메라
@@ -868,7 +1027,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       CameraScreen(
         onCancel: () => _onItemTapped(0),
-          isPremium: isSubscribed,
+        isPremium: isSubscribed,
       ),
 
       // 히스토리
@@ -909,7 +1068,7 @@ class HomeContent extends StatefulWidget {
     required this.mainCardDataFuture,
     required this.cityDataFuture,
     required this.userGeohash, // ✅ required 처리
-       // ← ④ 생성자에 추가
+    // ← ④ 생성자에 추가
   }) : super(key: key);
 
   @override
@@ -1031,10 +1190,10 @@ class _HomeContentState extends State<HomeContent> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_didLoadBanner) {
-          final adp = context.read<AdRemoveProvider>();
-          if (!(adp.isSubscribed || adp.isAdRemoved)) {
-            _loadAdaptiveBanner(); // 권리 없을 때만 로드
-          }
+      final adp = context.read<AdRemoveProvider>();
+      if (!(adp.isSubscribed || adp.isAdRemoved)) {
+        _loadAdaptiveBanner(); // 권리 없을 때만 로드
+      }
       _didLoadBanner = true;
     }
   }
@@ -1429,62 +1588,62 @@ class _HomeContentState extends State<HomeContent> {
           ),
 
         ),
-    if (_showTopSearchSuggestions && _topSearchSuggestions.isNotEmpty) ...[
-    Transform.translate(
-    offset: const Offset(0, -1),
-    child: Container(
+        if (_showTopSearchSuggestions && _topSearchSuggestions.isNotEmpty) ...[
+          Transform.translate(
+            offset: const Offset(0, -1),
+            child: Container(
 
-            width: double.infinity,
-            constraints: const BoxConstraints(maxHeight: 220),
-      decoration: BoxDecoration(
-        color: isDarkMode ? const Color(0xFF1C1C1E) : Colors.white,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(8),
-          bottom: Radius.circular(16),
-        ),
-        border: Border.all(
-          color: isDarkMode
-              ? Colors.white.withOpacity(0.08)
-              : Colors.grey.shade300,
-        ),
-      ),
-
-            child: ListView.separated(
-              shrinkWrap: true,
-              itemCount: _topSearchSuggestions.length,
-              separatorBuilder: (_, __) => Divider(
-                height: 1,
-                color: isDarkMode
-                    ? Colors.white.withOpacity(0.06)
-                    : Colors.grey.shade200,
+              width: double.infinity,
+              constraints: const BoxConstraints(maxHeight: 220),
+              decoration: BoxDecoration(
+                color: isDarkMode ? const Color(0xFF1C1C1E) : Colors.white,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(8),
+                  bottom: Radius.circular(16),
+                ),
+                border: Border.all(
+                  color: isDarkMode
+                      ? Colors.white.withOpacity(0.08)
+                      : Colors.grey.shade300,
+                ),
               ),
-              itemBuilder: (_, index) {
-                final item = _topSearchSuggestions[index];
 
-                return ListTile(
-                  dense: true,
-                  visualDensity: const VisualDensity(vertical: -2),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                  title: Text(
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: _topSearchSuggestions.length,
+                separatorBuilder: (_, __) => Divider(
+                  height: 1,
+                  color: isDarkMode
+                      ? Colors.white.withOpacity(0.06)
+                      : Colors.grey.shade200,
+                ),
+                itemBuilder: (_, index) {
+                  final item = _topSearchSuggestions[index];
 
-                    item.title,
-                    style: const TextStyle(fontSize: 13),
-                  ),
-                  subtitle: item.subtitle.isNotEmpty
-                      ? Text(
-                    item.subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 11),
-                  )
-                      : null,
-                  onTap: () => _openMenuPreviewSheet(item),
-                );
-              },
+                  return ListTile(
+                    dense: true,
+                    visualDensity: const VisualDensity(vertical: -2),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                    title: Text(
+
+                      item.title,
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    subtitle: item.subtitle.isNotEmpty
+                        ? Text(
+                      item.subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 11),
+                    )
+                        : null,
+                    onTap: () => _openMenuPreviewSheet(item),
+                  );
+                },
+              ),
             ),
-          ),
-    )
-    ],
+          )
+        ],
 
       ],
     );
@@ -1495,7 +1654,7 @@ class _HomeContentState extends State<HomeContent> {
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final localizations = AppLocalizations.of(context);
-        // 구독(premium)이나 광고제거(adfree) 둘 중 하나라도 있으면 isAdRemoved=true
+    // 구독(premium)이나 광고제거(adfree) 둘 중 하나라도 있으면 isAdRemoved=true
     final isAdRemoved = context.watch<AdRemoveProvider>().isAdRemoved;
 
 
@@ -1535,18 +1694,7 @@ class _HomeContentState extends State<HomeContent> {
 
             // AD 라벨 + 기존 배너 광고
             if (!isAdRemoved) ...[
-              Center(
-                child: Text(
-                  AppLocalizations.of(context)?.home_adLabel ?? 'AD',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: isDarkMode ? Colors.white60 : Colors.black54,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
+
               Consumer<AdRemoveProvider>(
                 builder: (context, adProvider, child) {
                   if (adProvider.isSubscribed || adProvider.isAdRemoved) {
@@ -1566,23 +1714,7 @@ class _HomeContentState extends State<HomeContent> {
               const SizedBox(height: 20),
             ],
 
-            // Trending 헤더
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  localizations?.home_trendingNearYou ?? "What's Trending Near You",
-                  style: TextStyle(
-                    fontFamily: 'SFProDisplay',
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).textTheme.titleLarge?.color,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
+
 
             // 댓글 섹션 (기존 유지)
             CommentSection(userGeohash: widget.userGeohash),
@@ -1934,7 +2066,7 @@ class _HomeContentState extends State<HomeContent> {
       child: Row(
         children: [
           Text(
-            AppLocalizations.of(context)?.home_mscannerPicks ?? "Mscanner's Picks",
+            AppLocalizations.of(context)?.home_trendingNearYou ?? "home_trendingNearYou",
             style: TextStyle(
               fontFamily: 'SFProDisplay',
               fontSize: 18,
@@ -2103,7 +2235,7 @@ class _HomeContentState extends State<HomeContent> {
     if (!_sentManualImpression) {
       _sentManualImpression = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-       });
+      });
     }
 
 
