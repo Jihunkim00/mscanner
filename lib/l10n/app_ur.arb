@@ -296,7 +296,11 @@
   "favoriteList_noHistoryFound": "کوئی ریکارڈ نہیں",
   "favoriteList_thisWeek": "اس ہفتے",
   "favoriteList_entries": "{count} آئٹمز",
-  "@favoriteList_entries": { "placeholders": { "count": {} } },
+  "@favoriteList_entries": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "favorite_fullMenu": "مکمل مینو",
   "favorite_menuMain": "مین",
   "favorite_menuSide": "سائیڈ",
@@ -316,7 +320,11 @@
   "result_fxConvertFailed": "یہ رقم تبدیل نہیں ہو سکی۔",
   "result_restoreOriginalCurrency": "اصل کرنسی بحال کریں",
   "result_convertToSystemCurrency": "سسٹم کرنسی ({currency}) میں تبدیل کریں",
-  "@result_convertToSystemCurrency": { "placeholders": { "currency": {} } },
+  "@result_convertToSystemCurrency": {
+    "placeholders": {
+      "currency": {}
+    }
+  },
   "result_auto": "آٹو",
   "result_viewFullMenu": "مکمل مینو دیکھیں",
   "result_preparingMenu": "تفصیلی مینو تیار ہو رہا ہے…",
@@ -324,5 +332,9 @@
   "result_imageUploadFailed": "تصویر اپلوڈ ناکام۔ براہ کرم دوبارہ کوشش کریں۔",
   "result_analyzing": "کھانے کی معلومات کا تجزیہ جاری ہے",
   "result_loadingFullMenu": "مکمل مینو لوڈ ہو رہا ہے…",
-  "howto_detail_link": "مزید تفصیل دیکھیں"
+  "howto_detail_link": "مزید تفصیل دیکھیں",
+  "guestLoginTitle2": "خوش آمدید، مہم جو!",
+  "guestLoginContent2": "گیسٹ موڈ میں آپ کھانے کے مینو اسکین کر کے ذاتی سفارشات حاصل کر سکتے ہیں، لیکن آپ اپنے پسندیدہ محفوظ نہیں کر پائیں گے اور نہ ہی مختلف ڈیوائسز پر تاریخ دیکھ پائیں گے۔",
+  "confirm2": "سمجھ گیا، چلیں!",
+  "login2": "ابھی سائن ان کریں"
 }

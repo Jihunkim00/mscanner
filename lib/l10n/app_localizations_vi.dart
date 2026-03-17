@@ -955,5 +955,17 @@ class AppLocalizationsVi extends AppLocalizations {
   String get result_loadingFullMenu => 'Đang tải toàn bộ menu…';
 
   @override
-  String get howto_detail_link => 'See more details';
+  String get howto_detail_link => 'Xem chi tiết';
+
+  @override
+  String get guestLoginTitle2 => 'Chào mừng, Nhà thám hiểm!';
+
+  @override
+  String get guestLoginContent2 => 'Ở Chế độ Khách, bạn có thể quét thực đơn để nhận đề xuất được cá nhân hóa, nhưng bạn sẽ không thể lưu mục yêu thích hoặc xem lịch sử trên nhiều thiết bị.';
+
+  @override
+  String get confirm2 => 'Hiểu rồi, đi thôi!';
+
+  @override
+  String get login2 => 'Đăng nhập ngay';
 }

@@ -296,7 +296,11 @@
   "favoriteList_noHistoryFound": "Aucun historique",
   "favoriteList_thisWeek": "Cette semaine",
   "favoriteList_entries": "{count} éléments",
-  "@favoriteList_entries": { "placeholders": { "count": {} } },
+  "@favoriteList_entries": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "favorite_fullMenu": "Menu complet",
   "favorite_menuMain": "Principal",
   "favorite_menuSide": "Accompagnements",
@@ -316,7 +320,11 @@
   "result_fxConvertFailed": "Impossible de convertir le montant.",
   "result_restoreOriginalCurrency": "Rétablir la devise d’origine",
   "result_convertToSystemCurrency": "Convertir en devise système ({currency})",
-  "@result_convertToSystemCurrency": { "placeholders": { "currency": {} } },
+  "@result_convertToSystemCurrency": {
+    "placeholders": {
+      "currency": {}
+    }
+  },
   "result_auto": "Auto",
   "result_viewFullMenu": "Voir le menu complet",
   "result_preparingMenu": "Préparation du menu détaillé…",
@@ -324,5 +332,9 @@
   "result_imageUploadFailed": "Échec de l’envoi de l’image. Réessayez.",
   "result_analyzing": "Analyse des informations du plat",
   "result_loadingFullMenu": "Chargement du menu complet…",
-  "howto_detail_link": "Voir plus de détails"
+  "howto_detail_link": "Voir plus de détails",
+  "guestLoginTitle2": "Bienvenue, explorateur !",
+  "guestLoginContent2": "En mode invité, vous pouvez scanner les menus pour obtenir des recommandations personnalisées, mais vous ne pourrez pas enregistrer vos favoris ni consulter l'historique sur plusieurs appareils.",
+  "confirm2": "Compris, on y va !",
+  "login2": "Connectez-vous maintenant"
 }

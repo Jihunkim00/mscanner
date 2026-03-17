@@ -297,7 +297,9 @@
   "favoriteList_thisWeek": "이번 주",
   "favoriteList_entries": "{count}개",
   "@favoriteList_entries": {
-    "placeholders": { "count": {} }
+    "placeholders": {
+      "count": {}
+    }
   },
   "favorite_fullMenu": "전체 메뉴",
   "favorite_menuMain": "메인",
@@ -319,7 +321,9 @@
   "result_restoreOriginalCurrency": "원래 통화로 복원",
   "result_convertToSystemCurrency": "시스템 통화({currency})로 변환",
   "@result_convertToSystemCurrency": {
-    "placeholders": { "currency": {} }
+    "placeholders": {
+      "currency": {}
+    }
   },
   "result_auto": "자동",
   "result_viewFullMenu": "전체 메뉴 보기",
@@ -328,5 +332,9 @@
   "result_imageUploadFailed": "이미지 업로드에 실패했습니다. 다시 시도해 주세요.",
   "result_analyzing": "음식 정보 분석 중",
   "result_loadingFullMenu": "전체 메뉴를 불러오는 중…",
-  "howto_detail_link": "자세한 내용 보기"
+  "howto_detail_link": "자세한 내용 보기",
+  "guestLoginTitle2": "환영합니다, 탐험가!",
+  "guestLoginContent2": "게스트 모드에서는 음식 메뉴를 스캔해 개인화된 추천을 받을 수 있지만, 즐겨찾기를 저장하거나 여러 기기에서 사용 내역을 확인할 수는 없습니다.",
+  "confirm2": "게스트모드, 사용!",
+  "login2": "일반 로그인"
 }

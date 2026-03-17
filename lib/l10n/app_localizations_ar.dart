@@ -956,4 +956,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get howto_detail_link => 'عرض المزيد من التفاصيل';
+
+  @override
+  String get guestLoginTitle2 => 'مرحبًا أيها المستكشف!';
+
+  @override
+  String get guestLoginContent2 => 'في وضع الضيف، يمكنك مسح قوائم الطعام للحصول على توصيات مخصصة، لكنك لن تتمكن من حفظ مفضلاتك أو عرض السجل عبر الأجهزة.';
+
+  @override
+  String get confirm2 => 'فهمت، لننطلق!';
+
+  @override
+  String get login2 => 'سجّل الدخول الآن';
 }

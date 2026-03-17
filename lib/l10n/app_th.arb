@@ -296,7 +296,11 @@
   "favoriteList_noHistoryFound": "ไม่พบประวัติ",
   "favoriteList_thisWeek": "สัปดาห์นี้",
   "favoriteList_entries": "{count} รายการ",
-  "@favoriteList_entries": { "placeholders": { "count": {} } },
+  "@favoriteList_entries": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "favorite_fullMenu": "เมนูทั้งหมด",
   "favorite_menuMain": "เมนูหลัก",
   "favorite_menuSide": "เมนูเสริม",
@@ -316,7 +320,11 @@
   "result_fxConvertFailed": "ไม่สามารถแปลงจำนวนเงินนี้ได้",
   "result_restoreOriginalCurrency": "คืนค่าเป็นสกุลเงินเดิม",
   "result_convertToSystemCurrency": "แปลงเป็นสกุลเงินระบบ ({currency})",
-  "@result_convertToSystemCurrency": { "placeholders": { "currency": {} } },
+  "@result_convertToSystemCurrency": {
+    "placeholders": {
+      "currency": {}
+    }
+  },
   "result_auto": "อัตโนมัติ",
   "result_viewFullMenu": "ดูเมนูทั้งหมด",
   "result_preparingMenu": "กำลังเตรียมเมนูรายละเอียด…",
@@ -324,5 +332,9 @@
   "result_imageUploadFailed": "อัปโหลดรูปภาพไม่สำเร็จ โปรดลองอีกครั้ง",
   "result_analyzing": "กำลังวิเคราะห์ข้อมูลอาหาร",
   "result_loadingFullMenu": "กำลังโหลดเมนูทั้งหมด…",
-  "howto_detail_link": "ดูรายละเอียดเพิ่มเติม"
+  "howto_detail_link": "ดูรายละเอียดเพิ่มเติม",
+  "guestLoginTitle2": "ยินดีต้อนรับนักสำรวจ!",
+  "guestLoginContent2": "ในโหมดผู้เยี่ยมชม คุณสามารถสแกนเมนูอาหารเพื่อรับคำแนะนำที่ปรับตามความชอบของคุณได้ แต่คุณจะไม่สามารถบันทึกรายการโปรดหรือดูประวัติการใช้งานข้ามอุปกรณ์ได้",
+  "confirm2": "เข้าใจแล้ว ไปกันเลย!",
+  "login2": "ลงชื่อเข้าใช้ตอนนี้"
 }

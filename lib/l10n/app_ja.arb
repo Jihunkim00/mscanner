@@ -296,7 +296,11 @@
   "favoriteList_noHistoryFound": "履歴が見つかりません",
   "favoriteList_thisWeek": "今週",
   "favoriteList_entries": "{count}件",
-  "@favoriteList_entries": { "placeholders": { "count": {} } },
+  "@favoriteList_entries": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "favorite_fullMenu": "全メニュー",
   "favorite_menuMain": "メイン",
   "favorite_menuSide": "サイド",
@@ -316,7 +320,11 @@
   "result_fxConvertFailed": "この金額を換算できませんでした。",
   "result_restoreOriginalCurrency": "元の通貨に戻す",
   "result_convertToSystemCurrency": "システム通貨（{currency}）に換算",
-  "@result_convertToSystemCurrency": { "placeholders": { "currency": {} } },
+  "@result_convertToSystemCurrency": {
+    "placeholders": {
+      "currency": {}
+    }
+  },
   "result_auto": "自動",
   "result_viewFullMenu": "全メニューを見る",
   "result_preparingMenu": "メニューを準備中…",
@@ -324,5 +332,9 @@
   "result_imageUploadFailed": "画像のアップロードに失敗しました。もう一度お試しください。",
   "result_analyzing": "分析中",
   "result_loadingFullMenu": "全メニューを読み込み中…",
-  "howto_detail_link": "詳しく見る"
+  "howto_detail_link": "詳しく見る",
+  "guestLoginTitle2": "ようこそ、探検者さん！",
+  "guestLoginContent2": "ゲストモードでは、メニューをスキャンしてパーソナライズされたおすすめを受け取れますが、お気に入りを保存したりデバイス間で履歴を確認したりすることはできません。",
+  "confirm2": "了解、行こう！",
+  "login2": "今すぐサインイン"
 }

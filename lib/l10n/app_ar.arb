@@ -296,7 +296,11 @@
   "favoriteList_noHistoryFound": "لا توجد سجلات",
   "favoriteList_thisWeek": "هذا الأسبوع",
   "favoriteList_entries": "{count} عناصر",
-  "@favoriteList_entries": { "placeholders": { "count": {} } },
+  "@favoriteList_entries": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "favorite_fullMenu": "القائمة كاملة",
   "favorite_menuMain": "رئيسي",
   "favorite_menuSide": "جانبي",
@@ -316,7 +320,11 @@
   "result_fxConvertFailed": "تعذر تحويل هذا المبلغ.",
   "result_restoreOriginalCurrency": "استعادة العملة الأصلية",
   "result_convertToSystemCurrency": "التحويل إلى عملة النظام ({currency})",
-  "@result_convertToSystemCurrency": { "placeholders": { "currency": {} } },
+  "@result_convertToSystemCurrency": {
+    "placeholders": {
+      "currency": {}
+    }
+  },
   "result_auto": "تلقائي",
   "result_viewFullMenu": "عرض القائمة كاملة",
   "result_preparingMenu": "جارٍ تجهيز القائمة التفصيلية…",
@@ -324,5 +332,9 @@
   "result_imageUploadFailed": "فشل رفع الصورة. يرجى المحاولة مرة أخرى.",
   "result_analyzing": "جارٍ تحليل معلومات الطعام",
   "result_loadingFullMenu": "جارٍ تحميل القائمة كاملة…",
-  "howto_detail_link": "عرض المزيد من التفاصيل"
+  "howto_detail_link": "عرض المزيد من التفاصيل",
+  "guestLoginTitle2": "مرحبًا أيها المستكشف!",
+  "guestLoginContent2": "في وضع الضيف، يمكنك مسح قوائم الطعام للحصول على توصيات مخصصة، لكنك لن تتمكن من حفظ مفضلاتك أو عرض السجل عبر الأجهزة.",
+  "confirm2": "فهمت، لننطلق!",
+  "login2": "سجّل الدخول الآن"
 }

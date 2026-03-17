@@ -296,7 +296,11 @@
   "favoriteList_noHistoryFound": "কোনও রেকর্ড নেই",
   "favoriteList_thisWeek": "এই সপ্তাহ",
   "favoriteList_entries": "{count}টি আইটেম",
-  "@favoriteList_entries": { "placeholders": { "count": {} } },
+  "@favoriteList_entries": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "favorite_fullMenu": "সম্পূর্ণ মেনু",
   "favorite_menuMain": "মেইন",
   "favorite_menuSide": "সাইড",
@@ -316,7 +320,11 @@
   "result_fxConvertFailed": "এই পরিমাণ রূপান্তর করা যায়নি।",
   "result_restoreOriginalCurrency": "মূল মুদ্রা ফিরিয়ে আনুন",
   "result_convertToSystemCurrency": "সিস্টেম মুদ্রায় ({currency}) রূপান্তর করুন",
-  "@result_convertToSystemCurrency": { "placeholders": { "currency": {} } },
+  "@result_convertToSystemCurrency": {
+    "placeholders": {
+      "currency": {}
+    }
+  },
   "result_auto": "অটো",
   "result_viewFullMenu": "সম্পূর্ণ মেনু দেখুন",
   "result_preparingMenu": "বিস্তারিত মেনু প্রস্তুত করা হচ্ছে…",
@@ -324,5 +332,9 @@
   "result_imageUploadFailed": "ছবি আপলোড ব্যর্থ। আবার চেষ্টা করুন।",
   "result_analyzing": "খাবারের তথ্য বিশ্লেষণ চলছে",
   "result_loadingFullMenu": "সম্পূর্ণ মেনু লোড হচ্ছে…",
-  "howto_detail_link": "আরও বিস্তারিত দেখুন"
+  "howto_detail_link": "আরও বিস্তারিত দেখুন",
+  "guestLoginTitle2": "স্বাগতম, অন্বেষক!",
+  "guestLoginContent2": "গেস্ট মোডে আপনি খাবারের মেনু স্ক্যান করে ব্যক্তিগত সুপারিশ পেতে পারেন, কিন্তু আপনার প্রিয়গুলো সংরক্ষণ করতে বা বিভিন্ন ডিভাইসে ইতিহাস দেখতে পারবেন না।",
+  "confirm2": "বুঝেছি, চল যাই!",
+  "login2": "এখনই সাইন ইন করুন"
 }

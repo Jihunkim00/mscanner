@@ -956,4 +956,16 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get howto_detail_link => 'Daha fazla ayrıntı görün';
+
+  @override
+  String get guestLoginTitle2 => 'Hoş geldiniz, Kaşif!';
+
+  @override
+  String get guestLoginContent2 => 'Misafir Modu\'nda yemek menülerini tarayarak kişiselleştirilmiş öneriler alabilirsiniz, ancak favorilerinizi kaydedemezsiniz veya cihazlar arasında geçmişinizi göremezsiniz.';
+
+  @override
+  String get confirm2 => 'Anladım, hadi gidelim!';
+
+  @override
+  String get login2 => 'Şimdi giriş yap';
 }

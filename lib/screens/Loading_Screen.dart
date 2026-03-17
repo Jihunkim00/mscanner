@@ -17,6 +17,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import '/screens/image_merge_service.dart';
+import 'package:mscanner/utils/async_request_gate.dart';
 
 
 /// ✅ LoadingScreen에서도 멀티 스캔 이미지를 1장으로 병합/압축해서 전송
@@ -63,6 +64,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
   bool _isLoadingError = false;
   bool _hasNavigated = false;
+  final AsyncRequestGate _gptRequestGate = AsyncRequestGate();
 
   /// GPT 분석 Future는 initState 에서 바로 시작
   late Future<_PreparedVisionInput> _preparedFuture;
@@ -260,68 +262,67 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
     return completer.future;
   }
-
-
-
-
-
   /// 60초 타임아웃과 모든 예외를 동일하게 잡아서 에러 UI로
   Future<void> _handleGptResult() async {
-    try {
-      final prepared = await _preparedFuture.timeout(const Duration(seconds: 60));
-
-      // ✅ 미리보기용 첫 이미지 (ResultScreen에 보여줄 썸네일)
-      final File firstImage =
-      (widget.images != null && widget.images!.isNotEmpty)
-          ? widget.images!.first
-          : widget.image!;
-
-      final rawStream = VisionService.analyzeImageStream(
-        prepared.visionFile,
-        promptContext: prepared.promptContext,
-        maxOutputTokens: widget.maxOutputTokens,
-      );
-      final stream = rawStream.asBroadcastStream();
-      final firstRec = await _waitFirstRecommendFromStream(stream);
-
-      if (!_hasNavigated && mounted) {
-        _hasNavigated = true;
-        await LogService().logScanCompleted();
-
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => ResultScreen(
-              image: firstImage,
-              images: widget.images,
-              responses: <String>[],
-              responseStream: stream,
-              initialFastRecommend: firstRec, // ✅ NEW
-              position: widget.position,
-              captureTime: widget.captureTime,
-              isTutorial: widget.isTutorial,
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      // ✅ 스트리밍 실패 시: 기존 Future 방식 fallback
+    await _gptRequestGate.run(() async {
       try {
         final prepared = await _preparedFuture.timeout(const Duration(seconds: 60));
-        final resp = await VisionService.analyzeImage(
+
+        // ✅ 미리보기용 첫 이미지 (ResultScreen에 보여줄 썸네일)
+        final File firstImage =
+        (widget.images != null && widget.images!.isNotEmpty)
+            ? widget.images!.first
+            : widget.image!;
+
+        final rawStream = VisionService.analyzeImageStream(
           prepared.visionFile,
           promptContext: prepared.promptContext,
           maxOutputTokens: widget.maxOutputTokens,
         );
+        final stream = rawStream
+            .timeout(const Duration(seconds: 45))
+            .asBroadcastStream();
+        final firstRec = await _waitFirstRecommendFromStream(stream);
 
         if (!_hasNavigated && mounted) {
           _hasNavigated = true;
           await LogService().logScanCompleted();
-          _navigateToResultScreen([resp], previewImage: prepared.visionFile);
+
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => ResultScreen(
+                image: firstImage,
+                images: widget.images,
+                responses: <String>[],
+                responseStream: stream,
+                initialFastRecommend: firstRec, // ✅ NEW
+                position: widget.position,
+                captureTime: widget.captureTime,
+                isTutorial: widget.isTutorial,
+              ),
+            ),
+          );
         }
-      } catch (_) {
-        _showErrorUI();
+      } catch (e) {
+        // ✅ 스트리밍 실패 시: 기존 Future 방식 fallback
+        try {
+          final prepared = await _preparedFuture.timeout(const Duration(seconds: 60));
+          final resp = await VisionService.analyzeImage(
+            prepared.visionFile,
+            promptContext: prepared.promptContext,
+            maxOutputTokens: widget.maxOutputTokens,
+          );
+
+          if (!_hasNavigated && mounted) {
+            _hasNavigated = true;
+            await LogService().logScanCompleted();
+            _navigateToResultScreen([resp], previewImage: prepared.visionFile);
+          }
+        } catch (_) {
+          _showErrorUI();
+        }
       }
-    }
+    });
   }
 
 

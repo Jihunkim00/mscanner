@@ -956,4 +956,16 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get howto_detail_link => 'మరిన్ని వివరాలు చూడండి';
+
+  @override
+  String get guestLoginTitle2 => 'స్వాగతం, అన్వేషకా!';
+
+  @override
+  String get guestLoginContent2 => 'గెస్ట్ మోడ్‌లో మీరు ఆహార మెన్యూలను స్కాన్ చేసి వ్యక్తిగత సిఫార్సులు పొందవచ్చు, కానీ మీ ఇష్టమైనవలను సేవ్ చేయలేరు లేదా పరికరాల మధ్య చరిత్రను చూడలేరు.';
+
+  @override
+  String get confirm2 => 'అర్థమైంది, వెళ్దాం!';
+
+  @override
+  String get login2 => 'ఇప్పుడే సైన్ ఇన్ చేయండి';
 }

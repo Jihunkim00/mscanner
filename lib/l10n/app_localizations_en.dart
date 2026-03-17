@@ -956,4 +956,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get howto_detail_link => 'See more details';
+
+  @override
+  String get guestLoginTitle2 => 'Welcome, Explorer!';
+
+  @override
+  String get guestLoginContent2 => 'In Guest Mode, you can scan food menus to get personalized recommendations, but you won’t be able to save your favorites or view history across devices.';
+
+  @override
+  String get confirm2 => 'Got it, let\'s go!';
+
+  @override
+  String get login2 => 'Sign in now';
 }

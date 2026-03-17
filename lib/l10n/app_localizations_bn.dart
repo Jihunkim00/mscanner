@@ -956,4 +956,16 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get howto_detail_link => 'আরও বিস্তারিত দেখুন';
+
+  @override
+  String get guestLoginTitle2 => 'স্বাগতম, অন্বেষক!';
+
+  @override
+  String get guestLoginContent2 => 'গেস্ট মোডে আপনি খাবারের মেনু স্ক্যান করে ব্যক্তিগত সুপারিশ পেতে পারেন, কিন্তু আপনার প্রিয়গুলো সংরক্ষণ করতে বা বিভিন্ন ডিভাইসে ইতিহাস দেখতে পারবেন না।';
+
+  @override
+  String get confirm2 => 'বুঝেছি, চল যাই!';
+
+  @override
+  String get login2 => 'এখনই সাইন ইন করুন';
 }

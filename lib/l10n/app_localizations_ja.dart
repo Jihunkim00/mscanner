@@ -956,4 +956,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get howto_detail_link => '詳しく見る';
+
+  @override
+  String get guestLoginTitle2 => 'ようこそ、探検者さん！';
+
+  @override
+  String get guestLoginContent2 => 'ゲストモードでは、メニューをスキャンしてパーソナライズされたおすすめを受け取れますが、お気に入りを保存したりデバイス間で履歴を確認したりすることはできません。';
+
+  @override
+  String get confirm2 => '了解、行こう！';
+
+  @override
+  String get login2 => '今すぐサインイン';
 }

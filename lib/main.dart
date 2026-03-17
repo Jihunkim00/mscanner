@@ -1,4 +1,6 @@
 // main.dart
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
@@ -28,6 +30,10 @@ import 'package:provider/provider.dart';
 import 'ad_remove_provider.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';  // 이 줄 추가 map
 
+enum GuestWelcomeAction {
+  continueGuest,
+  signIn,
+}
 
 // 전역 변수 선언
 InterstitialAd? globalInterstitialAd;
@@ -269,44 +275,201 @@ class _IntroductionScreenPageState extends State<IntroductionScreenPage> {
       if (user != null) {
         await LogService().logLoginSuccess();
 
-        await showCupertinoDialog(
-          context: context,
-          builder: (context) =>
-              CupertinoAlertDialog(
-                title: Text(AppLocalizations
-                    .of(context)
-                    ?.guestLoginTitle ?? 'Guest Login'),
-                content: Text(AppLocalizations
-                    .of(context)
-                    ?.guestLoginContent ??
-                    'You are logged in as a guest. All data will be deleted upon logout.'),
-                actions: [
-                  CupertinoDialogAction(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text(AppLocalizations
-                        .of(context)
-                        ?.confirm ?? 'Confirm'),
-                  ),
-                ],
-              ),
-        );
+        final action = await _showGuestWelcomePopup();
 
-        _navigateAfterSignIn(user);
+        if (!mounted) return;
+
+        if (action == GuestWelcomeAction.signIn) {
+          await FirebaseAuth.instance.signOut();
+          Navigator.pushReplacementNamed(context, '/login');
+          return;
+        }
+
+        if (action == GuestWelcomeAction.continueGuest) {
+          _navigateAfterSignIn(user);
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations
-              .of(context)
-              ?.guestLoginFailed ?? 'Guest login failed. Please try again.')),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)?.guestLoginFailed ??
+                  'Guest login failed. Please try again.',
+            ),
+          ),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations
-            .of(context)
-            ?.guestLoginFailed ?? 'Guest login failed. Please try again.')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)?.guestLoginFailed ??
+                'Guest login failed. Please try again.',
+          ),
+        ),
       );
       print('Guest sign-in error: $e');
     }
+  }
+
+  Future<GuestWelcomeAction?> _showGuestWelcomePopup() {
+    final mediaQuery = MediaQuery.of(context).size;
+    final localizations = AppLocalizations.of(context);
+
+    return showCupertinoModalPopup<GuestWelcomeAction>(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.18),
+      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+      builder: (context) {
+        return SafeArea(
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                width: double.infinity,
+                margin: EdgeInsets.zero,
+                padding: const EdgeInsets.fromLTRB(24, 12, 24, 28),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(32),
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 46,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD1D5DB),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                    const SizedBox(height: 22),
+
+                    SizedBox(
+                      width: double.infinity,
+                      height: 200,
+                      child: ClipRect(
+                        child: Transform.translate(
+                          offset: const Offset(0, -4),
+                          child: OverflowBox(
+                            alignment: Alignment.topCenter,
+                            maxHeight: 340,
+                            child: Image.asset(
+                              'assets/images/guest_welcome.png',
+                              height: 285,
+                              fit: BoxFit.fitHeight,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    Text(
+                      localizations?.guestLoginTitle2 ?? 'Welcome, Explorer!',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontFamily: 'SF Pro Display',
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.black,
+                      ),
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    Text(
+                      localizations?.guestLoginContent2 ??
+                          'In Guest Mode, you can scan food menus to get personalized recommendations, but you won’t be able to save your favorites or view history across devices.',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontFamily: 'SF Pro Display',
+                        fontSize: 17,
+                        height: 1.45,
+                        color: Color(0xFF222222),
+                      ),
+                    ),
+
+                    const SizedBox(height: 28),
+
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(28),
+                          gradient: const LinearGradient(
+                            colors: [
+                              Color(0xFF4A84D8),
+                              Color(0xFF5A92E5),
+                            ],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0x334A84D8),
+                              blurRadius: 12,
+                              offset: Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(
+                              context,
+                              GuestWelcomeAction.continueGuest,
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(28),
+                            ),
+                          ),
+                          child: Text(
+                            localizations?.confirm2 ?? "Got it, let's go!",
+                            style: const TextStyle(
+                              fontFamily: 'SF Pro Display',
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(
+                          context,
+                          GuestWelcomeAction.signIn,
+                        );
+                      },
+                      child: Text(
+                        localizations?.login2 ?? 'Sign in now',
+                        style: const TextStyle(
+                          fontFamily: 'SF Pro Display',
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF4A84D8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _navigateAfterSignIn(User user) {

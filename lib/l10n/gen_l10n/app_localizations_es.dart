@@ -956,4 +956,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get howto_detail_link => 'Ver más detalles';
+
+  @override
+  String get guestLoginTitle2 => '¡Bienvenido, explorador!';
+
+  @override
+  String get guestLoginContent2 => 'En el modo invitado, puedes escanear menús de comida para obtener recomendaciones personalizadas, pero no podrás guardar tus favoritos ni ver el historial en varios dispositivos.';
+
+  @override
+  String get confirm2 => '¡Entendido, vamos!';
+
+  @override
+  String get login2 => 'Inicia sesión ahora';
 }

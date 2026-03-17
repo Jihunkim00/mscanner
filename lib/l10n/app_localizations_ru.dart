@@ -956,4 +956,16 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get howto_detail_link => 'Подробнее';
+
+  @override
+  String get guestLoginTitle2 => 'Добро пожаловать, исследователь!';
+
+  @override
+  String get guestLoginContent2 => 'В режиме гостя вы можете сканировать меню блюд, чтобы получать персонализированные рекомендации, но не сможете сохранять избранное или просматривать историю на разных устройствах.';
+
+  @override
+  String get confirm2 => 'Понял, поехали!';
+
+  @override
+  String get login2 => 'Войдите сейчас';
 }

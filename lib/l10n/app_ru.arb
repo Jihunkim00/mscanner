@@ -296,7 +296,11 @@
   "favoriteList_noHistoryFound": "Записей нет",
   "favoriteList_thisWeek": "На этой неделе",
   "favoriteList_entries": "{count} шт.",
-  "@favoriteList_entries": { "placeholders": { "count": {} } },
+  "@favoriteList_entries": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "favorite_fullMenu": "Полное меню",
   "favorite_menuMain": "Основное",
   "favorite_menuSide": "Закуски",
@@ -316,7 +320,11 @@
   "result_fxConvertFailed": "Не удалось конвертировать сумму.",
   "result_restoreOriginalCurrency": "Вернуть исходную валюту",
   "result_convertToSystemCurrency": "Конвертировать в валюту системы ({currency})",
-  "@result_convertToSystemCurrency": { "placeholders": { "currency": {} } },
+  "@result_convertToSystemCurrency": {
+    "placeholders": {
+      "currency": {}
+    }
+  },
   "result_auto": "Авто",
   "result_viewFullMenu": "Посмотреть полное меню",
   "result_preparingMenu": "Готовим подробное меню…",
@@ -324,5 +332,9 @@
   "result_imageUploadFailed": "Не удалось загрузить изображение. Попробуйте ещё раз.",
   "result_analyzing": "Анализ информации о блюде",
   "result_loadingFullMenu": "Загрузка полного меню…",
-  "howto_detail_link": "Подробнее"
+  "howto_detail_link": "Подробнее",
+  "guestLoginTitle2": "Добро пожаловать, исследователь!",
+  "guestLoginContent2": "В режиме гостя вы можете сканировать меню блюд, чтобы получать персонализированные рекомендации, но не сможете сохранять избранное или просматривать историю на разных устройствах.",
+  "confirm2": "Понял, поехали!",
+  "login2": "Войдите сейчас"
 }

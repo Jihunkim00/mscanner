@@ -956,4 +956,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get howto_detail_link => '자세한 내용 보기';
+
+  @override
+  String get guestLoginTitle2 => '환영합니다, 탐험가!';
+
+  @override
+  String get guestLoginContent2 => '게스트 모드에서는 음식 메뉴를 스캔해 개인화된 추천을 받을 수 있지만, 즐겨찾기를 저장하거나 여러 기기에서 사용 내역을 확인할 수는 없습니다.';
+
+  @override
+  String get confirm2 => '게스트모드, 사용!';
+
+  @override
+  String get login2 => '일반 로그인';
 }

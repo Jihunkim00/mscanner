@@ -296,7 +296,11 @@
   "favoriteList_noHistoryFound": "暂无记录",
   "favoriteList_thisWeek": "本周",
   "favoriteList_entries": "{count} 条",
-  "@favoriteList_entries": { "placeholders": { "count": {} } },
+  "@favoriteList_entries": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "favorite_fullMenu": "完整菜单",
   "favorite_menuMain": "主菜",
   "favorite_menuSide": "配菜",
@@ -316,7 +320,11 @@
   "result_fxConvertFailed": "金额换算失败。",
   "result_restoreOriginalCurrency": "恢复原始货币",
   "result_convertToSystemCurrency": "换算为系统货币（{currency}）",
-  "@result_convertToSystemCurrency": { "placeholders": { "currency": {} } },
+  "@result_convertToSystemCurrency": {
+    "placeholders": {
+      "currency": {}
+    }
+  },
   "result_auto": "自动",
   "result_viewFullMenu": "查看完整菜单",
   "result_preparingMenu": "正在准备详细菜单…",
@@ -324,5 +332,9 @@
   "result_imageUploadFailed": "图片上传失败，请重试。",
   "result_analyzing": "正在分析菜品信息",
   "result_loadingFullMenu": "正在加载完整菜单…",
-  "howto_detail_link": "查看更多详情"
+  "howto_detail_link": "查看更多详情",
+  "guestLoginTitle2": "欢迎，探索者！",
+  "guestLoginContent2": "在访客模式下，您可以扫描菜单以获得个性化推荐，但无法保存收藏或在多设备间查看历史记录。",
+  "confirm2": "明白了，我们走吧！",
+  "login2": "立即登录"
 }

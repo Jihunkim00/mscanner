@@ -473,32 +473,341 @@ class _MapScreenState extends State<MapScreen> {
     final now = DateTime.now();
     final initial = _selectedDateRange ??
         DateTimeRange(
-          start: DateTime(now.year, now.month, now.day).subtract(const Duration(days: 30)),
+          start: DateTime(now.year, now.month, now.day)
+              .subtract(const Duration(days: 30)),
           end: DateTime(now.year, now.month, now.day),
         );
 
-    final picked = await showDateRangePicker(
+    DateTime tempStart = DateTime(
+      initial.start.year,
+      initial.start.month,
+      initial.start.day,
+    );
+
+    DateTime tempEnd = DateTime(
+      initial.end.year,
+      initial.end.month,
+      initial.end.day,
+    );
+
+    bool editingStart = true;
+
+    final picked = await showCupertinoModalPopup<DateTimeRange?>(
       context: context,
-      firstDate: DateTime(2018, 1, 1),
-      lastDate: DateTime(now.year + 1, 12, 31),
-      initialDateRange: initial,
-      builder: (context, child) {
-        final isDark = AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark;
-        return Theme(
-          data: isDark ? ThemeData.dark() : ThemeData.light(),
-          child: child!,
+      builder: (popupContext) {
+        final isDark =
+            AdaptiveTheme.of(popupContext).mode == AdaptiveThemeMode.dark;
+
+        final bgColor = isDark ? const Color(0xFF1C1C1E) : Colors.white;
+        final titleColor = isDark ? Colors.white : const Color(0xFF111827);
+        final subColor = isDark ? Colors.white70 : const Color(0xFF6B7280);
+        final lineColor =
+        isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE5E7EB);
+        final cardColor =
+        isDark ? const Color(0xFF2A2A2E) : const Color(0xFFF6F7F9);
+        final selectedCardColor =
+        isDark ? const Color(0xFF34343A) : const Color(0xFFFFF4EC);
+
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final currentDate = editingStart ? tempStart : tempEnd;
+
+            return MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                textScaler: const TextScaler.linear(0.92),
+              ),
+              child: Container(
+                height: 390,
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(24),
+                  ),
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 10),
+                      Container(
+                        width: 42,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: subColor.withOpacity(0.25),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                        child: Row(
+                          children: [
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              minSize: 30,
+                              onPressed: () => Navigator.pop(popupContext),
+                              child: Text(
+                                AppLocalizations.of(context)?.cancel ?? '취소',
+                                style: const TextStyle(
+                                  fontFamily: 'SFPro',
+                                  fontSize: 16,
+                                  decoration: TextDecoration.none,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                AppLocalizations.of(context)?.map_date ?? '날짜',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontFamily: 'SFPro',
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w700,
+                                  color: titleColor,
+                                  decoration: TextDecoration.none,
+                                ),
+                              ),
+                            ),
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              minSize: 30,
+                              onPressed: () {
+                                if (tempEnd.isBefore(tempStart)) {
+                                  tempEnd = tempStart;
+                                }
+
+                                Navigator.pop(
+                                  popupContext,
+                                  DateTimeRange(
+                                    start: DateTime(
+                                      tempStart.year,
+                                      tempStart.month,
+                                      tempStart.day,
+                                    ),
+                                    end: DateTime(
+                                      tempEnd.year,
+                                      tempEnd.month,
+                                      tempEnd.day,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                AppLocalizations.of(context)?.done ?? '완료',
+                                style: const TextStyle(
+                                  fontFamily: 'SFPro',
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  decoration: TextDecoration.none,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Divider(height: 1, color: lineColor),
+
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  setModalState(() {
+                                    editingStart = true;
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: editingStart
+                                        ? selectedCardColor
+                                        : cardColor,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: editingStart
+                                          ? const Color(0xFFD86A2F)
+                                          : lineColor,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        'Start',
+                                        style: TextStyle(
+                                          fontFamily: 'SFPro',
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: subColor,
+                                          decoration: TextDecoration.none,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        DateFormat('yyyy.MM.dd').format(tempStart),
+                                        style: TextStyle(
+                                          fontFamily: 'SFPro',
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                          color: titleColor,
+                                          decoration: TextDecoration.none,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  setModalState(() {
+                                    editingStart = false;
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: !editingStart
+                                        ? selectedCardColor
+                                        : cardColor,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: !editingStart
+                                          ? const Color(0xFFD86A2F)
+                                          : lineColor,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        'End',
+                                        style: TextStyle(
+                                          fontFamily: 'SFPro',
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: subColor,
+                                          decoration: TextDecoration.none,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        DateFormat('yyyy.MM.dd').format(tempEnd),
+                                        style: TextStyle(
+                                          fontFamily: 'SFPro',
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                          color: titleColor,
+                                          decoration: TextDecoration.none,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      Expanded(
+                        child: CupertinoTheme(
+                          data: CupertinoThemeData(
+                            brightness: isDark ? Brightness.dark : Brightness.light,
+                          ),
+                          child: CupertinoDatePicker(
+                            key: ValueKey(
+                              '${editingStart ? 'start' : 'end'}_${currentDate.toIso8601String()}',
+                            ),
+                            mode: CupertinoDatePickerMode.date,
+                            itemExtent: 30,
+                            initialDateTime: currentDate,
+                            minimumDate: editingStart
+                                ? DateTime(2018, 1, 1)
+                                : tempStart,
+                            maximumDate: DateTime(now.year + 1, 12, 31),
+                            onDateTimeChanged: (date) {
+                              setModalState(() {
+                                final normalized = DateTime(
+                                  date.year,
+                                  date.month,
+                                  date.day,
+                                );
+
+                                if (editingStart) {
+                                  tempStart = normalized;
+                                  if (tempEnd.isBefore(tempStart)) {
+                                    tempEnd = tempStart;
+                                  }
+                                } else {
+                                  tempEnd = normalized;
+                                  if (tempEnd.isBefore(tempStart)) {
+                                    tempEnd = tempStart;
+                                  }
+                                }
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: CupertinoButton(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            color: cardColor,
+                            borderRadius: BorderRadius.circular(16),
+                            onPressed: () => Navigator.pop(popupContext, null),
+                            child: Text(
+                              AppLocalizations.of(context)?.map_clear ?? '지우기',
+                              style: TextStyle(
+                                fontFamily: 'SFPro',
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: titleColor,
+                                decoration: TextDecoration.none,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         );
       },
     );
 
     if (!mounted) return;
-    if (picked != null) {
-      setState(() => _selectedDateRange = picked);
+
+    if (picked == null) {
+      setState(() => _selectedDateRange = null);
       _applyAllFiltersAndRebuild();
       if (_filteredItems.isNotEmpty) {
         final id = _norm(_filteredItems.first['id']);
         if (id.isNotEmpty) _focusToItem(id);
       }
+      return;
+    }
+
+    setState(() => _selectedDateRange = picked);
+    _applyAllFiltersAndRebuild();
+
+    if (_filteredItems.isNotEmpty) {
+      final id = _norm(_filteredItems.first['id']);
+      if (id.isNotEmpty) _focusToItem(id);
     }
   }
 
@@ -525,9 +834,7 @@ class _MapScreenState extends State<MapScreen> {
     const double topControlsHeight = 120;
     const double bottomCardsHeight = 210;
 
-    // 작은 “필터 상태” 표기 (원하면 제거 가능)
-    final hasExtraFilter =
-        (_selectedCuisine != null) || (_selectedLocation != null) || (_selectedDateRange != null);
+
 
     return CupertinoPageScaffold(
       backgroundColor: pageBg,
@@ -568,82 +875,57 @@ class _MapScreenState extends State<MapScreen> {
                   ),
                   const SizedBox(height: 10),
 
-                  Row(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              MScannerPillChip(
-                                label: AppLocalizations.of(context)?.map_recent ?? 'Recent',
-                                selected: _activeFilter == _FilterType.recent,
-                                scheme: MScannerAccent.orange, // ✅ 여기만 오렌지로
-                                onTap: () {
-                                  setState(() => _activeFilter = _FilterType.recent);
-                                  _applyAllFiltersAndRebuild();
-                                  if (_filteredItems.isNotEmpty) {
-                                    final id = _norm(_filteredItems.first['id']);
-                                    if (id.isNotEmpty) _focusToItem(id);
-                                  }
-                                },
-                              ),
-                              MScannerPillChip(
-                                label: AppLocalizations.of(context)?.map_topRated ?? 'Top Rated',
-                                selected: _activeFilter == _FilterType.topRated,
-                                scheme: MScannerAccent.orange, // ✅ 여기만 오렌지로
-                                onTap: () {
-                                  setState(() => _activeFilter = _FilterType.topRated);
-                                  _applyAllFiltersAndRebuild();
-                                  if (_filteredItems.isNotEmpty) {
-                                    final id = _norm(_filteredItems.first['id']);
-                                    if (id.isNotEmpty) _focusToItem(id);
-                                  }
-                                },
-                              ),
-
-                              MScannerPillChip(
-                                label: AppLocalizations.of(context)?.map_date ?? 'Date',
-                                selected: _selectedDateRange != null,
-                                scheme: MScannerAccent.orange, // ✅ 여기만 오렌지로
-                                onTap: _openDatePicker,
-                              ),
-                              MScannerPillChip(
-                                label: AppLocalizations.of(context)?.map_location ?? 'Location',
-                                selected: _selectedLocation != null,
-                                scheme: MScannerAccent.orange, // ✅ 여기만 오렌지로
-                                onTap: _openLocationSheet,
-                              ),
-                            ],
-                          ),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            MScannerPillChip(
+                              label: AppLocalizations.of(context)?.map_recent ?? 'Recent',
+                              selected: _activeFilter == _FilterType.recent,
+                              scheme: MScannerAccent.orange,
+                              onTap: () {
+                                setState(() => _activeFilter = _FilterType.recent);
+                                _applyAllFiltersAndRebuild();
+                                if (_filteredItems.isNotEmpty) {
+                                  final id = _norm(_filteredItems.first['id']);
+                                  if (id.isNotEmpty) _focusToItem(id);
+                                }
+                              },
+                            ),
+                            MScannerPillChip(
+                              label: AppLocalizations.of(context)?.map_topRated ?? 'Top Rated',
+                              selected: _activeFilter == _FilterType.topRated,
+                              scheme: MScannerAccent.orange,
+                              onTap: () {
+                                setState(() => _activeFilter = _FilterType.topRated);
+                                _applyAllFiltersAndRebuild();
+                                if (_filteredItems.isNotEmpty) {
+                                  final id = _norm(_filteredItems.first['id']);
+                                  if (id.isNotEmpty) _focusToItem(id);
+                                }
+                              },
+                            ),
+                            MScannerPillChip(
+                              label: AppLocalizations.of(context)?.map_date ?? 'Date',
+                              selected: _selectedDateRange != null,
+                              scheme: MScannerAccent.orange,
+                              onTap: _openDatePicker,
+                            ),
+                            MScannerPillChip(
+                              label: AppLocalizations.of(context)?.map_location ?? 'Location',
+                              selected: _selectedLocation != null,
+                              scheme: MScannerAccent.orange,
+                              onTap: _openLocationSheet,
+                            ),
+                          ],
                         ),
                       ),
-                      if (hasExtraFilter)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 10),
-                          child: GestureDetector(
-                            onTap: _clearAllFilters,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: _isDarkMode
-                                    ? Colors.white.withOpacity(0.10)
-                                    : Colors.black.withOpacity(0.06),
-                                borderRadius: BorderRadius.circular(18),
-                              ),
-                              child: Text(
-                                AppLocalizations.of(context)?.map_clear ?? 'Clear',
-                                style: TextStyle(
-                                  color: _isDarkMode ? Colors.white : Colors.black87,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+
                     ],
-                  ),
+                  )
                 ],
               ),
             ),

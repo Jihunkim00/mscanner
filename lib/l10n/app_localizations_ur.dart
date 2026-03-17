@@ -956,4 +956,16 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get howto_detail_link => 'مزید تفصیل دیکھیں';
+
+  @override
+  String get guestLoginTitle2 => 'خوش آمدید، مہم جو!';
+
+  @override
+  String get guestLoginContent2 => 'گیسٹ موڈ میں آپ کھانے کے مینو اسکین کر کے ذاتی سفارشات حاصل کر سکتے ہیں، لیکن آپ اپنے پسندیدہ محفوظ نہیں کر پائیں گے اور نہ ہی مختلف ڈیوائسز پر تاریخ دیکھ پائیں گے۔';
+
+  @override
+  String get confirm2 => 'سمجھ گیا، چلیں!';
+
+  @override
+  String get login2 => 'ابھی سائن ان کریں';
 }

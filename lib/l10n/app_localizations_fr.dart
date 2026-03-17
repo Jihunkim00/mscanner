@@ -956,4 +956,16 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get howto_detail_link => 'Voir plus de détails';
+
+  @override
+  String get guestLoginTitle2 => 'Bienvenue, explorateur !';
+
+  @override
+  String get guestLoginContent2 => 'En mode invité, vous pouvez scanner les menus pour obtenir des recommandations personnalisées, mais vous ne pourrez pas enregistrer vos favoris ni consulter l\'historique sur plusieurs appareils.';
+
+  @override
+  String get confirm2 => 'Compris, on y va !';
+
+  @override
+  String get login2 => 'Connectez-vous maintenant';
 }

@@ -1997,6 +1997,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'See more details'**
   String get howto_detail_link;
+
+  /// No description provided for @guestLoginTitle2.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome, Explorer!'**
+  String get guestLoginTitle2;
+
+  /// No description provided for @guestLoginContent2.
+  ///
+  /// In en, this message translates to:
+  /// **'In Guest Mode, you can scan food menus to get personalized recommendations, but you won’t be able to save your favorites or view history across devices.'**
+  String get guestLoginContent2;
+
+  /// No description provided for @confirm2.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it, let\'s go!'**
+  String get confirm2;
+
+  /// No description provided for @login2.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in now'**
+  String get login2;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

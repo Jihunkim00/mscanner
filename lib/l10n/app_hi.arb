@@ -296,7 +296,11 @@
   "favoriteList_noHistoryFound": "कोई रिकॉर्ड नहीं मिला",
   "favoriteList_thisWeek": "इस सप्ताह",
   "favoriteList_entries": "{count} आइटम",
-  "@favoriteList_entries": { "placeholders": { "count": {} } },
+  "@favoriteList_entries": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "favorite_fullMenu": "पूरा मेनू",
   "favorite_menuMain": "मुख्य",
   "favorite_menuSide": "साइड",
@@ -316,7 +320,11 @@
   "result_fxConvertFailed": "राशि परिवर्तित नहीं की जा सकी।",
   "result_restoreOriginalCurrency": "मूल मुद्रा बहाल करें",
   "result_convertToSystemCurrency": "सिस्टम मुद्रा ({currency}) में बदलें",
-  "@result_convertToSystemCurrency": { "placeholders": { "currency": {} } },
+  "@result_convertToSystemCurrency": {
+    "placeholders": {
+      "currency": {}
+    }
+  },
   "result_auto": "ऑटो",
   "result_viewFullMenu": "पूरा मेनू देखें",
   "result_preparingMenu": "विस्तृत मेनू तैयार हो रहा है…",
@@ -324,5 +332,9 @@
   "result_imageUploadFailed": "इमेज अपलोड विफल। कृपया फिर से प्रयास करें।",
   "result_analyzing": "खाने की जानकारी का विश्लेषण हो रहा है",
   "result_loadingFullMenu": "पूरा मेनू लोड हो रहा है…",
-  "howto_detail_link": "और विवरण देखें"
+  "howto_detail_link": "और विवरण देखें",
+  "guestLoginTitle2": "स्वागत है, अन्वेषक!",
+  "guestLoginContent2": "गेस्ट मोड में आप व्यक्तिगत सिफारिशें प्राप्त करने के लिए खाने के मेनू स्कैन कर सकते हैं, लेकिन आप अपनी पसंदीदा चीज़ों को सहेज नहीं पाएंगे या डिवाइसों के बीच इतिहास नहीं देख पाएंगे।",
+  "confirm2": "ठीक है, चलो!",
+  "login2": "अभी साइन इन करें"
 }

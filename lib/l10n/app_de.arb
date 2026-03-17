@@ -296,7 +296,11 @@
   "favoriteList_noHistoryFound": "Keine Einträge gefunden",
   "favoriteList_thisWeek": "Diese Woche",
   "favoriteList_entries": "{count} Einträge",
-  "@favoriteList_entries": { "placeholders": { "count": {} } },
+  "@favoriteList_entries": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "favorite_fullMenu": "Komplettes Menü",
   "favorite_menuMain": "Hauptgerichte",
   "favorite_menuSide": "Beilagen",
@@ -316,7 +320,11 @@
   "result_fxConvertFailed": "Betrag konnte nicht umgerechnet werden.",
   "result_restoreOriginalCurrency": "Originalwährung wiederherstellen",
   "result_convertToSystemCurrency": "In Systemwährung ({currency}) umrechnen",
-  "@result_convertToSystemCurrency": { "placeholders": { "currency": {} } },
+  "@result_convertToSystemCurrency": {
+    "placeholders": {
+      "currency": {}
+    }
+  },
   "result_auto": "Auto",
   "result_viewFullMenu": "Komplettes Menü ansehen",
   "result_preparingMenu": "Detailliertes Menü wird vorbereitet…",
@@ -324,5 +332,9 @@
   "result_imageUploadFailed": "Bild-Upload fehlgeschlagen. Bitte erneut versuchen.",
   "result_analyzing": "Lebensmittelinformationen werden analysiert",
   "result_loadingFullMenu": "Komplettes Menü wird geladen…",
-  "howto_detail_link": "Mehr Details anzeigen"
+  "howto_detail_link": "Mehr Details anzeigen",
+  "guestLoginTitle2": "Willkommen, Entdecker!",
+  "guestLoginContent2": "Im Gastmodus können Sie Speisekarten scannen, um personalisierte Empfehlungen zu erhalten, aber Sie können Ihre Favoriten nicht speichern oder den Verlauf geräteübergreifend einsehen.",
+  "confirm2": "Alles klar, los geht's!",
+  "login2": "Jetzt anmelden"
 }

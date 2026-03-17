@@ -297,7 +297,9 @@
   "favoriteList_thisWeek": "या आठवड्यात",
   "favoriteList_entries": "{count} आयटम",
   "@favoriteList_entries": {
-    "placeholders": { "count": {} }
+    "placeholders": {
+      "count": {}
+    }
   },
   "favorite_fullMenu": "संपूर्ण मेनू",
   "favorite_menuMain": "मुख्य",
@@ -319,7 +321,9 @@
   "result_restoreOriginalCurrency": "मूळ चलन परत करा",
   "result_convertToSystemCurrency": "सिस्टम चलनात ({currency}) रूपांतरित करा",
   "@result_convertToSystemCurrency": {
-    "placeholders": { "currency": {} }
+    "placeholders": {
+      "currency": {}
+    }
   },
   "result_auto": "स्वयंचलित",
   "result_viewFullMenu": "संपूर्ण मेनू पहा",
@@ -328,5 +332,9 @@
   "result_imageUploadFailed": "इमेज अपलोड अयशस्वी. कृपया पुन्हा प्रयत्न करा.",
   "result_analyzing": "अन्नाची माहिती विश्लेषित करत आहे",
   "result_loadingFullMenu": "संपूर्ण मेनू लोड करत आहे…",
-  "howto_detail_link": "अधिक तपशील पहा"
+  "howto_detail_link": "अधिक तपशील पहा",
+  "guestLoginTitle2": "स्वागत आहे, अन्वेषक!",
+  "guestLoginContent2": "गेस्ट मोडमध्ये तुम्ही अन्न मेन्यू स्कॅन करून वैयक्तिकृत शिफारसी मिळवू शकता, परंतु आवडत्या गोष्टी जतन करणे किंवा विविध उपकरणांवर तुमचा इतिहास पाहणे शक्य होणार नाही.",
+  "confirm2": "ठीक आहे, चला!",
+  "login2": "आता साइन इन करा"
 }

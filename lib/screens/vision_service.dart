@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '/helpers/settings_helper.dart';
+import 'package:mscanner/utils/sse_event_parser.dart';
 
 class VisionService {
   // 기존: static Future<String> analyzeImage(File imageFile) async {
@@ -349,8 +350,11 @@ If it doesn’t seem food-related, just say so.
     };
 
     final template = ragPrefixMap[lang] ?? ragPrefixMap['en']!;
+    final safePromptContext = (promptContext ?? '').length > 3000
+        ? (promptContext ?? '').substring(0, 3000)
+        : (promptContext ?? '');
     final mergedPrompt = template
-        .replaceAll('{promptContext}', promptContext ?? '')
+        .replaceAll('{promptContext}', safePromptContext)
         .replaceAll('{question}', question ?? '');
 
     final mergedPromptWithProtocol = _streamProtocol + "\n" + mergedPrompt;
@@ -373,46 +377,48 @@ If it doesn’t seem food-related, just say so.
       'stream': true,
     };
 
-    final request = http.Request(
-      'POST',
-      Uri.parse('https://api.openai.com/v1/chat/completions'),
-    );
-    request.headers.addAll({
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ${dotenv.env['API_KEY']}',
-    });
-    request.body = jsonEncode(payload);
+    final client = http.Client();
+    try {
+      final request = http.Request(
+        'POST',
+        Uri.parse('https://api.openai.com/v1/chat/completions'),
+      );
+      request.headers.addAll({
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${dotenv.env['API_KEY']}',
+      });
+      request.body = jsonEncode(payload);
 
-    final streamedResponse = await request.send();
-    if (streamedResponse.statusCode != 200) {
-      final errBody = await streamedResponse.stream.bytesToString();
-      throw Exception('Stream request failed: ${streamedResponse.statusCode} $errBody');
-    }
+      final streamedResponse = await client
+          .send(request)
+          .timeout(const Duration(seconds: 20));
+      if (streamedResponse.statusCode != 200) {
+        final errBody = await streamedResponse.stream.bytesToString();
+        throw Exception('Stream request failed: ${streamedResponse.statusCode} $errBody');
+      }
 
-    final decoder = utf8.decoder;
-    String sseBuffer = '';
+      final parser = SseEventParser();
+      final decoder = utf8.decoder;
+      var hasContent = false;
 
-    await for (final chunk in streamedResponse.stream.transform(decoder)) {
-      sseBuffer += chunk;
+      final guardedStream = streamedResponse.stream
+          .transform(decoder)
+          .timeout(const Duration(seconds: 45));
 
-      while (true) {
-        final splitIdx = sseBuffer.indexOf('\n\n');
-        if (splitIdx == -1) break;
-
-        final event = sseBuffer.substring(0, splitIdx);
-        sseBuffer = sseBuffer.substring(splitIdx + 2);
-
-        for (final line in event.split('\n')) {
-          final l = line.trim();
-          if (!l.startsWith('data:')) continue;
-
-          final data = l.substring(5).trim();
-          if (data == '[DONE]') return;
+      await for (final chunk in guardedStream) {
+        for (final data in parser.addChunk(chunk)) {
+          if (data == '[DONE]') {
+            if (!hasContent) {
+              throw const FormatException('Empty streaming response');
+            }
+            return;
+          }
 
           try {
             final j = jsonDecode(data);
             final delta = j['choices']?[0]?['delta']?['content'];
             if (delta is String && delta.isNotEmpty) {
+              hasContent = true;
               yield delta;
             }
           } catch (_) {
@@ -420,6 +426,24 @@ If it doesn’t seem food-related, just say so.
           }
         }
       }
+
+      for (final data in parser.flush()) {
+        if (data == '[DONE]') break;
+        try {
+          final j = jsonDecode(data);
+          final delta = j['choices']?[0]?['delta']?['content'];
+          if (delta is String && delta.isNotEmpty) {
+            hasContent = true;
+            yield delta;
+          }
+        } catch (_) {}
+      }
+
+      if (!hasContent) {
+        throw const FormatException('Empty streaming response');
+      }
+    } finally {
+      client.close();
     }
   }
 

@@ -225,18 +225,20 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
 
   Widget _buildTopControls(Color backgroundColor, Color textColor) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
           child: MScannerSearchField(
             controller: _searchController,
             placeholder: AppLocalizations.of(context)?.favoriteList_searchHistory ?? 'Search History',
             onChanged: (v) => setState(() => _searchText = v),
           ),
         ),
+        const SizedBox(height: 10),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
               // ---- Filters ----

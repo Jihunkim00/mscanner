@@ -296,7 +296,11 @@
   "favoriteList_noHistoryFound": "Nenhum registro",
   "favoriteList_thisWeek": "Esta semana",
   "favoriteList_entries": "{count} itens",
-  "@favoriteList_entries": { "placeholders": { "count": {} } },
+  "@favoriteList_entries": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "favorite_fullMenu": "Menu completo",
   "favorite_menuMain": "Principal",
   "favorite_menuSide": "Acompanhamentos",
@@ -316,7 +320,11 @@
   "result_fxConvertFailed": "Não foi possível converter este valor.",
   "result_restoreOriginalCurrency": "Restaurar moeda original",
   "result_convertToSystemCurrency": "Converter para a moeda do sistema ({currency})",
-  "@result_convertToSystemCurrency": { "placeholders": { "currency": {} } },
+  "@result_convertToSystemCurrency": {
+    "placeholders": {
+      "currency": {}
+    }
+  },
   "result_auto": "Auto",
   "result_viewFullMenu": "Ver menu completo",
   "result_preparingMenu": "Preparando o menu detalhado…",
@@ -324,5 +332,9 @@
   "result_imageUploadFailed": "Falha ao enviar a imagem. Tente novamente.",
   "result_analyzing": "Analisando informações do prato",
   "result_loadingFullMenu": "Carregando o menu completo…",
-  "howto_detail_link": "Ver mais detalhes"
+  "howto_detail_link": "Ver mais detalhes",
+  "guestLoginTitle2": "Bem-vindo, Explorador!",
+  "guestLoginContent2": "No Modo Convidado, você pode escanear cardápios para obter recomendações personalizadas, mas não poderá salvar seus favoritos nem visualizar o histórico entre dispositivos.",
+  "confirm2": "Entendi, vamos lá!",
+  "login2": "Entrar agora"
 }

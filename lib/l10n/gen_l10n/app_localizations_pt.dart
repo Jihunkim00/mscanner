@@ -956,6 +956,18 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get howto_detail_link => 'Ver mais detalhes';
+
+  @override
+  String get guestLoginTitle2 => 'Bem-vindo, Explorador!';
+
+  @override
+  String get guestLoginContent2 => 'No Modo Convidado, você pode escanear cardápios para obter recomendações personalizadas, mas não poderá salvar seus favoritos nem visualizar o histórico entre dispositivos.';
+
+  @override
+  String get confirm2 => 'Entendi, vamos lá!';
+
+  @override
+  String get login2 => 'Entrar agora';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -1910,4 +1922,16 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get howto_detail_link => 'Ver mais detalhes';
+
+  @override
+  String get guestLoginTitle2 => 'Bem-vindo, Explorador!';
+
+  @override
+  String get guestLoginContent2 => 'No Modo Convidado, você pode escanear cardápios para obter recomendações personalizadas, mas não poderá salvar seus favoritos nem visualizar o histórico em vários dispositivos.';
+
+  @override
+  String get confirm2 => 'Entendi, vamos lá!';
+
+  @override
+  String get login2 => 'Entrar agora';
 }

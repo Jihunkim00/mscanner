@@ -956,4 +956,16 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get howto_detail_link => 'और विवरण देखें';
+
+  @override
+  String get guestLoginTitle2 => 'स्वागत है, अन्वेषक!';
+
+  @override
+  String get guestLoginContent2 => 'गेस्ट मोड में आप व्यक्तिगत सिफारिशें प्राप्त करने के लिए खाने के मेनू स्कैन कर सकते हैं, लेकिन आप अपनी पसंदीदा चीज़ों को सहेज नहीं पाएंगे या डिवाइसों के बीच इतिहास नहीं देख पाएंगे।';
+
+  @override
+  String get confirm2 => 'ठीक है, चलो!';
+
+  @override
+  String get login2 => 'अभी साइन इन करें';
 }

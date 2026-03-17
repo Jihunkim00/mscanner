@@ -296,7 +296,11 @@
   "favoriteList_noHistoryFound": "No hay registros",
   "favoriteList_thisWeek": "Esta semana",
   "favoriteList_entries": "{count} elementos",
-  "@favoriteList_entries": { "placeholders": { "count": {} } },
+  "@favoriteList_entries": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "favorite_fullMenu": "Menú completo",
   "favorite_menuMain": "Principal",
   "favorite_menuSide": "Acompañamientos",
@@ -316,7 +320,11 @@
   "result_fxConvertFailed": "No se pudo convertir el importe.",
   "result_restoreOriginalCurrency": "Restaurar moneda original",
   "result_convertToSystemCurrency": "Convertir a la moneda del sistema ({currency})",
-  "@result_convertToSystemCurrency": { "placeholders": { "currency": {} } },
+  "@result_convertToSystemCurrency": {
+    "placeholders": {
+      "currency": {}
+    }
+  },
   "result_auto": "Auto",
   "result_viewFullMenu": "Ver menú completo",
   "result_preparingMenu": "Preparando el menú detallado…",
@@ -324,5 +332,9 @@
   "result_imageUploadFailed": "No se pudo subir la imagen. Inténtalo de nuevo.",
   "result_analyzing": "Analizando información del plato",
   "result_loadingFullMenu": "Cargando el menú completo…",
-  "howto_detail_link": "Ver más detalles"
+  "howto_detail_link": "Ver más detalles",
+  "guestLoginTitle2": "¡Bienvenido, explorador!",
+  "guestLoginContent2": "En el modo invitado, puedes escanear menús de comida para obtener recomendaciones personalizadas, pero no podrás guardar tus favoritos ni ver el historial en varios dispositivos.",
+  "confirm2": "¡Entendido, vamos!",
+  "login2": "Inicia sesión ahora"
 }

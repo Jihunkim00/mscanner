@@ -956,4 +956,16 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get howto_detail_link => 'ดูรายละเอียดเพิ่มเติม';
+
+  @override
+  String get guestLoginTitle2 => 'ยินดีต้อนรับนักสำรวจ!';
+
+  @override
+  String get guestLoginContent2 => 'ในโหมดผู้เยี่ยมชม คุณสามารถสแกนเมนูอาหารเพื่อรับคำแนะนำที่ปรับตามความชอบของคุณได้ แต่คุณจะไม่สามารถบันทึกรายการโปรดหรือดูประวัติการใช้งานข้ามอุปกรณ์ได้';
+
+  @override
+  String get confirm2 => 'เข้าใจแล้ว ไปกันเลย!';
+
+  @override
+  String get login2 => 'ลงชื่อเข้าใช้ตอนนี้';
 }

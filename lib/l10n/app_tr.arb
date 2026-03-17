@@ -297,7 +297,9 @@
   "favoriteList_thisWeek": "Bu hafta",
   "favoriteList_entries": "{count} öğe",
   "@favoriteList_entries": {
-    "placeholders": { "count": {} }
+    "placeholders": {
+      "count": {}
+    }
   },
   "favorite_fullMenu": "Tüm Menü",
   "favorite_menuMain": "Ana",
@@ -319,7 +321,9 @@
   "result_restoreOriginalCurrency": "Orijinal para birimine dön",
   "result_convertToSystemCurrency": "Sistem para birimine dönüştür ({currency})",
   "@result_convertToSystemCurrency": {
-    "placeholders": { "currency": {} }
+    "placeholders": {
+      "currency": {}
+    }
   },
   "result_auto": "Otomatik",
   "result_viewFullMenu": "Tüm Menüyü Gör",
@@ -328,5 +332,9 @@
   "result_imageUploadFailed": "Görsel yüklenemedi. Lütfen tekrar deneyin.",
   "result_analyzing": "Yemek bilgileri analiz ediliyor",
   "result_loadingFullMenu": "Tüm menü yükleniyor…",
-  "howto_detail_link": "Daha fazla ayrıntı görün"
+  "howto_detail_link": "Daha fazla ayrıntı görün",
+  "guestLoginTitle2": "Hoş geldiniz, Kaşif!",
+  "guestLoginContent2": "Misafir Modu'nda yemek menülerini tarayarak kişiselleştirilmiş öneriler alabilirsiniz, ancak favorilerinizi kaydedemezsiniz veya cihazlar arasında geçmişinizi göremezsiniz.",
+  "confirm2": "Anladım, hadi gidelim!",
+  "login2": "Şimdi giriş yap"
 }

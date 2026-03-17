@@ -296,7 +296,11 @@
   "favoriteList_noHistoryFound": "Tidak ada riwayat",
   "favoriteList_thisWeek": "Minggu ini",
   "favoriteList_entries": "{count} item",
-  "@favoriteList_entries": { "placeholders": { "count": {} } },
+  "@favoriteList_entries": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "favorite_fullMenu": "Menu Lengkap",
   "favorite_menuMain": "Utama",
   "favorite_menuSide": "Sampingan",
@@ -316,7 +320,11 @@
   "result_fxConvertFailed": "Tidak dapat mengonversi jumlah ini.",
   "result_restoreOriginalCurrency": "Kembalikan mata uang asli",
   "result_convertToSystemCurrency": "Konversi ke mata uang sistem ({currency})",
-  "@result_convertToSystemCurrency": { "placeholders": { "currency": {} } },
+  "@result_convertToSystemCurrency": {
+    "placeholders": {
+      "currency": {}
+    }
+  },
   "result_auto": "Otomatis",
   "result_viewFullMenu": "Lihat Menu Lengkap",
   "result_preparingMenu": "Menyiapkan menu detail…",
@@ -324,5 +332,9 @@
   "result_imageUploadFailed": "Unggah gambar gagal. Silakan coba lagi.",
   "result_analyzing": "Menganalisis informasi makanan",
   "result_loadingFullMenu": "Memuat menu lengkap…",
-  "howto_detail_link": "Lihat detail selengkapnya"
+  "howto_detail_link": "Lihat detail selengkapnya",
+  "guestLoginTitle2": "Selamat datang, Penjelajah!",
+  "guestLoginContent2": "Dalam Mode Tamu, Anda dapat memindai menu makanan untuk mendapatkan rekomendasi yang dipersonalisasi, tetapi Anda tidak akan dapat menyimpan favorit Anda atau melihat riwayat di seluruh perangkat.",
+  "confirm2": "Siap, ayo kita mulai!",
+  "login2": "Masuk sekarang"
 }

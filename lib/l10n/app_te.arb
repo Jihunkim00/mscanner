@@ -297,7 +297,9 @@
   "favoriteList_thisWeek": "ఈ వారం",
   "favoriteList_entries": "{count} అంశాలు",
   "@favoriteList_entries": {
-    "placeholders": { "count": {} }
+    "placeholders": {
+      "count": {}
+    }
   },
   "favorite_fullMenu": "పూర్తి మెనూ",
   "favorite_menuMain": "మెయిన్",
@@ -319,7 +321,9 @@
   "result_restoreOriginalCurrency": "మూల కరెన్సీకి తిరిగి",
   "result_convertToSystemCurrency": "సిస్టమ్ కరెన్సీ ({currency})కి మార్చండి",
   "@result_convertToSystemCurrency": {
-    "placeholders": { "currency": {} }
+    "placeholders": {
+      "currency": {}
+    }
   },
   "result_auto": "ఆటో",
   "result_viewFullMenu": "పూర్తి మెనూ చూడండి",
@@ -328,5 +332,9 @@
   "result_imageUploadFailed": "చిత్రం అప్లోడ్ విఫలమైంది. మళ్లీ ప్రయత్నించండి.",
   "result_analyzing": "ఆహార సమాచారం విశ్లేషణలో ఉంది",
   "result_loadingFullMenu": "పూర్తి మెనూ లోడ్ అవుతోంది…",
-  "howto_detail_link": "మరిన్ని వివరాలు చూడండి"
+  "howto_detail_link": "మరిన్ని వివరాలు చూడండి",
+  "guestLoginTitle2": "స్వాగతం, అన్వేషకా!",
+  "guestLoginContent2": "గెస్ట్ మోడ్‌లో మీరు ఆహార మెన్యూలను స్కాన్ చేసి వ్యక్తిగత సిఫార్సులు పొందవచ్చు, కానీ మీ ఇష్టమైనవలను సేవ్ చేయలేరు లేదా పరికరాల మధ్య చరిత్రను చూడలేరు.",
+  "confirm2": "అర్థమైంది, వెళ్దాం!",
+  "login2": "ఇప్పుడే సైన్ ఇన్ చేయండి"
 }

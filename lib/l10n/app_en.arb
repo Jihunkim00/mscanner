@@ -296,7 +296,11 @@
   "favoriteList_noHistoryFound": "No history found",
   "favoriteList_thisWeek": "This week",
   "favoriteList_entries": "{count} items",
-  "@favoriteList_entries": { "placeholders": { "count": {} } },
+  "@favoriteList_entries": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "favorite_fullMenu": "Full Menu",
   "favorite_menuMain": "Main",
   "favorite_menuSide": "Sides",
@@ -316,7 +320,11 @@
   "result_fxConvertFailed": "Couldn't convert this amount.",
   "result_restoreOriginalCurrency": "Restore original currency",
   "result_convertToSystemCurrency": "Convert to system currency ({currency})",
-  "@result_convertToSystemCurrency": { "placeholders": { "currency": {} } },
+  "@result_convertToSystemCurrency": {
+    "placeholders": {
+      "currency": {}
+    }
+  },
   "result_auto": "Auto",
   "result_viewFullMenu": "View Full Menu",
   "result_preparingMenu": "Preparing detailed menu…",
@@ -324,5 +332,9 @@
   "result_imageUploadFailed": "Image upload failed. Please try again.",
   "result_analyzing": "Analyzing food details",
   "result_loadingFullMenu": "Loading full menu…",
-  "howto_detail_link": "See more details"
+  "howto_detail_link": "See more details",
+  "guestLoginTitle2": "Welcome, Explorer!",
+  "guestLoginContent2": "In Guest Mode, you can scan food menus to get personalized recommendations, but you won’t be able to save your favorites or view history across devices.",
+  "confirm2": "Got it, let's go!",
+  "login2": "Sign in now"
 }

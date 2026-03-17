@@ -296,7 +296,11 @@
   "favoriteList_noHistoryFound": "找不到紀錄",
   "favoriteList_thisWeek": "本週",
   "favoriteList_entries": "{count} 筆",
-  "@favoriteList_entries": { "placeholders": { "count": {} } },
+  "@favoriteList_entries": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "favorite_fullMenu": "完整菜單",
   "favorite_menuMain": "主菜",
   "favorite_menuSide": "配菜",
@@ -316,7 +320,11 @@
   "result_fxConvertFailed": "金額換算失敗。",
   "result_restoreOriginalCurrency": "還原原始貨幣",
   "result_convertToSystemCurrency": "換算為系統貨幣（{currency}）",
-  "@result_convertToSystemCurrency": { "placeholders": { "currency": {} } },
+  "@result_convertToSystemCurrency": {
+    "placeholders": {
+      "currency": {}
+    }
+  },
   "result_auto": "自動",
   "result_viewFullMenu": "查看完整菜單",
   "result_preparingMenu": "正在準備詳細菜單…",
@@ -324,5 +332,9 @@
   "result_imageUploadFailed": "圖片上傳失敗，請再試一次。",
   "result_analyzing": "正在分析餐點資訊",
   "result_loadingFullMenu": "正在載入完整菜單…",
-  "howto_detail_link": "查看更多內容"
+  "howto_detail_link": "查看更多內容",
+  "guestLoginTitle2": "歡迎，探索者！",
+  "guestLoginContent2": "在訪客模式下，您可以掃描菜單以獲得個人化推薦，但您將無法儲存最愛或在不同裝置間查看歷史紀錄。",
+  "confirm2": "了解了，我們出發吧！",
+  "login2": "立即登入"
 }
