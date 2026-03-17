@@ -163,6 +163,8 @@ class _ResultScreenState extends State<ResultScreen> {
   StreamSubscription<String>? _aiStreamSub;
   final StringBuffer _aiStreamBuffer = StringBuffer();
   bool _aiStreamDone = false;
+  bool _aiStreamHadError = false;
+  String? _aiStreamErrorMessage;
 
   bool get _isWaitingFullMenu => widget.responseStream != null && !_aiStreamDone;
 
@@ -1784,6 +1786,18 @@ class _ResultScreenState extends State<ResultScreen> {
           ],
 
 
+          if (_aiStreamHadError && _aiStreamErrorMessage != null) ...[
+            Text(
+              _aiStreamErrorMessage!,
+              style: TextStyle(
+                fontFamily: 'SFPro',
+                fontSize: 12,
+                color: Colors.redAccent,
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+
           ...rec.asMap().entries.map((entry) {
             final index = entry.key;
             final item = entry.value;
@@ -2530,6 +2544,26 @@ class _ResultScreenState extends State<ResultScreen> {
   int _viewerInitialIndex = 0;
   final GlobalKey _shareWidgetKey = GlobalKey();
 
+
+  void _completeAiStream({bool hadError = false, String? errorMessage}) {
+    _aiStreamDone = true;
+    _aiStreamHadError = hadError;
+    _aiStreamErrorMessage = errorMessage;
+
+    final full = _aiStreamBuffer.toString().trim();
+    if (full.isNotEmpty && !widget.responses.contains(full)) {
+      widget.responses.add(full);
+    }
+
+    _parseAiJson();
+    _kickoffRecommendedReveal();
+
+    if (_pendingSearchedMenuSave) {
+      _pendingSearchedMenuSave = false;
+      _saveSearchedMenuFireAndForget();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -2541,7 +2575,9 @@ class _ResultScreenState extends State<ResultScreen> {
 
 // ✅ 스트리밍이 있으면: Result에서 바로 받아서 RECOMMEND 먼저 반영
     if (widget.responseStream != null) {
-      _aiStreamSub = widget.responseStream!.listen(
+      final guardedStream = widget.responseStream!
+          .timeout(const Duration(seconds: 45));
+      _aiStreamSub = guardedStream.listen(
             (delta) {
           _aiStreamBuffer.write(delta);
 
@@ -2565,25 +2601,26 @@ class _ResultScreenState extends State<ResultScreen> {
 
           if (mounted) setState(() {});
         },
-        onError: (_) {},
+        onError: (e) {
+          _completeAiStream(
+            hadError: true,
+            errorMessage: e is TimeoutException
+                ? 'Timed out while waiting for full menu stream.'
+                : 'Failed while receiving full menu stream.',
+          );
+          if (mounted) setState(() {});
+        },
         onDone: () {
-          _aiStreamDone = true;
           print('✅ stream done. fullLen=${_aiStreamBuffer.length}');
 
           final full = _aiStreamBuffer.toString().trim();
           print('✅ full head: ${full.substring(0, full.length > 180 ? 180 : full.length)}');
           print('✅ hasJsonStart=${full.contains("{")} hasJsonEnd=${full.contains("}")}');
-          if (full.isNotEmpty) {
-            widget.responses.add(full);
-          }
 
-          _parseAiJson();
-          _kickoffRecommendedReveal();
-
-          if (_pendingSearchedMenuSave) {
-            _pendingSearchedMenuSave = false;
-            _saveSearchedMenuFireAndForget();
-          }
+          _completeAiStream(
+            hadError: full.isEmpty,
+            errorMessage: full.isEmpty ? 'AI returned an empty stream response.' : null,
+          );
 
           if (mounted) setState(() {});
         },
@@ -3961,6 +3998,7 @@ class AnimatedDotsText extends StatefulWidget {
 class _AnimatedDotsTextState extends State<AnimatedDotsText> {
   Timer? _timer;
   int _dots = 0;
+
 
   @override
   void initState() {
