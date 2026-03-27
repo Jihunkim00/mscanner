@@ -118,11 +118,25 @@ class _MenuNamePair {
 
 
 class _ResultScreenState extends State<ResultScreen> {
+  static final RegExp _jaScriptRegex = RegExp(r'[\u3040-\u30FF\u4E00-\u9FFF]');
+  static final RegExp _koScriptRegex = RegExp(r'[\uAC00-\uD7AF]');
+
   SupportedLanguage _orderPhraseLanguage(BuildContext context) {
     final code = Localizations.localeOf(context).languageCode.toLowerCase();
     if (code == 'en') return SupportedLanguage.en;
     if (code == 'ja') return SupportedLanguage.ja;
     return SupportedLanguage.ko;
+  }
+  SupportedLanguage _orderPhraseOriginLanguage({
+    required String menuOriginal,
+  }) {
+    final text = menuOriginal.trim();
+    if (_koScriptRegex.hasMatch(text)) return SupportedLanguage.ko;
+    if (_jaScriptRegex.hasMatch(text)) return SupportedLanguage.ja;
+    final cc = _isoCountryCode?.trim().toUpperCase();
+    if (cc == 'KR') return SupportedLanguage.ko;
+    if (cc == 'JP') return SupportedLanguage.ja;
+    return SupportedLanguage.en;
   }
   bool _analyticsViewedLogged = false;
 
@@ -1591,10 +1605,14 @@ class _ResultScreenState extends State<ResultScreen> {
             child: InkWell(
               borderRadius: BorderRadius.circular(14),
               onTap: () {
+                final targetLanguage = _orderPhraseLanguage(context);
+                final menuOriginal = pair.original.isNotEmpty ? pair.original : pair.display;
                 showOrderPhraseBottomSheet(
                   context: context,
                   menuName: pair.display.isNotEmpty ? pair.display : pair.original,
-                  language: _orderPhraseLanguage(context),
+                  menuOriginal: menuOriginal,
+                  originLanguage: _orderPhraseOriginLanguage(menuOriginal: menuOriginal),
+                  targetLanguage: targetLanguage,
                 );
               },
               child: Container(

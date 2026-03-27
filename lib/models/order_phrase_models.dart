@@ -92,25 +92,34 @@ enum AllergyType {
   }
 }
 
+
 @immutable
 class GenerateOrderPhraseRequest {
   const GenerateOrderPhraseRequest({
-    required this.languageCode,
     required this.menuName,
+    required this.menuOriginal,
+    required this.originLanguageCode,
+    required this.targetLanguageCode,
     required this.scenario,
     this.modifiers = const <OrderModifier>[],
     this.allergies = const <AllergyType>[],
   });
 
-  final SupportedLanguage languageCode;
   final String menuName;
+  final String menuOriginal;
+  final SupportedLanguage originLanguageCode;
+  final SupportedLanguage targetLanguageCode;
   final OrderScenario scenario;
   final List<OrderModifier> modifiers;
   final List<AllergyType> allergies;
 
   Map<String, dynamic> toJson() => {
-    'languageCode': languageCode.code,
     'menuName': menuName,
+    'menuOriginal': menuOriginal,
+    'originLanguageCode': originLanguageCode.code,
+    'targetLanguageCode': targetLanguageCode.code,
+    // legacy compatibility for older backends
+    'languageCode': targetLanguageCode.code,
     'scenario': scenario.value,
     if (modifiers.isNotEmpty)
       'modifiers': modifiers.map((m) => m.value).toList(),
@@ -123,32 +132,45 @@ class GenerateOrderPhraseRequest {
 class GenerateOrderPhraseResponse {
   const GenerateOrderPhraseResponse({
     required this.success,
-    required this.languageCode,
+    required this.originLanguageCode,
+    required this.targetLanguageCode,
     required this.localText,
-    required this.koText,
-    required this.enText,
+    required this.targetText,
     required this.ttsText,
+    this.enText,
     required this.tags,
   });
 
   final bool success;
-  final SupportedLanguage languageCode;
+  final SupportedLanguage originLanguageCode;
+  final SupportedLanguage targetLanguageCode;
   final String localText;
-  final String koText;
-  final String enText;
+  final String targetText;
   final String ttsText;
+  final String? enText;
   final List<String> tags;
 
   factory GenerateOrderPhraseResponse.fromJson(Map<String, dynamic> json) {
+    final originCode =
+    (json['originLanguageCode'] ?? json['languageCode'] ?? 'ko').toString();
+    final targetCode =
+    (json['targetLanguageCode'] ?? json['languageCode'] ?? 'ko').toString();
+    final targetLang = SupportedLanguage.fromCode(targetCode);
+    final fallbackTargetText = () {
+      if (targetLang == SupportedLanguage.ko) return (json['koText'] ?? '').toString();
+      if (targetLang == SupportedLanguage.en) return (json['enText'] ?? '').toString();
+      if (targetLang == SupportedLanguage.ja) return (json['jaText'] ?? '').toString();
+      return '';
+    }();
+
     return GenerateOrderPhraseResponse(
       success: json['success'] == true,
-      languageCode: SupportedLanguage.fromCode(
-        (json['languageCode'] ?? 'ko').toString(),
-      ),
+      originLanguageCode: SupportedLanguage.fromCode(originCode),
+      targetLanguageCode: targetLang,
       localText: (json['localText'] ?? '').toString(),
-      koText: (json['koText'] ?? '').toString(),
-      enText: (json['enText'] ?? '').toString(),
+      targetText: (json['targetText'] ?? fallbackTargetText).toString(),
       ttsText: (json['ttsText'] ?? '').toString(),
+      enText: json['enText'] == null ? null : (json['enText']).toString(),
       tags: ((json['tags'] ?? const <dynamic>[]) as List)
           .map((e) => e.toString())
           .toList(),

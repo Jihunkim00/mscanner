@@ -252,17 +252,34 @@ function composeTexts(
     };
   }
 }
+function composeTextByLanguage(
+  menuName: string,
+  languageCode: LangCode,
+  scenario: Scenario,
+  modifiers: Modifier[],
+  allergies: Allergy[]
+): {text: string; tags: string[]} {
+  const textSet = composeTexts(menuName, scenario, modifiers, allergies);
+  const text = languageCode === "ko" ? textSet.koText : languageCode === "ja" ? textSet.jaText : textSet.enText;
+  return {text, tags: textSet.tags};
+}
 
 export const generateOrderPhrase = onCall(async (req) => {
   const data = req.data ?? {};
-  const languageCode = String(data.languageCode ?? "").trim() as LangCode;
+  const originLanguageCode = String(data.originLanguageCode ?? data.languageCode ?? "").trim() as LangCode;
+  const targetLanguageCode = String(data.targetLanguageCode ?? data.languageCode ?? "").trim() as LangCode;
   const menuName = String(data.menuName ?? "").trim();
+  const menuOriginalRaw = String(data.menuOriginal ?? "").trim();
+  const menuOriginal = menuOriginalRaw || menuName;
   const scenario = String(data.scenario ?? "").trim() as Scenario;
   const modifiers = Array.isArray(data.modifiers) ? data.modifiers as string[] : [];
   const allergies = Array.isArray(data.allergies) ? data.allergies as string[] : [];
 
-  if (!supportedLanguages.has(languageCode)) {
-    throw new HttpsError("invalid-argument", "languageCode must be ko, en, or ja");
+  if (!supportedLanguages.has(originLanguageCode)) {
+    throw new HttpsError("invalid-argument", "originLanguageCode must be ko, en, or ja");
+  }
+  if (!supportedLanguages.has(targetLanguageCode)) {
+    throw new HttpsError("invalid-argument", "targetLanguageCode must be ko, en, or ja");
   }
   if (!menuName) {
     throw new HttpsError("invalid-argument", "menuName is required");
@@ -287,16 +304,21 @@ export const generateOrderPhrase = onCall(async (req) => {
     throw new HttpsError("invalid-argument", "allergy_check requires allergies");
   }
 
-  const textSet = composeTexts(menuName, scenario, typedModifiers, typedAllergies);
-  const localText = languageCode === "ko" ? textSet.koText : languageCode === "ja" ? textSet.jaText : textSet.enText;
+  const local = composeTextByLanguage(menuOriginal, originLanguageCode, scenario, typedModifiers, typedAllergies);
+  const target = composeTextByLanguage(menuName, targetLanguageCode, scenario, typedModifiers, typedAllergies);
+  const englishRef = composeTextByLanguage(menuName, "en", scenario, typedModifiers, typedAllergies);
 
   return {
     success: true,
-    languageCode,
-    localText,
-    koText: textSet.koText,
-    enText: textSet.enText,
-    ttsText: localText,
-    tags: textSet.tags,
+    // new fields
+    originLanguageCode,
+    targetLanguageCode,
+    localText: local.text,
+    ttsText: local.text,
+    targetText: target.text,
+    enText: englishRef.text,
+    tags: local.tags,
+    // legacy compatibility
+    languageCode: originLanguageCode,
   };
 });
