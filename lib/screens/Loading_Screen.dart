@@ -13,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mscanner/screens/geohash_service.dart';
 import '/screens/log_service.dart';
+import '/analytics_service.dart';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
@@ -68,6 +69,11 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
   /// GPT 분석 Future는 initState 에서 바로 시작
   late Future<_PreparedVisionInput> _preparedFuture;
+
+  static const Duration _prepareInputTimeout = Duration(seconds: 90);
+  static const Duration _streamPreviewTimeout = Duration(seconds: 15);
+  static const Duration _loadingStreamInactivityTimeout = Duration(seconds: 75);
+  static const Duration _fallbackAnalyzeTimeout = Duration(seconds: 90);
 
   @override
   void initState() {
@@ -223,7 +229,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
   Future<List<String>> _waitFirstRecommendFromStream(
       Stream<String> stream, {
-        Duration timeout = const Duration(seconds: 6),
+        Duration timeout = _streamPreviewTimeout,
       }) async {
     final buffer = StringBuffer();
     final completer = Completer<List<String>>();
@@ -262,11 +268,11 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
     return completer.future;
   }
-  /// 60초 타임아웃과 모든 예외를 동일하게 잡아서 에러 UI로
+  /// 넉넉한 타임아웃 + 스트리밍 우선 + 단일 요청 fallback
   Future<void> _handleGptResult() async {
     await _gptRequestGate.run(() async {
       try {
-        final prepared = await _preparedFuture.timeout(const Duration(seconds: 60));
+        final prepared = await _preparedFuture.timeout(_prepareInputTimeout);
 
         // ✅ 미리보기용 첫 이미지 (ResultScreen에 보여줄 썸네일)
         final File firstImage =
@@ -279,14 +285,19 @@ class _LoadingScreenState extends State<LoadingScreen> {
           promptContext: prepared.promptContext,
           maxOutputTokens: widget.maxOutputTokens,
         );
+
         final stream = rawStream
-            .timeout(const Duration(seconds: 45))
+            .timeout(_loadingStreamInactivityTimeout)
             .asBroadcastStream();
-        final firstRec = await _waitFirstRecommendFromStream(stream);
 
         if (!_hasNavigated && mounted) {
           _hasNavigated = true;
           await LogService().logScanCompleted();
+          await AnalyticsService.instance.logScanSuccess(
+            scanMode: ((widget.images?.length ?? 0) > 1) ? 'multi' : 'single',
+            imageCount: widget.images?.length ?? 1,
+            latencyMs: DateTime.now().difference(widget.captureTime).inMilliseconds,
+          );
 
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
@@ -295,7 +306,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
                 images: widget.images,
                 responses: <String>[],
                 responseStream: stream,
-                initialFastRecommend: firstRec, // ✅ NEW
+                initialFastRecommend: const [],
                 position: widget.position,
                 captureTime: widget.captureTime,
                 isTutorial: widget.isTutorial,
@@ -306,16 +317,21 @@ class _LoadingScreenState extends State<LoadingScreen> {
       } catch (e) {
         // ✅ 스트리밍 실패 시: 기존 Future 방식 fallback
         try {
-          final prepared = await _preparedFuture.timeout(const Duration(seconds: 60));
+          final prepared = await _preparedFuture.timeout(_prepareInputTimeout);
           final resp = await VisionService.analyzeImage(
             prepared.visionFile,
             promptContext: prepared.promptContext,
             maxOutputTokens: widget.maxOutputTokens,
-          );
+          ).timeout(_fallbackAnalyzeTimeout);
 
           if (!_hasNavigated && mounted) {
             _hasNavigated = true;
             await LogService().logScanCompleted();
+            await AnalyticsService.instance.logScanSuccess(
+              scanMode: ((widget.images?.length ?? 0) > 1) ? 'multi' : 'single',
+              imageCount: widget.images?.length ?? 1,
+              latencyMs: DateTime.now().difference(widget.captureTime).inMilliseconds,
+            );
             _navigateToResultScreen([resp], previewImage: prepared.visionFile);
           }
         } catch (_) {
@@ -329,6 +345,11 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
   /// 에러 UI 표시 후 5초 대기 -> 홈 복귀
   void _showErrorUI() {
+    unawaited(AnalyticsService.instance.logScanFailed(
+      scanMode: ((widget.images?.length ?? 0) > 1) ? 'multi' : 'single',
+      stage: 'loading_screen',
+      errorCode: 'analysis_failed',
+    ));
     if (!mounted || _hasNavigated) return;
     setState(() => _isLoadingError = true);
     Future.delayed(Duration(seconds: 5), () {
@@ -366,7 +387,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
     );
   }
 
-void _navigateToResultScreen(List<String> responses, {File? previewImage}) {
+  void _navigateToResultScreen(List<String> responses, {File? previewImage}) {
     if (_hasNavigated) return;
     _hasNavigated = true;
     final File firstImage = (widget.images != null && widget.images!.isNotEmpty)

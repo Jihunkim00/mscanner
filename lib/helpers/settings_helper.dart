@@ -1,10 +1,14 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
 
 class SettingsHelper {
   static const String _questionKey = 'gpt_question';
   static const String _presetKey = 'preset';
   static const String _engineKey = 'selected_engine';
   static const String _customPresetDescriptionKey = 'custom_preset_description';
+  static const String selectedLanguageCodeKey = 'selectedLanguageCode';
+  static const String selectedFoodStyleKey = 'selectedFoodStyle';
+  static const String selectedMenuNumberKey = 'selectedMenuNumber';
 
   // Save the question text
   static Future<void> saveQuestion(String question) async {
@@ -65,6 +69,211 @@ class SettingsHelper {
     }
   }
 
+
+  static String buildPresetDescription({
+    required String selectedLanguageCode,
+    required String selectedFoodStyle,
+    required String selectedMenuNumber,
+  }) {
+    debugPrint('Creating preset description for language code: $selectedLanguageCode');
+
+    final outputLang = selectedLanguageCode;      // 결과 언어
+    final styleHint = selectedFoodStyle;          // 식단/스타일 힌트(정렬 선호)
+    final menuCountHint = selectedMenuNumber;     // 추천 개수 힌트
+
+    // ✅ 공통 베이스(스키마/규칙) — 영어로 고정해도 outputLanguage로 결과 언어는 맞춰짐
+    final base = '''
+You MUST output ONLY valid JSON (no extra text, markdown, code fences, explanations, or RECOMMEND line).
+
+Goal:
+- Extract menu items from the provided image/OCR text.
+- Produce results for the app UI: "Recommended Dishes" chips + optional "Full Menu" preview.
+
+Hard rules:
+1) Output language rule:
+   - shortDesc, tags MUST be written in outputLanguage = "$outputLang".
+   - nameOriginal MUST be the EXACT original text extracted from the image/OCR (do NOT translate).
+   - name MUST be the translated name in outputLanguage. If translation is identical or uncertain, set name = nameOriginal.
+2) Never invent items not visible in the image/OCR.
+3) If the image is NOT a food menu, return isMenu=false with a short reason.
+4) Keep shortDesc to 1–2 sentences max.
+5) Use styleHint="$styleHint" only as ranking preference (do NOT hallucinate dietary tags).
+6) menuCountHint="$menuCountHint" controls ONLY the "recommended" list size inside JSON:
+   - "1": 1 item
+   - "1-3": up to 3 items
+   - "1-5": up to 5 items
+   - "all": up to 6 items
+
+7) TOKEN SAFETY (VERY IMPORTANT):
+   - Keep the entire JSON compact.
+   - If the menu is long, DO NOT output every item as structured arrays.
+   - Prefer: recommended (structured, detailed) + fullMenu summary (structured text).
+   - You must stay within the output limit; if needed, set fullMenu.truncated=true and summarize the rest.
+
+8) Tags limit:
+   - "tags" MUST contain at most 4 strings per item. (0–4)
+
+9) ID format:
+   - "id" MUST be short and unique within this response.
+   - Use simple IDs like "m1", "m2", "m3"... (no long UUIDs)
+
+10) Detail quality (IMPORTANT):
+   - For EACH recommended item, shortDesc MUST mention:
+     (a) ingredients OR cooking method AND (b) flavor profile (e.g., spicy/savory) in 1–2 sentences.
+   - Avoid generic phrases like "delicious". Be concrete.
+
+11) FullMenu preview detail rule:
+   - In fullMenu.items, for each category include at most 2 items with non-empty shortDesc.
+   - All other items must set shortDesc="" to save tokens.
+
+12) FullMenu summary formatting rule (VERY IMPORTANT):
+   - fullMenu.summary MUST use this structure in outputLanguage:
+     "Main highlights: <A> — <note>; <B> — <note>. Other mains: <list up to 8>.
+      Sides highlights: <A> — <note>; <B> — <note>. Other sides: <list up to 8>.
+      Drinks highlights: <A> — <note>. Other drinks: <list up to 8>."
+   - Each <note> must be 6–14 words describing ingredients/method/flavor (concrete).
+   - Do NOT output a plain list only.
+
+Return JSON with EXACT schema:
+
+{
+  "isMenu": true,
+  "outputLanguage": "$outputLang",
+  "place": { "name": null, "address": null, "city": null },
+
+  "recommended": [
+    {
+      "id": "string",
+      "nameOriginal": "string",
+      "name": "string",
+      "shortDesc": "string",
+      "prices": { "small": null, "medium": null, "large": null, "single": null, "currency": "ISO 4217 code like KRW, JPY, USD, EUR, etc. or null" },
+      "tags": ["string"],
+      "category": "main|side|meal|drink|beverage|unknown",
+      "confidence": 0.0
+    }
+  ],
+
+  "fullMenu": {
+    "items": {
+      "main": [],
+      "side": [],
+      "meal": [],
+      "drink": [],
+      "beverage": [],
+      "unknown": []
+    },
+    "summary": "string",
+    "truncated": true
+  }
+}
+
+Full menu output rule:
+- Always fill "recommended" as structured items (most detailed).
+- For fullMenu.items:
+  - If the menu is short, you MAY include more items.
+  - If the menu is long, include ONLY a small preview per category (max 12 items total across all categories).
+- Put the rest into fullMenu.summary using the required formatting rule.
+- If you omit any items due to length, set fullMenu.truncated=true; otherwise false.
+
+If isMenu=false, return EXACTLY:
+{
+  "isMenu": false,
+  "outputLanguage": "$outputLang",
+  "reason": "short string"
+}
+''';
+
+    // ✅ 언어별 “한 줄 안내”만 유지 (지원 언어 전부 유지)
+    String intro;
+    switch (selectedLanguageCode) {
+      case 'ko':
+        intro = '아래 규칙을 따르고, 반드시 JSON만 출력해. 설명 문단은 절대 쓰지 마.\n';
+        break;
+      case 'ja':
+        intro = '必ずJSONのみを出力してください。説明文は出力しないでください。\n';
+        break;
+      case 'zh':
+      case 'zh-Hans':
+        intro = '请只输出JSON，不要输出任何解释性文字。\n';
+        break;
+      case 'zh-Hant':
+        intro = '請只輸出JSON，不要輸出任何說明文字。\n';
+        break;
+      case 'hi':
+        intro = 'केवल JSON आउटपुट करें। कोई व्याख्यात्मक पाठ न लिखें।\n';
+        break;
+      case 'es':
+        intro = 'Devuelve SOLO JSON. No escribas texto explicativo.\n';
+        break;
+      case 'fr':
+        intro = 'Retourne UNIQUEMENT du JSON. Aucun texte explicatif.\n';
+        break;
+      case 'vi':
+        intro = 'Chỉ trả về JSON. Không viết đoạn giải thích.\n';
+        break;
+      case 'th':
+        intro = 'โปรดส่งออกเป็น JSON เท่านั้น ห้ามมีข้อความอธิบาย\n';
+        break;
+      case 'ar':
+        intro = 'أخرج JSON فقط دون أي نص إضافي.\n';
+        break;
+      case 'bn':
+        intro = 'শুধুমাত্র JSON আউটপুট দিন। কোনো ব্যাখ্যামূলক লেখা নয়।\n';
+        break;
+      case 'ru':
+        intro = 'Выводи ТОЛЬКО JSON. Без пояснительного текста.\n';
+        break;
+      case 'pt':
+      case 'pt-BR':
+        intro = 'Retorne SOMENTE JSON. Sem texto explicativo.\n';
+        break;
+      case 'ur':
+        intro = 'صرف JSON آؤٹ پٹ کریں، کوئی اضافی متن نہیں۔\n';
+        break;
+      case 'id':
+        intro = 'Keluarkan HANYA JSON. Jangan tulis teks penjelasan.\n';
+        break;
+      case 'de':
+        intro = 'Gib NUR JSON aus. Kein erklärender Text.\n';
+        break;
+      case 'mr':
+        intro = 'फक्त JSON आउटपुट करा. स्पष्टीकरणात्मक मजकूर नको.\n';
+        break;
+      case 'te':
+        intro = 'JSON మాత్రమే ఇవ్వండి. వివరణాత్మక వచనం రాయకండి.\n';
+        break;
+      case 'tr':
+        intro = 'Yalnızca JSON döndür. Açıklama metni yazma.\n';
+        break;
+      default:
+        intro = 'Output ONLY JSON. No explanatory text.\n';
+    }
+
+    return intro + base;
+  }
+
+
+
+  static Future<void> refreshCustomPresetDescriptionFromSavedSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    final selectedLanguageCode =
+        prefs.getString(selectedLanguageCodeKey) ?? 'en';
+    final selectedFoodStyle =
+        prefs.getString(selectedFoodStyleKey) ?? 'AI recommend';
+    final selectedMenuNumber =
+        prefs.getString(selectedMenuNumberKey) ?? '1-5';
+
+    final presetDescription = buildPresetDescription(
+      selectedLanguageCode: selectedLanguageCode,
+      selectedFoodStyle: selectedFoodStyle,
+      selectedMenuNumber: selectedMenuNumber,
+    );
+
+    await saveCustomPresetDescription(presetDescription);
+  }
+
+
   // Save the selected engine
   static Future<void> saveSelectedEngine(String engine) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -89,5 +298,4 @@ class SettingsHelper {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_languageCodeKey) ?? 'en'; // 기본값 영어
   }
-
 }

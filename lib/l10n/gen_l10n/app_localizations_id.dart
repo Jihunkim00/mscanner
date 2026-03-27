@@ -964,8 +964,8 @@ class AppLocalizationsId extends AppLocalizations {
   String get guestLoginContent2 => 'Dalam Mode Tamu, Anda dapat memindai menu makanan untuk mendapatkan rekomendasi yang dipersonalisasi, tetapi Anda tidak akan dapat menyimpan favorit Anda atau melihat riwayat di seluruh perangkat.';
 
   @override
-  String get confirm2 => 'Siap, ayo kita mulai!';
+  String get confirm2 => 'Lanjutkan sebagai tamu';
 
   @override
-  String get login2 => 'Masuk sekarang';
+  String get login2 => 'Login anggota';
 }

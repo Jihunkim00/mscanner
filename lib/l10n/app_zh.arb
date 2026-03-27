@@ -335,6 +335,6 @@
   "howto_detail_link": "查看更多详情",
   "guestLoginTitle2": "欢迎，探险家！",
   "guestLoginContent2": "在访客模式下，您可以扫描菜单以获取个性化推荐，但您将无法保存收藏或跨设备查看历史记录。",
-  "confirm2": "明白了，走吧！",
-  "login2": "立即登录"
+  "confirm2": "以访客身份继续",
+  "login2": "会员登录"
 }

@@ -2013,13 +2013,13 @@ abstract class AppLocalizations {
   /// No description provided for @confirm2.
   ///
   /// In en, this message translates to:
-  /// **'Got it, let\'s go!'**
+  /// **'Continue as Guest'**
   String get confirm2;
 
   /// No description provided for @login2.
   ///
   /// In en, this message translates to:
-  /// **'Sign in now'**
+  /// **'Member Login'**
   String get login2;
 }
 

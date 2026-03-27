@@ -335,6 +335,6 @@
   "howto_detail_link": "Ver más detalles",
   "guestLoginTitle2": "¡Bienvenido, explorador!",
   "guestLoginContent2": "En el modo invitado, puedes escanear menús de comida para obtener recomendaciones personalizadas, pero no podrás guardar tus favoritos ni ver el historial en varios dispositivos.",
-  "confirm2": "¡Entendido, vamos!",
-  "login2": "Inicia sesión ahora"
+  "confirm2": "Continuar como invitado",
+  "login2": "Iniciar sesión"
 }

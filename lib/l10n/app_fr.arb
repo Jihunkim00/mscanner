@@ -335,6 +335,6 @@
   "howto_detail_link": "Voir plus de détails",
   "guestLoginTitle2": "Bienvenue, explorateur !",
   "guestLoginContent2": "En mode invité, vous pouvez scanner les menus pour obtenir des recommandations personnalisées, mais vous ne pourrez pas enregistrer vos favoris ni consulter l'historique sur plusieurs appareils.",
-  "confirm2": "Compris, on y va !",
-  "login2": "Connectez-vous maintenant"
+  "confirm2": "Continuer en tant qu’invité",
+  "login2": "Connexion membre"
 }

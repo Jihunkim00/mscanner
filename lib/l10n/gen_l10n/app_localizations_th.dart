@@ -964,8 +964,8 @@ class AppLocalizationsTh extends AppLocalizations {
   String get guestLoginContent2 => 'ในโหมดผู้เยี่ยมชม คุณสามารถสแกนเมนูอาหารเพื่อรับคำแนะนำที่ปรับตามความชอบของคุณได้ แต่คุณจะไม่สามารถบันทึกรายการโปรดหรือดูประวัติการใช้งานข้ามอุปกรณ์ได้';
 
   @override
-  String get confirm2 => 'เข้าใจแล้ว ไปกันเลย!';
+  String get confirm2 => 'ดำเนินการต่อในฐานะแขก';
 
   @override
-  String get login2 => 'ลงชื่อเข้าใช้ตอนนี้';
+  String get login2 => 'เข้าสู่ระบบสมาชิก';
 }

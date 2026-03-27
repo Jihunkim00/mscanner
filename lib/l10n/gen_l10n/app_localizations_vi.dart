@@ -964,8 +964,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get guestLoginContent2 => 'Ở Chế độ Khách, bạn có thể quét thực đơn để nhận đề xuất được cá nhân hóa, nhưng bạn sẽ không thể lưu mục yêu thích hoặc xem lịch sử trên nhiều thiết bị.';
 
   @override
-  String get confirm2 => 'Hiểu rồi, đi thôi!';
+  String get confirm2 => 'Tiếp tục với tư cách khách';
 
   @override
-  String get login2 => 'Đăng nhập ngay';
+  String get login2 => 'Đăng nhập thành viên';
 }

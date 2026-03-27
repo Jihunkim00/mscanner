@@ -1,4 +1,5 @@
 import 'dart:io'; // 플랫폼을 감지하기 위해 dart:io 패키지 추가
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -14,6 +15,12 @@ import '/screens/url_launcher1.dart'; // ← 만들어둔 위젯 import 추가
 import 'dart:convert';
 import 'dart:math';
 import 'package:crypto/crypto.dart';
+import '/analytics_service.dart';
+
+enum GuestWelcomeAction {
+  continueGuest,
+  signIn,
+}
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -30,6 +37,9 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AnalyticsService.instance.setCurrentScreen('login_screen');
+    });
     _initGoogleSignIn();
   }
 
@@ -61,6 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
       await FirebaseAuth.instance.signInWithCredential(credential);
 
       await LogService().logLoginSuccess(method: 'google');
+      await AnalyticsService.instance.setUserId(userCredential.user?.uid);
       return userCredential.user;
     } catch (e) {
       await LogService().logLoginFail(
@@ -114,6 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final userCredential =
       await FirebaseAuth.instance.signInWithCredential(oauth);
       await LogService().logLoginSuccess(method: 'apple');
+      await AnalyticsService.instance.setUserId(userCredential.user?.uid);
       return userCredential.user;
     } catch (e) {
       await LogService().logLoginFail(
@@ -124,63 +136,234 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _signInWithEmailPassword() async {
-    await LogService().logLoginAttempt(method: 'password'); // 🔹 시도
+    await LogService().logLoginAttempt(method: 'password');
+
     try {
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      final userCredential = await _auth.signInWithEmailAndPassword(
         email: _emailController.text,
         password: _passwordController.text,
       );
-      await LogService().logLoginSuccess(method: 'password'); // 🔹 성공
 
-      _navigateAfterSignIn(userCredential.user);
+      await LogService().logLoginSuccess(method: 'password');
+
+      final user = userCredential.user;
+      if (user != null) {
+        await AnalyticsService.instance.setUserId(user.uid);
+      }
+
+      _navigateAfterSignIn(user);
     } catch (e) {
       await LogService().logLoginFail(
-          method: 'password', errorCode: 'exception', errorMsg: e.toString()); // 🔹 실패
+        method: 'password',
+        errorCode: 'exception',
+        errorMsg: e.toString(),
+      );
+
       setState(() {
         _errorMessage = e.toString();
       });
     }
   }
 
-  // **게스트 로그인**
   Future<void> _signInAsGuest() async {
     await LogService().logLoginAttempt(method: 'guest');
     try {
       UserCredential userCredential = await _auth.signInAnonymously();
       await LogService().logLoginSuccess(method: 'guest');
+      await AnalyticsService.instance.setUserId(userCredential.user?.uid);
 
-      await showCupertinoDialog(
-        context: context,
-        builder: (context) => CupertinoAlertDialog(
-          title:
-          Text(AppLocalizations.of(context)?.guestLoginTitle ?? 'Guest Login'),
-          content: Text(AppLocalizations.of(context)?.guestLoginContent ??
-              'You are logged in as a guest. All data will be deleted upon logout.'),
-          actions: [
-            CupertinoDialogAction(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(AppLocalizations.of(context)?.confirm ?? 'Confirm'),
-            ),
-          ],
-        ),
-      );
+      final action = await _showGuestWelcomePopup();
 
-      _navigateAfterSignIn(userCredential.user);
+      if (!mounted) return;
+
+      if (action == GuestWelcomeAction.signIn) {
+        await FirebaseAuth.instance.signOut();
+        return;
+      }
+
+      if (action == GuestWelcomeAction.continueGuest) {
+        _navigateAfterSignIn(userCredential.user);
+      }
     } on FirebaseAuthException catch (e) {
-      await LogService()
-          .logLoginFail(method: 'guest', errorCode: e.code, errorMsg: e.message);
+      await LogService().logLoginFail(
+        method: 'guest',
+        errorCode: e.code,
+        errorMsg: e.message,
+      );
       setState(() {
         _errorMessage = AppLocalizations.of(context)?.guestLoginFailed ??
             'Guest login failed. Please try again.';
       });
     } catch (e) {
       await LogService().logLoginFail(
-          method: 'guest', errorCode: 'exception', errorMsg: e.toString());
+        method: 'guest',
+        errorCode: 'exception',
+        errorMsg: e.toString(),
+      );
       setState(() {
         _errorMessage = AppLocalizations.of(context)?.guestLoginFailed ??
             'Guest login failed. Please try again.';
       });
     }
+  }
+
+  Future<GuestWelcomeAction?> _showGuestWelcomePopup() {
+    final localizations = AppLocalizations.of(context);
+
+    return showCupertinoModalPopup<GuestWelcomeAction>(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.18),
+      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+      builder: (context) {
+        return SafeArea(
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(24, 12, 24, 28),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(32),
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 46,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD1D5DB),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                    const SizedBox(height: 22),
+
+                    SizedBox(
+                      width: double.infinity,
+                      height: 200,
+                      child: ClipRect(
+                        child: Transform.translate(
+                          offset: const Offset(0, -4),
+                          child: OverflowBox(
+                            alignment: Alignment.topCenter,
+                            maxHeight: 340,
+                            child: Image.asset(
+                              'assets/images/guest_welcome.png',
+                              height: 285,
+                              fit: BoxFit.fitHeight,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    Text(
+                      localizations?.guestLoginTitle ?? 'Welcome, Explorer!',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontFamily: 'SF Pro Display',
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.black,
+                      ),
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    Text(
+                      localizations?.guestLoginContent ??
+                          'In Guest Mode, you can scan food menus to get personalized recommendations, but you won’t be able to save your favorites or view history across devices.',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontFamily: 'SF Pro Display',
+                        fontSize: 17,
+                        height: 1.45,
+                        color: Color(0xFF222222),
+                      ),
+                    ),
+
+                    const SizedBox(height: 28),
+
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(28),
+                          gradient: const LinearGradient(
+                            colors: [
+                              Color(0xFF4A84D8),
+                              Color(0xFF5A92E5),
+                            ],
+                          ),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x334A84D8),
+                              blurRadius: 12,
+                              offset: Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(
+                              context,
+                              GuestWelcomeAction.continueGuest,
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(28),
+                            ),
+                          ),
+                          child: Text(
+                            localizations?.confirm2 ?? "Got it, let's go!",
+                            style: const TextStyle(
+                              fontFamily: 'SF Pro Display',
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(
+                          context,
+                          GuestWelcomeAction.signIn,
+                        );
+                      },
+                      child: Text(
+                        localizations?.cancel ?? 'back',
+                        style: const TextStyle(
+                          fontFamily: 'SF Pro Display',
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF4A84D8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _navigateAfterSignIn(User? user) async {
@@ -323,7 +506,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 width: double.infinity,
                                 child: Image.asset(
                                   // ⚠️ 음식 사진으로 교체 추천
-                                  'assets/images/login_header.jpg',
+                                  'assets/images/login_header.png',
                                   fit: BoxFit.cover,
                                   errorBuilder: (_, __, ___) {
                                     // asset 없을 때 fallback

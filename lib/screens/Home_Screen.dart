@@ -30,6 +30,7 @@ import '/widgets/premium_ad_overlay.dart';
 import '/widgets/test_purchase_widget.dart';
 import '/screens/log_service.dart';
 import '/widgets/how_to_use_mscanner_card.dart';
+import '/analytics_service.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -80,6 +81,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AnalyticsService.instance.setCurrentScreen('home_screen');
+    });
     _loadGeohash();
     _initializeHome();
     _checkPremiumOverlay(); // 🔹 프리미엄 팝업 체크 추가
@@ -414,6 +418,10 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       _lastMultiScanTap = now;
       if (!context.read<AdRemoveProvider>().isSubscribed) {
+        await AnalyticsService.instance.logPaywallView(
+          source: 'multi_scan_tab',
+          trigger: 'premium_gate',
+        );
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(AppLocalizations.of(context)!.premiumFunctionMessage)),
         );
@@ -955,6 +963,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         onPrimaryTap: () async {
                           await LogService().logPremiumCtaClick(placement: 'overlay', plan: 'subscription'); // ⑰ 프리미엄 CTA
+                          await AnalyticsService.instance.logPaywallView(
+                            source: 'home_overlay',
+                            trigger: 'overlay_cta',
+                          );
                           showModalBottomSheet(
                             context: context,
                             isScrollControlled: true,
@@ -2075,39 +2087,7 @@ class _HomeContentState extends State<HomeContent> {
             ),
           ),
           const Spacer(),
-          TextButton(
-            onPressed: () async {
-              final future = widget.mainCardDataFuture;
-              if (future == null) return;
-              final items = await future;
-              if (!mounted || items.isEmpty) return;
 
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => DetailScreen(
-                    items: items,
-                    initialIndex: 0,
-                  ),
-                ),
-              );
-            },
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              foregroundColor: Colors.deepOrange,
-              textStyle: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            child: Row(
-              children: [
-                Text(AppLocalizations.of(context)?.home_viewAll ?? 'View All'),
-                SizedBox(width: 4),
-                Icon(CupertinoIcons.chevron_right, size: 14),
-              ],
-            ),
-          ),
         ],
       ),
     );

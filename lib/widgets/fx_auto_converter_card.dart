@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import '/screens/log_service.dart';
+import '/analytics_service.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 
@@ -244,6 +245,7 @@ class FxQuickFxButton extends StatelessWidget {
             to: to,
             context: 'scan', // 필요하면 'manual' 등으로 바꿔도 됨
           );
+          await AnalyticsService.instance.logExchangeRateViewed(source: 'fx_quick_button');
           showModalBottomSheet(
             context: context,
             useSafeArea: true,

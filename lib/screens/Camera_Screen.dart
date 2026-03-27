@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import '/widgets/photo_capture_widget.dart';
 import '/screens/log_service.dart';
+import '/analytics_service.dart';
 
 
 
@@ -65,6 +66,12 @@ class _CameraScreenState extends State<CameraScreen> {
       final isMultiMode = widget.isPremium; // (이름 그대로: 멀티스캔 여부)
       final incoming = isMultiMode ? rawFiles : (rawFiles.isNotEmpty ? [rawFiles.first] : rawFiles);
 
+      await AnalyticsService.instance.logScanStarted(
+        scanMode: isMultiMode ? 'multi' : 'single',
+        entryPoint: isMultiMode ? 'multi_scan_tab' : 'camera_tab',
+        imageCount: incoming.length,
+      );
+
       // 🔹 [LOG] ② 멀티 스캔: 사진 선택 후 전송
       if (isMultiMode && incoming.isNotEmpty) {
         // 여러 장이면 개수도 같이 남김
@@ -103,6 +110,11 @@ class _CameraScreenState extends State<CameraScreen> {
         );
       });
     } catch (e) {
+      await AnalyticsService.instance.logScanFailed(
+        scanMode: widget.isPremium ? 'multi' : 'single',
+        stage: 'camera_capture',
+        errorCode: e.toString(),
+      );
       // 에러 발생 시에도 위젯이 살아있으면 스낵바 표시
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

@@ -28,7 +28,10 @@ import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import '/screens/log_service.dart';
 import 'package:provider/provider.dart';
 import 'ad_remove_provider.dart';
+import 'analytics_service.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';  // 이 줄 추가 map
+import 'package:package_info_plus/package_info_plus.dart';
+import 'helpers/settings_helper.dart';
 
 enum GuestWelcomeAction {
   continueGuest,
@@ -40,6 +43,8 @@ InterstitialAd? globalInterstitialAd;
 
 // 전면 광고 사용 여부 설정
 bool enableInterstitialAds = false; // true로 바꾸면 다시 사용됨
+bool _hasScheduledPresetRefreshForSession = false;
+const String _lastProcessedPresetVersionKey = 'last_processed_preset_app_version';
 
 
 // 광고 로드 함수 정의
@@ -95,52 +100,44 @@ Future<void> loadInterstitialAd({bool nonPersonalized = false}) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ✅ 여러 초기화를 병렬로 처리 (빠르고 깔끔하게)
-  final initialization = Future.wait([
-    dotenv.load(fileName: "assets/.env"),
-    Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
-    MobileAds.instance.initialize(),
-    AdaptiveTheme.getThemeMode(),
-    SharedPreferences.getInstance(),
-  ]);
+  await dotenv.load(fileName: "assets/.env");
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  await MobileAds.instance.initialize();
 
-  // ✅ Flutter UI 먼저 띄워서 검정화면 방지
+  final savedThemeMode = await AdaptiveTheme.getThemeMode();
+  final prefs = await SharedPreferences.getInstance();
+  final String? savedLocale = prefs.getString('selectedLocale');
+
   runApp(
     ChangeNotifierProvider(
       create: (_) => AdRemoveProvider(),
-      child: FutureBuilder(
-        future: initialization,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            final results = snapshot.data as List;
-            final AdaptiveThemeMode savedThemeMode =
-                results[3] ?? AdaptiveThemeMode.light;
-            final SharedPreferences prefs = results[4];
-            final String? savedLocale = prefs.getString('selectedLocale');
-            return MyApp(
-              savedThemeMode: savedThemeMode,
-              savedLocale: savedLocale,
-            );
-          } else {
-            // ✅ 초기화 중엔 흰 배경 + 로딩
-            return MaterialApp(
-              home: Scaffold(
-                backgroundColor: Colors.white,
-                body: Center(child: CircularProgressIndicator()),
-              ),
-            );
-          }
-        },
+      child: MyApp(
+        savedThemeMode: savedThemeMode ?? AdaptiveThemeMode.light,
+        savedLocale: savedLocale,
       ),
     ),
   );
 
-  // ✅ 앱 구동 후 초기화 실행 (Firebase 등 완료 후)
   unawaited(_initializeAfterLaunch());
 }
 
 Future<void> _initializeAfterLaunch() async {
   try {
+    _schedulePresetRefreshIfNeeded();
+    await AnalyticsService.instance.init();
+    debugPrint('[Analytics] init success');
+    await AnalyticsService.instance.logAppOpen();
+    debugPrint('[Analytics] app_open logged');
+
+    final prefs = await SharedPreferences.getInstance();
+    final seen = prefs.getBool('analytics_first_open_logged') ?? false;
+    if (!seen) {
+      await AnalyticsService.instance.logFirstOpen();
+      await prefs.setBool('analytics_first_open_logged', true);
+    }
+
     await LocationService().requestPermission();
 
     bool nonPersonalized = false;
@@ -175,6 +172,43 @@ Future<void> _initializeAfterLaunch() async {
     debugPrint("초기화 중 오류 발생: $e");
   }
 }
+
+void _schedulePresetRefreshIfNeeded() {
+  if (_hasScheduledPresetRefreshForSession) {
+    debugPrint('[PresetBootstrap] Skipping duplicate schedule in this session.');
+    return;
+  }
+
+  _hasScheduledPresetRefreshForSession = true;
+  unawaited(_refreshPresetAfterAppUpdate());
+}
+
+Future<void> _refreshPresetAfterAppUpdate() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final packageInfo = await PackageInfo.fromPlatform();
+    final currentVersion = packageInfo.version;
+    final lastProcessedVersion = prefs.getString(_lastProcessedPresetVersionKey);
+
+    if (lastProcessedVersion == currentVersion) {
+      debugPrint('[PresetBootstrap] Presets already refreshed for version $currentVersion.');
+      return;
+    }
+
+    debugPrint(
+      '[PresetBootstrap] App update detected. Refreshing presets for version '
+          '$currentVersion (last: ${lastProcessedVersion ?? 'none'}).',
+    );
+
+    await SettingsHelper.refreshCustomPresetDescriptionFromSavedSettings();
+    await prefs.setString(_lastProcessedPresetVersionKey, currentVersion);
+
+    debugPrint('[PresetBootstrap] Presets refreshed successfully for version $currentVersion.');
+  } catch (e) {
+    debugPrint('[PresetBootstrap] Failed to refresh presets after update: $e');
+  }
+}
+
 
 
 
@@ -253,6 +287,7 @@ class MyApp extends StatelessWidget {
   Widget _getInitialScreen() {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
+      unawaited(AnalyticsService.instance.setUserId(user.uid));
       return HomeScreen();
     } else {
       return IntroductionScreenPage();
@@ -274,6 +309,7 @@ class _IntroductionScreenPageState extends State<IntroductionScreenPage> {
 
       if (user != null) {
         await LogService().logLoginSuccess();
+        await AnalyticsService.instance.setUserId(user.uid);
 
         final action = await _showGuestWelcomePopup();
 
@@ -370,7 +406,7 @@ class _IntroductionScreenPageState extends State<IntroductionScreenPage> {
                     const SizedBox(height: 20),
 
                     Text(
-                      localizations?.guestLoginTitle2 ?? 'Welcome, Explorer!',
+                      localizations?.guestLoginTitle ?? 'Welcome, Explorer!',
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontFamily: 'SF Pro Display',
@@ -383,7 +419,7 @@ class _IntroductionScreenPageState extends State<IntroductionScreenPage> {
                     const SizedBox(height: 14),
 
                     Text(
-                      localizations?.guestLoginContent2 ??
+                      localizations?.guestLoginContent ??
                           'In Guest Mode, you can scan food menus to get personalized recommendations, but you won’t be able to save your favorites or view history across devices.',
                       textAlign: TextAlign.center,
                       style: const TextStyle(

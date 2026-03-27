@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import '/ad_remove_provider.dart'; // 실제 경로로 수정
 import 'package:url_launcher/url_launcher.dart';
 import '/screens/log_service.dart';
+import '/analytics_service.dart';
 
 
 class TestPurchaseWidget extends StatefulWidget {
@@ -45,6 +46,7 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
   void initState() {
     super.initState();
     _log.logPremiumCtaClick(placement: 'settings', plan: 'view');
+    unawaited(AnalyticsService.instance.logPaywallView(source: 'settings', trigger: 'purchase_widget_open'));
     _sub = _iap.purchaseStream.listen(
       _onPurchaseUpdated,
       onError: _onPurchaseError,
@@ -91,6 +93,11 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
       _iap.restorePurchases();
     }
     await _log.logPurchaseFailed(
+      productId: 'unknown_product',
+      errorCode: 'stream_error',
+      errorMsg: error.toString(),
+    );
+    await AnalyticsService.instance.logPurchaseFailed(
       productId: 'unknown_product',
       errorCode: 'stream_error',
       errorMsg: error.toString(),
@@ -199,6 +206,11 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
           errorCode: '${purchase.error?.code}',
           errorMsg: purchase.error?.message,
         );
+        await AnalyticsService.instance.logPurchaseFailed(
+          productId: purchase.productID,
+          errorCode: '${purchase.error?.code}',
+          errorMsg: purchase.error?.message,
+        );
       }
     }
   }
@@ -206,6 +218,7 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
   // ✅ 복원 시도 + 결과 피드백 (SnackBar)
   Future<void> _restoreWithFeedback() async {
     await _log.logPremiumCtaClick(placement: 'settings', plan: 'restore');
+    await AnalyticsService.instance.logPurchaseRestoreStarted();
 
     if (_restoring) return;     // ✅ 가드
     _restoring = true;
@@ -227,6 +240,12 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
     }
 
     final after = _processedTxns.length;
+    if (after > before) {
+      await AnalyticsService.instance.logPurchaseRestoreSuccess();
+    } else {
+      await AnalyticsService.instance.logPurchaseRestoreEmpty();
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -271,6 +290,13 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
       }
 
       setState(() {});
+
+      final matchedProduct = _products.where((p) => p.id == purchase.productID).cast<ProductDetails?>().firstWhere((p) => p != null, orElse: () => null);
+      await AnalyticsService.instance.logPurchaseSuccess(
+        productId: purchase.productID,
+        currency: matchedProduct?.currencyCode,
+        priceLocal: matchedProduct?.rawPrice,
+      );
     } catch (e) {
       debugPrint('Error saving purchase: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -303,7 +329,9 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
       placement: 'settings',
       plan: product.id == 'premium_monthly' ? 'monthly' : 'remove_ads',
     );
+    await AnalyticsService.instance.logPlanSelected(productId: product.id);
     await _log.logPurchaseStarted(productId: product.id);
+    await AnalyticsService.instance.logPurchaseStart(productId: product.id);
 
     if (Platform.isAndroid && product is GooglePlayProductDetails) {
       // ✅ 안드로이드: premium 이력 없으면 무료 1개월 오퍼 강제, 있으면 기본 플랜

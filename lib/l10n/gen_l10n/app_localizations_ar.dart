@@ -964,8 +964,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get guestLoginContent2 => 'في وضع الضيف، يمكنك مسح قوائم الطعام للحصول على توصيات مخصصة، لكنك لن تتمكن من حفظ مفضلاتك أو عرض السجل عبر الأجهزة.';
 
   @override
-  String get confirm2 => 'فهمت، لننطلق!';
+  String get confirm2 => 'المتابعة كضيف';
 
   @override
-  String get login2 => 'سجّل الدخول الآن';
+  String get login2 => 'تسجيل دخول الأعضاء';
 }

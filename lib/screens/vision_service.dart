@@ -6,6 +6,14 @@ import '/helpers/settings_helper.dart';
 import 'package:mscanner/utils/sse_event_parser.dart';
 
 class VisionService {
+  static const bool _useRag = false;
+
+  static String _resolvePromptContext(String? promptContext) {
+    if (!_useRag) return '';
+    final safe = (promptContext ?? '').trim();
+    return safe.length > 3000 ? safe.substring(0, 3000) : safe;
+  }
+
   // 기존: static Future<String> analyzeImage(File imageFile) async {
   static Future<String> analyzeImage(
       File imageFile, {
@@ -25,15 +33,13 @@ class VisionService {
 
       final presetId = await SettingsHelper.getPreset();
       const String _streamProtocol = '''[OUTPUT PROTOCOL]
-1) First, output exactly ONE line (no extra lines):
-RECOMMEND: <dish1> | <dish2> | <dish3>
-- Prefer translated names for the selected output language.
-- No extra text.
-2) Then output ONLY ONE JSON object using the existing app schema (same fields as before).
-- No markdown/code fences.
-- No additional text outside JSON.
+Output exactly ONE JSON object.
+- No RECOMMEND line
+- No markdown
+- No code fences
+- No extra text
+- Keep the JSON key order as: isMenu, outputLanguage, place, recommended, fullMenu
 ''';
-
       final question = await SettingsHelper.getQuestionByPreset(presetId);
 
       // 1) RAG + 프리셋 질문을 하나로 합친 텍스트
@@ -223,9 +229,7 @@ Yemekle ilgili görünmüyorsa, sadece belirtin.
 // ragPrefixMap에서 해당 언어 템플릿 가져와서 context, question 대체
       final template = ragPrefixMap[langCode] ?? ragPrefixMap['en']!;
       final mergedPrompt = template
-          .replaceAll('{promptContext}', '') // ✅ RAG OFF
-
-          //rag fix .replaceAll('{promptContext}', promptContext ?? '')//
+          .replaceAll('{promptContext}', _resolvePromptContext(promptContext))
           .replaceAll('{question}', question ?? '');
 
       final mergedPromptWithProtocol = _streamProtocol + "\n" + mergedPrompt;
@@ -254,7 +258,7 @@ Yemekle ilgili görünmüyorsa, sadece belirtin.
 
 
       final tReq0 = DateTime.now();
-      print('🚀 [Vision] request start ${tReq0.toIso8601String()} maxTokens=$maxOutputTokens model=gpt-5-mini');
+      print('🚀 [Vision] request start ${tReq0.toIso8601String()} maxTokens=$maxOutputTokens model=gpt-5-mini rag=$_useRag');
 
       final response = await http.post(
         Uri.parse('https://api.openai.com/v1/chat/completions'),
@@ -291,10 +295,10 @@ Yemekle ilgili görünmüyorsa, sadece belirtin.
   }
   /// ✅ Streaming version: yields incremental text chunks (SSE)
   static Stream<String> analyzeImageStream(
-    File imageFile, {
-    String? promptContext,
-    int maxOutputTokens = 3000,
-  }) async* {
+      File imageFile, {
+        String? promptContext,
+        int maxOutputTokens = 3000,
+      }) async* {
     final bytes = await imageFile.readAsBytes();
     final base64Image = base64Encode(bytes);
 
@@ -302,13 +306,12 @@ Yemekle ilgili görünmüyorsa, sadece belirtin.
     final question = await SettingsHelper.getQuestionByPreset(presetId);
 
     const String _streamProtocol = '''[OUTPUT PROTOCOL]
-1) First, output exactly ONE line (no extra lines):
-RECOMMEND: <dish1> | <dish2> | <dish3>
-- Prefer translated names for the selected output language.
-- No extra text.
-2) Then output ONLY ONE JSON object using the existing app schema (same fields as before).
-- No markdown/code fences.
-- No additional text outside JSON.
+Output exactly ONE JSON object using the existing app schema.
+- No RECOMMEND line
+- No markdown
+- No code fences
+- No extra text
+- Keep the JSON key order as: isMenu, outputLanguage, place, recommended, fullMenu
 ''';
 
     final lang = (await SettingsHelper.getLanguageCode()).toString();
@@ -350,11 +353,8 @@ If it doesn’t seem food-related, just say so.
     };
 
     final template = ragPrefixMap[lang] ?? ragPrefixMap['en']!;
-    final safePromptContext = (promptContext ?? '').length > 3000
-        ? (promptContext ?? '').substring(0, 3000)
-        : (promptContext ?? '');
     final mergedPrompt = template
-        .replaceAll('{promptContext}', safePromptContext)
+        .replaceAll('{promptContext}', _resolvePromptContext(promptContext))
         .replaceAll('{question}', question ?? '');
 
     final mergedPromptWithProtocol = _streamProtocol + "\n" + mergedPrompt;

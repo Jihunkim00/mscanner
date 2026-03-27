@@ -964,8 +964,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get guestLoginContent2 => 'Im Gastmodus können Sie Speisekarten scannen, um personalisierte Empfehlungen zu erhalten, aber Sie können Ihre Favoriten nicht speichern oder den Verlauf geräteübergreifend einsehen.';
 
   @override
-  String get confirm2 => 'Alles klar, los geht\'s!';
+  String get confirm2 => 'Als Gast fortfahren';
 
   @override
-  String get login2 => 'Jetzt anmelden';
+  String get login2 => 'Mitglieder-Login';
 }

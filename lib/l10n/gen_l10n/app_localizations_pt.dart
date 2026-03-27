@@ -964,10 +964,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get guestLoginContent2 => 'No Modo Convidado, você pode escanear cardápios para obter recomendações personalizadas, mas não poderá salvar seus favoritos nem visualizar o histórico entre dispositivos.';
 
   @override
-  String get confirm2 => 'Entendi, vamos lá!';
+  String get confirm2 => 'Continuar como convidado';
 
   @override
-  String get login2 => 'Entrar agora';
+  String get login2 => 'Iniciar sessão de membro';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -1930,8 +1930,8 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get guestLoginContent2 => 'No Modo Convidado, você pode escanear cardápios para obter recomendações personalizadas, mas não poderá salvar seus favoritos nem visualizar o histórico em vários dispositivos.';
 
   @override
-  String get confirm2 => 'Entendi, vamos lá!';
+  String get confirm2 => 'Continuar como visitante';
 
   @override
-  String get login2 => 'Entrar agora';
+  String get login2 => 'Login de membro';
 }

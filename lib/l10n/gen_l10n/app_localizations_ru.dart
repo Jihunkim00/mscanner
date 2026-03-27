@@ -964,8 +964,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get guestLoginContent2 => 'В режиме гостя вы можете сканировать меню блюд, чтобы получать персонализированные рекомендации, но не сможете сохранять избранное или просматривать историю на разных устройствах.';
 
   @override
-  String get confirm2 => 'Понял, поехали!';
+  String get confirm2 => 'Продолжить как гость';
 
   @override
-  String get login2 => 'Войдите сейчас';
+  String get login2 => 'Вход для участников';
 }

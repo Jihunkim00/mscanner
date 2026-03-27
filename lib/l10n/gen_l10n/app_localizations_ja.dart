@@ -964,8 +964,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get guestLoginContent2 => 'ゲストモードでは、メニューをスキャンしてパーソナライズされたおすすめを受け取れますが、お気に入りを保存したりデバイス間で履歴を確認したりすることはできません。';
 
   @override
-  String get confirm2 => '了解、行こう！';
+  String get confirm2 => 'ゲストとして続ける';
 
   @override
-  String get login2 => '今すぐサインイン';
+  String get login2 => '会員ログイン';
 }

@@ -8,6 +8,7 @@ import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import 'package:adaptive_theme/adaptive_theme.dart'; // Import for adaptive theme
 import 'package:mscanner/screens/TutorialCamera_Screen.dart';
 import '/screens/log_service.dart';
+import '/analytics_service.dart';
 
 
 // 언어 정보를 담는 클래스
@@ -44,8 +45,8 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
     _inactivityTimer?.cancel();
     _inactivityTimer = Timer(Duration(seconds: 3), () {
       if (widget.isFirstLogin && !_isPresetSaved) {
-      _savePresetAndNavigate(); // 자동 저장
-        }
+        _savePresetAndNavigate(); // 자동 저장
+      }
     });
   }
 
@@ -108,12 +109,46 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
   }
 
 
+  String _normalizeMenuCountHint(AppLocalizations localizations, String raw) {
+    final value = raw.trim();
+    final map = {
+      '1': '1',
+      '1-3': '1-3',
+      '1-5': '1-5',
+      'all': 'all',
+      localizations.menuNumber1: '1',
+      localizations.menuNumber1to3: '1-3',
+      localizations.menuNumber1to5: '1-5',
+      localizations.menuNumberAll: 'all',
+    };
+    return map[value] ?? '1-5';
+  }
+
+  String _menuCountLabelFromStored(AppLocalizations localizations, String raw) {
+    switch (_normalizeMenuCountHint(localizations, raw)) {
+      case '1':
+        return localizations.menuNumber1;
+      case '1-3':
+        return localizations.menuNumber1to3;
+      case '1-5':
+        return localizations.menuNumber1to5;
+      case 'all':
+        return localizations.menuNumberAll;
+      default:
+        return localizations.menuNumber1to5;
+    }
+  }
+
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AnalyticsService.instance.setCurrentScreen('preset_selection_screen');
+      AnalyticsService.instance.logOnboardingStart(source: widget.isFirstLogin ? 'first_login' : 'settings');
+    });
     // 첫 로그인 시 자동 저장 타이머만 설정
     if (widget.isFirstLogin) _startInactivityTimer();
-
   }
 
   @override
@@ -139,21 +174,24 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
 
   Future<void> _loadSettings(String systemLocaleCode) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    final localizations = AppLocalizations.of(context)!;
+    final storedMenuNumber = prefs.getString('selectedMenuNumber') ?? '1-5';
 
     setState(() {
-      _selectedLanguageCode = prefs.getString('selectedLanguageCode') ??
+      _selectedLanguageCode = prefs.getString(SettingsHelper.selectedLanguageCodeKey) ??
           (languages.any((lang) => lang.code == systemLocaleCode)
               ? systemLocaleCode
               : 'en');
-      _selectedFoodStyle = prefs.getString('selectedFoodStyle') ?? 'AI recommend';
-      _selectedMenuNumber = prefs.getString('selectedMenuNumber') ?? '1-5';
+      _selectedFoodStyle = prefs.getString(SettingsHelper.selectedFoodStyleKey) ?? 'AI recommend';
+      _selectedMenuNumber = prefs.getString(SettingsHelper.selectedMenuNumberKey) ?? '1-5';
     });
   }
-
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
-    final brightness = AdaptiveTheme.of(context).brightness;
+    final brightness = AdaptiveTheme
+        .of(context)
+        .brightness;
 
     final foodStyles = getFoodStyles(localizations);
     final menuNumbers = getMenuNumbers(localizations);
@@ -163,14 +201,19 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
       _selectedLanguageCode = languages.isNotEmpty ? languages[0].code : 'en';
     }
     if (!foodStyles.contains(_selectedFoodStyle)) {
-      _selectedFoodStyle = foodStyles.isNotEmpty ? foodStyles[0] : 'AI recommend';
+      _selectedFoodStyle =
+      foodStyles.isNotEmpty ? foodStyles[0] : 'AI recommend';
     }
     if (!menuNumbers.contains(_selectedMenuNumber)) {
       _selectedMenuNumber = menuNumbers.isNotEmpty ? menuNumbers[0] : '1-5';
     }
 
-    final Color backgroundColor = brightness == Brightness.dark ? Colors.black : Color(0xFFEFEFF4);
-    final Color textColor = brightness == Brightness.dark ? Colors.white : Colors.black;
+    final Color backgroundColor = brightness == Brightness.dark
+        ? Colors.black
+        : Color(0xFFEFEFF4);
+    final Color textColor = brightness == Brightness.dark
+        ? Colors.white
+        : Colors.black;
     final TextStyle headingStyle = TextStyle(
       fontSize: 14,
       fontWeight: FontWeight.normal,
@@ -186,118 +229,137 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
     final TextStyle descriptionStyle = TextStyle(
       fontFamily: 'SFProText',
       fontSize: 12,
-      color: brightness == Brightness.dark ? Colors.white24 : Colors.black45, // 다크 모드와 라이트 모드에 따라 다른 색상 적용
+      color: brightness == Brightness.dark ? Colors.white24 : Colors
+          .black45, // 다크 모드와 라이트 모드에 따라 다른 색상 적용
     );
 
     return GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: _resetInactivityTimer,
         onPanDown: (_) => _resetInactivityTimer(),
-    child: Scaffold(
-      backgroundColor: backgroundColor,
-      appBar: AppBar(
-        backgroundColor: AdaptiveTheme.of(context).brightness == Brightness.dark
-            ? Colors.black // 다크 모드일 때 검은색
-            : Color(0xFFEFEFF4), // 라이트 모드일 때 기존 본문 배경색
-        elevation: 0, // 그림자 없애기
-        leading: CupertinoNavigationBarBackButton(
-          color: AdaptiveTheme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
-
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildDropdown(
-                  localizations.targetLanguage,
-                  languages,
-                  _selectedLanguageCode,
-                      (value) => setState(() => _selectedLanguageCode = value),
-                  itemStyle,
-                  headingStyle,
-                ),
-                // 설명 텍스트에 패딩 추가
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10.0), // 좌우 패딩 설정
-                  child: Text(
-                    localizations?.languagesdescprition ?? 'Take a photo of a food item or menu, and select the language for the output',
-                    style: descriptionStyle,
-                  ),
-                ),
-                SizedBox(height: 20),
-                _buildDropdown(
-                  localizations.foodStyle,
-                  foodStyles,
-                  _selectedFoodStyle,
-                      (value) => setState(() => _selectedFoodStyle = value),
-                  itemStyle,
-                  headingStyle,
-                ),
-                // 설명 텍스트에 패딩 추가
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10.0), // 좌우 패딩 설정
-                  child: Text(
-                    localizations?.fooddescprition ?? 'Please select a diet or meal plan. The AI will provide recommendations and explanations based on your selection',
-                    style: descriptionStyle,
-                  ),
-                ),
-                SizedBox(height: 20),
-                _buildDropdown(
-                  localizations.foodMenuMaxNumber,
-                  menuNumbers,
-                  _selectedMenuNumber,
-                      (value) => setState(() => _selectedMenuNumber = value),
-                  itemStyle,
-                  headingStyle,
-                ),
-                // 설명 텍스트에 패딩 추가
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10.0), // 좌우 패딩 설정
-                  child: Text(
-                    localizations?.menudescribe ?? '화면에 표시될 음식 메뉴의 개수를 선택해 주세요. 선택한 숫자가 적을수록 설명이 자세해집니다', // 설명 텍스트, 원하는 내용으로 수정하세요
-                    style: descriptionStyle,
-                  ),
-                ),
-                SizedBox(height: 20),
-                Center(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.grey
-                          : Colors.white,
-                      backgroundColor: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.grey[800]
-                          : Colors.grey,
-                      minimumSize: Size(40, 40),
-                      textStyle: TextStyle(
-                        fontFamily: 'SFPro',
-                        fontSize: 14,
-                      ),
-                    ),
-                    child: Text(localizations.saveAndContinue),
-                    onPressed: _isSaving ? null : _savePresetAndNavigate,
-
-
-                  ),
-                ),
-              ],
+        child: Scaffold(
+          backgroundColor: backgroundColor,
+          appBar: AppBar(
+            backgroundColor: AdaptiveTheme
+                .of(context)
+                .brightness == Brightness.dark
+                ? Colors.black // 다크 모드일 때 검은색
+                : Color(0xFFEFEFF4), // 라이트 모드일 때 기존 본문 배경색
+            elevation: 0, // 그림자 없애기
+            leading: CupertinoNavigationBarBackButton(
+              color: AdaptiveTheme
+                  .of(context)
+                  .brightness == Brightness.dark ? Colors.white : Colors.black,
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
             ),
           ),
-        ),
-      ),
-    ));
+
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildDropdown(
+                      localizations.targetLanguage,
+                      languages,
+                      _selectedLanguageCode,
+                          (value) =>
+                          setState(() => _selectedLanguageCode = value),
+                      itemStyle,
+                      headingStyle,
+                    ),
+                    // 설명 텍스트에 패딩 추가
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 10.0), // 좌우 패딩 설정
+                      child: Text(
+                        localizations?.languagesdescprition ??
+                            'Take a photo of a food item or menu, and select the language for the output',
+                        style: descriptionStyle,
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    _buildDropdown(
+                      localizations.foodStyle,
+                      foodStyles,
+                      _selectedFoodStyle,
+                          (value) => setState(() => _selectedFoodStyle = value),
+                      itemStyle,
+                      headingStyle,
+                    ),
+                    // 설명 텍스트에 패딩 추가
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 10.0), // 좌우 패딩 설정
+                      child: Text(
+                        localizations?.fooddescprition ??
+                            'Please select a diet or meal plan. The AI will provide recommendations and explanations based on your selection',
+                        style: descriptionStyle,
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    _buildDropdown(
+                      localizations.foodMenuMaxNumber,
+                      menuNumbers,
+                      _selectedMenuNumber,
+                          (value) =>
+                          setState(() => _selectedMenuNumber = value),
+                      itemStyle,
+                      headingStyle,
+                    ),
+                    // 설명 텍스트에 패딩 추가
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 10.0), // 좌우 패딩 설정
+                      child: Text(
+                        localizations?.menudescribe ??
+                            '화면에 표시될 음식 메뉴의 개수를 선택해 주세요. 선택한 숫자가 적을수록 설명이 자세해집니다',
+                        // 설명 텍스트, 원하는 내용으로 수정하세요
+                        style: descriptionStyle,
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    Center(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Theme
+                              .of(context)
+                              .brightness == Brightness.dark
+                              ? Colors.grey
+                              : Colors.white,
+                          backgroundColor: Theme
+                              .of(context)
+                              .brightness == Brightness.dark
+                              ? Colors.grey[800]
+                              : Colors.grey,
+                          minimumSize: Size(40, 40),
+                          textStyle: TextStyle(
+                            fontFamily: 'SFPro',
+                            fontSize: 14,
+                          ),
+                        ),
+                        child: Text(localizations.saveAndContinue),
+                        onPressed: _isSaving ? null : _savePresetAndNavigate,
+
+
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ));
   }
 
-  Widget _buildDropdown(
-      String title, List<dynamic> options, String selectedValue,
-      ValueChanged<String> onChanged, TextStyle itemStyle, TextStyle headingStyle) {
+  Widget _buildDropdown(String title, List<dynamic> options,
+      String selectedValue,
+      ValueChanged<String> onChanged, TextStyle itemStyle,
+      TextStyle headingStyle) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -307,7 +369,10 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
           height: 60, // 드롭다운 높이를 조절하여 스크롤 가능하게 설정
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8.0),
-            color: AdaptiveTheme.of(context).brightness == Brightness.dark ? Colors.grey[900] : Colors.white,
+            color: AdaptiveTheme
+                .of(context)
+                .brightness == Brightness.dark ? Colors.grey[900] : Colors
+                .white,
           ),
           child: Material(
             type: MaterialType.transparency,
@@ -338,13 +403,19 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
               }).toList(),
               decoration: InputDecoration(
                 filled: true,
-                fillColor: AdaptiveTheme.of(context).brightness == Brightness.dark ? Colors.grey[900] : Colors.white,
+                fillColor: AdaptiveTheme
+                    .of(context)
+                    .brightness == Brightness.dark ? Colors.grey[900] : Colors
+                    .white,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
                   borderSide: BorderSide.none,
                 ),
               ),
-              dropdownColor: AdaptiveTheme.of(context).brightness == Brightness.dark ? Colors.grey[900] : Colors.white,
+              dropdownColor: AdaptiveTheme
+                  .of(context)
+                  .brightness == Brightness.dark ? Colors.grey[900] : Colors
+                  .white,
               iconEnabledColor: itemStyle.color,
             ),
           ),
@@ -360,26 +431,36 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
     });
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('selectedLanguageCode', _selectedLanguageCode);
-    await prefs.setString('selectedFoodStyle', _selectedFoodStyle);
-    await prefs.setString('selectedMenuNumber', _selectedMenuNumber);
+    final localizations = AppLocalizations.of(context)!;
+    final normalizedMenuCount =
+    _normalizeMenuCountHint(localizations, _selectedMenuNumber);
+
+    await prefs.setString(SettingsHelper.selectedLanguageCodeKey, _selectedLanguageCode);
+    await prefs.setString(SettingsHelper.selectedFoodStyleKey, _selectedFoodStyle);
+    await prefs.setString(SettingsHelper.selectedMenuNumberKey, _selectedMenuNumber);
 
     print('Saved Language Code: $_selectedLanguageCode');
     print('Saved Food Style: $_selectedFoodStyle');
-    print('Saved Menu Number: $_selectedMenuNumber');
+    print('Saved Menu Number: $normalizedMenuCount');
 
     // ✅ 첫 로그인(튜토리얼) 아닐 때만 로그
+    await AnalyticsService.instance.logOnboardingComplete(
+      path: widget.isFirstLogin ? 'first_login' : 'settings',
+    );
+
     if (!widget.isFirstLogin) {
       try {
         final count = [
           _selectedLanguageCode,
           _selectedFoodStyle,
           _selectedMenuNumber,
-        ].where((e) => e.isNotEmpty).length;
+        ]
+            .where((e) => e.isNotEmpty)
+            .length;
 
         await LogService().logPresetSave(
-          fieldsCount: count,          // 예: 3
-          presetType: 'manual_save',   // 원하는 라벨 (e.g., 'manual_save')
+          fieldsCount: count, // 예: 3
+          presetType: 'manual_save', // 원하는 라벨 (e.g., 'manual_save')
         );
       } catch (e) {
         debugPrint('[LogService] logPresetSave failed: $e');
@@ -388,14 +469,15 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
 
     final preset = _createPresetDescription();
     await SettingsHelper.saveCustomPresetDescription(preset);
+    _isPresetSaved = true;
 
     // 확인을 위해 바로 값을 가져와서 출력
     final savedLanguageCode =
-        prefs.getString('selectedLanguageCode') ?? 'Not found';
+        prefs.getString(SettingsHelper.selectedLanguageCodeKey) ?? 'Not found';
     final savedFoodStyle =
-        prefs.getString('selectedFoodStyle') ?? 'Not found';
+        prefs.getString(SettingsHelper.selectedFoodStyleKey) ?? 'Not found';
     final savedMenuNumber =
-        prefs.getString('selectedMenuNumber') ?? 'Not found';
+        prefs.getString(SettingsHelper.selectedMenuNumberKey) ?? 'Not found';
 
     print('Loaded Language Code: $savedLanguageCode');
     print('Loaded Food Style: $savedFoodStyle');
@@ -431,188 +513,10 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
 
 
   String _createPresetDescription() {
-    print('Creating preset description for language code: $_selectedLanguageCode');
-
-    final outputLang = _selectedLanguageCode;      // 결과 언어
-    final styleHint = _selectedFoodStyle;          // 식단/스타일 힌트(정렬 선호)
-    final menuCountHint = _selectedMenuNumber;     // 추천 개수 힌트
-
-    // ✅ 공통 베이스(스키마/규칙) — 영어로 고정해도 outputLanguage로 결과 언어는 맞춰짐
-    final base = '''
-You MUST output in TWO phases, in this exact order:
-PHASE 1) Output exactly ONE line (no extra lines):
-RECOMMEND: <dish1> | <dish2> | <dish3>
-- Use translated names in outputLanguage = "$outputLang" (if uncertain, use original).
-- No extra text.
-
-PHASE 2) Then output ONLY valid JSON (no extra text, markdown, code fences, or explanations).
-
-Goal:
-- Extract menu items from the provided image/OCR text.
-- Produce results for the app UI: "Recommended Dishes" chips + optional "Full Menu" preview.
-
-Hard rules:
-1) Output language rule:
-   - shortDesc, tags MUST be written in outputLanguage = "$outputLang".
-   - nameOriginal MUST be the EXACT original text extracted from the image/OCR (do NOT translate).
-   - name MUST be the translated name in outputLanguage. If translation is identical or uncertain, set name = nameOriginal.
-2) Never invent items not visible in the image/OCR.
-3) If the image is NOT a food menu, return isMenu=false with a short reason.
-4) Keep shortDesc to 1–2 sentences max.
-5) Use styleHint="$styleHint" only as ranking preference (do NOT hallucinate dietary tags).
-6) menuCountHint="$menuCountHint" controls ONLY the "recommended" list size:
-   - "1": 1 item
-   - "1-3": up to 3 items
-   - "1-5": up to 5 items
-   - "all": up to 6 items
-
-7) TOKEN SAFETY (VERY IMPORTANT):
-   - Keep the entire JSON compact.
-   - If the menu is long, DO NOT output every item as structured arrays.
-   - Prefer: recommended (structured, detailed) + fullMenu summary (structured text).
-   - You must stay within the output limit; if needed, set fullMenu.truncated=true and summarize the rest.
-
-8) Tags limit:
-   - "tags" MUST contain at most 5 strings per item. (0–5)
-
-9) ID format:
-   - "id" MUST be short and unique within this response.
-   - Use simple IDs like "m1", "m2", "m3"... (no long UUIDs)
-
-10) Detail quality (IMPORTANT):
-   - For EACH recommended item, shortDesc MUST mention:
-     (a) ingredients OR cooking method AND (b) flavor profile (e.g., spicy/savory) in 1–2 sentences.
-   - Avoid generic phrases like "delicious". Be concrete.
-
-11) FullMenu preview detail rule:
-   - In fullMenu.items, for each category include at most 2 items with non-empty shortDesc.
-   - All other items must set shortDesc="" to save tokens.
-
-12) FullMenu summary formatting rule (VERY IMPORTANT):
-   - fullMenu.summary MUST use this structure in outputLanguage:
-     "Main highlights: <A> — <note>; <B> — <note>. Other mains: <list up to 8>.
-      Sides highlights: <A> — <note>; <B> — <note>. Other sides: <list up to 8>.
-      Drinks highlights: <A> — <note>. Other drinks: <list up to 8>."
-   - Each <note> must be 6–14 words describing ingredients/method/flavor (concrete).
-   - Do NOT output a plain list only.
-
-Return JSON with EXACT schema:
-
-{
-  "isMenu": true,
-  "outputLanguage": "$outputLang",
-  "place": { "name": null, "address": null, "city": null },
-
-  "recommended": [
-    {
-      "id": "string",
-      "nameOriginal": "string",
-      "name": "string",
-      "shortDesc": "string",
-      "prices": { "small": null, "medium": null, "large": null, "single": null, "currency": "ISO 4217 code like KRW, JPY, USD, EUR, etc. or null" },
-      "tags": ["string"],
-      "category": "main|side|meal|drink|beverage|unknown",
-      "confidence": 0.0
-    }
-  ],
-
-  "fullMenu": {
-    "items": {
-      "main": [],
-      "side": [],
-      "meal": [],
-      "drink": [],
-      "beverage": [],
-      "unknown": []
-    },
-    "summary": "string",
-    "truncated": true
+    return SettingsHelper.buildPresetDescription(
+      selectedLanguageCode: _selectedLanguageCode,
+      selectedFoodStyle: _selectedFoodStyle,
+      selectedMenuNumber: _selectedMenuNumber,
+    );
   }
-}
-
-Full menu output rule:
-- Always fill "recommended" as structured items (most detailed).
-- For fullMenu.items:
-  - If the menu is short, you MAY include more items.
-  - If the menu is long, include ONLY a small preview per category (max 12 items total across all categories).
-- Put the rest into fullMenu.summary using the required formatting rule.
-- If you omit any items due to length, set fullMenu.truncated=true; otherwise false.
-
-If isMenu=false, return EXACTLY:
-{
-  "isMenu": false,
-  "outputLanguage": "$outputLang",
-  "reason": "short string"
-}
-''';
-
-    // ✅ 언어별 “한 줄 안내”만 유지 (지원 언어 전부 유지)
-    String intro;
-    switch (_selectedLanguageCode) {
-      case 'ko':
-        intro = '아래 규칙을 따르고, 반드시 JSON만 출력해. 설명 문단은 절대 쓰지 마.\n';
-        break;
-      case 'ja':
-        intro = '必ずJSONのみを出力してください。説明文は出力しないでください。\n';
-        break;
-      case 'zh':
-      case 'zh-Hans':
-        intro = '请只输出JSON，不要输出任何解释性文字。\n';
-        break;
-      case 'zh-Hant':
-        intro = '請只輸出JSON，不要輸出任何說明文字。\n';
-        break;
-      case 'hi':
-        intro = 'केवल JSON आउटपुट करें। कोई व्याख्यात्मक पाठ न लिखें।\n';
-        break;
-      case 'es':
-        intro = 'Devuelve SOLO JSON. No escribas texto explicativo.\n';
-        break;
-      case 'fr':
-        intro = 'Retourne UNIQUEMENT du JSON. Aucun texte explicatif.\n';
-        break;
-      case 'vi':
-        intro = 'Chỉ trả về JSON. Không viết đoạn giải thích.\n';
-        break;
-      case 'th':
-        intro = 'โปรดส่งออกเป็น JSON เท่านั้น ห้ามมีข้อความอธิบาย\n';
-        break;
-      case 'ar':
-        intro = 'أخرج JSON فقط دون أي نص إضافي.\n';
-        break;
-      case 'bn':
-        intro = 'শুধুমাত্র JSON আউটপুট দিন। কোনো ব্যাখ্যামূলক লেখা নয়।\n';
-        break;
-      case 'ru':
-        intro = 'Выводи ТОЛЬКО JSON. Без пояснительного текста.\n';
-        break;
-      case 'pt':
-      case 'pt-BR':
-        intro = 'Retorne SOMENTE JSON. Sem texto explicativo.\n';
-        break;
-      case 'ur':
-        intro = 'صرف JSON آؤٹ پٹ کریں، کوئی اضافی متن نہیں۔\n';
-        break;
-      case 'id':
-        intro = 'Keluarkan HANYA JSON. Jangan tulis teks penjelasan.\n';
-        break;
-      case 'de':
-        intro = 'Gib NUR JSON aus. Kein erklärender Text.\n';
-        break;
-      case 'mr':
-        intro = 'फक्त JSON आउटपुट करा. स्पष्टीकरणात्मक मजकूर नको.\n';
-        break;
-      case 'te':
-        intro = 'JSON మాత్రమే ఇవ్వండి. వివరణాత్మక వచనం రాయకండి.\n';
-        break;
-      case 'tr':
-        intro = 'Yalnızca JSON döndür. Açıklama metni yazma.\n';
-        break;
-      default:
-        intro = 'Output ONLY JSON. No explanatory text.\n';
-    }
-
-    return intro + base;
-  }
-
 }

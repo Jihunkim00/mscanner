@@ -964,10 +964,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get guestLoginContent2 => '在访客模式下，您可以扫描菜单以获取个性化推荐，但您将无法保存收藏或跨设备查看历史记录。';
 
   @override
-  String get confirm2 => '明白了，走吧！';
+  String get confirm2 => '以访客身份继续';
 
   @override
-  String get login2 => '立即登录';
+  String get login2 => '会员登录';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -1930,10 +1930,10 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get guestLoginContent2 => '在访客模式下，您可以扫描菜单以获得个性化推荐，但无法保存收藏或在多设备间查看历史记录。';
 
   @override
-  String get confirm2 => '明白了，我们走吧！';
+  String get confirm2 => '以访客身份继续';
 
   @override
-  String get login2 => '立即登录';
+  String get login2 => '会员登录';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -2896,8 +2896,8 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get guestLoginContent2 => '在訪客模式下，您可以掃描菜單以獲得個人化推薦，但您將無法儲存最愛或在不同裝置間查看歷史紀錄。';
 
   @override
-  String get confirm2 => '了解了，我們出發吧！';
+  String get confirm2 => '以訪客身分繼續';
 
   @override
-  String get login2 => '立即登入';
+  String get login2 => '會員登入';
 }

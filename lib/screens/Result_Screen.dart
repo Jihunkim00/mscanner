@@ -34,6 +34,10 @@ import '/widgets/ai_food_image_button.dart'; // 파일 경로 맞게
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/rendering.dart';
 import 'package:mscanner/utils/ai_result_copy_formatter.dart';
+import '/analytics_service.dart';
+import 'package:mscanner/models/order_phrase_models.dart';
+import 'package:mscanner/widgets/order_phrase_bottom_sheet.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 
 
@@ -114,6 +118,13 @@ class _MenuNamePair {
 
 
 class _ResultScreenState extends State<ResultScreen> {
+  SupportedLanguage _orderPhraseLanguage(BuildContext context) {
+    final code = Localizations.localeOf(context).languageCode.toLowerCase();
+    if (code == 'en') return SupportedLanguage.en;
+    if (code == 'ja') return SupportedLanguage.ja;
+    return SupportedLanguage.ko;
+  }
+  bool _analyticsViewedLogged = false;
 
   // ===== Recommended price candidates (for FxQuickFxButton) =====
   double? _parseAmountAny(dynamic v) {
@@ -166,7 +177,25 @@ class _ResultScreenState extends State<ResultScreen> {
   bool _aiStreamHadError = false;
   String? _aiStreamErrorMessage;
 
+  Timer? _aiFirstChunkTimer;
+  Timer? _aiInactivityTimer;
+  Timer? _aiHardTimeoutTimer;
+  bool _aiGotFirstChunk = false;
+
   bool get _isWaitingFullMenu => widget.responseStream != null && !_aiStreamDone;
+
+  // ✅ 추가
+  bool get _hasAnyAiText =>
+      _aiStreamBuffer.toString().trim().isNotEmpty ||
+          widget.responses.any((e) => e.trim().isNotEmpty);
+
+  bool get _hasPartialAiResult =>
+      _fastRecommend.isNotEmpty ||
+          _getRecommendedItems().isNotEmpty ||
+          _hasAnyAiText;
+
+  bool get _canShowTerminalActions =>
+      _aiJson != null || (_aiStreamDone && _hasPartialAiResult);
 
 // RECOMMEND: line fast chips
   List<String> _fastRecommend = <String>[];
@@ -429,6 +458,89 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
+  bool _hasAnyFullMenuItems(Map<String, dynamic>? itemsMap) {
+    if (itemsMap == null || itemsMap.isEmpty) return false;
+
+    for (final v in itemsMap.values) {
+      if (v is List && v.isNotEmpty) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool _hasUsableFullMenu() {
+    final j = _aiJson;
+    if (j == null) return false;
+
+    final rawFm = j['fullMenu'] ?? j['full_menu'] ?? j['menu'] ?? j['menus'];
+    if (rawFm is! Map) return false;
+
+    Map<String, dynamic>? itemsMap;
+    String summary = '';
+
+    if (rawFm['items'] is Map) {
+      itemsMap = Map<String, dynamic>.from(rawFm['items'] as Map);
+      summary = (rawFm['summary'] ?? '').toString().trim();
+    } else {
+      itemsMap = Map<String, dynamic>.from(rawFm);
+      summary = (rawFm['summary'] ?? '').toString().trim();
+    }
+
+    return _hasAnyFullMenuItems(itemsMap) || summary.isNotEmpty;
+  }
+
+  void _cancelAiStreamTimers() {
+    _aiFirstChunkTimer?.cancel();
+    _aiInactivityTimer?.cancel();
+    _aiHardTimeoutTimer?.cancel();
+  }
+
+  void _armAiInactivityTimeout() {
+    _aiInactivityTimer?.cancel();
+    _aiInactivityTimer = Timer(const Duration(seconds: 75), () {
+      if (_aiStreamDone) return;
+
+      _completeAiStream(
+        hadError: !_hasPartialAiResult,
+        errorMessage: _hasPartialAiResult
+            ? null
+            : 'Timed out while waiting for more AI response.',
+      );
+
+      if (mounted) setState(() {});
+      _aiStreamSub?.cancel();
+    });
+  }
+
+  bool _tryParseCurrentStreamJson() {
+    final raw = _aiStreamBuffer.toString().trim();
+    final s = _extractJsonObjectFromText(raw);
+    if (s == null) return false;
+
+    try {
+      final decoded = jsonDecode(s);
+      if (decoded is Map) {
+        _aiJson = Map<String, dynamic>.from(decoded);
+        _aiJsonError = null;
+        return true;
+      }
+    } catch (e) {
+      _aiJsonError = 'stream jsonDecode failed: $e';
+    }
+    return false;
+  }
+
+  void _finishAiStreamNow({
+    bool hadError = false,
+    String? errorMessage,
+  }) {
+    if (_aiStreamDone) return;
+    _completeAiStream(hadError: hadError, errorMessage: errorMessage);
+    if (mounted) setState(() {});
+    _aiStreamSub?.cancel();
+  }
+
   void _kickoffRecommendedReveal() {
     _revealTimer?.cancel();
 
@@ -451,6 +563,13 @@ class _ResultScreenState extends State<ResultScreen> {
 
 
   void _showFullMenuSheet() {
+    if (!_hasUsableFullMenu()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Full menu is not available yet.')),
+      );
+      return;
+    }
+
     final j = _aiJson;
     if (j == null) return;
 
@@ -477,6 +596,8 @@ class _ResultScreenState extends State<ResultScreen> {
     isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE5E7EB);
     final titleColor = isDark ? Colors.white : const Color(0xFF111827);
     final subColor = isDark ? Colors.white70 : const Color(0xFF6B7280);
+    final hasAnyMenuItems = _hasAnyFullMenuItems(itemsMap);
+    final hasAnyContent = hasAnyMenuItems || ((summary ?? '').isNotEmpty);
 
     showModalBottomSheet(
       context: context,
@@ -597,7 +718,7 @@ class _ResultScreenState extends State<ResultScreen> {
                         ..._buildMenuSection('Drink', itemsMap?['drink']),
                         ..._buildMenuSection('Beverage', itemsMap?['beverage']),
                         ..._buildMenuSection('Other', itemsMap?['unknown']),
-                        if ((itemsMap ?? {}).isEmpty)
+                        if (!hasAnyContent)
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
@@ -1464,6 +1585,48 @@ class _ResultScreenState extends State<ResultScreen> {
               }).toList(),
             ),
           ],
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () {
+                showOrderPhraseBottomSheet(
+                  context: context,
+                  menuName: pair.display.isNotEmpty ? pair.display : pair.original,
+                  language: _orderPhraseLanguage(context),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: textColor.withOpacity(0.18)),
+                  color: Colors.white.withOpacity(0.55),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    PhosphorIcon(
+                      PhosphorIcons.speakerHigh(),
+                      size: 14,
+                      color: textColor.withOpacity(0.82),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '주문 문장',
+                      style: TextStyle(
+                        fontFamily: 'SFPro',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: textColor.withOpacity(0.86),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
 
           const SizedBox(height: 12),
           Divider(height: 1, color: textColor.withOpacity(0.12)),
@@ -1521,15 +1684,25 @@ class _ResultScreenState extends State<ResultScreen> {
     required BoxDecoration boxDecoration,
   }) {
     final rec = _getRecommendedItems();
-    final canShowMenu = _aiJson != null;
-
-    // Fallback: 기존 텍스트 카드(현재 로직 유지)
     final hasFast = _fastRecommend.isNotEmpty;
     final hasJsonRec = rec.isNotEmpty;
+    final hasFallbackText = _hasAnyAiText;
+
+    final canShowMenu = _hasUsableFullMenu();
+    final canShowPartialActions = _canShowTerminalActions;
+
     if (!hasFast && !hasJsonRec) {
-      final fallbackText = widget.responses.isNotEmpty
-          ? widget.responses.join()
-          : _aiStreamBuffer.toString();
+      final fallbackDisplayText = widget.responses.isNotEmpty
+          ? widget.responses.join('\n\n').trim()
+          : _aiStreamBuffer.toString().trim();
+
+      final shouldHideRawAiText =
+          widget.responseStream != null &&
+              !_aiStreamDone &&
+              !hasJsonRec;
+
+      final isStillLoading = shouldHideRawAiText;
+
       return Container(
         decoration: boxDecoration,
         padding: const EdgeInsets.all(8),
@@ -1565,19 +1738,17 @@ class _ResultScreenState extends State<ResultScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                    child:
-                    AnimatedDotsText(
-                      baseText:
-                      AppLocalizations.of(context)?.result_analyzing ??
-                          'Analyzing',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white60
-                            : CupertinoColors.systemGrey2,
-                        decoration: TextDecoration.none,
-                      ),
-                    )
+                  child: AnimatedDotsText(
+                    baseText:
+                    AppLocalizations.of(context)?.result_analyzing ?? 'Analyzing',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white60
+                          : CupertinoColors.systemGrey2,
+                      decoration: TextDecoration.none,
+                    ),
+                  ),
                 ),
                 Builder(builder: (_) {
                   final nutritionData =
@@ -1616,7 +1787,8 @@ class _ResultScreenState extends State<ResultScreen> {
                       : const Color(0xFFEAECF0),
                 ),
               ),
-              child: Row(
+              child: isStillLoading
+                  ? Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const CupertinoActivityIndicator(radius: 8),
@@ -1637,6 +1809,17 @@ class _ResultScreenState extends State<ResultScreen> {
                     ),
                   ),
                 ],
+              )
+                  : Text(
+                fallbackDisplayText.isNotEmpty
+                    ? fallbackDisplayText
+                    : (_aiStreamErrorMessage ?? 'No menu details available.'),
+                style: TextStyle(
+                  fontFamily: 'SFPro',
+                  fontSize: 13,
+                  height: 1.4,
+                  color: textColor.withOpacity(0.82),
+                ),
               ),
             ),
           ],
@@ -1645,21 +1828,8 @@ class _ResultScreenState extends State<ResultScreen> {
     }
 
     // ✅ JSON UI
-// ✅ Chips use JSON recommended when available, otherwise fast RECOMMEND from stream
-// - 추천 칩에는 "환율/가격 UI"를 넣지 않고, 이름만 간단히 보여줍니다.
-    final chipLabels = rec.isNotEmpty
-        ? rec
-        .map((e) {
-      final o = (e['nameOriginal'] ?? '').toString().trim();
-      final t = (e['name'] ?? e['nameTranslated'] ?? '').toString().trim();
-      final pair = _MenuNamePair(original: o, translated: t);
-      return pair.display;
-    })
-        .where((e) => e.isNotEmpty)
-        .toList()
-        : _fastRecommend;
 
-// ✅ FX 버튼(중복 제거): 추천 칩에는 두지 않고, 제목 라인(본문)에서만 노출
+// ✅ FX 버튼(중복 제거): 제목 라인(본문)에서만 노출
     final _jsonPriceAmounts = _extractAmountsFromRecommendedPrices(rec);
     final _fxAmounts = <double>[
       ..._jsonPriceAmounts,
@@ -1715,55 +1885,7 @@ class _ResultScreenState extends State<ResultScreen> {
                 )),
             ],
           ),
-          const SizedBox(height: 12),          // ✅ 추천 메뉴 칩: 1개 먼저 선명, 나머지는 블러(스트림 완료 후 순차 공개)
-          if (chipLabels.isNotEmpty) ...[
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: List.generate(chipLabels.length, (i) {
-                final visible = i < _revealRecommendedCount;
-                final label = chipLabels[i];
-
-                Widget chip = Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: textColor.withOpacity(0.18)),
-                    color: Theme.of(context).cardColor,
-                  ),
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      fontFamily: 'SFPro',
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: textColor,
-                    ),
-                  ),
-                );
-
-                if (!visible) {
-                  chip = Opacity(
-                    opacity: 0.35,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(999),
-                      child: BackdropFilter(
-                        filter: ui.ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-                        child: chip,
-                      ),
-                    ),
-                  );
-                }
-
-                return AnimatedOpacity(
-                  duration: const Duration(milliseconds: 220),
-                  opacity: visible ? 1.0 : 0.35,
-                  child: chip,
-                );
-              }),
-            ),
-            const SizedBox(height: 14),
-          ],
+          const SizedBox(height: 12),
           // ✅ 추천칩 이후, 전체 결과가 아직이면 로딩 표시
           if (_isWaitingFullMenu) ...[
             const SizedBox(height: 10),
@@ -1842,10 +1964,10 @@ class _ResultScreenState extends State<ResultScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        if (!canShowMenu) ...[
+                        if (!canShowMenu && _isWaitingFullMenu) ...[
                           const CupertinoActivityIndicator(radius: 8),
                           const SizedBox(width: 8),
-                        ] else ...[
+                        ] else if (canShowMenu) ...[
                           Icon(
                             CupertinoIcons.square_list,
                             size: 18,
@@ -1855,11 +1977,14 @@ class _ResultScreenState extends State<ResultScreen> {
                         ],
                         Flexible(
                           child: Text(
+
                             canShowMenu
                                 ? (AppLocalizations.of(context)?.result_viewFullMenu ??
                                 'View Full Menu')
-                                : (AppLocalizations.of(context)?.result_preparingMenu ??
-                                'Preparing...'),
+                                : (_isWaitingFullMenu
+                                ? (AppLocalizations.of(context)?.result_preparingMenu ??
+                                'Preparing...')
+                                : 'Menu details unavailable'),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.center,
@@ -1888,7 +2013,7 @@ class _ResultScreenState extends State<ResultScreen> {
               ),
 
               // ✅ 로딩 끝난 뒤에만 copy/share 노출
-              if (canShowMenu) ...[
+              if (canShowPartialActions) ...[
                 const SizedBox(width: 8),
                 Container(
                   decoration: BoxDecoration(
@@ -2544,6 +2669,10 @@ class _ResultScreenState extends State<ResultScreen> {
   final GlobalKey _shareWidgetKey = GlobalKey();
 
   void _completeAiStream({bool hadError = false, String? errorMessage}) {
+    if (_aiStreamDone) return;
+
+    _cancelAiStreamTimers();
+
     _aiStreamDone = true;
     _aiStreamHadError = hadError;
     _aiStreamErrorMessage = errorMessage;
@@ -2566,6 +2695,12 @@ class _ResultScreenState extends State<ResultScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_analyticsViewedLogged) {
+        _analyticsViewedLogged = true;
+        AnalyticsService.instance.logResultViewed(entryPoint: widget.isFromHistory ? 'history' : 'scan_result');
+      }
+    });
     _parseAiJson(); // ✅ NEW: parse JSON response (if any)
     _fastRecommend = List<String>.from(widget.initialFastRecommend);
     if (_fastRecommend.isNotEmpty) {
@@ -2574,14 +2709,41 @@ class _ResultScreenState extends State<ResultScreen> {
 
 // ✅ 스트리밍이 있으면: Result에서 바로 받아서 RECOMMEND 먼저 반영
     if (widget.responseStream != null) {
-      final guardedStream = widget.responseStream!
-          .timeout(const Duration(seconds: 45));
-      _aiStreamSub = guardedStream.listen(
+      _aiGotFirstChunk = false;
+
+      _aiFirstChunkTimer = Timer(const Duration(seconds: 20), () {
+        if (_aiStreamDone || _aiGotFirstChunk) return;
+        _finishAiStreamNow(
+          hadError: true,
+          errorMessage: 'Timed out before first AI chunk arrived.',
+        );
+      });
+
+      _aiHardTimeoutTimer = Timer(const Duration(seconds: 120), () {
+        if (_aiStreamDone) return;
+        _finishAiStreamNow(
+          hadError: !_hasPartialAiResult,
+          errorMessage: _hasPartialAiResult
+              ? null
+              : 'Timed out while waiting for full menu.',
+        );
+      });
+
+      _armAiInactivityTimeout();
+
+      _aiStreamSub = widget.responseStream!.listen(
             (delta) {
+          if (!_aiGotFirstChunk) {
+            _aiGotFirstChunk = true;
+            _aiFirstChunkTimer?.cancel();
+          }
+
+          _armAiInactivityTimeout();
           _aiStreamBuffer.write(delta);
 
-          // RECOMMEND 라인이 오면 즉시 칩 1개 선공개
           final s = _aiStreamBuffer.toString();
+
+          // RECOMMEND 라인이 오면 즉시 칩 노출
           final m = RegExp(r'RECOMMEND:\s*(.*)\n').firstMatch(s);
           if (m != null) {
             final oneLine = (m.group(1) ?? '').trim();
@@ -2598,31 +2760,39 @@ class _ResultScreenState extends State<ResultScreen> {
             }
           }
 
+          // ✅ JSON 완성되면 [DONE] 안 기다리고 바로 terminal 처리
+          if (_tryParseCurrentStreamJson()) {
+            _finishAiStreamNow();
+            return;
+          }
+
           if (mounted) setState(() {});
         },
         onError: (e) {
-          _completeAiStream(
-            hadError: true,
-            errorMessage: e is TimeoutException
+          _finishAiStreamNow(
+            hadError: !_hasPartialAiResult,
+            errorMessage: _hasPartialAiResult
+                ? null
+                : (e is TimeoutException
                 ? 'Timed out while waiting for full menu stream.'
-                : 'Failed while receiving full menu stream.',
+                : 'Failed while receiving full menu stream.'),
           );
-          if (mounted) setState(() {});
         },
         onDone: () {
-          print('✅ stream done. fullLen=${_aiStreamBuffer.length}');
-
           final full = _aiStreamBuffer.toString().trim();
-          print('✅ full head: ${full.substring(0, full.length > 180 ? 180 : full.length)}');
-          print('✅ hasJsonStart=${full.contains("{")} hasJsonEnd=${full.contains("}")}');
-
-          _completeAiStream(
-            hadError: full.isEmpty,
-            errorMessage: full.isEmpty ? 'AI returned an empty stream response.' : null,
+          print('✅ stream done. fullLen=${_aiStreamBuffer.length}');
+          print(
+            '✅ hasJsonStart=${full.contains("{")} hasJsonEnd=${full.contains("}")}',
           );
 
-          if (mounted) setState(() {});
+          _finishAiStreamNow(
+            hadError: full.isEmpty && !_hasPartialAiResult,
+            errorMessage: (full.isEmpty && !_hasPartialAiResult)
+                ? 'AI returned an empty stream response.'
+                : null,
+          );
         },
+        cancelOnError: true,
       );
     } else {
       _kickoffRecommendedReveal();
@@ -2839,6 +3009,7 @@ class _ResultScreenState extends State<ResultScreen> {
     _timer?.cancel();
     _aiStreamSub?.cancel();
     _revealTimer?.cancel();
+    _cancelAiStreamTimers();
     _storeNameController.dispose();
     _reviewController.dispose();
     super.dispose();
@@ -3185,6 +3356,7 @@ class _ResultScreenState extends State<ResultScreen> {
   void _shareCapturedImage() async {
     try {
       await LogService().logShareClick(dest: 'system', context: 'result');
+      await AnalyticsService.instance.logShareResult(channel: 'system');
 
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         final boundary =

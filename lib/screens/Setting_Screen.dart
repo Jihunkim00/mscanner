@@ -15,6 +15,7 @@ import '/widgets/test_purchase_widget.dart'; // 추가된 위젯 import
 import 'package:provider/provider.dart';
 import '/ad_remove_provider.dart'; // 경로에 따라 수정 필요
 import '/screens/log_service.dart';
+import '/analytics_service.dart';
 
 
 
@@ -49,6 +50,9 @@ class _SettingScreenState extends State<SettingScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AnalyticsService.instance.setCurrentScreen('setting_screen');
+    });
     _loadSettings();
     _fetchUserProfile();
     _fetchAppVersion(); // 앱 버전 불러오기

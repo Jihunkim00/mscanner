@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '/analytics_service.dart';
 
 /// 광고 제거(ad-free)와 프리미엄 구독 상태를 실시간 관리하는 Provider
 class AdRemoveProvider extends ChangeNotifier {
@@ -111,6 +112,9 @@ class AdRemoveProvider extends ChangeNotifier {
       _isAdRemoved = isAdRemoved;
       _isSubscribed = isSubscribed;
       notifyListeners();
+
+      final premiumStatus = isSubscribed ? 'premium' : (isAdRemoved ? 'ad_free' : 'free');
+      unawaited(AnalyticsService.instance.setPremiumStatus(premiumStatus));
     }
   }
 

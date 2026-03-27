@@ -964,8 +964,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get guestLoginContent2 => 'Misafir Modu\'nda yemek menülerini tarayarak kişiselleştirilmiş öneriler alabilirsiniz, ancak favorilerinizi kaydedemezsiniz veya cihazlar arasında geçmişinizi göremezsiniz.';
 
   @override
-  String get confirm2 => 'Anladım, hadi gidelim!';
+  String get confirm2 => 'Misafir olarak devam et';
 
   @override
-  String get login2 => 'Şimdi giriş yap';
+  String get login2 => 'Üye girişi';
 }

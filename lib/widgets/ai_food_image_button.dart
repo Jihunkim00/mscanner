@@ -6,6 +6,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mscanner/screens/result_screen.dart';
+import 'package:mscanner/services/firebase_functions_config.dart';
 
 String buildMenuKey(String original, String translated) {
   final base = '${original.trim()}|${translated.trim()}'.toLowerCase();
@@ -98,7 +99,7 @@ class _AiFoodImageButtonState extends State<AiFoodImageButton> {
     setState(() => _localLoading = true);
 
     try {
-      final functions = FirebaseFunctions.instanceFor(region: 'asia-northeast3');
+      final functions = FirebaseFunctionsConfig.instance;
       final callable = functions.httpsCallable('generateMenuImage');
 
       final menuOriginal = (widget.menu['original'] ?? '').toString().trim();
