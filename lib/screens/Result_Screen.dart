@@ -129,7 +129,12 @@ class _ResultScreenState extends State<ResultScreen> {
   }
   SupportedLanguage _orderPhraseOriginLanguage({
     required String menuOriginal,
+    String? originLanguageCode,
   }) {
+    final explicit = originLanguageCode?.trim().toLowerCase();
+    if (explicit == 'ko') return SupportedLanguage.ko;
+    if (explicit == 'ja') return SupportedLanguage.ja;
+    if (explicit == 'en') return SupportedLanguage.en;
     final text = menuOriginal.trim();
     if (_koScriptRegex.hasMatch(text)) return SupportedLanguage.ko;
     if (_jaScriptRegex.hasMatch(text)) return SupportedLanguage.ja;
@@ -361,7 +366,15 @@ class _ResultScreenState extends State<ResultScreen> {
     final isMulti = (widget.images?.length ?? 0) > 1 || jsonList.length > 1;
 
     if (!isMulti) {
-      _aiJson = firstJson;
+      final normalized = Map<String, dynamic>.from(firstJson);
+
+      normalized['result_type'] =
+          (normalized['result_type'] ?? 'menu').toString().trim().toLowerCase();
+
+      normalized['user_message'] =
+          (normalized['user_message'] ?? '').toString().trim();
+
+      _aiJson = normalized;
       _aiJsonError = null;
       return;
     }
@@ -436,6 +449,12 @@ class _ResultScreenState extends State<ResultScreen> {
       'truncated': (firstJson['fullMenu'] is Map) ? (firstJson['fullMenu']['truncated'] == true) : false,
     };
 
+    merged['result_type'] =
+        (merged['result_type'] ?? 'menu').toString().trim().toLowerCase();
+
+    merged['user_message'] =
+        (merged['user_message'] ?? '').toString().trim();
+
     _aiJson = merged;
     _aiJsonError = null;
   }
@@ -452,6 +471,18 @@ class _ResultScreenState extends State<ResultScreen> {
           .toList();
     }
     return const [];
+  }
+
+  String _aiResultType() {
+    final j = _aiJson;
+    if (j == null) return 'unknown';
+    return (j['result_type'] ?? '').toString().trim().toLowerCase();
+  }
+
+  String _aiUserMessage() {
+    final j = _aiJson;
+    if (j == null) return '';
+    return (j['user_message'] ?? '').toString().trim();
   }
 
   String _buildReadableCopyText() {
@@ -1397,6 +1428,8 @@ class _ResultScreenState extends State<ResultScreen> {
         required bool isPrimaryRecommended,
       }){
     final nameOriginal = (item['nameOriginal'] ?? '').toString().trim();
+    final nameOriginalReading = (item['nameOriginalReading'] ?? '').toString().trim();
+    final originLanguageCode = (item['originLanguageCode'] ?? '').toString().trim();
     final nameTranslated = (item['name'] ?? '').toString().trim();
     final desc = (item['shortDesc'] ?? '').toString();
     final priceLabel = _priceLabelFromItem(item);
@@ -1606,21 +1639,34 @@ class _ResultScreenState extends State<ResultScreen> {
               borderRadius: BorderRadius.circular(14),
               onTap: () {
                 final targetLanguage = _orderPhraseLanguage(context);
-                final menuOriginal = pair.original.isNotEmpty ? pair.original : pair.display;
+                final targetMenuName = nameTranslated.isNotEmpty ? nameTranslated : pair.display;
+                final menuOriginal = nameOriginal.isNotEmpty ? nameOriginal : pair.original;
+
                 showOrderPhraseBottomSheet(
                   context: context,
-                  menuName: pair.display.isNotEmpty ? pair.display : pair.original,
+                  menuName: targetMenuName,
                   menuOriginal: menuOriginal,
-                  originLanguage: _orderPhraseOriginLanguage(menuOriginal: menuOriginal),
+                  menuOriginalReading: nameOriginalReading.isEmpty ? null : nameOriginalReading,
+                  originLanguage: _orderPhraseOriginLanguage(
+                    menuOriginal: menuOriginal,
+                    originLanguageCode: originLanguageCode,
+                  ),
                   targetLanguage: targetLanguage,
                 );
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+                constraints: const BoxConstraints(minHeight: 32),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: textColor.withOpacity(0.18)),
-                  color: Colors.white.withOpacity(0.55),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white.withOpacity(0.14)
+                        : const Color(0xFFD1D5DB).withOpacity(0.72),
+                  ),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF2A2D33).withOpacity(0.88)
+                      : const Color(0xFFF8FAFC).withOpacity(0.92),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -1637,7 +1683,9 @@ class _ResultScreenState extends State<ResultScreen> {
                         fontFamily: 'SFPro',
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: textColor.withOpacity(0.86),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white.withOpacity(0.9)
+                            : const Color(0xFF374151).withOpacity(0.92),
                       ),
                     ),
                   ],
@@ -1704,22 +1752,28 @@ class _ResultScreenState extends State<ResultScreen> {
     final rec = _getRecommendedItems();
     final hasFast = _fastRecommend.isNotEmpty;
     final hasJsonRec = rec.isNotEmpty;
-    final hasFallbackText = _hasAnyAiText;
+
+    final resultType = _aiResultType();
+    final userMessage = _aiUserMessage();
 
     final canShowMenu = _hasUsableFullMenu();
     final canShowPartialActions = _canShowTerminalActions;
 
     if (!hasFast && !hasJsonRec) {
-      final fallbackDisplayText = widget.responses.isNotEmpty
-          ? widget.responses.join('\n\n').trim()
-          : _aiStreamBuffer.toString().trim();
-
       final shouldHideRawAiText =
           widget.responseStream != null &&
               !_aiStreamDone &&
               !hasJsonRec;
 
       final isStillLoading = shouldHideRawAiText;
+
+      final fallbackDisplayText = userMessage.isNotEmpty
+          ? userMessage
+          : (resultType == 'not_menu'
+          ? '이 이미지는 음식 메뉴판으로 보이지 않아요. 메뉴판이나 음식 이름이 잘 보이게 다시 촬영해 주세요.'
+          : resultType == 'uncertain'
+          ? '음식 메뉴인지 확실하지 않아요. 메뉴 이름과 가격이 잘 보이도록 다시 촬영해 주세요.'
+          : '음식 메뉴인지 확실하지 않아요. 메뉴 이름과 가격이 잘 보이도록 다시 촬영해 주세요.');
 
       return Container(
         decoration: boxDecoration,
@@ -1739,7 +1793,7 @@ class _ResultScreenState extends State<ResultScreen> {
                   ),
                 ),
                 const Spacer(),
-                if ((_amountFromResponses ?? 0) > 0)
+                if ((_amountFromResponses ?? 0) > 0 && resultType == 'menu')
                   FxQuickFxButton(
                     initialAmount: _amountFromResponses ?? 0,
                     detectedCountryCode: _isoCountryCode,
@@ -1752,44 +1806,45 @@ class _ResultScreenState extends State<ResultScreen> {
               ],
             ),
             const SizedBox(height: 5),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: AnimatedDotsText(
-                    baseText:
-                    AppLocalizations.of(context)?.result_analyzing ?? 'Analyzing',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white60
-                          : CupertinoColors.systemGrey2,
-                      decoration: TextDecoration.none,
+            if (isStillLoading && resultType != 'not_menu' && resultType != 'uncertain')
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: AnimatedDotsText(
+                      baseText:
+                      AppLocalizations.of(context)?.result_analyzing ?? 'Analyzing',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white60
+                            : CupertinoColors.systemGrey2,
+                        decoration: TextDecoration.none,
+                      ),
                     ),
                   ),
-                ),
-                Builder(builder: (_) {
-                  final nutritionData =
-                  parseNutritionalData(widget.responses.join('\n\n'));
-                  if (nutritionData.containsKey('calories')) {
-                    return Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: SizedBox(
-                        width: 60,
-                        height: 60,
-                        child: NutritionChart(
-                          calories: nutritionData['calories'],
-                          protein: nutritionData['protein'] ?? 0,
-                          carbs: nutritionData['carbs'] ?? 0,
-                          fat: nutritionData['fat'] ?? 0,
+                  Builder(builder: (_) {
+                    final nutritionData =
+                    parseNutritionalData(widget.responses.join('\n\n'));
+                    if (nutritionData.containsKey('calories')) {
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: SizedBox(
+                          width: 60,
+                          height: 60,
+                          child: NutritionChart(
+                            calories: nutritionData['calories'],
+                            protein: nutritionData['protein'] ?? 0,
+                            carbs: nutritionData['carbs'] ?? 0,
+                            fat: nutritionData['fat'] ?? 0,
+                          ),
                         ),
-                      ),
-                    );
-                  }
-                  return const SizedBox.shrink();
-                }),
-              ],
-            ),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  }),
+                ],
+              ),
             const SizedBox(height: 12),
             Container(
               width: double.infinity,
@@ -1805,7 +1860,7 @@ class _ResultScreenState extends State<ResultScreen> {
                       : const Color(0xFFEAECF0),
                 ),
               ),
-              child: isStillLoading
+              child: isStillLoading && resultType != 'not_menu' && resultType != 'uncertain'
                   ? Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -1829,9 +1884,7 @@ class _ResultScreenState extends State<ResultScreen> {
                 ],
               )
                   : Text(
-                fallbackDisplayText.isNotEmpty
-                    ? fallbackDisplayText
-                    : (_aiStreamErrorMessage ?? 'No menu details available.'),
+                fallbackDisplayText,
                 style: TextStyle(
                   fontFamily: 'SFPro',
                   fontSize: 13,

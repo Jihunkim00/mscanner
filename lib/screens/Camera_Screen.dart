@@ -151,9 +151,9 @@ class _CameraScreenState extends State<CameraScreen> {
       file.absolute.path,
       targetPath,
       format: CompressFormat.jpeg,
-      quality: 60,          // 50~70 권장 (OCR 고려)
-      minWidth: 1600,        // ✅ 너무 큰 원본을 줄이기 위한 기준
-      minHeight: 1600,
+      quality: 85,          // 50~70 권장 (OCR 고려)
+      minWidth: 1400,        // ✅ 너무 큰 원본을 줄이기 위한 기준
+      minHeight: 1400,
       keepExif: false,
     );
 

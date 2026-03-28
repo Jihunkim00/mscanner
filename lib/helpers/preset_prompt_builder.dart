@@ -23,6 +23,11 @@ Hard rules:
 1) Output language rule:
    - shortDesc, tags MUST be written in outputLanguage = "$outputLang".
    - nameOriginal MUST be the EXACT original text extracted from the image/OCR (do NOT translate).
+   - originLanguageCode MUST be the language of nameOriginal (ISO code like ko, en, ja, zh, th...).
+   - nameOriginalReading is for TTS only. Keep it separate from display text.
+   - For Japanese, prefer hiragana reading in nameOriginalReading when confident.
+   - If reading is uncertain, set nameOriginalReading="".
+   - NEVER replace nameOriginal with reading text.
    - name MUST be the translated name in outputLanguage. If translation is identical or uncertain, set name = nameOriginal.
 2) Never invent items not visible in the image/OCR.
 3) If the image is NOT a food menu, return isMenu=false with a short reason.
@@ -76,6 +81,8 @@ Return JSON with EXACT schema:
       "id": "string",
       "nameOriginal": "string",
       "name": "string",
+      "originLanguageCode": "string",
+      "nameOriginalReading": "string",
       "shortDesc": "string",
       "prices": { "small": null, "medium": null, "large": null, "single": null, "currency": "ISO 4217 code like KRW, JPY, USD, EUR, etc. or null" },
       "tags": ["string"],

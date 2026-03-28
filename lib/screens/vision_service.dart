@@ -364,11 +364,12 @@ If it doesn’t seem food-related, just say so.
       {
         'type': 'image_url',
         'image_url': {'url': 'data:image/jpeg;base64,$base64Image'},
+
       },
     ];
 
     final payload = {
-      'model': 'gpt-5-mini',
+      'model': 'gpt-5.4-mini',
       'messages': [
         {'role': 'user', 'content': contentList}
       ],

@@ -8,6 +8,7 @@ Future<void> showOrderPhraseBottomSheet({
   required BuildContext context,
   required String menuName,
   required String menuOriginal,
+  String? menuOriginalReading,
   required SupportedLanguage originLanguage,
   required SupportedLanguage targetLanguage,
 }) {
@@ -20,6 +21,7 @@ Future<void> showOrderPhraseBottomSheet({
     builder: (context) => OrderPhraseBottomSheet(
       menuName: menuName,
       menuOriginal: menuOriginal,
+      menuOriginalReading: menuOriginalReading,
       originLanguage: originLanguage,
       targetLanguage: targetLanguage,
     ),
@@ -31,12 +33,14 @@ class OrderPhraseBottomSheet extends StatefulWidget {
     super.key,
     required this.menuName,
     required this.menuOriginal,
+    this.menuOriginalReading,
     required this.originLanguage,
     required this.targetLanguage,
   });
 
   final String menuName;
   final String menuOriginal;
+  final String? menuOriginalReading;
   final SupportedLanguage originLanguage;
   final SupportedLanguage targetLanguage;
 
@@ -73,9 +77,9 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
     try {
       final response = await _service.generate(
         GenerateOrderPhraseRequest(
-
           menuName: widget.menuName,
           menuOriginal: widget.menuOriginal,
+          menuOriginalReading: widget.menuOriginalReading,
           originLanguageCode: widget.originLanguage,
           targetLanguageCode: widget.targetLanguage,
           scenario: _scenario,
@@ -101,28 +105,37 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
 
   Future<void> _toggleSpeak() async {
     if (_result == null) return;
+
     if (_isSpeaking) {
       await _ttsService.stop();
       if (mounted) setState(() => _isSpeaking = false);
       return;
     }
+
     setState(() => _isSpeaking = true);
-    await _ttsService.speak(
-      language: _result!.originLanguageCode,
-      text: _result!.ttsText,
-    );
-    if (mounted) setState(() => _isSpeaking = false);
+
+    try {
+      debugPrint('[OrderPhraseBottomSheet] origin=${_result!.originLanguageCode.code}');
+      debugPrint('[OrderPhraseBottomSheet] ttsText=${_result!.ttsText}');
+
+      await _ttsService.speak(
+        language: _result!.originLanguageCode,
+        text: _result!.ttsText,
+      );
+    } catch (e, st) {
+      debugPrint('[OrderPhraseBottomSheet] speak error: $e');
+      debugPrint('$st');
+    } finally {
+      if (mounted) setState(() => _isSpeaking = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final sheetBg = isDark ? const Color(0xFF1C1C1E) : const Color(0xFFFCFCFD);
-    final cardBg = isDark ? const Color(0xFF26262A) : Colors.white;
-    final summaryBg = isDark ? const Color(0xFF2C2C31) : const Color(0xFFF6F7F9);
+    final sheetBg = isDark ? const Color(0xFF1A1B1F) : const Color(0xFFF7F8FA);
     final borderColor = isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE5E7EB);
-    final titleColor = isDark ? Colors.white : const Color(0xFF111827);
     final subColor = isDark ? Colors.white70 : const Color(0xFF6B7280);
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
@@ -131,10 +144,10 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
       padding: EdgeInsets.fromLTRB(14, 14, 14, 14 + bottomInset),
       decoration: BoxDecoration(
         color: sheetBg,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
         border: Border.all(color: borderColor),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.14), blurRadius: 24, offset: const Offset(0, 10)),
+          BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 26, offset: const Offset(0, 12)),
         ],
       ),
       child: SingleChildScrollView(
@@ -245,7 +258,7 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
-                    color: cardBg,
+                    color: isDark ? const Color(0xFF2A2D33) : const Color(0xFFF3F4F6),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: borderColor),
                   ),
@@ -262,7 +275,7 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
                         fontFamily: 'SFPro',
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: titleColor,
+                        color: isDark ? Colors.white : const Color(0xFF111827),
                       ),
                     ),
                   ),
@@ -286,7 +299,7 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
                     const _SectionTitle('생성 결과'),
                     const SizedBox(height: 8),
                     Text(
-                      _result!.localText,
+                      _result!.ttsText,
                       style: const TextStyle(
                         fontFamily: 'SFPro',
                         fontWeight: FontWeight.w700,
@@ -304,22 +317,15 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
                         color: subColor,
                       ),
                     ),
-                    if ((_result!.enText ?? '').isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        'EN: ${_result!.enText}',
-                        style: TextStyle(fontSize: 12, height: 1.35, color: subColor.withOpacity(0.9)),
-                      ),
-                    ],
                     Row(
                       children: [
-                        OutlinedButton.icon(
+                        _SheetActionButton(
                           onPressed: _toggleSpeak,
                           icon: PhosphorIcon(
                             _isSpeaking ? PhosphorIcons.stop() : PhosphorIcons.speakerHigh(),
                             size: 16,
                           ),
-                          label: Text(_isSpeaking ? '정지' : '듣기'),
+                          label: _isSpeaking ? '정지' : '듣기',
                         ),
                         const SizedBox(width: 8),
                         _SheetActionButton(

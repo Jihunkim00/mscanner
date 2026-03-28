@@ -77,9 +77,11 @@ class SettingsHelper {
   }) {
     debugPrint('Creating preset description for language code: $selectedLanguageCode');
 
-    final outputLang = selectedLanguageCode;      // 결과 언어
-    final styleHint = selectedFoodStyle;          // 식단/스타일 힌트(정렬 선호)
-    final menuCountHint = selectedMenuNumber;     // 추천 개수 힌트
+    final outputLang = selectedLanguageCode;
+    final styleHint = selectedFoodStyle;
+    final rawMenuCountHint = selectedMenuNumber.trim();
+    final menuCountHint = rawMenuCountHint;
+
 
     // ✅ 공통 베이스(스키마/규칙) — 영어로 고정해도 outputLanguage로 결과 언어는 맞춰짐
     final base = '''
@@ -93,22 +95,41 @@ Hard rules:
 1) Output language rule:
    - shortDesc, tags MUST be written in outputLanguage = "$outputLang".
    - nameOriginal MUST be the EXACT original text extracted from the image/OCR (do NOT translate).
-   - name MUST be the translated name in outputLanguage. If translation is identical or uncertain, set name = nameOriginal.
+   - originLanguageCode MUST be the language of nameOriginal (ISO code like ko, en, ja, zh, th...).
+- nameOriginal MUST be only the dish/menu item text itself from the image/OCR (do NOT translate).
+- Exclude prices, item numbers, bullets, option markers, and surrounding category/header text from nameOriginal.
+- originLanguageCode MUST be the language of nameOriginal (ISO code like ko, en, ja, zh, th...).
+
+- nameOriginalReading is for TTS only. Keep it separate from display text.
+- nameOriginalReading MUST contain only the pronunciation of the dish name itself.
+- NEVER include prices, item numbers, sizes, option markers, punctuation-only tokens, category labels, or translated text in nameOriginalReading.
+- For Japanese, prefer hiragana reading in nameOriginalReading when confident.
+- Do NOT output Korean pronunciation for Japanese items.
+- Do NOT output romaji unless the original itself is already written in romaji.
+- If reading is uncertain, set nameOriginalReading="".
+- NEVER replace nameOriginal with reading text.
+
+- name MUST be the translated name in outputLanguage. If translation is identical or uncertain, set name = nameOriginal.
 2) Never invent items not visible in the image/OCR.
-3) If the image is NOT a food menu, return isMenu=false with a short reason.
+3) If the image is NOT a food menu, return isMenu=false with a short reason and a short userMessage for display.
 4) Keep shortDesc to 1–2 sentences max.
 5) Use styleHint="$styleHint" only as ranking preference (do NOT hallucinate dietary tags).
-6) menuCountHint="$menuCountHint" controls ONLY the "recommended" list size inside JSON:
-   - "1": 1 item
-   - "1-3": up to 3 items
-   - "1-5": up to 5 items
-   - "all": up to 6 items
+6) menuCountHint="$menuCountHint" controls the response compression strategy:
+   - "1": return exactly 1 recommended item.
+   - "1-3": return up to 3 recommended items.
+   - "1-5": return up to 5 recommended items.
+   - "all": DO NOT try to return all dishes as detailed structured items.
+            For "all", return only 6 recommended items in "recommended",
+            and cover the rest mainly in fullMenu.summary.
 
 7) TOKEN SAFETY (VERY IMPORTANT):
    - Keep the entire JSON compact.
    - If the menu is long, DO NOT output every item as structured arrays.
    - Prefer: recommended (structured, detailed) + fullMenu summary (structured text).
    - You must stay within the output limit; if needed, set fullMenu.truncated=true and summarize the rest.
+   - If menuCountHint="all", prioritize reliability over completeness.
+   - If menuCountHint="all", keep "recommended" very small and move the rest into fullMenu.summary.
+   - If menuCountHint="all", fullMenu.items may be sparse or empty; summary coverage is preferred.
 
 8) Tags limit:
    - "tags" MUST contain at most 4 strings per item. (0–4)
@@ -123,8 +144,9 @@ Hard rules:
    - Avoid generic phrases like "delicious". Be concrete.
 
 11) FullMenu preview detail rule:
-   - In fullMenu.items, for each category include at most 2 items with non-empty shortDesc.
-   - All other items must set shortDesc="" to save tokens.
+   - In fullMenu.items, for each category include at most 1 item with non-empty shortDesc.
+   - All other preview items must set shortDesc="".
+   - If menuCountHint="all", you may leave many categories empty and rely on fullMenu.summary instead.
 
 12) FullMenu summary formatting rule (VERY IMPORTANT):
    - fullMenu.summary MUST use this structure in outputLanguage:
@@ -138,6 +160,7 @@ Return JSON with EXACT schema:
 
 {
   "isMenu": true,
+  "userMessage": "string",
   "outputLanguage": "$outputLang",
   "place": { "name": null, "address": null, "city": null },
 
@@ -146,6 +169,8 @@ Return JSON with EXACT schema:
       "id": "string",
       "nameOriginal": "string",
       "name": "string",
+      "originLanguageCode": "string",
+      "nameOriginalReading": "string",
       "shortDesc": "string",
       "prices": { "small": null, "medium": null, "large": null, "single": null, "currency": "ISO 4217 code like KRW, JPY, USD, EUR, etc. or null" },
       "tags": ["string"],
@@ -169,16 +194,19 @@ Return JSON with EXACT schema:
 }
 
 Full menu output rule:
-- Always fill "recommended" as structured items (most detailed).
+- Always fill "recommended" as the most reliable top items only.
+- Do NOT try to represent the whole menu as structured arrays.
 - For fullMenu.items:
-  - If the menu is short, you MAY include more items.
-  - If the menu is long, include ONLY a small preview per category (max 12 items total across all categories).
+  - If the menu is short, you MAY include a small preview.
+  - If the menu is long, include only a tiny preview (max 6 items total across all categories).
+- If menuCountHint="all", prefer summary coverage over item-by-item structured output.
 - Put the rest into fullMenu.summary using the required formatting rule.
 - If you omit any items due to length, set fullMenu.truncated=true; otherwise false.
 
 If isMenu=false, return EXACTLY:
 {
   "isMenu": false,
+  "userMessage": "short display message in outputLanguage",
   "outputLanguage": "$outputLang",
   "reason": "short string"
 }

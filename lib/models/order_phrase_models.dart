@@ -98,6 +98,7 @@ class GenerateOrderPhraseRequest {
   const GenerateOrderPhraseRequest({
     required this.menuName,
     required this.menuOriginal,
+    this.menuOriginalReading,
     required this.originLanguageCode,
     required this.targetLanguageCode,
     required this.scenario,
@@ -107,6 +108,7 @@ class GenerateOrderPhraseRequest {
 
   final String menuName;
   final String menuOriginal;
+  final String? menuOriginalReading;
   final SupportedLanguage originLanguageCode;
   final SupportedLanguage targetLanguageCode;
   final OrderScenario scenario;
@@ -116,6 +118,8 @@ class GenerateOrderPhraseRequest {
   Map<String, dynamic> toJson() => {
     'menuName': menuName,
     'menuOriginal': menuOriginal,
+    if ((menuOriginalReading ?? '').trim().isNotEmpty)
+      'menuOriginalReading': menuOriginalReading!.trim(),
     'originLanguageCode': originLanguageCode.code,
     'targetLanguageCode': targetLanguageCode.code,
     // legacy compatibility for older backends
@@ -137,7 +141,6 @@ class GenerateOrderPhraseResponse {
     required this.localText,
     required this.targetText,
     required this.ttsText,
-    this.enText,
     required this.tags,
   });
 
@@ -147,7 +150,6 @@ class GenerateOrderPhraseResponse {
   final String localText;
   final String targetText;
   final String ttsText;
-  final String? enText;
   final List<String> tags;
 
   factory GenerateOrderPhraseResponse.fromJson(Map<String, dynamic> json) {
@@ -169,8 +171,7 @@ class GenerateOrderPhraseResponse {
       targetLanguageCode: targetLang,
       localText: (json['localText'] ?? '').toString(),
       targetText: (json['targetText'] ?? fallbackTargetText).toString(),
-      ttsText: (json['ttsText'] ?? '').toString(),
-      enText: json['enText'] == null ? null : (json['enText']).toString(),
+      ttsText: (json['ttsText'] ?? json['localText'] ?? '').toString(),
       tags: ((json['tags'] ?? const <dynamic>[]) as List)
           .map((e) => e.toString())
           .toList(),

@@ -184,17 +184,17 @@ const modifierText = {
     less_salty: "less salty",
   },
   ja: {
-    no_cilantro: "パクチー抜き",
-    no_onion: "玉ねぎ抜き",
-    less_spicy: "辛さ控えめ",
-    less_salty: "塩分控えめ",
+    no_cilantro: "パクチーぬき",
+    no_onion: "たまねぎぬき",
+    less_spicy: "からさひかえめ",
+    less_salty: "えんぶんひかえめ",
   },
 } as const;
 
 const allergyText = {
   ko: {peanut: "땅콩", milk: "우유", shrimp: "새우", egg: "계란"},
   en: {peanut: "peanuts", milk: "milk", shrimp: "shrimp", egg: "egg"},
-  ja: {peanut: "ピーナッツ", milk: "牛乳", shrimp: "えび", egg: "卵"},
+  ja: {peanut: "ピーナッツ", milk: "ぎゅうにゅう", shrimp: "えび", egg: "たまご"},
 } as const;
 
 function joinWithAnd(items: string[], lang: LangCode): string {
@@ -215,54 +215,110 @@ function composeTexts(
     return {
       koText: `${menuName} 하나 주문할게요.`,
       enText: `I'd like one ${menuName}, please.`,
-      jaText: `${menuName}を1つお願いします。`,
+      jaText: `${menuName}をひとつおねがいします。`,
       tags: ["basic_order"],
     };
+
   case "customize_order": {
-    const sorted = modifiers.sort(
+    const sorted = [...modifiers].sort(
       (a, b) => modifierPriority.indexOf(a) - modifierPriority.indexOf(b)
     );
+
     const koMods = sorted.map((m) => modifierText.ko[m]).join(", ");
     const enMods = sorted.map((m) => modifierText.en[m]).join(", ");
     const jaMods = sorted.map((m) => modifierText.ja[m]).join("、");
+
     return {
       koText: `${menuName} 하나 주문할게요. ${koMods}.`,
       enText: `I'd like one ${menuName}, please. ${enMods}.`,
-      jaText: `${menuName}を1つお願いします。${jaMods}でお願いします。`,
+      jaText: `${menuName}をひとつおねがいします。${jaMods}でおねがいします`,
       tags: ["customize_order", ...sorted],
     };
   }
+
   case "allergy_check": {
     const koAllergy = allergies.map((a) => allergyText.ko[a]);
     const enAllergy = allergies.map((a) => allergyText.en[a]);
     const jaAllergy = allergies.map((a) => allergyText.ja[a]);
+
     return {
       koText: `저는 ${joinWithAnd(koAllergy, "ko")} 알레르기가 있어요. ${menuName}에 들어가나요?`,
       enText: `I'm allergic to ${joinWithAnd(enAllergy, "en")}. Does ${menuName} contain it?`,
-      jaText: `私は${joinWithAnd(jaAllergy, "ja")}のアレルギーがあります。${menuName}に入っていますか。`,
+      jaText: `わたしは${joinWithAnd(jaAllergy, "ja")}のアレルギーがあります。${menuName}にはいっていますか。`,
       tags: ["allergy_check", ...allergies],
     };
   }
+
   case "recommendation_ask":
     return {
-      koText: `${menuName}랑 비슷한 메뉴 추천해 주세요.`,
+      koText: `${menuName}이랑 비슷한 메뉴 추천해 주세요.`,
       enText: `Could you recommend something similar to ${menuName}?`,
-      jaText: `${menuName}に似たメニューをおすすめしてもらえますか。`,
+      jaText: `${menuName}ににたメニューをおすすめしてもらえますか。`,
       tags: ["recommendation_ask"],
     };
   }
 }
+
 function composeTextByLanguage(
   menuName: string,
-  languageCode: LangCode,
+  lang: LangCode,
   scenario: Scenario,
   modifiers: Modifier[],
   allergies: Allergy[]
-): {text: string; tags: string[]} {
-  const textSet = composeTexts(menuName, scenario, modifiers, allergies);
-  const text = languageCode === "ko" ? textSet.koText : languageCode === "ja" ? textSet.jaText : textSet.enText;
-  return {text, tags: textSet.tags};
+): { text: string; tags: string[] } {
+  const composed = composeTexts(menuName, scenario, modifiers, allergies);
+
+  switch (lang) {
+  case "ko":
+    return { text: composed.koText, tags: composed.tags };
+
+  case "en":
+    return { text: composed.enText, tags: composed.tags };
+
+  case "ja":
+    return { text: composed.jaText, tags: composed.tags };
+
+  default:
+    return { text: composed.enText, tags: composed.tags };
+  }
 }
+
+function hasJapaneseKanji(text: string): boolean {
+  return /[\u4E00-\u9FFF]/.test(text);
+}
+
+function sanitizeMenuNameForSpeech(text: string): string {
+  return text
+    .replace(/\s+/g, " ")
+    .replace(/\b\d{1,2}[.)]\s*/g, " ")
+    .replace(/\b\d+\s*(원|엔|¥|\$|krw|jpy|usd)\b/gi, " ")
+    .replace(/\b\d+\b/g, " ")
+    .replace(/[|•·]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function buildTtsLocalMenuName(
+  originLanguageCode: LangCode,
+  menuOriginal: string,
+  menuOriginalReading: string
+): string {
+  const reading = sanitizeMenuNameForSpeech(menuOriginalReading.trim());
+  if (reading) return reading;
+
+  const cleaned = sanitizeMenuNameForSpeech(menuOriginal);
+  if (cleaned) {
+    if (originLanguageCode === "ja" && hasJapaneseKanji(cleaned)) {
+      return cleaned;
+    }
+    return cleaned;
+  }
+
+  if (originLanguageCode === "ja") return "このりょうり";
+  if (originLanguageCode === "ko") return "이 메뉴";
+  return "this dish";
+}
+
 
 export const generateOrderPhrase = onCall(async (req) => {
   const data = req.data ?? {};
@@ -270,6 +326,7 @@ export const generateOrderPhrase = onCall(async (req) => {
   const targetLanguageCode = String(data.targetLanguageCode ?? data.languageCode ?? "").trim() as LangCode;
   const menuName = String(data.menuName ?? "").trim();
   const menuOriginalRaw = String(data.menuOriginal ?? "").trim();
+  const menuOriginalReading = String(data.menuOriginalReading ?? "").trim();
   const menuOriginal = menuOriginalRaw || menuName;
   const scenario = String(data.scenario ?? "").trim() as Scenario;
   const modifiers = Array.isArray(data.modifiers) ? data.modifiers as string[] : [];
@@ -288,6 +345,7 @@ export const generateOrderPhrase = onCall(async (req) => {
     throw new HttpsError("invalid-argument", "scenario is invalid");
   }
 
+
   const typedModifiers = [...new Set(modifiers)].map((m) => String(m).trim() as Modifier);
   const typedAllergies = [...new Set(allergies)].map((a) => String(a).trim() as Allergy);
 
@@ -304,9 +362,10 @@ export const generateOrderPhrase = onCall(async (req) => {
     throw new HttpsError("invalid-argument", "allergy_check requires allergies");
   }
 
+  const ttsMenuName = buildTtsLocalMenuName(originLanguageCode, menuOriginal, menuOriginalReading);
   const local = composeTextByLanguage(menuOriginal, originLanguageCode, scenario, typedModifiers, typedAllergies);
+  const ttsLocal = composeTextByLanguage(ttsMenuName, originLanguageCode, scenario, typedModifiers, typedAllergies);
   const target = composeTextByLanguage(menuName, targetLanguageCode, scenario, typedModifiers, typedAllergies);
-  const englishRef = composeTextByLanguage(menuName, "en", scenario, typedModifiers, typedAllergies);
 
   return {
     success: true,
@@ -314,9 +373,8 @@ export const generateOrderPhrase = onCall(async (req) => {
     originLanguageCode,
     targetLanguageCode,
     localText: local.text,
-    ttsText: local.text,
+    ttsText: ttsLocal.text,
     targetText: target.text,
-    enText: englishRef.text,
     tags: local.tags,
     // legacy compatibility
     languageCode: originLanguageCode,
