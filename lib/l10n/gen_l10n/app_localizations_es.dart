@@ -968,4 +968,103 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get login2 => 'Iniciar sesión';
+
+  @override
+  String get result_orderButton => 'Orden';
+
+  @override
+  String get result_fullMenuUnavailable => 'El menú completo aún no está disponible.';
+
+  @override
+  String get result_noMenuItemsFound => 'No se encontraron elementos del menú.';
+
+  @override
+  String get result_notMenuMessage => 'Esta imagen no parece ser un menú de comida. Por favor, vuelva a tomar la foto para que los nombres del menú o de los alimentos se vean claramente.';
+
+  @override
+  String get result_uncertainMenuMessage => 'No estoy seguro de que esto sea un menú de comida. Por favor, vuelva a tomar la foto para que los nombres del menú y los precios se vean claramente.';
+
+  @override
+  String get result_aiTimeoutMoreResponse => 'Se agotó el tiempo de espera mientras se esperaba una respuesta adicional de la IA.';
+
+  @override
+  String get result_aiTimeoutFirstChunk => 'Se agotó el tiempo de espera antes de que llegara el primer fragmento de la IA.';
+
+  @override
+  String get result_aiTimeoutFullMenu => 'Tiempo de espera agotado mientras se esperaba el menú completo.';
+
+  @override
+  String get result_aiTimeoutFullMenuStream => 'Se agotó el tiempo de espera mientras se esperaba la transmisión completa del menú.';
+
+  @override
+  String get result_aiReceiveFailedFullMenuStream => 'Error al recibir la transmisión completa del menú.';
+
+  @override
+  String get result_aiEmptyStreamResponse => 'La IA devolvió una respuesta de flujo vacía.';
+
+  @override
+  String get tts_orderPhraseTitle => 'Crear frase de pedido';
+
+  @override
+  String get tts_scenarioSectionTitle => 'Elige una situación';
+
+  @override
+  String get tts_modifierSectionTitle => 'Seleccione opciones';
+
+  @override
+  String get tts_allergySectionTitle => 'Seleccione alergias';
+
+  @override
+  String get tts_generatePhraseButton => 'Genera una frase';
+
+  @override
+  String get tts_generationFailed => 'No se pudo generar la frase. Por favor, inténtalo de nuevo en un momento.';
+
+  @override
+  String get tts_resultSectionTitle => 'Frase generada';
+
+  @override
+  String get tts_stop => '¡Alto!';
+
+  @override
+  String get tts_listen => 'Escucha';
+
+  @override
+  String get tts_regenerate => 'Regenerar';
+
+  @override
+  String get tts_scenarioBasicOrder => 'Orden básica';
+
+  @override
+  String get tts_scenarioCustomizeOrder => 'Opciones de solicitud';
+
+  @override
+  String get tts_scenarioAllergyCheck => 'Comprobar alergias';
+
+  @override
+  String get tts_scenarioRecommendationAsk => 'Pide una recomendación';
+
+  @override
+  String get tts_modifierNoCilantro => 'Sin cilantro';
+
+  @override
+  String get tts_modifierNoOnion => 'Sin cebolla';
+
+  @override
+  String get tts_modifierLessSpicy => 'Menos picante';
+
+  @override
+  String get tts_modifierLessSalty => 'Menos salado';
+
+  @override
+  String get tts_allergyPeanut => 'cacahuete';
+
+  @override
+  String get tts_allergyMilk => 'Leche';
+
+  @override
+  String get tts_allergyShrimp => 'camarón';
+
+  @override
+  String get tts_allergyEgg => 'Huevo';
 }

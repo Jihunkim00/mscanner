@@ -968,4 +968,103 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get login2 => '회원 로그인';
+
+  @override
+  String get result_orderButton => '주문';
+
+  @override
+  String get result_fullMenuUnavailable => '전체 메뉴는 아직 이용할 수 없습니다.';
+
+  @override
+  String get result_noMenuItemsFound => '메뉴 항목을 찾을 수 없습니다.';
+
+  @override
+  String get result_notMenuMessage => '이 이미지는 음식 메뉴로 보이지 않습니다. 메뉴 이름이나 음식 이름이 선명하게 보이도록 사진을 다시 찍어 주세요.';
+
+  @override
+  String get result_uncertainMenuMessage => '이게 음식 메뉴인지 확실하지 않네요. 메뉴 이름과 가격이 또렷하게 보이도록 사진을 다시 찍어 주세요.';
+
+  @override
+  String get result_aiTimeoutMoreResponse => 'AI 응답을 더 기다리는 동안 시간이 초과되었습니다.';
+
+  @override
+  String get result_aiTimeoutFirstChunk => '첫 AI 청크가 도착하기 전에 시간이 초과되었습니다.';
+
+  @override
+  String get result_aiTimeoutFullMenu => '전체 메뉴를 기다리는 동안 시간이 초과되었습니다.';
+
+  @override
+  String get result_aiTimeoutFullMenuStream => '전체 메뉴 스트림을 기다리는 동안 시간 초과가 발생했습니다.';
+
+  @override
+  String get result_aiReceiveFailedFullMenuStream => '전체 메뉴 스트림을 수신하는 동안 실패했습니다.';
+
+  @override
+  String get result_aiEmptyStreamResponse => 'AI가 빈 스트림 응답을 반환했습니다.';
+
+  @override
+  String get tts_orderPhraseTitle => '주문 문구 생성';
+
+  @override
+  String get tts_scenarioSectionTitle => '상황 선택';
+
+  @override
+  String get tts_modifierSectionTitle => '옵션을 선택하세요';
+
+  @override
+  String get tts_allergySectionTitle => '알레르기를 선택하세요';
+
+  @override
+  String get tts_generatePhraseButton => '문구를 생성하세요';
+
+  @override
+  String get tts_generationFailed => '문구를 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+
+  @override
+  String get tts_resultSectionTitle => '생성된 구문';
+
+  @override
+  String get tts_stop => '정지';
+
+  @override
+  String get tts_listen => '재생';
+
+  @override
+  String get tts_regenerate => '다시 생성해줘';
+
+  @override
+  String get tts_scenarioBasicOrder => '기본 주문';
+
+  @override
+  String get tts_scenarioCustomizeOrder => '요청 옵션';
+
+  @override
+  String get tts_scenarioAllergyCheck => '알레르기를 확인하세요';
+
+  @override
+  String get tts_scenarioRecommendationAsk => '추천을 요청하다';
+
+  @override
+  String get tts_modifierNoCilantro => '고수 없음';
+
+  @override
+  String get tts_modifierNoOnion => '양파 없음';
+
+  @override
+  String get tts_modifierLessSpicy => '덜 매운';
+
+  @override
+  String get tts_modifierLessSalty => '덜 짭짤한';
+
+  @override
+  String get tts_allergyPeanut => '땅콩';
+
+  @override
+  String get tts_allergyMilk => '우유';
+
+  @override
+  String get tts_allergyShrimp => '새우';
+
+  @override
+  String get tts_allergyEgg => '달걀';
 }

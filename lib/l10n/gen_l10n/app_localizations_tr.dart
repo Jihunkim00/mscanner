@@ -968,4 +968,103 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get login2 => 'Üye girişi';
+
+  @override
+  String get result_orderButton => 'Sipariş';
+
+  @override
+  String get result_fullMenuUnavailable => 'Tam menü henüz mevcut değil.';
+
+  @override
+  String get result_noMenuItemsFound => 'Menü öğesi bulunamadı.';
+
+  @override
+  String get result_notMenuMessage => 'Bu görsel bir yemek menüsü gibi görünmüyor. Lütfen menü adlarının veya yemek adlarının net şekilde görüneceği şekilde fotoğrafı yeniden çekin.';
+
+  @override
+  String get result_uncertainMenuMessage => 'Bunun bir yemek menüsü olduğundan emin değilim. Lütfen menü adları ve fiyatlar net şekilde görünecek şekilde fotoğrafı yeniden çekin.';
+
+  @override
+  String get result_aiTimeoutMoreResponse => 'Devam etmek için daha fazla yapay zekâ yanıtı beklenirken zaman aşımına uğradı.';
+
+  @override
+  String get result_aiTimeoutFirstChunk => 'İlk yapay zekâ parçası gelmeden önce zaman aşımına uğradı.';
+
+  @override
+  String get result_aiTimeoutFullMenu => 'Tam menü beklenirken zaman aşımına uğradı.';
+
+  @override
+  String get result_aiTimeoutFullMenuStream => 'Tam menü akışı beklenirken zaman aşımına uğradı.';
+
+  @override
+  String get result_aiReceiveFailedFullMenuStream => 'Menü akışı tamamı alınırken başarısız olundu.';
+
+  @override
+  String get result_aiEmptyStreamResponse => 'Yapay zekâ boş bir akış yanıtı döndürdü.';
+
+  @override
+  String get tts_orderPhraseTitle => 'Sipariş cümlesi oluşturun';
+
+  @override
+  String get tts_scenarioSectionTitle => 'Durum seçin';
+
+  @override
+  String get tts_modifierSectionTitle => 'Seçenekleri seçin';
+
+  @override
+  String get tts_allergySectionTitle => 'Alerjileri seçin';
+
+  @override
+  String get tts_generatePhraseButton => 'Cümle oluştur';
+
+  @override
+  String get tts_generationFailed => 'İfade oluşturulamadı. Lütfen bir süre sonra tekrar deneyin.';
+
+  @override
+  String get tts_resultSectionTitle => 'Oluşturulan ifade';
+
+  @override
+  String get tts_stop => 'Dur';
+
+  @override
+  String get tts_listen => 'Dinle';
+
+  @override
+  String get tts_regenerate => 'Yeniden oluştur';
+
+  @override
+  String get tts_scenarioBasicOrder => 'Temel sipariş';
+
+  @override
+  String get tts_scenarioCustomizeOrder => 'İstek seçenekleri';
+
+  @override
+  String get tts_scenarioAllergyCheck => 'Alerjileri kontrol edin';
+
+  @override
+  String get tts_scenarioRecommendationAsk => 'Tavsiye isteyin';
+
+  @override
+  String get tts_modifierNoCilantro => 'Haydari yok';
+
+  @override
+  String get tts_modifierNoOnion => 'Soğansız';
+
+  @override
+  String get tts_modifierLessSpicy => 'Daha az acı';
+
+  @override
+  String get tts_modifierLessSalty => 'Daha az tuzlu';
+
+  @override
+  String get tts_allergyPeanut => 'Yer fıstığı';
+
+  @override
+  String get tts_allergyMilk => 'Süt';
+
+  @override
+  String get tts_allergyShrimp => 'Karides';
+
+  @override
+  String get tts_allergyEgg => 'Yumurta';
 }

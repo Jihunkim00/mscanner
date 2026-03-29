@@ -968,4 +968,103 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get login2 => 'เข้าสู่ระบบสมาชิก';
+
+  @override
+  String get result_orderButton => 'สั่งซื้อ';
+
+  @override
+  String get result_fullMenuUnavailable => 'เมนูทั้งหมดยังไม่พร้อมใช้งานในขณะนี้';
+
+  @override
+  String get result_noMenuItemsFound => 'ไม่พบรายการเมนู';
+
+  @override
+  String get result_notMenuMessage => 'ภาพนี้ไม่เหมือนจะเป็นเมนูอาหาร กรุณาถ่ายภาพใหม่เพื่อให้ชื่อเมนูหรือชื่ออาหารมองเห็นได้ชัดเจน';
+
+  @override
+  String get result_uncertainMenuMessage => 'ไม่แน่ใจว่านี่เป็นเมนูอาหารหรือไม่ กรุณาถ่ายรูปใหม่อีกครั้งเพื่อให้ชื่อเมนูและราคามองเห็นได้ชัดเจน';
+
+  @override
+  String get result_aiTimeoutMoreResponse => 'หมดเวลาเนื่องจากรอคำตอบจาก AI เพิ่มเติมไม่สำเร็จ';
+
+  @override
+  String get result_aiTimeoutFirstChunk => 'หมดเวลาระหว่างที่ยังไม่ได้รับชังก์แรกจาก AI';
+
+  @override
+  String get result_aiTimeoutFullMenu => 'หมดเวลาระหว่างรอเมนูแบบเต็ม';
+
+  @override
+  String get result_aiTimeoutFullMenuStream => 'หมดเวลาระหว่างรอการสตรีมเมนูทั้งหมด';
+
+  @override
+  String get result_aiReceiveFailedFullMenuStream => 'ล้มเหลวระหว่างรับสตรีมเมนูทั้งหมด';
+
+  @override
+  String get result_aiEmptyStreamResponse => 'ระบบ AI ส่งคืนการตอบกลับแบบสตรีมที่ว่างเปล่าแล้ว';
+
+  @override
+  String get tts_orderPhraseTitle => 'สร้างประโยคสำหรับการสั่งซื้อ';
+
+  @override
+  String get tts_scenarioSectionTitle => 'เลือกสถานการณ์';
+
+  @override
+  String get tts_modifierSectionTitle => 'เลือกตัวเลือก';
+
+  @override
+  String get tts_allergySectionTitle => 'เลือกอาการแพ้';
+
+  @override
+  String get tts_generatePhraseButton => 'สร้างวลี';
+
+  @override
+  String get tts_generationFailed => 'ไม่สามารถสร้างวลีได้ กรุณาลองอีกครั้งในสักครู่';
+
+  @override
+  String get tts_resultSectionTitle => 'วลีที่สร้างขึ้น';
+
+  @override
+  String get tts_stop => 'หยุด';
+
+  @override
+  String get tts_listen => 'ฟังนะ';
+
+  @override
+  String get tts_regenerate => 'สร้างใหม่';
+
+  @override
+  String get tts_scenarioBasicOrder => 'คำสั่งซื้อพื้นฐาน';
+
+  @override
+  String get tts_scenarioCustomizeOrder => 'ตัวเลือกคำขอ';
+
+  @override
+  String get tts_scenarioAllergyCheck => 'ตรวจสอบอาการแพ้';
+
+  @override
+  String get tts_scenarioRecommendationAsk => 'ขอคำแนะนำ';
+
+  @override
+  String get tts_modifierNoCilantro => 'ไม่ใส่ผักชี';
+
+  @override
+  String get tts_modifierNoOnion => 'ไม่ใส่หัวหอม';
+
+  @override
+  String get tts_modifierLessSpicy => 'เผ็ดน้อยลง';
+
+  @override
+  String get tts_modifierLessSalty => 'เค็มน้อยลง';
+
+  @override
+  String get tts_allergyPeanut => 'ถั่วลิสง';
+
+  @override
+  String get tts_allergyMilk => 'นม';
+
+  @override
+  String get tts_allergyShrimp => 'กุ้ง';
+
+  @override
+  String get tts_allergyEgg => 'ไข่';
 }

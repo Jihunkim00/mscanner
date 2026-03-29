@@ -968,6 +968,105 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get login2 => 'Iniciar sessão de membro';
+
+  @override
+  String get result_orderButton => 'Ordem';
+
+  @override
+  String get result_fullMenuUnavailable => 'O menu completo ainda não está disponível.';
+
+  @override
+  String get result_noMenuItemsFound => 'Nenhum item de menu encontrado.';
+
+  @override
+  String get result_notMenuMessage => 'Esta imagem não parece ser um cardápio de alimentos. Por favor, tire outra foto para que os nomes do cardápio ou dos alimentos fiquem claramente visíveis.';
+
+  @override
+  String get result_uncertainMenuMessage => 'Não tenho certeza de que isso seja um cardápio de alimentos. Por favor, refaça a foto para que os nomes do cardápio e os preços fiquem claramente visíveis.';
+
+  @override
+  String get result_aiTimeoutMoreResponse => 'Excedeu o tempo limite ao aguardar mais resposta da IA.';
+
+  @override
+  String get result_aiTimeoutFirstChunk => 'A operação expirou antes de chegar o primeiro fragmento de IA.';
+
+  @override
+  String get result_aiTimeoutFullMenu => 'Tempo esgotado ao aguardar o menu completo.';
+
+  @override
+  String get result_aiTimeoutFullMenuStream => 'Expirou o tempo limite ao aguardar o fluxo completo do menu.';
+
+  @override
+  String get result_aiReceiveFailedFullMenuStream => 'Falha ao receber todo o fluxo do menu.';
+
+  @override
+  String get result_aiEmptyStreamResponse => 'A IA retornou uma resposta de fluxo vazia.';
+
+  @override
+  String get tts_orderPhraseTitle => 'Criar frase de encomenda';
+
+  @override
+  String get tts_scenarioSectionTitle => 'Escolha uma situação';
+
+  @override
+  String get tts_modifierSectionTitle => 'Escolha as opções';
+
+  @override
+  String get tts_allergySectionTitle => 'Escolha alergias';
+
+  @override
+  String get tts_generatePhraseButton => 'Gerar frase';
+
+  @override
+  String get tts_generationFailed => 'Falha ao gerar a frase. Tente novamente em alguns instantes.';
+
+  @override
+  String get tts_resultSectionTitle => 'Frase gerada';
+
+  @override
+  String get tts_stop => 'Pare';
+
+  @override
+  String get tts_listen => 'Ouça';
+
+  @override
+  String get tts_regenerate => 'Regenerar';
+
+  @override
+  String get tts_scenarioBasicOrder => 'Pedido básico';
+
+  @override
+  String get tts_scenarioCustomizeOrder => 'Opções de solicitação';
+
+  @override
+  String get tts_scenarioAllergyCheck => 'Verificar alergias';
+
+  @override
+  String get tts_scenarioRecommendationAsk => 'Pedir uma recomendação';
+
+  @override
+  String get tts_modifierNoCilantro => 'Sem coentro';
+
+  @override
+  String get tts_modifierNoOnion => 'Sem cebola';
+
+  @override
+  String get tts_modifierLessSpicy => 'Menos picante';
+
+  @override
+  String get tts_modifierLessSalty => 'Menos salgado';
+
+  @override
+  String get tts_allergyPeanut => 'Amendoim';
+
+  @override
+  String get tts_allergyMilk => 'Leite';
+
+  @override
+  String get tts_allergyShrimp => 'Camarão';
+
+  @override
+  String get tts_allergyEgg => 'Ovo';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -1934,4 +2033,103 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get login2 => 'Login de membro';
+
+  @override
+  String get result_orderButton => 'Pedido';
+
+  @override
+  String get result_fullMenuUnavailable => 'O menu completo ainda não está disponível.';
+
+  @override
+  String get result_noMenuItemsFound => 'Nenhum item de menu encontrado.';
+
+  @override
+  String get result_notMenuMessage => 'Esta imagem não parece ser um cardápio de comida. Por favor, tire outra foto para que os nomes do cardápio ou dos alimentos fiquem claramente visíveis.';
+
+  @override
+  String get result_uncertainMenuMessage => 'Não tenho certeza se isso é um cardápio de comida. Por favor, tire a foto novamente para que os nomes do menu e os preços fiquem claramente visíveis.';
+
+  @override
+  String get result_aiTimeoutMoreResponse => 'Expirou o tempo limite enquanto aguardava mais respostas da IA.';
+
+  @override
+  String get result_aiTimeoutFirstChunk => 'A solicitação expirou antes de chegar o primeiro trecho de IA.';
+
+  @override
+  String get result_aiTimeoutFullMenu => 'Expirou o tempo limite ao aguardar o menu completo.';
+
+  @override
+  String get result_aiTimeoutFullMenuStream => 'Atingiu o tempo limite ao aguardar o fluxo completo do menu.';
+
+  @override
+  String get result_aiReceiveFailedFullMenuStream => 'Falha ao receber o fluxo completo do menu.';
+
+  @override
+  String get result_aiEmptyStreamResponse => 'A IA retornou uma resposta de stream vazia.';
+
+  @override
+  String get tts_orderPhraseTitle => 'Crie uma frase de pedido';
+
+  @override
+  String get tts_scenarioSectionTitle => 'Escolha a situação';
+
+  @override
+  String get tts_modifierSectionTitle => 'Escolha opções';
+
+  @override
+  String get tts_allergySectionTitle => 'Escolher alergias';
+
+  @override
+  String get tts_generatePhraseButton => 'Gerar frase';
+
+  @override
+  String get tts_generationFailed => 'Falha ao gerar a frase. Tente novamente em instantes.';
+
+  @override
+  String get tts_resultSectionTitle => 'Frase gerada';
+
+  @override
+  String get tts_stop => 'Pare';
+
+  @override
+  String get tts_listen => 'Ouça';
+
+  @override
+  String get tts_regenerate => 'Regenerate';
+
+  @override
+  String get tts_scenarioBasicOrder => 'Pedido básico';
+
+  @override
+  String get tts_scenarioCustomizeOrder => 'Opções de solicitação';
+
+  @override
+  String get tts_scenarioAllergyCheck => 'Verificar alergias';
+
+  @override
+  String get tts_scenarioRecommendationAsk => 'Pedir uma recomendação';
+
+  @override
+  String get tts_modifierNoCilantro => 'Sem coentro';
+
+  @override
+  String get tts_modifierNoOnion => 'Sem cebola';
+
+  @override
+  String get tts_modifierLessSpicy => 'Menos picante';
+
+  @override
+  String get tts_modifierLessSalty => 'Menos salgado';
+
+  @override
+  String get tts_allergyPeanut => 'Amendoim';
+
+  @override
+  String get tts_allergyMilk => 'Leite';
+
+  @override
+  String get tts_allergyShrimp => 'Camarão';
+
+  @override
+  String get tts_allergyEgg => 'Ovo';
 }

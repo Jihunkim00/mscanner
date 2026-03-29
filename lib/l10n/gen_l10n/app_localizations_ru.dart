@@ -968,4 +968,103 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get login2 => 'Вход для участников';
+
+  @override
+  String get result_orderButton => 'Заказать';
+
+  @override
+  String get result_fullMenuUnavailable => 'Полное меню пока недоступно.';
+
+  @override
+  String get result_noMenuItemsFound => 'Не найдены пункты меню.';
+
+  @override
+  String get result_notMenuMessage => 'На этом изображении, похоже, нет меню с едой. Пожалуйста, переснимите фотографию так, чтобы названия меню или блюда были хорошо видны.';
+
+  @override
+  String get result_uncertainMenuMessage => 'Не уверен, что это меню еды. Пожалуйста, сделайте повторное фото так, чтобы названия и цены в меню были четко видны.';
+
+  @override
+  String get result_aiTimeoutMoreResponse => 'Превышено время ожидания ответа от ИИ.';
+
+  @override
+  String get result_aiTimeoutFirstChunk => 'Тайм-аут истёк до поступления первого фрагмента от ИИ.';
+
+  @override
+  String get result_aiTimeoutFullMenu => 'Истекло время ожидания полного меню.';
+
+  @override
+  String get result_aiTimeoutFullMenuStream => 'Превышено время ожидания завершения полной передачи меню.';
+
+  @override
+  String get result_aiReceiveFailedFullMenuStream => 'Не удалось получить полный поток меню.';
+
+  @override
+  String get result_aiEmptyStreamResponse => 'AI вернул пустой ответ потока.';
+
+  @override
+  String get tts_orderPhraseTitle => 'Создайте фразу для заказа';
+
+  @override
+  String get tts_scenarioSectionTitle => 'Выберите ситуацию';
+
+  @override
+  String get tts_modifierSectionTitle => 'Выберите параметры';
+
+  @override
+  String get tts_allergySectionTitle => 'Выберите аллергии';
+
+  @override
+  String get tts_generatePhraseButton => 'Сгенерируйте фразу';
+
+  @override
+  String get tts_generationFailed => 'Не удалось создать фразу. Пожалуйста, попробуйте еще раз через некоторое время.';
+
+  @override
+  String get tts_resultSectionTitle => 'Сгенерированная фраза';
+
+  @override
+  String get tts_stop => 'Остановись';
+
+  @override
+  String get tts_listen => 'Слушай';
+
+  @override
+  String get tts_regenerate => 'Перегенерируйте';
+
+  @override
+  String get tts_scenarioBasicOrder => 'Базовый заказ';
+
+  @override
+  String get tts_scenarioCustomizeOrder => 'Параметры запроса';
+
+  @override
+  String get tts_scenarioAllergyCheck => 'Проверьте аллергии';
+
+  @override
+  String get tts_scenarioRecommendationAsk => 'Попросите рекомендацию';
+
+  @override
+  String get tts_modifierNoCilantro => 'Без кинзы';
+
+  @override
+  String get tts_modifierNoOnion => 'Без лука';
+
+  @override
+  String get tts_modifierLessSpicy => 'Менее острый';
+
+  @override
+  String get tts_modifierLessSalty => 'Меньше солёности';
+
+  @override
+  String get tts_allergyPeanut => 'Арахис';
+
+  @override
+  String get tts_allergyMilk => 'молоко';
+
+  @override
+  String get tts_allergyShrimp => 'Креветки';
+
+  @override
+  String get tts_allergyEgg => 'Яйцо';
 }

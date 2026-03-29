@@ -968,4 +968,103 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get login2 => '会員ログイン';
+
+  @override
+  String get result_orderButton => '注文する';
+
+  @override
+  String get result_fullMenuUnavailable => 'メニューの全表示はまだ利用できません。';
+
+  @override
+  String get result_noMenuItemsFound => 'メニュー項目が見つかりません。';
+
+  @override
+  String get result_notMenuMessage => 'この画像はフードメニューのようには見えません。メニュー名や料理名がはっきり見えるように、写真を撮り直してください。';
+
+  @override
+  String get result_uncertainMenuMessage => 'これがフードメニューかどうか分かりません。メニュー名と価格がはっきり見えるように、写真を撮り直してください。';
+
+  @override
+  String get result_aiTimeoutMoreResponse => 'AIの追加応答を待っている間にタイムアウトしました。';
+
+  @override
+  String get result_aiTimeoutFirstChunk => '最初のAIのチャンクが届く前にタイムアウトしました。';
+
+  @override
+  String get result_aiTimeoutFullMenu => 'メニューの全表示を待っている間にタイムアウトしました。';
+
+  @override
+  String get result_aiTimeoutFullMenuStream => 'メニューのストリーム全体の受信を待機中にタイムアウトしました。';
+
+  @override
+  String get result_aiReceiveFailedFullMenuStream => 'メニューのストリーム全体の受信に失敗しました。';
+
+  @override
+  String get result_aiEmptyStreamResponse => 'AIが空のストリームレスポンスを返しました。';
+
+  @override
+  String get tts_orderPhraseTitle => '注文フレーズを作成する';
+
+  @override
+  String get tts_scenarioSectionTitle => '状況を選択してください';
+
+  @override
+  String get tts_modifierSectionTitle => 'オプションを選択してください';
+
+  @override
+  String get tts_allergySectionTitle => 'アレルギーを選択してください';
+
+  @override
+  String get tts_generatePhraseButton => 'フレーズを生成する';
+
+  @override
+  String get tts_generationFailed => 'フレーズを生成できませんでした。少し時間をおいて、もう一度お試しください。';
+
+  @override
+  String get tts_resultSectionTitle => '生成されたフレーズ';
+
+  @override
+  String get tts_stop => 'やめてください';
+
+  @override
+  String get tts_listen => '聞いてください';
+
+  @override
+  String get tts_regenerate => '再生成する';
+
+  @override
+  String get tts_scenarioBasicOrder => '基本注文';
+
+  @override
+  String get tts_scenarioCustomizeOrder => 'リクエストオプション';
+
+  @override
+  String get tts_scenarioAllergyCheck => 'アレルギーを確認してください';
+
+  @override
+  String get tts_scenarioRecommendationAsk => 'おすすめを聞く';
+
+  @override
+  String get tts_modifierNoCilantro => 'コリアンダーなし';
+
+  @override
+  String get tts_modifierNoOnion => '玉ねぎなし';
+
+  @override
+  String get tts_modifierLessSpicy => '辛さ控えめ';
+
+  @override
+  String get tts_modifierLessSalty => '塩分控えめにしてください';
+
+  @override
+  String get tts_allergyPeanut => 'ピーナッツ';
+
+  @override
+  String get tts_allergyMilk => 'ミルク';
+
+  @override
+  String get tts_allergyShrimp => 'エビ';
+
+  @override
+  String get tts_allergyEgg => '卵';
 }

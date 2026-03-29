@@ -968,4 +968,103 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get login2 => 'సభ్యుల లాగిన్';
+
+  @override
+  String get result_orderButton => 'ఆర్డర్';
+
+  @override
+  String get result_fullMenuUnavailable => 'పూర్తి మెనూ ఇంకా అందుబాటులో లేదు.';
+
+  @override
+  String get result_noMenuItemsFound => 'మెనూ అంశాలు ఏవీ కనబడలేదు.';
+
+  @override
+  String get result_notMenuMessage => 'ఈ చిత్రం ఆహార మెనూను చూపుతున్నట్లు కనిపించదు. దయచేసి మళ్లీ ఫోటో తీయండి, తద్వారా మెనూ పేర్లు లేదా ఆహార పేర్లు స్పష్టంగా కనిపించేలా ఉండాలి.';
+
+  @override
+  String get result_uncertainMenuMessage => 'ఇది ఆహార మెనూ కాకపోవచ్చని అనిపిస్తోంది. దయచేసి మెనూ పేర్లు మరియు ధరలు స్పష్టంగా కనిపించేలా ఫోటోను మళ్లీ తీసుకోండి.';
+
+  @override
+  String get result_aiTimeoutMoreResponse => 'మరింత AI ప్రతిస్పందన కోసం వేచి ఉండగా సమయం ముగిసింది.';
+
+  @override
+  String get result_aiTimeoutFirstChunk => 'మొదటి AI భాగం రాకముందే టైమ్ అవుట్ అయింది.';
+
+  @override
+  String get result_aiTimeoutFullMenu => 'పూర్తి మెనూను కోసం ఎదురు చూస్తున్నప్పుడు సమయం ముగిసింది.';
+
+  @override
+  String get result_aiTimeoutFullMenuStream => 'పూర్తి మెను స్ట్రీమ్ కోసం వేచి ఉండగా సమయం ముగిసింది.';
+
+  @override
+  String get result_aiReceiveFailedFullMenuStream => 'మొత్తం మెనూ స్ట్రీమ్‌ను స్వీకరిస్తుండగా విఫలమైంది.';
+
+  @override
+  String get result_aiEmptyStreamResponse => 'AI ద్వారా ఖాళీ స్ట్రీమ్ ప్రతిస్పందన వచ్చింది.';
+
+  @override
+  String get tts_orderPhraseTitle => 'ఆర్డరింగ్ కోసం పదబంధం సృష్టించండి';
+
+  @override
+  String get tts_scenarioSectionTitle => 'పరిస్థితిని ఎంచుకోండి';
+
+  @override
+  String get tts_modifierSectionTitle => 'ఎంపికలను ఎంచుకోండి';
+
+  @override
+  String get tts_allergySectionTitle => 'అలర్జీలు ఎంచుకోండి';
+
+  @override
+  String get tts_generatePhraseButton => 'పదబంధాన్ని సృష్టించండి';
+
+  @override
+  String get tts_generationFailed => 'పదబంధాన్ని సృష్టించడంలో విఫలమైంది. దయచేసి కొద్దిసేపటి తర్వాత మళ్లీ ప్రయత్నించండి.';
+
+  @override
+  String get tts_resultSectionTitle => 'సృష్టించబడిన పదబంధం';
+
+  @override
+  String get tts_stop => 'ఆపు';
+
+  @override
+  String get tts_listen => 'వినండి';
+
+  @override
+  String get tts_regenerate => 'మళ్లీ సృష్టించండి';
+
+  @override
+  String get tts_scenarioBasicOrder => 'ప్రాథమిక ఆర్డర్';
+
+  @override
+  String get tts_scenarioCustomizeOrder => 'అభ్యర్థన ఎంపికలు';
+
+  @override
+  String get tts_scenarioAllergyCheck => 'అలెర్జీలు తనిఖీ చేయండి';
+
+  @override
+  String get tts_scenarioRecommendationAsk => 'సిఫార్సు కోరండి';
+
+  @override
+  String get tts_modifierNoCilantro => 'కొత్తిమీర వద్దు';
+
+  @override
+  String get tts_modifierNoOnion => 'ఉల్లిపాయ వద్దు';
+
+  @override
+  String get tts_modifierLessSpicy => 'తక్కువ కారం';
+
+  @override
+  String get tts_modifierLessSalty => 'తక్కువ ఉప్పుగా ఉండేలా చేయండి';
+
+  @override
+  String get tts_allergyPeanut => 'వేరుశెనగ';
+
+  @override
+  String get tts_allergyMilk => 'పాలు';
+
+  @override
+  String get tts_allergyShrimp => 'రొయ్యలు';
+
+  @override
+  String get tts_allergyEgg => 'గుడ్డు';
 }

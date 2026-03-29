@@ -550,7 +550,7 @@ class _ResultScreenState extends State<ResultScreen> {
         hadError: !_hasPartialAiResult,
         errorMessage: _hasPartialAiResult
             ? null
-            : 'Timed out while waiting for more AI response.',
+            : AppLocalizations.of(context)?.result_aiTimeoutMoreResponse,
       );
 
       if (mounted) setState(() {});
@@ -610,7 +610,7 @@ class _ResultScreenState extends State<ResultScreen> {
   void _showFullMenuSheet() {
     if (!_hasUsableFullMenu()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Full menu is not available yet.')),
+        SnackBar(content: Text(AppLocalizations.of(context)?.result_fullMenuUnavailable ?? 'Full menu is not available yet.')),
       );
       return;
     }
@@ -734,7 +734,9 @@ class _ResultScreenState extends State<ResultScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  truncated ? 'Menu Summary' : 'Summary',
+                                  truncated
+                                      ? (AppLocalizations.of(context)?.favorite_summaryTruncated ?? 'Menu Summary')
+                                      : (AppLocalizations.of(context)?.favorite_summary ?? 'Summary'),
                                   style: TextStyle(
                                     fontFamily: 'SFPro',
                                     fontSize: 13,
@@ -772,7 +774,7 @@ class _ResultScreenState extends State<ResultScreen> {
                               border: Border.all(color: borderColor),
                             ),
                             child: Text(
-                              'No menu items found.',
+                              AppLocalizations.of(context)?.result_noMenuItemsFound ?? 'No menu items found.',
                               style: TextStyle(
                                 fontFamily: 'SFPro',
                                 fontSize: 13,
@@ -1678,7 +1680,7 @@ class _ResultScreenState extends State<ResultScreen> {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      '주문 문장',
+                      AppLocalizations.of(context)?.result_orderButton ?? '주문하기',
                       style: TextStyle(
                         fontFamily: 'SFPro',
                         fontSize: 12,
@@ -1770,10 +1772,10 @@ class _ResultScreenState extends State<ResultScreen> {
       final fallbackDisplayText = userMessage.isNotEmpty
           ? userMessage
           : (resultType == 'not_menu'
-          ? '이 이미지는 음식 메뉴판으로 보이지 않아요. 메뉴판이나 음식 이름이 잘 보이게 다시 촬영해 주세요.'
+          ? (AppLocalizations.of(context)?.result_notMenuMessage ?? 'This image does not appear to be a food menu. Please retake the photo so menu names or food names are clearly visible.')
           : resultType == 'uncertain'
-          ? '음식 메뉴인지 확실하지 않아요. 메뉴 이름과 가격이 잘 보이도록 다시 촬영해 주세요.'
-          : '음식 메뉴인지 확실하지 않아요. 메뉴 이름과 가격이 잘 보이도록 다시 촬영해 주세요.');
+          ? (AppLocalizations.of(context)?.result_uncertainMenuMessage ?? 'Not sure this is a food menu. Please retake the photo so menu names and prices are clearly visible.')
+          : (AppLocalizations.of(context)?.result_uncertainMenuMessage ?? 'Not sure this is a food menu. Please retake the photo so menu names and prices are clearly visible.'));
 
       return Container(
         decoration: boxDecoration,
@@ -2786,7 +2788,7 @@ class _ResultScreenState extends State<ResultScreen> {
         if (_aiStreamDone || _aiGotFirstChunk) return;
         _finishAiStreamNow(
           hadError: true,
-          errorMessage: 'Timed out before first AI chunk arrived.',
+          errorMessage: AppLocalizations.of(context)?.result_aiTimeoutFirstChunk,
         );
       });
 
@@ -2796,7 +2798,7 @@ class _ResultScreenState extends State<ResultScreen> {
           hadError: !_hasPartialAiResult,
           errorMessage: _hasPartialAiResult
               ? null
-              : 'Timed out while waiting for full menu.',
+              : AppLocalizations.of(context)?.result_aiTimeoutFullMenu,
         );
       });
 
@@ -2845,8 +2847,8 @@ class _ResultScreenState extends State<ResultScreen> {
             errorMessage: _hasPartialAiResult
                 ? null
                 : (e is TimeoutException
-                ? 'Timed out while waiting for full menu stream.'
-                : 'Failed while receiving full menu stream.'),
+                ? AppLocalizations.of(context)?.result_aiTimeoutFullMenuStream
+                : AppLocalizations.of(context)?.result_aiReceiveFailedFullMenuStream),
           );
         },
         onDone: () {
@@ -2859,7 +2861,7 @@ class _ResultScreenState extends State<ResultScreen> {
           _finishAiStreamNow(
             hadError: full.isEmpty && !_hasPartialAiResult,
             errorMessage: (full.isEmpty && !_hasPartialAiResult)
-                ? 'AI returned an empty stream response.'
+                ? AppLocalizations.of(context)?.result_aiEmptyStreamResponse
                 : null,
           );
         },

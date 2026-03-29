@@ -968,4 +968,103 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get login2 => 'सदस्य लॉगिन';
+
+  @override
+  String get result_orderButton => 'आर्डर';
+
+  @override
+  String get result_fullMenuUnavailable => 'पूरा मेनू अभी उपलब्ध नहीं है।';
+
+  @override
+  String get result_noMenuItemsFound => 'कोई मेनू आइटम नहीं मिला।';
+
+  @override
+  String get result_notMenuMessage => 'यह छवि किसी खाने के मेनू जैसी नहीं लगती। कृपया फ़ोटो दोबारा लें ताकि मेनू के नाम या खाने के नाम स्पष्ट रूप से दिखाई दें।';
+
+  @override
+  String get result_uncertainMenuMessage => 'मुझे यकीन नहीं है कि यह फूड मेनू है। कृपया फोटो फिर से लें ताकि मेनू के नाम और दाम स्पष्ट रूप से दिखाई दें।';
+
+  @override
+  String get result_aiTimeoutMoreResponse => 'अधिक एआई प्रतिक्रिया की प्रतीक्षा करते समय समय समाप्त हो गया।';
+
+  @override
+  String get result_aiTimeoutFirstChunk => 'पहला AI खंड आने से पहले समय समाप्त हो गया।';
+
+  @override
+  String get result_aiTimeoutFullMenu => 'पूर्ण मेनू की प्रतीक्षा करते समय समय समाप्त हो गया।';
+
+  @override
+  String get result_aiTimeoutFullMenuStream => 'पूर्ण मेनू स्ट्रीम की प्रतीक्षा करते समय समय समाप्त हो गया।';
+
+  @override
+  String get result_aiReceiveFailedFullMenuStream => 'मेनू स्ट्रीम का पूरा डेटा प्राप्त करते समय विफल रहा।';
+
+  @override
+  String get result_aiEmptyStreamResponse => 'AI ने एक खाली स्ट्रीम प्रतिक्रिया लौटाई।';
+
+  @override
+  String get tts_orderPhraseTitle => 'आदेश देने का वाक्यांश बनाएं';
+
+  @override
+  String get tts_scenarioSectionTitle => 'स्थिति चुनें';
+
+  @override
+  String get tts_modifierSectionTitle => 'विकल्प चुनें';
+
+  @override
+  String get tts_allergySectionTitle => 'एलर्जी चुनें';
+
+  @override
+  String get tts_generatePhraseButton => 'वाक्यांश उत्पन्न करें';
+
+  @override
+  String get tts_generationFailed => 'वाक्यांश生成 करने में विफल रहा। कृपया कुछ देर बाद फिर से प्रयास करें।';
+
+  @override
+  String get tts_resultSectionTitle => 'उत्पन्न वाक्यांश';
+
+  @override
+  String get tts_stop => 'रुको';
+
+  @override
+  String get tts_listen => 'सुनिए';
+
+  @override
+  String get tts_regenerate => 'पुनः उत्पन्न करें';
+
+  @override
+  String get tts_scenarioBasicOrder => 'बेसिक ऑर्डर';
+
+  @override
+  String get tts_scenarioCustomizeOrder => 'विनंती विकल्प';
+
+  @override
+  String get tts_scenarioAllergyCheck => 'एलर्जी की जांच करें';
+
+  @override
+  String get tts_scenarioRecommendationAsk => 'सिफारिश माँगें';
+
+  @override
+  String get tts_modifierNoCilantro => 'कोई धनिया नहीं';
+
+  @override
+  String get tts_modifierNoOnion => 'प्याज़ नहीं';
+
+  @override
+  String get tts_modifierLessSpicy => 'कम तीखा';
+
+  @override
+  String get tts_modifierLessSalty => 'कम नमकीन';
+
+  @override
+  String get tts_allergyPeanut => 'मूंगफली';
+
+  @override
+  String get tts_allergyMilk => 'दूध';
+
+  @override
+  String get tts_allergyShrimp => 'झींगा';
+
+  @override
+  String get tts_allergyEgg => 'अंडा';
 }

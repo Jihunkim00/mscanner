@@ -3,6 +3,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:mscanner/models/order_phrase_models.dart';
 import 'package:mscanner/services/order_phrase_service.dart';
 import 'package:mscanner/services/order_phrase_tts_service.dart';
+import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 
 Future<void> showOrderPhraseBottomSheet({
   required BuildContext context,
@@ -61,6 +62,45 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
   String? _error;
   GenerateOrderPhraseResponse? _result;
 
+  String _scenarioLabel(AppLocalizations l10n, OrderScenario scenario) {
+    switch (scenario) {
+      case OrderScenario.basicOrder:
+        return l10n.tts_scenarioBasicOrder;
+      case OrderScenario.customizeOrder:
+        return l10n.tts_scenarioCustomizeOrder;
+      case OrderScenario.allergyCheck:
+        return l10n.tts_scenarioAllergyCheck;
+      case OrderScenario.recommendationAsk:
+        return l10n.tts_scenarioRecommendationAsk;
+    }
+  }
+
+  String _modifierLabel(AppLocalizations l10n, OrderModifier modifier) {
+    switch (modifier) {
+      case OrderModifier.noCilantro:
+        return l10n.tts_modifierNoCilantro;
+      case OrderModifier.noOnion:
+        return l10n.tts_modifierNoOnion;
+      case OrderModifier.lessSpicy:
+        return l10n.tts_modifierLessSpicy;
+      case OrderModifier.lessSalty:
+        return l10n.tts_modifierLessSalty;
+    }
+  }
+
+  String _allergyLabel(AppLocalizations l10n, AllergyType allergy) {
+    switch (allergy) {
+      case AllergyType.peanut:
+        return l10n.tts_allergyPeanut;
+      case AllergyType.milk:
+        return l10n.tts_allergyMilk;
+      case AllergyType.shrimp:
+        return l10n.tts_allergyShrimp;
+      case AllergyType.egg:
+        return l10n.tts_allergyEgg;
+    }
+  }
+
   @override
   void dispose() {
     _ttsService.stop();
@@ -95,7 +135,7 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
       setState(() => _result = response);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = '문장 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+      setState(() => _error = AppLocalizations.of(context)!.tts_generationFailed);
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -132,6 +172,7 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final sheetBg = isDark ? const Color(0xFF1A1B1F) : const Color(0xFFF7F8FA);
@@ -158,8 +199,8 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    '주문 문장 만들기',
+                  Text(
+                  l10n.tts_orderPhraseTitle,
                     style: TextStyle(fontFamily: 'SFPro', fontWeight: FontWeight.w700, fontSize: 17),
                   ),
                   const SizedBox(height: 8),
@@ -179,7 +220,7 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const _SectionTitle('상황 선택'),
+                  _SectionTitle(l10n.tts_scenarioSectionTitle),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
@@ -187,7 +228,7 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
                     children: OrderScenario.values
                         .map(
                           (scenario) => _ChoicePill(
-                        label: scenario.labelKo,
+                            label: _scenarioLabel(l10n, scenario),
                         selected: _scenario == scenario,
                         onTap: () => setState(() => _scenario = scenario),
                       ),
@@ -196,7 +237,7 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
                   ),
                   if (_scenario == OrderScenario.customizeOrder) ...[
                     const SizedBox(height: 12),
-                    const _SectionTitle('옵션 선택'),
+                    _SectionTitle(l10n.tts_modifierSectionTitle),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
@@ -222,7 +263,7 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
                   ],
                   if (_scenario == OrderScenario.allergyCheck) ...[
                     const SizedBox(height: 12),
-                    const _SectionTitle('알레르기 선택'),
+                    _SectionTitle(l10n.tts_allergySectionTitle),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
@@ -230,7 +271,7 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
                       children: AllergyType.values
                           .map(
                             (value) => _ChoicePill(
-                          label: value.labelKo,
+                              label: _allergyLabel(l10n, value),
                           selected: _allergies.contains(value),
                           onTap: () {
                             setState(() {
@@ -270,7 +311,7 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                         : Text(
-                      '문장 생성',
+                      l10n.tts_generatePhraseButton,
                       style: TextStyle(
                         fontFamily: 'SFPro',
                         fontSize: 14,
@@ -296,7 +337,7 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const _SectionTitle('생성 결과'),
+    _SectionTitle(l10n.tts_resultSectionTitle),
                     const SizedBox(height: 8),
                     Text(
                       _result!.ttsText,
@@ -325,13 +366,13 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
                             _isSpeaking ? PhosphorIcons.stop() : PhosphorIcons.speakerHigh(),
                             size: 16,
                           ),
-                          label: _isSpeaking ? '정지' : '듣기',
+    label: _isSpeaking ? l10n.tts_stop : l10n.tts_listen,
                         ),
                         const SizedBox(width: 8),
                         _SheetActionButton(
                           onPressed: _isLoading ? null : _generatePhrase,
                           icon: PhosphorIcon(PhosphorIcons.arrowsClockwise(), size: 16),
-                          label: '다시 생성',
+    label: l10n.tts_regenerate,
                         ),
                       ],
                     ),

@@ -2021,6 +2021,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Member Login'**
   String get login2;
+
+  /// No description provided for @result_orderButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Order'**
+  String get result_orderButton;
+
+  /// No description provided for @result_fullMenuUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Full menu is not available yet.'**
+  String get result_fullMenuUnavailable;
+
+  /// No description provided for @result_noMenuItemsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No menu items found.'**
+  String get result_noMenuItemsFound;
+
+  /// No description provided for @result_notMenuMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This image does not appear to be a food menu. Please retake the photo so menu names or food names are clearly visible.'**
+  String get result_notMenuMessage;
+
+  /// No description provided for @result_uncertainMenuMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Not sure this is a food menu. Please retake the photo so menu names and prices are clearly visible.'**
+  String get result_uncertainMenuMessage;
+
+  /// No description provided for @result_aiTimeoutMoreResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Timed out while waiting for more AI response.'**
+  String get result_aiTimeoutMoreResponse;
+
+  /// No description provided for @result_aiTimeoutFirstChunk.
+  ///
+  /// In en, this message translates to:
+  /// **'Timed out before first AI chunk arrived.'**
+  String get result_aiTimeoutFirstChunk;
+
+  /// No description provided for @result_aiTimeoutFullMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Timed out while waiting for full menu.'**
+  String get result_aiTimeoutFullMenu;
+
+  /// No description provided for @result_aiTimeoutFullMenuStream.
+  ///
+  /// In en, this message translates to:
+  /// **'Timed out while waiting for full menu stream.'**
+  String get result_aiTimeoutFullMenuStream;
+
+  /// No description provided for @result_aiReceiveFailedFullMenuStream.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed while receiving full menu stream.'**
+  String get result_aiReceiveFailedFullMenuStream;
+
+  /// No description provided for @result_aiEmptyStreamResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'AI returned an empty stream response.'**
+  String get result_aiEmptyStreamResponse;
+
+  /// No description provided for @tts_orderPhraseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create ordering phrase'**
+  String get tts_orderPhraseTitle;
+
+  /// No description provided for @tts_scenarioSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose situation'**
+  String get tts_scenarioSectionTitle;
+
+  /// No description provided for @tts_modifierSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose options'**
+  String get tts_modifierSectionTitle;
+
+  /// No description provided for @tts_allergySectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose allergies'**
+  String get tts_allergySectionTitle;
+
+  /// No description provided for @tts_generatePhraseButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate phrase'**
+  String get tts_generatePhraseButton;
+
+  /// No description provided for @tts_generationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to generate phrase. Please try again in a moment.'**
+  String get tts_generationFailed;
+
+  /// No description provided for @tts_resultSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Generated phrase'**
+  String get tts_resultSectionTitle;
+
+  /// No description provided for @tts_stop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get tts_stop;
+
+  /// No description provided for @tts_listen.
+  ///
+  /// In en, this message translates to:
+  /// **'Listen'**
+  String get tts_listen;
+
+  /// No description provided for @tts_regenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Regenerate'**
+  String get tts_regenerate;
+
+  /// No description provided for @tts_scenarioBasicOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic order'**
+  String get tts_scenarioBasicOrder;
+
+  /// No description provided for @tts_scenarioCustomizeOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Request options'**
+  String get tts_scenarioCustomizeOrder;
+
+  /// No description provided for @tts_scenarioAllergyCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Check allergies'**
+  String get tts_scenarioAllergyCheck;
+
+  /// No description provided for @tts_scenarioRecommendationAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask for recommendation'**
+  String get tts_scenarioRecommendationAsk;
+
+  /// No description provided for @tts_modifierNoCilantro.
+  ///
+  /// In en, this message translates to:
+  /// **'No cilantro'**
+  String get tts_modifierNoCilantro;
+
+  /// No description provided for @tts_modifierNoOnion.
+  ///
+  /// In en, this message translates to:
+  /// **'No onion'**
+  String get tts_modifierNoOnion;
+
+  /// No description provided for @tts_modifierLessSpicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Less spicy'**
+  String get tts_modifierLessSpicy;
+
+  /// No description provided for @tts_modifierLessSalty.
+  ///
+  /// In en, this message translates to:
+  /// **'Less salty'**
+  String get tts_modifierLessSalty;
+
+  /// No description provided for @tts_allergyPeanut.
+  ///
+  /// In en, this message translates to:
+  /// **'Peanut'**
+  String get tts_allergyPeanut;
+
+  /// No description provided for @tts_allergyMilk.
+  ///
+  /// In en, this message translates to:
+  /// **'Milk'**
+  String get tts_allergyMilk;
+
+  /// No description provided for @tts_allergyShrimp.
+  ///
+  /// In en, this message translates to:
+  /// **'Shrimp'**
+  String get tts_allergyShrimp;
+
+  /// No description provided for @tts_allergyEgg.
+  ///
+  /// In en, this message translates to:
+  /// **'Egg'**
+  String get tts_allergyEgg;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

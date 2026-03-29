@@ -968,4 +968,103 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get login2 => 'تسجيل دخول الأعضاء';
+
+  @override
+  String get result_orderButton => 'طلب';
+
+  @override
+  String get result_fullMenuUnavailable => 'القائمة الكاملة غير متاحة بعد.';
+
+  @override
+  String get result_noMenuItemsFound => 'لم يتم العثور على عناصر في القائمة.';
+
+  @override
+  String get result_notMenuMessage => 'لا يبدو أن هذه الصورة لقائمة طعام. يرجى إعادة التقاط الصورة بحيث تكون أسماء القائمة أو أسماء الأطعمة واضحة.';
+
+  @override
+  String get result_uncertainMenuMessage => 'لست متأكدًا أن هذه قائمة طعام. يرجى إعادة التقاط الصورة بحيث تكون أسماء الأصناف والأسعار واضحة تمامًا.';
+
+  @override
+  String get result_aiTimeoutMoreResponse => 'انتهت المهلة أثناء انتظار المزيد من استجابة الذكاء الاصطناعي.';
+
+  @override
+  String get result_aiTimeoutFirstChunk => 'انتهت المهلة قبل وصول أول جزء من الذكاء الاصطناعي.';
+
+  @override
+  String get result_aiTimeoutFullMenu => 'انتهت المهلة أثناء الانتظار حتى ظهور القائمة الكاملة.';
+
+  @override
+  String get result_aiTimeoutFullMenuStream => 'انتهت المهلة أثناء انتظار تدفق القائمة الكامل.';
+
+  @override
+  String get result_aiReceiveFailedFullMenuStream => 'فشل أثناء استلام تدفق القائمة الكامل.';
+
+  @override
+  String get result_aiEmptyStreamResponse => 'أرجع الذكاء الاصطناعي استجابة تدفق فارغة.';
+
+  @override
+  String get tts_orderPhraseTitle => 'أنشئ عبارة ترتيب';
+
+  @override
+  String get tts_scenarioSectionTitle => 'اختر الموقف';
+
+  @override
+  String get tts_modifierSectionTitle => 'اختر الخيارات';
+
+  @override
+  String get tts_allergySectionTitle => 'اختر الحساسيّات';
+
+  @override
+  String get tts_generatePhraseButton => 'أنشئ عبارة';
+
+  @override
+  String get tts_generationFailed => 'فشل إنشاء العبارة. يرجى المحاولة مرة أخرى بعد لحظة.';
+
+  @override
+  String get tts_resultSectionTitle => 'العبارة المُولَّدة';
+
+  @override
+  String get tts_stop => 'توقّف';
+
+  @override
+  String get tts_listen => 'استمع';
+
+  @override
+  String get tts_regenerate => 'أعد إنشاء';
+
+  @override
+  String get tts_scenarioBasicOrder => 'الطلب الأساسي';
+
+  @override
+  String get tts_scenarioCustomizeOrder => 'خيارات الطلب';
+
+  @override
+  String get tts_scenarioAllergyCheck => 'تحقق من الحساسية';
+
+  @override
+  String get tts_scenarioRecommendationAsk => 'اطلب توصية';
+
+  @override
+  String get tts_modifierNoCilantro => 'لا كزبرة';
+
+  @override
+  String get tts_modifierNoOnion => 'لا بصل';
+
+  @override
+  String get tts_modifierLessSpicy => 'أقل حدة';
+
+  @override
+  String get tts_modifierLessSalty => 'أقل ملوحة';
+
+  @override
+  String get tts_allergyPeanut => 'فول سوداني';
+
+  @override
+  String get tts_allergyMilk => 'حليب';
+
+  @override
+  String get tts_allergyShrimp => 'جمبري';
+
+  @override
+  String get tts_allergyEgg => 'بيضة';
 }

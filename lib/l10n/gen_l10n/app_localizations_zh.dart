@@ -968,6 +968,105 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get login2 => '会员登录';
+
+  @override
+  String get result_orderButton => '订单';
+
+  @override
+  String get result_fullMenuUnavailable => '完整菜单尚未提供。';
+
+  @override
+  String get result_noMenuItemsFound => '未找到菜单项。';
+
+  @override
+  String get result_notMenuMessage => '这张图片看起来不像是食物菜单。请重新拍摄照片，确保菜单名称或食物名称清晰可见。';
+
+  @override
+  String get result_uncertainMenuMessage => '不确定这是不是美食菜单。请重新拍一张照片，确保菜单名称和价格清晰可见。';
+
+  @override
+  String get result_aiTimeoutMoreResponse => '等待更多 AI 响应时超时。';
+
+  @override
+  String get result_aiTimeoutFirstChunk => '在收到第一段 AI 输出之前超时了。';
+
+  @override
+  String get result_aiTimeoutFullMenu => '等待完整菜单超时。';
+
+  @override
+  String get result_aiTimeoutFullMenuStream => '等待完整菜单流时超时。';
+
+  @override
+  String get result_aiReceiveFailedFullMenuStream => '接收完整菜单流失败。';
+
+  @override
+  String get result_aiEmptyStreamResponse => 'AI 返回了空的流响应。';
+
+  @override
+  String get tts_orderPhraseTitle => '创建订购短语';
+
+  @override
+  String get tts_scenarioSectionTitle => '选择情境';
+
+  @override
+  String get tts_modifierSectionTitle => '选择选项';
+
+  @override
+  String get tts_allergySectionTitle => '选择过敏原';
+
+  @override
+  String get tts_generatePhraseButton => '生成短语';
+
+  @override
+  String get tts_generationFailed => '未能生成短语。请稍后再试。';
+
+  @override
+  String get tts_resultSectionTitle => '生成的短语';
+
+  @override
+  String get tts_stop => '停止';
+
+  @override
+  String get tts_listen => '听着';
+
+  @override
+  String get tts_regenerate => '重新生成';
+
+  @override
+  String get tts_scenarioBasicOrder => '基本订单';
+
+  @override
+  String get tts_scenarioCustomizeOrder => '请求选项';
+
+  @override
+  String get tts_scenarioAllergyCheck => '检查过敏情况';
+
+  @override
+  String get tts_scenarioRecommendationAsk => '询问推荐';
+
+  @override
+  String get tts_modifierNoCilantro => '不要香菜';
+
+  @override
+  String get tts_modifierNoOnion => '不要洋葱';
+
+  @override
+  String get tts_modifierLessSpicy => '少辣一点';
+
+  @override
+  String get tts_modifierLessSalty => '少放盐';
+
+  @override
+  String get tts_allergyPeanut => '花生';
+
+  @override
+  String get tts_allergyMilk => '牛奶';
+
+  @override
+  String get tts_allergyShrimp => '虾';
+
+  @override
+  String get tts_allergyEgg => '鸡蛋';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -1934,6 +2033,105 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get login2 => '会员登录';
+
+  @override
+  String get result_orderButton => '订单';
+
+  @override
+  String get result_fullMenuUnavailable => '完整菜单尚未提供。';
+
+  @override
+  String get result_noMenuItemsFound => '未找到菜单项。';
+
+  @override
+  String get result_notMenuMessage => '这张图片看起来不像是食品菜单。请重新拍摄照片，确保菜单名称或食物名称清晰可见。';
+
+  @override
+  String get result_uncertainMenuMessage => '不确定这是不是食品菜单。请重新拍一张照片，确保菜单名称和价格清晰可见。';
+
+  @override
+  String get result_aiTimeoutMoreResponse => '等待更多 AI 回复时超时。';
+
+  @override
+  String get result_aiTimeoutFirstChunk => '在收到第一个 AI 分块之前超时了。';
+
+  @override
+  String get result_aiTimeoutFullMenu => '等待完整菜单超时。';
+
+  @override
+  String get result_aiTimeoutFullMenuStream => '在等待完整菜单流时超时。';
+
+  @override
+  String get result_aiReceiveFailedFullMenuStream => '接收完整菜单流失败。';
+
+  @override
+  String get result_aiEmptyStreamResponse => 'AI 返回了一个空的流响应。';
+
+  @override
+  String get tts_orderPhraseTitle => '创建订购短语';
+
+  @override
+  String get tts_scenarioSectionTitle => '选择情境';
+
+  @override
+  String get tts_modifierSectionTitle => '选择选项';
+
+  @override
+  String get tts_allergySectionTitle => '选择过敏症';
+
+  @override
+  String get tts_generatePhraseButton => '生成短语';
+
+  @override
+  String get tts_generationFailed => '无法生成短语。请稍后重试。';
+
+  @override
+  String get tts_resultSectionTitle => '生成的短语';
+
+  @override
+  String get tts_stop => '停止';
+
+  @override
+  String get tts_listen => '听着';
+
+  @override
+  String get tts_regenerate => '重新生成';
+
+  @override
+  String get tts_scenarioBasicOrder => '基本订单';
+
+  @override
+  String get tts_scenarioCustomizeOrder => '请求选项';
+
+  @override
+  String get tts_scenarioAllergyCheck => '检查过敏史';
+
+  @override
+  String get tts_scenarioRecommendationAsk => '请求推荐';
+
+  @override
+  String get tts_modifierNoCilantro => '不要香菜';
+
+  @override
+  String get tts_modifierNoOnion => '不加洋葱';
+
+  @override
+  String get tts_modifierLessSpicy => '少辣';
+
+  @override
+  String get tts_modifierLessSalty => '少咸';
+
+  @override
+  String get tts_allergyPeanut => '花生';
+
+  @override
+  String get tts_allergyMilk => '牛奶';
+
+  @override
+  String get tts_allergyShrimp => '虾';
+
+  @override
+  String get tts_allergyEgg => '鸡蛋';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -2900,4 +3098,103 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get login2 => '會員登入';
+
+  @override
+  String get result_orderButton => '訂單';
+
+  @override
+  String get result_fullMenuUnavailable => '完整菜單尚未提供。';
+
+  @override
+  String get result_noMenuItemsFound => '未找到菜單項目。';
+
+  @override
+  String get result_notMenuMessage => '這張圖片看起來不像是食品菜單。請重新拍攝，讓菜單名稱或食物名稱能清楚看見。';
+
+  @override
+  String get result_uncertainMenuMessage => '我不確定這是食物菜單。請重新拍攝照片，讓菜單名稱和價格清楚可見。';
+
+  @override
+  String get result_aiTimeoutMoreResponse => '等待更多 AI 回應時逾時。';
+
+  @override
+  String get result_aiTimeoutFirstChunk => '在第一個 AI 資料區塊到達之前超時了。';
+
+  @override
+  String get result_aiTimeoutFullMenu => '等待完整菜單時超時。';
+
+  @override
+  String get result_aiTimeoutFullMenuStream => '等待完整菜單串流時超時。';
+
+  @override
+  String get result_aiReceiveFailedFullMenuStream => '未能接收完整的選單串流。';
+
+  @override
+  String get result_aiEmptyStreamResponse => 'AI 返回了空的串流回應。';
+
+  @override
+  String get tts_orderPhraseTitle => '創建下單用語';
+
+  @override
+  String get tts_scenarioSectionTitle => '選擇情境';
+
+  @override
+  String get tts_modifierSectionTitle => '選擇選項';
+
+  @override
+  String get tts_allergySectionTitle => '選擇過敏症狀';
+
+  @override
+  String get tts_generatePhraseButton => '生成短語';
+
+  @override
+  String get tts_generationFailed => '無法生成短語。請稍後再試一次。';
+
+  @override
+  String get tts_resultSectionTitle => '生成的短語';
+
+  @override
+  String get tts_stop => '停止';
+
+  @override
+  String get tts_listen => '聽著';
+
+  @override
+  String get tts_regenerate => '重新生成';
+
+  @override
+  String get tts_scenarioBasicOrder => '基本訂單';
+
+  @override
+  String get tts_scenarioCustomizeOrder => '請求選項';
+
+  @override
+  String get tts_scenarioAllergyCheck => '檢查過敏史';
+
+  @override
+  String get tts_scenarioRecommendationAsk => '請求推薦';
+
+  @override
+  String get tts_modifierNoCilantro => '不要香菜';
+
+  @override
+  String get tts_modifierNoOnion => '不要洋蔥';
+
+  @override
+  String get tts_modifierLessSpicy => '比較不辣';
+
+  @override
+  String get tts_modifierLessSalty => '少鹹一點';
+
+  @override
+  String get tts_allergyPeanut => '花生';
+
+  @override
+  String get tts_allergyMilk => '牛奶';
+
+  @override
+  String get tts_allergyShrimp => '蝦仁';
+
+  @override
+  String get tts_allergyEgg => '蛋';
 }

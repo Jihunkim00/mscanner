@@ -968,4 +968,103 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get login2 => 'Login anggota';
+
+  @override
+  String get result_orderButton => 'Pesan';
+
+  @override
+  String get result_fullMenuUnavailable => 'Menu lengkap belum tersedia.';
+
+  @override
+  String get result_noMenuItemsFound => 'Tidak ada item menu yang ditemukan.';
+
+  @override
+  String get result_notMenuMessage => 'Gambar ini tampaknya bukan menu makanan. Silakan ambil ulang foto agar nama menu atau nama makanan terlihat dengan jelas.';
+
+  @override
+  String get result_uncertainMenuMessage => 'Saya tidak yakin ini adalah menu makanan. Mohon unggah ulang foto agar nama menu dan harga terlihat dengan jelas.';
+
+  @override
+  String get result_aiTimeoutMoreResponse => 'Waktu habis saat menunggu respons AI berikutnya.';
+
+  @override
+  String get result_aiTimeoutFirstChunk => 'Waktu habis sebelum chunk AI pertama tiba.';
+
+  @override
+  String get result_aiTimeoutFullMenu => 'Waktu habis saat menunggu menu lengkap.';
+
+  @override
+  String get result_aiTimeoutFullMenuStream => 'Waktu habis saat menunggu streaming menu lengkap.';
+
+  @override
+  String get result_aiReceiveFailedFullMenuStream => 'Gagal saat menerima aliran menu penuh.';
+
+  @override
+  String get result_aiEmptyStreamResponse => 'Respons streaming kosong dari AI.';
+
+  @override
+  String get tts_orderPhraseTitle => 'Buat frasa pemesanan';
+
+  @override
+  String get tts_scenarioSectionTitle => 'Pilih situasi';
+
+  @override
+  String get tts_modifierSectionTitle => 'Pilih opsi';
+
+  @override
+  String get tts_allergySectionTitle => 'Pilih alergi';
+
+  @override
+  String get tts_generatePhraseButton => 'Buat frasa';
+
+  @override
+  String get tts_generationFailed => 'Gagal menghasilkan frasa. Silakan coba lagi sebentar.';
+
+  @override
+  String get tts_resultSectionTitle => 'Frasa yang dihasilkan';
+
+  @override
+  String get tts_stop => 'Berhenti';
+
+  @override
+  String get tts_listen => 'Dengarkan';
+
+  @override
+  String get tts_regenerate => 'Meregenerasi';
+
+  @override
+  String get tts_scenarioBasicOrder => 'Pesanan dasar';
+
+  @override
+  String get tts_scenarioCustomizeOrder => 'Opsi permintaan';
+
+  @override
+  String get tts_scenarioAllergyCheck => 'Periksa alergi';
+
+  @override
+  String get tts_scenarioRecommendationAsk => 'Minta rekomendasi';
+
+  @override
+  String get tts_modifierNoCilantro => 'Tanpa ketumbar';
+
+  @override
+  String get tts_modifierNoOnion => 'Tidak ada bawang merah';
+
+  @override
+  String get tts_modifierLessSpicy => 'Kurang pedas';
+
+  @override
+  String get tts_modifierLessSalty => 'Kurang asin';
+
+  @override
+  String get tts_allergyPeanut => 'Kacang tanah';
+
+  @override
+  String get tts_allergyMilk => 'Susu';
+
+  @override
+  String get tts_allergyShrimp => 'Udang';
+
+  @override
+  String get tts_allergyEgg => 'Telur';
 }

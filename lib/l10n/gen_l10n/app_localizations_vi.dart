@@ -968,4 +968,103 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get login2 => 'Đăng nhập thành viên';
+
+  @override
+  String get result_orderButton => 'Đặt hàng';
+
+  @override
+  String get result_fullMenuUnavailable => 'Chưa có sẵn toàn bộ thực đơn.';
+
+  @override
+  String get result_noMenuItemsFound => 'Không tìm thấy mục trong menu.';
+
+  @override
+  String get result_notMenuMessage => 'Hình ảnh này có vẻ không phải là thực đơn. Vui lòng chụp lại ảnh để tên thực đơn hoặc tên món ăn có thể nhìn rõ ràng.';
+
+  @override
+  String get result_uncertainMenuMessage => 'Chưa chắc đây là thực đơn đồ ăn. Vui lòng chụp lại ảnh để tên món và giá được nhìn rõ ràng.';
+
+  @override
+  String get result_aiTimeoutMoreResponse => 'Hết thời gian chờ khi đang chờ thêm phản hồi từ AI.';
+
+  @override
+  String get result_aiTimeoutFirstChunk => 'Đã hết thời gian trước khi nhận được đoạn dữ liệu AI đầu tiên.';
+
+  @override
+  String get result_aiTimeoutFullMenu => 'Hết thời gian chờ để tải đầy đủ menu.';
+
+  @override
+  String get result_aiTimeoutFullMenuStream => 'Hết thời gian chờ khi đang chờ luồng menu đầy đủ.';
+
+  @override
+  String get result_aiReceiveFailedFullMenuStream => 'Gặp lỗi khi nhận luồng menu đầy đủ.';
+
+  @override
+  String get result_aiEmptyStreamResponse => 'AI đã trả về một phản hồi luồng trống.';
+
+  @override
+  String get tts_orderPhraseTitle => 'Tạo cụm từ để đặt hàng';
+
+  @override
+  String get tts_scenarioSectionTitle => 'Chọn tình huống';
+
+  @override
+  String get tts_modifierSectionTitle => 'Chọn các tùy chọn';
+
+  @override
+  String get tts_allergySectionTitle => 'Chọn dị ứng';
+
+  @override
+  String get tts_generatePhraseButton => 'Tạo câu cụm từ';
+
+  @override
+  String get tts_generationFailed => 'Không thể tạo cụm từ. Vui lòng thử lại sau một chút.';
+
+  @override
+  String get tts_resultSectionTitle => 'Cụm từ được tạo ra';
+
+  @override
+  String get tts_stop => 'Dừng lại';
+
+  @override
+  String get tts_listen => 'Nghe này';
+
+  @override
+  String get tts_regenerate => 'Tạo lại';
+
+  @override
+  String get tts_scenarioBasicOrder => 'Đơn hàng cơ bản';
+
+  @override
+  String get tts_scenarioCustomizeOrder => 'Tùy chọn yêu cầu';
+
+  @override
+  String get tts_scenarioAllergyCheck => 'Kiểm tra dị ứng';
+
+  @override
+  String get tts_scenarioRecommendationAsk => 'Hãy xin đề xuất';
+
+  @override
+  String get tts_modifierNoCilantro => 'Không có rau mùi (ngò)';
+
+  @override
+  String get tts_modifierNoOnion => 'Không hành tây';
+
+  @override
+  String get tts_modifierLessSpicy => 'Ít cay hơn';
+
+  @override
+  String get tts_modifierLessSalty => 'Ít mặn hơn';
+
+  @override
+  String get tts_allergyPeanut => 'Hạt đậu phộng';
+
+  @override
+  String get tts_allergyMilk => 'Sữa';
+
+  @override
+  String get tts_allergyShrimp => 'Tôm';
+
+  @override
+  String get tts_allergyEgg => 'Trứng';
 }
