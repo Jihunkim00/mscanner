@@ -197,7 +197,6 @@ String _targetCodeOf(TargetCurrency t) {
   }
 }
 
-/// ===== 외부에서 쓰는: 작게 보이는 아이콘 버튼 =====
 class FxQuickFxButton extends StatelessWidget {
   const FxQuickFxButton({
     super.key,
@@ -205,10 +204,9 @@ class FxQuickFxButton extends StatelessWidget {
     this.detectedCountryCode,
     this.currencySymbolHint,
     this.initialTarget = TargetCurrency.usd,
-    this.iconSize = 18, // 작게
+    this.iconSize = 18,
     this.padding = const EdgeInsets.all(4),
     this.iconData,
-    // [ADD] 결과에서 파싱한 다중 금액 후보
     this.parsedAmounts = const <double>[],
   });
 
@@ -216,11 +214,44 @@ class FxQuickFxButton extends StatelessWidget {
   final String? detectedCountryCode;
   final String? currencySymbolHint;
   final TargetCurrency initialTarget;
+
+
   final double iconSize;
   final EdgeInsets padding;
   final IconData? iconData;
   // [ADD]
   final List<double> parsedAmounts;
+
+  TargetCurrency _defaultTargetCurrencyFromSystemLanguage() {
+    final code = ui.PlatformDispatcher.instance.locale.languageCode.toLowerCase();
+    switch (code) {
+      case 'ko':
+        return TargetCurrency.krw;
+      case 'ja':
+        return TargetCurrency.jpy;
+      case 'zh':
+        return TargetCurrency.cny;
+      case 'fr':
+      case 'de':
+      case 'es':
+      case 'it':
+      case 'pt':
+      case 'nl':
+      case 'pl':
+      case 'sv':
+      case 'no':
+      case 'da':
+      case 'fi':
+      case 'cs':
+      case 'hu':
+      case 'ro':
+      case 'el':
+      case 'tr':
+        return TargetCurrency.eur;
+      default:
+        return TargetCurrency.usd;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -118,6 +118,11 @@ class _MenuNamePair {
 
 
 class _ResultScreenState extends State<ResultScreen> {
+  // ✅ ResultScreen에서 주문 문구/TTS 진입 기능 토글
+  // false: 버튼 비활성화 유지
+  // true : 버튼 즉시 재활성화
+  static const bool _enableOrderPhraseTts = false; //TTS 활성화 ########### 한글 일어 영문간
+
   static final RegExp _jaScriptRegex = RegExp(r'[\u3040-\u30FF\u4E00-\u9FFF]');
   static final RegExp _koScriptRegex = RegExp(r'[\uAC00-\uD7AF]');
 
@@ -226,6 +231,20 @@ class _ResultScreenState extends State<ResultScreen> {
   // === Auto FX: detected hints ===
   String? _isoCountryCode;                 // e.g., 'KR', 'JP'
   String? _currencySymbolHint;             // e.g., '₩','€','$','¥'
+  String? _currencyCodeHint;               // ✅ e.g., 'KRW','JPY','USD'
+
+  String? _extractCurrencyCodeFromText(String text) {
+    final s = text.toLowerCase();
+
+    if (s.contains('krw') || s.contains('₩') || s.contains('원')) return 'KRW';
+    if (s.contains('jpy') || s.contains('¥') || s.contains('엔화') || s.contains('엔')) return 'JPY';
+    if (s.contains('usd') || s.contains(r'$') || s.contains('달러')) return 'USD';
+    if (s.contains('eur') || s.contains('€') || s.contains('유로')) return 'EUR';
+    if (s.contains('cny') || s.contains('元') || s.contains('위안')) return 'CNY';
+
+    return null;
+  }
+
   double? _amountFromResponses;            // extracted number from AI response
 
   bool _sentAiImpression = false;
@@ -251,18 +270,15 @@ class _ResultScreenState extends State<ResultScreen> {
   // 🔽🔽🔽 [NEW] 다중 금액 후보 보관 리스트
   List<double> _amountCandidates = [];     // ex) [12500, 3500, 7000]
 
-  // ✅ 주변 타인 메뉴 태그 Future
-  Future<List<_MenuTag>>? _nearbyMenuTagsFuture;
-
   Future<void> _initCountryCurrencyHints() async {
     try {
-      // Extract from responses
       final raw = widget.responses.join('\n\n');
+
       _currencySymbolHint = _extractCurrencySymbolFromText(raw);
+      _currencyCodeHint = _extractCurrencyCodeFromText(raw); // ✅ 추가
       _amountFromResponses = _extractAmountFromText(raw);
       _amountCandidates = _extractAmountsNextToFoodNames(raw);
 
-      // Country ISO2 from GPS if available
       if (widget.position != null) {
         try {
           final placemarks = await placemarkFromCoordinates(
@@ -275,7 +291,6 @@ class _ResultScreenState extends State<ResultScreen> {
         } catch (_) {}
       }
 
-      // Fallback to device locale
       _isoCountryCode ??=
           ui.PlatformDispatcher.instance.locale.countryCode?.toUpperCase();
 
@@ -284,6 +299,11 @@ class _ResultScreenState extends State<ResultScreen> {
       // ignore
     }
   }
+
+  // ✅ 주변 타인 메뉴 태그 Future
+  Future<List<_MenuTag>>? _nearbyMenuTagsFuture;
+
+
 
   // Extract first number (e.g., 12,500 or 12.50)
   double? _extractAmountFromText(String text) {
@@ -1081,15 +1101,99 @@ class _ResultScreenState extends State<ResultScreen> {
 
 // ===== FX: quick convert prices to "system" target currency (toggle) =====
   String? _targetCurrencyCode; // e.g., 'KRW','USD'
+
   bool _isBulkConvertingPrices = false;
   bool _bulkPricesConverted = false;
   final Map<String, String> _convertedPriceByMenuKey = <String, String>{};
   final Set<String> _singlePriceLoadingMenuKeys = <String>{};
 
+  String _currencyFromLanguageCode(String? langCode) {
+    final raw = (langCode ?? '').toLowerCase().replaceAll('_', '-');
+    final code = raw.split('-').first;
+
+    switch (code) {
+    // East Asia
+      case 'ko':
+        return 'KRW';
+      case 'ja':
+        return 'JPY';
+      case 'zh':
+        if (raw.contains('hant') || raw.endsWith('tw')) return 'TWD';
+        return 'CNY';
+
+    // English
+      case 'en':
+        return 'USD';
+
+    // Southeast Asia
+      case 'th':
+        return 'THB';
+      case 'vi':
+        return 'VND';
+      case 'id':
+        return 'IDR';
+      case 'ms':
+        return 'MYR';
+      case 'tl':
+      case 'fil':
+        return 'PHP';
+
+    // South / Central Asia
+      case 'hi':
+        return 'INR';
+      case 'ru':
+        return 'RUB';
+      case 'uk':
+        return 'UAH';
+
+    // Middle East
+      case 'ar':
+        return '';
+
+    // Europe → 전부 EUR
+      case 'fr':
+      case 'de':
+      case 'es':
+      case 'it':
+      case 'pt':
+      case 'nl':
+      case 'pl':
+      case 'sv':
+      case 'no':
+      case 'da':
+      case 'fi':
+      case 'cs':
+      case 'hu':
+      case 'ro':
+      case 'el':
+      case 'tr':
+        return 'EUR';
+
+      default:
+        return '';
+    }
+  }
+  TargetCurrency _defaultTargetCurrencyFromSystemLanguage() {
+    final code = ui.PlatformDispatcher.instance.locale.languageCode.toLowerCase();
+    switch (code) {
+      case 'ko':
+        return TargetCurrency.krw;
+      case 'ja':
+        return TargetCurrency.jpy;
+      case 'zh':
+        return TargetCurrency.cny;
+      case 'en':
+      default:
+        return TargetCurrency.usd;
+    }
+  }
+
   Future<String> _ensureTargetCurrencyCode() async {
     if (_targetCurrencyCode != null && _targetCurrencyCode!.trim().isNotEmpty) {
+      debugPrint('FX target cache: $_targetCurrencyCode');
       return _targetCurrencyCode!;
     }
+
     try {
       final prefs = await SharedPreferences.getInstance();
       const keys = <String>[
@@ -1099,22 +1203,35 @@ class _ResultScreenState extends State<ResultScreen> {
         'preferred_currency',
         'home_currency',
       ];
+
       for (final k in keys) {
         final v = prefs.getString(k);
+        debugPrint('FX pref check: $k = $v');
         if (v != null && v.trim().length >= 3) {
           final code = v.trim().toUpperCase();
+          debugPrint('FX target from pref: $code');
           _targetCurrencyCode = code;
           return code;
         }
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('FX pref read error: $e');
+    }
 
-    // Fallback: device locale country -> currency
-    final cc = ui.PlatformDispatcher.instance.locale.countryCode?.toUpperCase();
-    final byLocale = (cc != null) ? kCountryToCurrency[cc] : null;
-    final code = (byLocale ?? 'USD').toUpperCase();
-    _targetCurrencyCode = code;
-    return code;
+    final langCode = ui.PlatformDispatcher.instance.locale.languageCode;
+    debugPrint('FX languageCode: $langCode');
+
+    final byLang = _currencyFromLanguageCode(langCode);
+    debugPrint('FX target from language: $byLang');
+
+    if (byLang.isNotEmpty) {
+      _targetCurrencyCode = byLang;
+      return byLang;
+    }
+
+    debugPrint('FX fallback target: USD');
+    _targetCurrencyCode = 'USD';
+    return 'USD';
   }
 
   List<double> _extractPriceValuesFromItem(Map<String, dynamic> item) {
@@ -1245,6 +1362,7 @@ class _ResultScreenState extends State<ResultScreen> {
           localHint = _extractCurrencySymbolFromText(item['price'] as String);
         }
         final from = (code ??
+            _currencyCodeHint ??
             pickLocalCurrency(
               detectedCountryCode: _isoCountryCode,
               currencySymbolHint: localHint ?? _currencySymbolHint,
@@ -1318,6 +1436,7 @@ class _ResultScreenState extends State<ResultScreen> {
         localHint = _extractCurrencySymbolFromText(item['price'] as String);
       }
       final from = (code ??
+          _currencyCodeHint ??
           pickLocalCurrency(
             detectedCountryCode: _isoCountryCode,
             currencySymbolHint: localHint ?? _currencySymbolHint,
@@ -1635,66 +1754,67 @@ class _ResultScreenState extends State<ResultScreen> {
             ),
           ],
           const SizedBox(height: 10),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(14),
-              onTap: () {
-                final targetLanguage = _orderPhraseLanguage(context);
-                final targetMenuName = nameTranslated.isNotEmpty ? nameTranslated : pair.display;
-                final menuOriginal = nameOriginal.isNotEmpty ? nameOriginal : pair.original;
+          if (_enableOrderPhraseTts)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () {
+                  final targetLanguage = _orderPhraseLanguage(context);
+                  final targetMenuName = nameTranslated.isNotEmpty ? nameTranslated : pair.display;
+                  final menuOriginal = nameOriginal.isNotEmpty ? nameOriginal : pair.original;
 
-                showOrderPhraseBottomSheet(
-                  context: context,
-                  menuName: targetMenuName,
-                  menuOriginal: menuOriginal,
-                  menuOriginalReading: nameOriginalReading.isEmpty ? null : nameOriginalReading,
-                  originLanguage: _orderPhraseOriginLanguage(
+                  showOrderPhraseBottomSheet(
+                    context: context,
+                    menuName: targetMenuName,
                     menuOriginal: menuOriginal,
-                    originLanguageCode: originLanguageCode,
-                  ),
-                  targetLanguage: targetLanguage,
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
-                constraints: const BoxConstraints(minHeight: 32),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
+                    menuOriginalReading: nameOriginalReading.isEmpty ? null : nameOriginalReading,
+                    originLanguage: _orderPhraseOriginLanguage(
+                      menuOriginal: menuOriginal,
+                      originLanguageCode: originLanguageCode,
+                    ),
+                    targetLanguage: targetLanguage,
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+                  constraints: const BoxConstraints(minHeight: 32),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white.withOpacity(0.14)
+                          : const Color(0xFFD1D5DB).withOpacity(0.72),
+                    ),
                     color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white.withOpacity(0.14)
-                        : const Color(0xFFD1D5DB).withOpacity(0.72),
+                        ? const Color(0xFF2A2D33).withOpacity(0.88)
+                        : const Color(0xFFF8FAFC).withOpacity(0.92),
                   ),
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? const Color(0xFF2A2D33).withOpacity(0.88)
-                      : const Color(0xFFF8FAFC).withOpacity(0.92),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    PhosphorIcon(
-                      PhosphorIcons.speakerHigh(),
-                      size: 14,
-                      color: textColor.withOpacity(0.82),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      AppLocalizations.of(context)?.result_orderButton ?? '주문하기',
-                      style: TextStyle(
-                        fontFamily: 'SFPro',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white.withOpacity(0.9)
-                            : const Color(0xFF374151).withOpacity(0.92),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      PhosphorIcon(
+                        PhosphorIcons.speakerHigh(),
+                        size: 14,
+                        color: textColor.withOpacity(0.82),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 6),
+                      Text(
+                        AppLocalizations.of(context)?.result_orderButton ?? '주문하기',
+                        style: TextStyle(
+                          fontFamily: 'SFPro',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white.withOpacity(0.9)
+                              : const Color(0xFF374151).withOpacity(0.92),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
 
           const SizedBox(height: 12),
           Divider(height: 1, color: textColor.withOpacity(0.12)),
@@ -1800,11 +1920,11 @@ class _ResultScreenState extends State<ResultScreen> {
                     initialAmount: _amountFromResponses ?? 0,
                     detectedCountryCode: _isoCountryCode,
                     currencySymbolHint: _currencySymbolHint,
-                    initialTarget: TargetCurrency.usd,
+                    initialTarget: _defaultTargetCurrencyFromSystemLanguage(),
                     iconSize: 18,
                     padding: EdgeInsets.zero,
                     parsedAmounts: _amountCandidates,
-                  ),
+                  )
               ],
             ),
             const SizedBox(height: 5),

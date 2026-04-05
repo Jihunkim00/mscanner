@@ -1,0 +1,3200 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Chinese (`zh`).
+class AppLocalizationsZh extends AppLocalizations {
+  AppLocalizationsZh([String locale = 'zh']) : super(locale);
+
+  @override
+  String get accountDeleted => '账户已成功删除。';
+
+  @override
+  String get addToStatus => '添加到我的状态';
+
+  @override
+  String get aiSetting => 'AI设置';
+
+  @override
+  String get alreadyHaveAccount => '已经有账户？';
+
+  @override
+  String get areYouSureDeleteAccount => '您确定要删除您的账户吗？此操作无法撤销。';
+
+  @override
+  String get camera => '相机';
+
+  @override
+  String get cancel => '取消';
+
+  @override
+  String get changePassword => '更改密码';
+
+  @override
+  String get cloudSave => '云保存';
+
+  @override
+  String get confirmDelete => '确认删除';
+
+  @override
+  String get confirmPassword => '确认密码';
+
+  @override
+  String get continueWithApple => '使用Apple继续';
+
+  @override
+  String get continueWithGoogle => '使用Google继续';
+
+  @override
+  String get createAccount => '创建账户';
+
+  @override
+  String get darkMode => '夜间模式';
+
+  @override
+  String get delete => '删除';
+
+  @override
+  String get deleteAccount => '删除账户';
+
+  @override
+  String get dietMenu => '饮食菜单';
+
+  @override
+  String get display => '显示';
+
+  @override
+  String get email => '电子邮件';
+
+  @override
+  String get engine => '引擎';
+
+  @override
+  String get enterYourEmailtoResetPassword => '输入您的电子邮件以重置密码';
+
+  @override
+  String get failedChangePassword => '密码更改失败';
+
+  @override
+  String get failedDeleteAccount => '删除账户失败';
+
+  @override
+  String get foodMenuMaxNumber => '菜单最大数量';
+
+  @override
+  String get foodStyle => '饮食风格';
+
+  @override
+  String get foodStyleAIRecommend => 'AI推荐';
+
+  @override
+  String get foodStyleLowFat => '低脂';
+
+  @override
+  String get foodStyleLowSalt => '低盐';
+
+  @override
+  String get foodStyleMeat => '肉类';
+
+  @override
+  String get foodStyleMuslim => '穆斯林';
+
+  @override
+  String get foodStyleNutFree => '无坚果';
+
+  @override
+  String get foodStyleSeafood => '海鲜';
+
+  @override
+  String get forgotPassword => '忘记密码';
+
+  @override
+  String get hello => '你好';
+
+  @override
+  String get history => '历史';
+
+  @override
+  String get home => '首页';
+
+  @override
+  String get languageArabic => '阿拉伯语';
+
+  @override
+  String get languageBengali => '孟加拉语';
+
+  @override
+  String get languageChinese => '中文';
+
+  @override
+  String get languageEnglish => '英语';
+
+  @override
+  String get languageFrench => '法语';
+
+  @override
+  String get languageGerman => '德语';
+
+  @override
+  String get languageHindi => '印地语';
+
+  @override
+  String get languageIndonesian => '印度尼西亚语';
+
+  @override
+  String get languageJapanese => '日语';
+
+  @override
+  String get languageKorean => '韩语';
+
+  @override
+  String get languageMarathi => '马拉地语';
+
+  @override
+  String get languagePortuguese => '葡萄牙语';
+
+  @override
+  String get languagePortugueseBrazil => '巴西葡萄牙语';
+
+  @override
+  String get languageRussian => '俄语';
+
+  @override
+  String get languageSimplifiedChinese => '简体中文';
+
+  @override
+  String get languageSpanish => '西班牙语';
+
+  @override
+  String get languageTelugu => '泰卢固语';
+
+  @override
+  String get languageThai => '泰语';
+
+  @override
+  String get languageTraditionalChinese => '繁体中文';
+
+  @override
+  String get languageTurkish => '土耳其语';
+
+  @override
+  String get languageUrdu => '乌尔都语';
+
+  @override
+  String get languageVietnamese => '越南语';
+
+  @override
+  String get login => '登录';
+
+  @override
+  String get logIn => '登录';
+
+  @override
+  String get logout => '登出';
+
+  @override
+  String get menuNumber1 => '1';
+
+  @override
+  String get menuNumber1to3 => '1-3';
+
+  @override
+  String get menuNumber1to5 => '1-5';
+
+  @override
+  String get menuNumberAll => '全部';
+
+  @override
+  String get newPassword => '新密码';
+
+  @override
+  String get password => '密码';
+
+  @override
+  String get passwordChangedSuccess => '密码更改成功。';
+
+  @override
+  String get passwordResetEmailSent => '密码重置邮件已发送。请检查您的收件箱';
+
+  @override
+  String get passwordsDoNotMatch => '密码不匹配';
+
+  @override
+  String get pleaseEnterPassword => '请输入您的密码';
+
+  @override
+  String get pleaseEnterValidEmail => '请输入有效的电子邮件';
+
+  @override
+  String presetSelected(Object presetId) {
+    return '已选择预设 $presetId';
+  }
+
+  @override
+  String get privacyPolicy => '隐私政策';
+
+  @override
+  String get requiresRecentLogin => '请重新登录并尝试删除账户。';
+
+  @override
+  String get resetPassword => '重置密码';
+
+  @override
+  String get resetPreset => '重置预设';
+
+  @override
+  String get saveAndContinue => '保存并继续';
+
+  @override
+  String get security => '安全';
+
+  @override
+  String get selectYourPreset => '选择您的预设';
+
+  @override
+  String get sendResetLink => '发送重置链接';
+
+  @override
+  String get server => '服务器';
+
+  @override
+  String get settings => '设置';
+
+  @override
+  String get signUp => '注册';
+
+  @override
+  String get signUpNewAccount => '注册新账户';
+
+  @override
+  String get targetLanguage => '目标语言';
+
+  @override
+  String get termsAndConditions => '条款和条件';
+
+  @override
+  String get yourFoodMenu => '您的菜单';
+
+  @override
+  String get passwordResetError => '发送密码重置电子邮件时发生错误。';
+
+  @override
+  String get save => '保存';
+
+  @override
+  String get saved => '已保存';
+
+  @override
+  String get aiAnswer => 'AI答案';
+
+  @override
+  String get liked => '已点赞';
+
+  @override
+  String get unliked => '取消点赞';
+
+  @override
+  String get textCopied => '文本已复制到剪贴板';
+
+  @override
+  String get title => '标题';
+
+  @override
+  String get noFavoriteData => '没有收藏数据';
+
+  @override
+  String get enterRestaurantName => '输入餐厅名称';
+
+  @override
+  String get pleaseEnterRestaurantAndRating => '请输入餐厅名称和评分';
+
+  @override
+  String get all => '全部';
+
+  @override
+  String get favorite => '收藏';
+
+  @override
+  String get noHistoryFound => '未找到历史记录';
+
+  @override
+  String get aiScanning => 'AI扫描中...';
+
+  @override
+  String get aiLoadingMessage => 'AI可能会出错。加载时间通常需要大约5到10秒，但可能因您的互联网连接和智能手机设备而有所不同。';
+
+  @override
+  String get introductionTitle1 => 'Mscanner';
+
+  @override
+  String get introductionSubtitle1 => '由 THJ 提供';
+
+  @override
+  String get introductionBody1 => '在全球的餐厅选择食物时，感到舒适自在';
+
+  @override
+  String get introductionTitle2 => '您想如何扫描菜单？';
+
+  @override
+  String get introductionBody2_1 => '1. 选择您的语言（英语或母语）';
+
+  @override
+  String get introductionBody2_2 => '2. 选择您的饮食风格（饮食、爱吃肉等）';
+
+  @override
+  String get introductionBody2_3 => '3. 设置要扫描的菜单数量（菜单越多，细节越少）';
+
+  @override
+  String get introductionTitle3 => '优化您的设置';
+
+  @override
+  String get introductionBody3_1 => '1. 启用深色模式';
+
+  @override
+  String get introductionBody3_2 => '2. 更改您的账户密码';
+
+  @override
+  String get introductionBody3_3 => '3. 重置您的菜单扫描设置';
+
+  @override
+  String get introductionBody3_4 => '4. 在线保存您的数据以启用更多功能';
+
+  @override
+  String get introductionTitle4 => '分享您的结果';
+
+  @override
+  String get introductionBody4_1 => '1. 在每个结果上留下备注';
+
+  @override
+  String get introductionBody4_2 => '2. 将结果保存到您的智能手机';
+
+  @override
+  String get introductionBody4_3 => '3. 收藏按钮和复制结果';
+
+  @override
+  String get introductionTitle5 => '保存您的体验';
+
+  @override
+  String get introductionBody5_1 => '1. 活跃点（显示您在Mscanner中的活动）';
+
+  @override
+  String get introductionBody5_2 => '2. 输入您访问过的餐厅名称';
+
+  @override
+  String get introductionBody5_3 => '3. 评价餐厅';
+
+  @override
+  String get introductionBody5_4 => '4. 在地图上查看您访问过的地方';
+
+  @override
+  String get skip => '跳过';
+
+  @override
+  String get done => '完成';
+
+  @override
+  String get checkOutRestaurant => '看看这家餐厅！';
+
+  @override
+  String get loadingError => '加载错误';
+
+  @override
+  String get confirmMessageTitle => '确认信息';
+
+  @override
+  String get confirmMessageContent => '您确定要删除吗？';
+
+  @override
+  String get shareLocation => '分享位置';
+
+  @override
+  String get checkOutContent => '看看这个内容！';
+
+  @override
+  String get shareVia => '通过以下方式分享';
+
+  @override
+  String get cloudsavingError => '云存储错误';
+
+  @override
+  String get languagesdescprition => '拍摄食物或菜单的照片，并选择输出语言';
+
+  @override
+  String get fooddescprition => '请选择一种饮食或膳食计划。AI将根据您的选择提供推荐和解释';
+
+  @override
+  String get menudescribe => '请选择要显示的菜单项数量。您选择的项目越少，描述将越详细';
+
+  @override
+  String get darkdescp => '启用深色模式以获得更舒适的观看体验';
+
+  @override
+  String get changepassdescp => '为了安全，定期更改您的密码，并使用易于记住的强密码';
+
+  @override
+  String get aIresetdescp => '您可以重置AI扫描设置';
+
+  @override
+  String get savedescp => '将输出数据保存到服务器。保存是启用其他功能所必需的';
+
+  @override
+  String get scanFoodPhotoDescription => '拍摄食物或菜单的照片，看看它是什么！现在就试试吧';
+
+  @override
+  String get activepoint => '这些点数显示用户的活动指数，将来会提供各种奖励。';
+
+  @override
+  String get todayrecommand => '今日推荐';
+
+  @override
+  String get cityrecommand => '按地区推荐';
+
+  @override
+  String get account => '账户';
+
+  @override
+  String get bookmark => '书签';
+
+  @override
+  String get map => '地图';
+
+  @override
+  String get locationPermissionNeeded => '需要位置权限';
+
+  @override
+  String get locationPermissionContent => '该应用需要位置权限才能正常运行。请在应用设置中允许位置访问。';
+
+  @override
+  String get locationServiceDisabled => '位置服务已禁用';
+
+  @override
+  String get locationServiceDisabledContent => '位置服务已禁用。请在设置中启用位置服务。';
+
+  @override
+  String get openSettings => '打开设置';
+
+  @override
+  String get languagesdescprition1 => '只需一扫，解锁美食世界的魅力';
+
+  @override
+  String get continueAsGuest => '继续作为访客';
+
+  @override
+  String get guestLoginTitle => '访客登录';
+
+  @override
+  String get guestLoginContent => '您已作为访客登录。注销时所有数据将被删除。';
+
+  @override
+  String get confirm => '确认';
+
+  @override
+  String get guestLoginFailed => '访客登录失败。请再试一次。';
+
+  @override
+  String get logoutConfirmationTitle => '注销确认';
+
+  @override
+  String get logoutConfirmationContent => '作为访客注销将删除您所有的数据。您想继续吗？';
+
+  @override
+  String get convertAccount => '转换帐户';
+
+  @override
+  String get accountConversionDescription => '将您的访客帐户转换为永久帐户以保存您的数据。';
+
+  @override
+  String get accountConversionSuccess => '账户成功转换。';
+
+  @override
+  String get accountConversionFailed => '账户转换失败';
+
+  @override
+  String get browse => '作为访客探索';
+
+  @override
+  String get changepreset => '更改预设';
+
+  @override
+  String get viewbylatest => '按最新查看';
+
+  @override
+  String get viewbycountry => '按国家查看';
+
+  @override
+  String get cameraHint => '点击相机扫描菜单。';
+
+  @override
+  String get manualTitle => '使用手册';
+
+  @override
+  String get manualSubtitle => '点击查看使用说明';
+
+  @override
+  String get loadingScanning => '正在扫描图像...';
+
+  @override
+  String get loadingAnalyzing => '使用人工智能分析菜单...';
+
+  @override
+  String get loadingAlmostDone => '几乎完成您的结果准备...';
+
+  @override
+  String get loadingFinalizing => '完成细节...';
+
+  @override
+  String get loadingWaiting => '再多一点……谢谢你的耐心！';
+
+  @override
+  String get emergencyTitle => '紧急通知';
+
+  @override
+  String get close => '关闭';
+
+  @override
+  String get dismissToday => '今天不再显示';
+
+  @override
+  String get gptErrorMessage => '抱歉。\\n与 AI 服务器通信时发生错误。\\n请稍后再试。';
+
+  @override
+  String get restaurantName => '餐厅名称';
+
+  @override
+  String get tutorialMode => '教程模式';
+
+  @override
+  String get reviewTitle => '评论';
+
+  @override
+  String get reviewHint => '请输入对餐厅的简短评价。';
+
+  @override
+  String get commentSection_title => '🗨 附近用户评价';
+
+  @override
+  String get commentSection_seeMore => '显示更多评论 ▼';
+
+  @override
+  String get commentSection_seeLess => '隐藏评论 ▲';
+
+  @override
+  String get commentSection_anonymous => '匿名';
+
+  @override
+  String get commentSection_noContent => '没有内容';
+
+  @override
+  String get timeAgo_minutes => '分钟前';
+
+  @override
+  String get timeAgo_hours => '小时前';
+
+  @override
+  String get timeAgo_days => '天前';
+
+  @override
+  String get timeAgo_months => '个月前';
+
+  @override
+  String get timeAgo_years => '年前';
+
+  @override
+  String get commentSection_translate => '翻译';
+
+  @override
+  String get commentSection_original => '原文';
+
+  @override
+  String get iapUnavailable => '应用内购买不可用';
+
+  @override
+  String get noAvailableProducts => '没有可购买的商品';
+
+  @override
+  String get premiumUserTitle => '高级用户';
+
+  @override
+  String get premiumUserSubtitle => '广告已移除';
+
+  @override
+  String get buy => '购买';
+
+  @override
+  String get guestPurchaseMessage => '访客用户无法购买';
+
+  @override
+  String get premiumFunctionMessage => '仅限高级服务';
+
+  @override
+  String get multiScan => '批量扫描';
+
+  @override
+  String maxScanImages(int maxCount) {
+    return '仅扫描前 $maxCount 张图片。';
+  }
+
+  @override
+  String get restorePurchases => '恢复购买';
+
+  @override
+  String get mergeInProgress => '正在合并图像…\n请稍候。';
+
+  @override
+  String get fx_title => '货币换算';
+
+  @override
+  String get fx_tooltip => '货币换算';
+
+  @override
+  String fx_currency_btn(Object code) {
+    return '货币：$code';
+  }
+
+  @override
+  String fx_base_date(Object date) {
+    return '基准日期：$date';
+  }
+
+  @override
+  String get fx_unknown => '未知';
+
+  @override
+  String get fx_amount_label => '金额';
+
+  @override
+  String get fx_amount_hint => '例如：100';
+
+  @override
+  String fx_enter_amount_to_convert(Object target) {
+    return '输入金额将转换为$target。';
+  }
+
+  @override
+  String get fx_error_no_rate => '没有该货币的汇率信息。';
+
+  @override
+  String get fx_search_currency_hint => '搜索货币代码（例如：USD、JPY）';
+
+  @override
+  String get sub_disclaimer_title => '订阅信息';
+
+  @override
+  String get sub_trial_free => '首次订阅用户在试用期内不会被收费。';
+
+  @override
+  String get sub_auto_renew => '试用结束后将自动转为付费，如未在当前周期结束前至少24小时取消，将自动续订。';
+
+  @override
+  String get sub_renew_charge => '续订费用可能会在当前周期结束前24小时内收取。';
+
+  @override
+  String sub_period_price(Object period, Object price) {
+    return '此订阅为$period（价格: $price）。';
+  }
+
+  @override
+  String get sub_restore => '之前购买的项目可通过“恢复购买”进行恢复。';
+
+  @override
+  String get terms => '服务条款';
+
+  @override
+  String get privacy => '隐私政策';
+
+  @override
+  String get sub_manage_ios => '费用将通过您的Apple ID收取，可在 设置 > [您的姓名] > 订阅 中管理或取消。';
+
+  @override
+  String get sub_manage_android => '费用将通过您的Google账号收取，可在 Play 商店应用 > 个人资料图标 > 付款和订阅 > 订阅 中管理或取消。';
+
+  @override
+  String get sub_badge_trial_1m => '🎁 首次订阅用户可享1个月免费试用';
+
+  @override
+  String get iapRestoreError => '恢复过程中发生错误。';
+
+  @override
+  String get iapRestoreDone => '购买已恢复。';
+
+  @override
+  String get iapRestoreEmpty => '没有可恢复的购买。';
+
+  @override
+  String get iapRestoreTrying => '正在尝试恢复购买...';
+
+  @override
+  String get viewOnMap => '在地图上查看';
+
+  @override
+  String get login_welcomeBack => '欢迎回来';
+
+  @override
+  String get login_subtitle => '用 AI 轻松开启美食探索之旅，现在就开始吧。';
+
+  @override
+  String get login_emailLabel => '邮箱地址';
+
+  @override
+  String get login_emailHint => 'name@example.com';
+
+  @override
+  String get login_orContinueWith => '或继续使用';
+
+  @override
+  String get login_google => '使用 Google 继续';
+
+  @override
+  String get login_apple => '使用 Apple 继续';
+
+  @override
+  String get login_noAccount => '还没有账号？';
+
+  @override
+  String get login_signUpFree => '免费注册';
+
+  @override
+  String get signup_subtitle => '创建账号可保存扫描、管理预设，并解锁高级功能。';
+
+  @override
+  String get signup_emailLabel => '邮箱地址';
+
+  @override
+  String get signup_emailHint => 'name@example.com';
+
+  @override
+  String get signup_logIn => '登录';
+
+  @override
+  String get map_noTitle => '无标题';
+
+  @override
+  String get map_cuisine => '菜系';
+
+  @override
+  String get map_location => '位置';
+
+  @override
+  String get map_searchHistory => '搜索记录';
+
+  @override
+  String get map_recent => '最近';
+
+  @override
+  String get map_topRated => '评分最高';
+
+  @override
+  String get map_date => '日期';
+
+  @override
+  String get map_clear => '清除';
+
+  @override
+  String get map_noResults => '无结果';
+
+  @override
+  String get map_unknown => '未知';
+
+  @override
+  String get howto_title => '如何使用 Mscanner';
+
+  @override
+  String get howto_step1 => '1. 扫描';
+
+  @override
+  String get howto_desc1 => '菜单或菜品';
+
+  @override
+  String get howto_step2 => '2. 分析';
+
+  @override
+  String get howto_desc2 => 'AI 分析\n你的照片';
+
+  @override
+  String get howto_step3 => '3. 享用';
+
+  @override
+  String get howto_desc3 => '获取适合你的\n推荐';
+
+  @override
+  String get home_searchAiFoodImage => '搜索 AI 美食图片…';
+
+  @override
+  String get home_adLabel => '广告';
+
+  @override
+  String get home_trendingNearYou => '附近热门';
+
+  @override
+  String get home_mscannerPicks => 'Mscanner 推荐';
+
+  @override
+  String get home_viewAll => '查看全部';
+
+  @override
+  String get home_errorLoadingCards => '加载卡片出错';
+
+  @override
+  String get home_noDataAvailable => '暂无数据';
+
+  @override
+  String get home_errorSavingData => '保存数据出错';
+
+  @override
+  String get favoriteList_searchHistory => '搜索记录';
+
+  @override
+  String get favoriteList_all => '全部';
+
+  @override
+  String get favoriteList_recent => '最近';
+
+  @override
+  String get favoriteList_topRated => '评分最高';
+
+  @override
+  String get favoriteList_date => '日期';
+
+  @override
+  String get favoriteList_country => '国家/地区';
+
+  @override
+  String get favoriteList_noDate => '无日期';
+
+  @override
+  String get favoriteList_noHistoryFound => '暂无记录';
+
+  @override
+  String get favoriteList_thisWeek => '本周';
+
+  @override
+  String favoriteList_entries(Object count) {
+    return '$count 条';
+  }
+
+  @override
+  String get favorite_fullMenu => '完整菜单';
+
+  @override
+  String get favorite_menuMain => '主菜';
+
+  @override
+  String get favorite_menuSide => '配菜';
+
+  @override
+  String get favorite_menuMeal => '餐点';
+
+  @override
+  String get favorite_menuDrink => '饮品';
+
+  @override
+  String get favorite_menuBeverage => '饮品';
+
+  @override
+  String get favorite_menuOther => '其他';
+
+  @override
+  String get favorite_summaryTruncated => '摘要（简版）';
+
+  @override
+  String get favorite_summary => '摘要';
+
+  @override
+  String get favorite_noResponses => '暂无可用内容';
+
+  @override
+  String get favorite_viewFullMenu => '查看完整菜单';
+
+  @override
+  String get favorite_unknownRestaurant => '未知餐厅';
+
+  @override
+  String get favorite_failedSaveChanges => '保存更改失败';
+
+  @override
+  String get favorite_renderNotReady => '错误：页面尚未就绪。';
+
+  @override
+  String get favorite_restaurantNameHint => '餐厅名称';
+
+  @override
+  String get result_fxRateLoadFailed => '加载汇率数据失败，请检查网络连接。';
+
+  @override
+  String get result_fxConvertFailed => '金额换算失败。';
+
+  @override
+  String get result_restoreOriginalCurrency => '恢复原始货币';
+
+  @override
+  String result_convertToSystemCurrency(Object currency) {
+    return '换算为系统货币（$currency）';
+  }
+
+  @override
+  String get result_auto => '自动';
+
+  @override
+  String get result_viewFullMenu => '查看完整菜单';
+
+  @override
+  String get result_preparingMenu => '正在准备详细菜单…';
+
+  @override
+  String get result_failedLoadSettings => '加载设置失败，云端保存默认开启。';
+
+  @override
+  String get result_imageUploadFailed => '图片上传失败，请重试。';
+
+  @override
+  String get result_analyzing => '正在分析菜品信息';
+
+  @override
+  String get result_loadingFullMenu => '正在加载完整菜单…';
+
+  @override
+  String get howto_detail_link => '查看更多详情';
+
+  @override
+  String get guestLoginTitle2 => '欢迎，探险家！';
+
+  @override
+  String get guestLoginContent2 => '在访客模式下，您可以扫描菜单以获取个性化推荐，但您将无法保存收藏或跨设备查看历史记录。';
+
+  @override
+  String get confirm2 => '以访客身份继续';
+
+  @override
+  String get login2 => '会员登录';
+
+  @override
+  String get result_orderButton => '订单';
+
+  @override
+  String get result_fullMenuUnavailable => '完整菜单尚未提供。';
+
+  @override
+  String get result_noMenuItemsFound => '未找到菜单项。';
+
+  @override
+  String get result_notMenuMessage => '这张图片看起来不像是食物菜单。请重新拍摄照片，确保菜单名称或食物名称清晰可见。';
+
+  @override
+  String get result_uncertainMenuMessage => '不确定这是不是美食菜单。请重新拍一张照片，确保菜单名称和价格清晰可见。';
+
+  @override
+  String get result_aiTimeoutMoreResponse => '等待更多 AI 响应时超时。';
+
+  @override
+  String get result_aiTimeoutFirstChunk => '在收到第一段 AI 输出之前超时了。';
+
+  @override
+  String get result_aiTimeoutFullMenu => '等待完整菜单超时。';
+
+  @override
+  String get result_aiTimeoutFullMenuStream => '等待完整菜单流时超时。';
+
+  @override
+  String get result_aiReceiveFailedFullMenuStream => '接收完整菜单流失败。';
+
+  @override
+  String get result_aiEmptyStreamResponse => 'AI 返回了空的流响应。';
+
+  @override
+  String get tts_orderPhraseTitle => '创建订购短语';
+
+  @override
+  String get tts_scenarioSectionTitle => '选择情境';
+
+  @override
+  String get tts_modifierSectionTitle => '选择选项';
+
+  @override
+  String get tts_allergySectionTitle => '选择过敏原';
+
+  @override
+  String get tts_generatePhraseButton => '生成短语';
+
+  @override
+  String get tts_generationFailed => '未能生成短语。请稍后再试。';
+
+  @override
+  String get tts_resultSectionTitle => '生成的短语';
+
+  @override
+  String get tts_stop => '停止';
+
+  @override
+  String get tts_listen => '听着';
+
+  @override
+  String get tts_regenerate => '重新生成';
+
+  @override
+  String get tts_scenarioBasicOrder => '基本订单';
+
+  @override
+  String get tts_scenarioCustomizeOrder => '请求选项';
+
+  @override
+  String get tts_scenarioAllergyCheck => '检查过敏情况';
+
+  @override
+  String get tts_scenarioRecommendationAsk => '询问推荐';
+
+  @override
+  String get tts_modifierNoCilantro => '不要香菜';
+
+  @override
+  String get tts_modifierNoOnion => '不要洋葱';
+
+  @override
+  String get tts_modifierLessSpicy => '少辣一点';
+
+  @override
+  String get tts_modifierLessSalty => '少放盐';
+
+  @override
+  String get tts_allergyPeanut => '花生';
+
+  @override
+  String get tts_allergyMilk => '牛奶';
+
+  @override
+  String get tts_allergyShrimp => '虾';
+
+  @override
+  String get tts_allergyEgg => '鸡蛋';
+}
+
+/// The translations for Chinese, using the Han script (`zh_Hans`).
+class AppLocalizationsZhHans extends AppLocalizationsZh {
+  AppLocalizationsZhHans(): super('zh_Hans');
+
+  @override
+  String get accountDeleted => '账户已成功删除。';
+
+  @override
+  String get addToStatus => '添加到我的状态';
+
+  @override
+  String get aiSetting => 'AI设置';
+
+  @override
+  String get alreadyHaveAccount => '已经有账户？';
+
+  @override
+  String get areYouSureDeleteAccount => '您确定要删除您的账户吗？此操作无法撤销。';
+
+  @override
+  String get camera => '相机';
+
+  @override
+  String get cancel => '取消';
+
+  @override
+  String get changePassword => '更改密码';
+
+  @override
+  String get cloudSave => '云保存';
+
+  @override
+  String get confirmDelete => '确认删除';
+
+  @override
+  String get confirmPassword => '确认密码';
+
+  @override
+  String get continueWithApple => '使用Apple继续';
+
+  @override
+  String get continueWithGoogle => '使用Google继续';
+
+  @override
+  String get createAccount => '创建账户';
+
+  @override
+  String get darkMode => '夜间模式';
+
+  @override
+  String get delete => '删除';
+
+  @override
+  String get deleteAccount => '删除账户';
+
+  @override
+  String get dietMenu => '饮食菜单';
+
+  @override
+  String get display => '显示';
+
+  @override
+  String get email => '电子邮件';
+
+  @override
+  String get engine => '引擎';
+
+  @override
+  String get enterYourEmailtoResetPassword => '输入您的电子邮件以重置密码';
+
+  @override
+  String get failedChangePassword => '密码更改失败';
+
+  @override
+  String get failedDeleteAccount => '删除账户失败';
+
+  @override
+  String get foodMenuMaxNumber => '菜单最大数量';
+
+  @override
+  String get foodStyle => '饮食风格';
+
+  @override
+  String get foodStyleAIRecommend => 'AI推荐';
+
+  @override
+  String get foodStyleLowFat => '低脂';
+
+  @override
+  String get foodStyleLowSalt => '低盐';
+
+  @override
+  String get foodStyleMeat => '肉类';
+
+  @override
+  String get foodStyleMuslim => '穆斯林';
+
+  @override
+  String get foodStyleNutFree => '无坚果';
+
+  @override
+  String get foodStyleSeafood => '海鲜';
+
+  @override
+  String get forgotPassword => '忘记密码';
+
+  @override
+  String get hello => '你好';
+
+  @override
+  String get history => '历史';
+
+  @override
+  String get home => '首页';
+
+  @override
+  String get languageArabic => '阿拉伯语';
+
+  @override
+  String get languageBengali => '孟加拉语';
+
+  @override
+  String get languageChinese => '中文';
+
+  @override
+  String get languageEnglish => '英语';
+
+  @override
+  String get languageFrench => '法语';
+
+  @override
+  String get languageGerman => '德语';
+
+  @override
+  String get languageHindi => '印地语';
+
+  @override
+  String get languageIndonesian => '印度尼西亚语';
+
+  @override
+  String get languageJapanese => '日语';
+
+  @override
+  String get languageKorean => '韩语';
+
+  @override
+  String get languageMarathi => '马拉地语';
+
+  @override
+  String get languagePortuguese => '葡萄牙语';
+
+  @override
+  String get languagePortugueseBrazil => '巴西葡萄牙语';
+
+  @override
+  String get languageRussian => '俄语';
+
+  @override
+  String get languageSimplifiedChinese => '简体中文';
+
+  @override
+  String get languageSpanish => '西班牙语';
+
+  @override
+  String get languageTelugu => '泰卢固语';
+
+  @override
+  String get languageThai => '泰语';
+
+  @override
+  String get languageTraditionalChinese => '繁体中文';
+
+  @override
+  String get languageTurkish => '土耳其语';
+
+  @override
+  String get languageUrdu => '乌尔都语';
+
+  @override
+  String get languageVietnamese => '越南语';
+
+  @override
+  String get login => '登录';
+
+  @override
+  String get logIn => '登录';
+
+  @override
+  String get logout => '登出';
+
+  @override
+  String get menuNumber1 => '1';
+
+  @override
+  String get menuNumber1to3 => '1-3';
+
+  @override
+  String get menuNumber1to5 => '1-5';
+
+  @override
+  String get menuNumberAll => '全部';
+
+  @override
+  String get newPassword => '新密码';
+
+  @override
+  String get password => '密码';
+
+  @override
+  String get passwordChangedSuccess => '密码更改成功。';
+
+  @override
+  String get passwordResetEmailSent => '密码重置邮件已发送。请检查您的收件箱';
+
+  @override
+  String get passwordsDoNotMatch => '密码不匹配';
+
+  @override
+  String get pleaseEnterPassword => '请输入您的密码';
+
+  @override
+  String get pleaseEnterValidEmail => '请输入有效的电子邮件';
+
+  @override
+  String presetSelected(Object presetId) {
+    return '已选择预设 $presetId';
+  }
+
+  @override
+  String get privacyPolicy => '隐私政策';
+
+  @override
+  String get requiresRecentLogin => '请重新登录并尝试删除账户。';
+
+  @override
+  String get resetPassword => '重置密码';
+
+  @override
+  String get resetPreset => '重置预设';
+
+  @override
+  String get saveAndContinue => '保存并继续';
+
+  @override
+  String get security => '安全';
+
+  @override
+  String get selectYourPreset => '选择您的预设';
+
+  @override
+  String get sendResetLink => '发送重置链接';
+
+  @override
+  String get server => '服务器';
+
+  @override
+  String get settings => '设置';
+
+  @override
+  String get signUp => '注册';
+
+  @override
+  String get signUpNewAccount => '注册新账户';
+
+  @override
+  String get targetLanguage => '目标语言';
+
+  @override
+  String get termsAndConditions => '条款和条件';
+
+  @override
+  String get yourFoodMenu => '您的菜单';
+
+  @override
+  String get passwordResetError => '发送密码重置电子邮件时发生错误。';
+
+  @override
+  String get save => '保存';
+
+  @override
+  String get saved => '已保存';
+
+  @override
+  String get aiAnswer => 'AI答案';
+
+  @override
+  String get liked => '已点赞';
+
+  @override
+  String get unliked => '取消点赞';
+
+  @override
+  String get textCopied => '文本已复制到剪贴板';
+
+  @override
+  String get title => '标题';
+
+  @override
+  String get noFavoriteData => '没有收藏数据';
+
+  @override
+  String get enterRestaurantName => '输入餐厅名称';
+
+  @override
+  String get pleaseEnterRestaurantAndRating => '请输入餐厅名称和评分';
+
+  @override
+  String get all => '全部';
+
+  @override
+  String get favorite => '收藏';
+
+  @override
+  String get noHistoryFound => '未找到历史记录';
+
+  @override
+  String get aiScanning => 'AI扫描中...';
+
+  @override
+  String get aiLoadingMessage => 'AI可能会出错。加载时间通常需要大约5到10秒，但可能因您的互联网连接和智能手机设备而有所不同。';
+
+  @override
+  String get introductionTitle1 => 'Mscanner';
+
+  @override
+  String get introductionSubtitle1 => '由 THJ 提供';
+
+  @override
+  String get introductionBody1 => '在全球的餐厅选择食物时，感到舒适自在';
+
+  @override
+  String get introductionTitle2 => '您想如何扫描菜单？';
+
+  @override
+  String get introductionBody2_1 => '1. 选择您的语言（英语或母语）';
+
+  @override
+  String get introductionBody2_2 => '2. 选择您的饮食风格（饮食、爱吃肉等）';
+
+  @override
+  String get introductionBody2_3 => '3. 设置要扫描的菜单数量（菜单越多，细节越少）';
+
+  @override
+  String get introductionTitle3 => '优化您的设置';
+
+  @override
+  String get introductionBody3_1 => '1. 启用深色模式';
+
+  @override
+  String get introductionBody3_2 => '2. 更改您的账户密码';
+
+  @override
+  String get introductionBody3_3 => '3. 重置您的菜单扫描设置';
+
+  @override
+  String get introductionBody3_4 => '4. 在线保存您的数据以启用更多功能';
+
+  @override
+  String get introductionTitle4 => '分享您的结果';
+
+  @override
+  String get introductionBody4_1 => '1. 在每个结果上留下备注';
+
+  @override
+  String get introductionBody4_2 => '2. 将结果保存到您的智能手机';
+
+  @override
+  String get introductionBody4_3 => '3. 收藏按钮和复制结果';
+
+  @override
+  String get introductionTitle5 => '保存您的体验';
+
+  @override
+  String get introductionBody5_1 => '1. 活跃点（显示您在Mscanner中的活动）';
+
+  @override
+  String get introductionBody5_2 => '2. 输入您访问过的餐厅名称';
+
+  @override
+  String get introductionBody5_3 => '3. 评价餐厅';
+
+  @override
+  String get introductionBody5_4 => '4. 在地图上查看您访问过的地方';
+
+  @override
+  String get skip => '跳过';
+
+  @override
+  String get done => '完成';
+
+  @override
+  String get checkOutRestaurant => '看看这家餐厅！';
+
+  @override
+  String get loadingError => '加载错误';
+
+  @override
+  String get confirmMessageTitle => '确认消息';
+
+  @override
+  String get confirmMessageContent => '您确定要删除吗？';
+
+  @override
+  String get shareLocation => '分享位置';
+
+  @override
+  String get checkOutContent => '看看这个内容！';
+
+  @override
+  String get shareVia => '通过以下方式分享';
+
+  @override
+  String get cloudsavingError => '云存储错误';
+
+  @override
+  String get languagesdescprition => '拍摄食物或菜单的照片，并选择输出语言';
+
+  @override
+  String get fooddescprition => '请选择一种饮食或膳食计划。AI将根据您的选择提供推荐和解释';
+
+  @override
+  String get menudescribe => '请选择要显示的菜单项数量。您选择的项目越少，描述将越详细';
+
+  @override
+  String get darkdescp => '启用深色模式以获得更舒适的观看体验';
+
+  @override
+  String get changepassdescp => '为了安全，定期更改您的密码，并使用易于记住的强密码';
+
+  @override
+  String get aIresetdescp => '您可以重置AI扫描设置';
+
+  @override
+  String get savedescp => '将输出数据保存到服务器。保存是启用其他功能所必需的';
+
+  @override
+  String get scanFoodPhotoDescription => '拍摄食物或菜单的照片，看看它是什么！现在就试试吧';
+
+  @override
+  String get activepoint => '这些点数显示用户的活动指数，将来会提供各种奖励。';
+
+  @override
+  String get todayrecommand => '今日推荐';
+
+  @override
+  String get cityrecommand => '按地区推荐';
+
+  @override
+  String get account => '账户';
+
+  @override
+  String get bookmark => '书签';
+
+  @override
+  String get map => '地图';
+
+  @override
+  String get locationPermissionNeeded => '需要位置权限';
+
+  @override
+  String get locationPermissionContent => '此应用需要位置信息权限才能正常运行。请在应用设置中允许位置访问。';
+
+  @override
+  String get locationServiceDisabled => '位置服务已禁用';
+
+  @override
+  String get locationServiceDisabledContent => '位置服务已禁用。请在设置中启用位置服务。';
+
+  @override
+  String get openSettings => '打开设置';
+
+  @override
+  String get languagesdescprition1 => '只需扫描，即可开启美食的世界。';
+
+  @override
+  String get continueAsGuest => '继续作为游客';
+
+  @override
+  String get guestLoginTitle => '访客登录';
+
+  @override
+  String get guestLoginContent => '您已作为访客登录。注销后所有数据将被删除。';
+
+  @override
+  String get confirm => '确认';
+
+  @override
+  String get guestLoginFailed => '访客登录失败。请再试一次。';
+
+  @override
+  String get logoutConfirmationTitle => '注销确认';
+
+  @override
+  String get logoutConfirmationContent => '作为访客注销将删除您所有的数据。您想继续吗？';
+
+  @override
+  String get convertAccount => '转换账户';
+
+  @override
+  String get accountConversionDescription => '将您的访客账户转为永久账户以保存您的数据。';
+
+  @override
+  String get accountConversionSuccess => '账户成功转换。';
+
+  @override
+  String get accountConversionFailed => '账户转换失败';
+
+  @override
+  String get browse => '以访客身份探索';
+
+  @override
+  String get changepreset => '更改预设';
+
+  @override
+  String get viewbylatest => '按最新查看';
+
+  @override
+  String get viewbycountry => '按国家查看';
+
+  @override
+  String get cameraHint => '点击相机扫描食物菜单。';
+
+  @override
+  String get manualTitle => '使用手册';
+
+  @override
+  String get manualSubtitle => '点击查看使用说明';
+
+  @override
+  String get loadingScanning => '正在扫描图像...';
+
+  @override
+  String get loadingAnalyzing => '使用人工智能分析菜单...';
+
+  @override
+  String get loadingAlmostDone => '几乎完成您的结果准备...';
+
+  @override
+  String get loadingFinalizing => '最后敲定细节…';
+
+  @override
+  String get loadingWaiting => '再多一点……感谢您的耐心等待！';
+
+  @override
+  String get emergencyTitle => '紧急通知';
+
+  @override
+  String get close => '关闭';
+
+  @override
+  String get dismissToday => '今天不再显示';
+
+  @override
+  String get gptErrorMessage => '抱歉。\\n与 AI 服务器通信时发生错误。\\n请稍后再试。';
+
+  @override
+  String get restaurantName => '餐厅名称';
+
+  @override
+  String get tutorialMode => '教程模式';
+
+  @override
+  String get reviewTitle => '评论';
+
+  @override
+  String get reviewHint => '请输入对餐厅的简短评价。';
+
+  @override
+  String get commentSection_title => '🗨 附近用户评价';
+
+  @override
+  String get commentSection_seeMore => '显示更多评价 ▼';
+
+  @override
+  String get commentSection_seeLess => '隐藏评论 ▲';
+
+  @override
+  String get commentSection_anonymous => '匿名';
+
+  @override
+  String get commentSection_noContent => '没有内容';
+
+  @override
+  String get timeAgo_minutes => '分钟前';
+
+  @override
+  String get timeAgo_hours => '小时前';
+
+  @override
+  String get timeAgo_days => '天前';
+
+  @override
+  String get timeAgo_months => '个月前';
+
+  @override
+  String get timeAgo_years => '年前';
+
+  @override
+  String get commentSection_translate => '翻译';
+
+  @override
+  String get commentSection_original => '原文';
+
+  @override
+  String get iapUnavailable => '应用内购买不可用';
+
+  @override
+  String get noAvailableProducts => '没有可购买的商品';
+
+  @override
+  String get premiumUserTitle => '高级用户';
+
+  @override
+  String get premiumUserSubtitle => '广告已移除';
+
+  @override
+  String get buy => '购买';
+
+  @override
+  String get guestPurchaseMessage => '访客用户无法购买';
+
+  @override
+  String get premiumFunctionMessage => '仅限高级服务';
+
+  @override
+  String get multiScan => '批量扫描';
+
+  @override
+  String maxScanImages(int maxCount) {
+    return '仅扫描前 $maxCount 张图片。';
+  }
+
+  @override
+  String get restorePurchases => '恢复购买';
+
+  @override
+  String get mergeInProgress => '正在合并图像…\n请稍候。';
+
+  @override
+  String get fx_title => '货币换算';
+
+  @override
+  String get fx_tooltip => '货币换算';
+
+  @override
+  String fx_currency_btn(Object code) {
+    return '货币：$code';
+  }
+
+  @override
+  String fx_base_date(Object date) {
+    return '基准日期：$date';
+  }
+
+  @override
+  String get fx_unknown => '未知';
+
+  @override
+  String get fx_amount_label => '金额';
+
+  @override
+  String get fx_amount_hint => '例如：100';
+
+  @override
+  String fx_enter_amount_to_convert(Object target) {
+    return '输入金额将转换为$target。';
+  }
+
+  @override
+  String get fx_error_no_rate => '没有该货币的汇率信息。';
+
+  @override
+  String get fx_search_currency_hint => '搜索货币代码（例如：USD、JPY）';
+
+  @override
+  String get sub_disclaimer_title => '订阅信息';
+
+  @override
+  String get sub_trial_free => '首次订阅用户在试用期内不会被收费。';
+
+  @override
+  String get sub_auto_renew => '试用结束后将自动转为付费，如未在当前周期结束前至少24小时取消，将自动续订。';
+
+  @override
+  String get sub_renew_charge => '续订费用可能会在当前周期结束前24小时内收取。';
+
+  @override
+  String sub_period_price(Object period, Object price) {
+    return '此订阅为$period（价格: $price）。';
+  }
+
+  @override
+  String get sub_restore => '之前购买的项目可通过“恢复购买”进行恢复。';
+
+  @override
+  String get terms => '服务条款';
+
+  @override
+  String get privacy => '隐私政策';
+
+  @override
+  String get sub_manage_ios => '费用将通过您的Apple ID收取，可在 设置 > [您的姓名] > 订阅 中管理或取消。';
+
+  @override
+  String get sub_manage_android => '费用将通过您的Google账号收取，可在 Play 商店应用 > 个人资料图标 > 付款和订阅 > 订阅 中管理或取消。';
+
+  @override
+  String get sub_badge_trial_1m => '🎁 首次订阅用户可享1个月免费体验';
+
+  @override
+  String get iapRestoreError => '恢复过程中发生错误。';
+
+  @override
+  String get iapRestoreDone => '购买已恢复。';
+
+  @override
+  String get iapRestoreEmpty => '没有可恢复的购买。';
+
+  @override
+  String get iapRestoreTrying => '正在尝试恢复购买…';
+
+  @override
+  String get viewOnMap => '在地图上查看';
+
+  @override
+  String get login_welcomeBack => '欢迎回来';
+
+  @override
+  String get login_subtitle => '用 AI 轻松开启美食探索之旅，现在就开始吧。';
+
+  @override
+  String get login_emailLabel => '邮箱地址';
+
+  @override
+  String get login_emailHint => 'name@example.com';
+
+  @override
+  String get login_orContinueWith => '或继续使用';
+
+  @override
+  String get login_google => '使用 Google 继续';
+
+  @override
+  String get login_apple => '使用 Apple 继续';
+
+  @override
+  String get login_noAccount => '还没有账号？';
+
+  @override
+  String get login_signUpFree => '免费注册';
+
+  @override
+  String get signup_subtitle => '创建账号可保存扫描、管理预设，并解锁高级功能。';
+
+  @override
+  String get signup_emailLabel => '邮箱地址';
+
+  @override
+  String get signup_emailHint => 'name@example.com';
+
+  @override
+  String get signup_logIn => '登录';
+
+  @override
+  String get map_noTitle => '无标题';
+
+  @override
+  String get map_cuisine => '菜系';
+
+  @override
+  String get map_location => '位置';
+
+  @override
+  String get map_searchHistory => '搜索记录';
+
+  @override
+  String get map_recent => '最近';
+
+  @override
+  String get map_topRated => '评分最高';
+
+  @override
+  String get map_date => '日期';
+
+  @override
+  String get map_clear => '清除';
+
+  @override
+  String get map_noResults => '无结果';
+
+  @override
+  String get map_unknown => '未知';
+
+  @override
+  String get howto_title => '如何使用 Mscanner';
+
+  @override
+  String get howto_step1 => '1. 扫描';
+
+  @override
+  String get howto_desc1 => '菜单或菜品';
+
+  @override
+  String get howto_step2 => '2. 分析';
+
+  @override
+  String get howto_desc2 => 'AI 分析 照片';
+
+  @override
+  String get howto_step3 => '3. 享用';
+
+  @override
+  String get howto_desc3 => '推荐 适合你的 美食';
+
+  @override
+  String get home_searchAiFoodImage => '搜索 AI 美食图片…';
+
+  @override
+  String get home_adLabel => '广告';
+
+  @override
+  String get home_trendingNearYou => '附近热门';
+
+  @override
+  String get home_mscannerPicks => 'Mscanner 推荐';
+
+  @override
+  String get home_viewAll => '查看全部';
+
+  @override
+  String get home_errorLoadingCards => '加载卡片出错';
+
+  @override
+  String get home_noDataAvailable => '暂无数据';
+
+  @override
+  String get home_errorSavingData => '保存数据出错';
+
+  @override
+  String get favoriteList_searchHistory => '搜索记录';
+
+  @override
+  String get favoriteList_all => '全部';
+
+  @override
+  String get favoriteList_recent => '最近';
+
+  @override
+  String get favoriteList_topRated => '评分最高';
+
+  @override
+  String get favoriteList_date => '日期';
+
+  @override
+  String get favoriteList_country => '国家/地区';
+
+  @override
+  String get favoriteList_noDate => '无日期';
+
+  @override
+  String get favoriteList_noHistoryFound => '暂无记录';
+
+  @override
+  String get favoriteList_thisWeek => '本周';
+
+  @override
+  String favoriteList_entries(Object count) {
+    return '$count 条';
+  }
+
+  @override
+  String get favorite_fullMenu => '完整菜单';
+
+  @override
+  String get favorite_menuMain => '主菜';
+
+  @override
+  String get favorite_menuSide => '配菜';
+
+  @override
+  String get favorite_menuMeal => '餐点';
+
+  @override
+  String get favorite_menuDrink => '饮品';
+
+  @override
+  String get favorite_menuBeverage => '饮品';
+
+  @override
+  String get favorite_menuOther => '其他';
+
+  @override
+  String get favorite_summaryTruncated => '摘要（简版）';
+
+  @override
+  String get favorite_summary => '摘要';
+
+  @override
+  String get favorite_noResponses => '暂无可用内容';
+
+  @override
+  String get favorite_viewFullMenu => '查看完整菜单';
+
+  @override
+  String get favorite_unknownRestaurant => '未知餐厅';
+
+  @override
+  String get favorite_failedSaveChanges => '保存更改失败';
+
+  @override
+  String get favorite_renderNotReady => '错误：页面尚未就绪。';
+
+  @override
+  String get favorite_restaurantNameHint => '餐厅名称';
+
+  @override
+  String get result_fxRateLoadFailed => '加载汇率数据失败，请检查网络连接。';
+
+  @override
+  String get result_fxConvertFailed => '金额换算失败。';
+
+  @override
+  String get result_restoreOriginalCurrency => '恢复原始货币';
+
+  @override
+  String result_convertToSystemCurrency(Object currency) {
+    return '换算为系统货币（$currency）';
+  }
+
+  @override
+  String get result_auto => '自动';
+
+  @override
+  String get result_viewFullMenu => '查看完整菜单';
+
+  @override
+  String get result_preparingMenu => '正在准备详细菜单…';
+
+  @override
+  String get result_failedLoadSettings => '加载设置失败，云端保存默认开启。';
+
+  @override
+  String get result_imageUploadFailed => '图片上传失败，请重试。';
+
+  @override
+  String get result_analyzing => '正在分析菜品信息';
+
+  @override
+  String get result_loadingFullMenu => '正在加载完整菜单…';
+
+  @override
+  String get howto_detail_link => '查看更多详情';
+
+  @override
+  String get guestLoginTitle2 => '欢迎，探索者！';
+
+  @override
+  String get guestLoginContent2 => '在访客模式下，您可以扫描菜单以获得个性化推荐，但无法保存收藏或在多设备间查看历史记录。';
+
+  @override
+  String get confirm2 => '以访客身份继续';
+
+  @override
+  String get login2 => '会员登录';
+
+  @override
+  String get result_orderButton => '订单';
+
+  @override
+  String get result_fullMenuUnavailable => '完整菜单尚未提供。';
+
+  @override
+  String get result_noMenuItemsFound => '未找到菜单项。';
+
+  @override
+  String get result_notMenuMessage => '这张图片看起来不像是食品菜单。请重新拍摄照片，确保菜单名称或食物名称清晰可见。';
+
+  @override
+  String get result_uncertainMenuMessage => '不确定这是不是食品菜单。请重新拍一张照片，确保菜单名称和价格清晰可见。';
+
+  @override
+  String get result_aiTimeoutMoreResponse => '等待更多 AI 回复时超时。';
+
+  @override
+  String get result_aiTimeoutFirstChunk => '在收到第一个 AI 分块之前超时了。';
+
+  @override
+  String get result_aiTimeoutFullMenu => '等待完整菜单超时。';
+
+  @override
+  String get result_aiTimeoutFullMenuStream => '在等待完整菜单流时超时。';
+
+  @override
+  String get result_aiReceiveFailedFullMenuStream => '接收完整菜单流失败。';
+
+  @override
+  String get result_aiEmptyStreamResponse => 'AI 返回了一个空的流响应。';
+
+  @override
+  String get tts_orderPhraseTitle => '创建订购短语';
+
+  @override
+  String get tts_scenarioSectionTitle => '选择情境';
+
+  @override
+  String get tts_modifierSectionTitle => '选择选项';
+
+  @override
+  String get tts_allergySectionTitle => '选择过敏症';
+
+  @override
+  String get tts_generatePhraseButton => '生成短语';
+
+  @override
+  String get tts_generationFailed => '无法生成短语。请稍后重试。';
+
+  @override
+  String get tts_resultSectionTitle => '生成的短语';
+
+  @override
+  String get tts_stop => '停止';
+
+  @override
+  String get tts_listen => '听着';
+
+  @override
+  String get tts_regenerate => '重新生成';
+
+  @override
+  String get tts_scenarioBasicOrder => '基本订单';
+
+  @override
+  String get tts_scenarioCustomizeOrder => '请求选项';
+
+  @override
+  String get tts_scenarioAllergyCheck => '检查过敏史';
+
+  @override
+  String get tts_scenarioRecommendationAsk => '请求推荐';
+
+  @override
+  String get tts_modifierNoCilantro => '不要香菜';
+
+  @override
+  String get tts_modifierNoOnion => '不加洋葱';
+
+  @override
+  String get tts_modifierLessSpicy => '少辣';
+
+  @override
+  String get tts_modifierLessSalty => '少咸';
+
+  @override
+  String get tts_allergyPeanut => '花生';
+
+  @override
+  String get tts_allergyMilk => '牛奶';
+
+  @override
+  String get tts_allergyShrimp => '虾';
+
+  @override
+  String get tts_allergyEgg => '鸡蛋';
+}
+
+/// The translations for Chinese, using the Han script (`zh_Hant`).
+class AppLocalizationsZhHant extends AppLocalizationsZh {
+  AppLocalizationsZhHant(): super('zh_Hant');
+
+  @override
+  String get accountDeleted => '帳戶已成功刪除。';
+
+  @override
+  String get addToStatus => '添加到我的狀態';
+
+  @override
+  String get aiSetting => 'AI設置';
+
+  @override
+  String get alreadyHaveAccount => '已經有帳戶？';
+
+  @override
+  String get areYouSureDeleteAccount => '您確定要刪除您的帳戶嗎？此操作無法撤銷。';
+
+  @override
+  String get camera => '相機';
+
+  @override
+  String get cancel => '取消';
+
+  @override
+  String get changePassword => '更改密碼';
+
+  @override
+  String get cloudSave => '雲保存';
+
+  @override
+  String get confirmDelete => '確認刪除';
+
+  @override
+  String get confirmPassword => '確認密碼';
+
+  @override
+  String get continueWithApple => '使用 Apple 繼續';
+
+  @override
+  String get continueWithGoogle => '使用 Google 繼續';
+
+  @override
+  String get createAccount => '創建帳戶';
+
+  @override
+  String get darkMode => '夜間模式';
+
+  @override
+  String get delete => '刪除';
+
+  @override
+  String get deleteAccount => '刪除帳戶';
+
+  @override
+  String get dietMenu => '飲食菜單';
+
+  @override
+  String get display => '顯示';
+
+  @override
+  String get email => '電子郵件';
+
+  @override
+  String get engine => '引擎';
+
+  @override
+  String get enterYourEmailtoResetPassword => '輸入您的電子郵件以重設密碼';
+
+  @override
+  String get failedChangePassword => '密碼更改失敗';
+
+  @override
+  String get failedDeleteAccount => '刪除帳戶失敗';
+
+  @override
+  String get foodMenuMaxNumber => '菜單最大數量';
+
+  @override
+  String get foodStyle => '飲食風格';
+
+  @override
+  String get foodStyleAIRecommend => 'AI推薦';
+
+  @override
+  String get foodStyleLowFat => '低脂';
+
+  @override
+  String get foodStyleLowSalt => '低鹽';
+
+  @override
+  String get foodStyleMeat => '肉類';
+
+  @override
+  String get foodStyleMuslim => '穆斯林';
+
+  @override
+  String get foodStyleNutFree => '無堅果';
+
+  @override
+  String get foodStyleSeafood => '海鮮';
+
+  @override
+  String get forgotPassword => '忘記密碼';
+
+  @override
+  String get hello => '你好';
+
+  @override
+  String get history => '歷史';
+
+  @override
+  String get home => '首頁';
+
+  @override
+  String get languageArabic => '阿拉伯語';
+
+  @override
+  String get languageBengali => '孟加拉語';
+
+  @override
+  String get languageChinese => '中文';
+
+  @override
+  String get languageEnglish => '英語';
+
+  @override
+  String get languageFrench => '法語';
+
+  @override
+  String get languageGerman => '德語';
+
+  @override
+  String get languageHindi => '印地語';
+
+  @override
+  String get languageIndonesian => '印度尼西亞語';
+
+  @override
+  String get languageJapanese => '日語';
+
+  @override
+  String get languageKorean => '韓語';
+
+  @override
+  String get languageMarathi => '馬拉地語';
+
+  @override
+  String get languagePortuguese => '葡萄牙語';
+
+  @override
+  String get languagePortugueseBrazil => '巴西葡萄牙語';
+
+  @override
+  String get languageRussian => '俄語';
+
+  @override
+  String get languageSimplifiedChinese => '簡體中文';
+
+  @override
+  String get languageSpanish => '西班牙語';
+
+  @override
+  String get languageTelugu => '泰盧固語';
+
+  @override
+  String get languageThai => '泰語';
+
+  @override
+  String get languageTraditionalChinese => '繁體中文';
+
+  @override
+  String get languageTurkish => '土耳其語';
+
+  @override
+  String get languageUrdu => '烏爾都語';
+
+  @override
+  String get languageVietnamese => '越南語';
+
+  @override
+  String get login => '登入';
+
+  @override
+  String get logIn => '登入';
+
+  @override
+  String get logout => '登出';
+
+  @override
+  String get menuNumber1 => '1';
+
+  @override
+  String get menuNumber1to3 => '1-3';
+
+  @override
+  String get menuNumber1to5 => '1-5';
+
+  @override
+  String get menuNumberAll => '全部';
+
+  @override
+  String get newPassword => '新密碼';
+
+  @override
+  String get password => '密碼';
+
+  @override
+  String get passwordChangedSuccess => '密碼更改成功。';
+
+  @override
+  String get passwordResetEmailSent => '密碼重設郵件已發送。請檢查您的收件箱';
+
+  @override
+  String get passwordsDoNotMatch => '密碼不匹配';
+
+  @override
+  String get pleaseEnterPassword => '請輸入您的密碼';
+
+  @override
+  String get pleaseEnterValidEmail => '請輸入有效的電子郵件';
+
+  @override
+  String presetSelected(Object presetId) {
+    return '已選擇預設 $presetId';
+  }
+
+  @override
+  String get privacyPolicy => '隱私政策';
+
+  @override
+  String get requiresRecentLogin => '請重新登入並嘗試刪除帳戶。';
+
+  @override
+  String get resetPassword => '重設密碼';
+
+  @override
+  String get resetPreset => '重置預設';
+
+  @override
+  String get saveAndContinue => '保存並繼續';
+
+  @override
+  String get security => '安全';
+
+  @override
+  String get selectYourPreset => '選擇您的預設';
+
+  @override
+  String get sendResetLink => '發送重設鏈接';
+
+  @override
+  String get server => '服務器';
+
+  @override
+  String get settings => '設置';
+
+  @override
+  String get signUp => '註冊';
+
+  @override
+  String get signUpNewAccount => '註冊新帳戶';
+
+  @override
+  String get targetLanguage => '目標語言';
+
+  @override
+  String get termsAndConditions => '條款和條件';
+
+  @override
+  String get yourFoodMenu => '您的菜單';
+
+  @override
+  String get passwordResetError => '發送密碼重置電子郵件時發生錯誤。';
+
+  @override
+  String get save => '保存';
+
+  @override
+  String get saved => '已保存';
+
+  @override
+  String get aiAnswer => 'AI答案';
+
+  @override
+  String get liked => '已讚';
+
+  @override
+  String get unliked => '取消讚';
+
+  @override
+  String get textCopied => '文本已複製到剪貼板';
+
+  @override
+  String get title => '標題';
+
+  @override
+  String get noFavoriteData => '沒有收藏資料';
+
+  @override
+  String get enterRestaurantName => '輸入餐廳名稱';
+
+  @override
+  String get pleaseEnterRestaurantAndRating => '請輸入餐廳名稱和評分';
+
+  @override
+  String get all => '全部';
+
+  @override
+  String get favorite => '收藏';
+
+  @override
+  String get noHistoryFound => '未找到歷史記錄';
+
+  @override
+  String get aiScanning => 'AI掃描中...';
+
+  @override
+  String get aiLoadingMessage => 'AI可能會出錯。加載時間通常需要大約5到10秒，但可能因您的互聯網連接和智能手機設備而有所不同。';
+
+  @override
+  String get introductionTitle1 => 'Mscanner';
+
+  @override
+  String get introductionSubtitle1 => '由 THJ 提供';
+
+  @override
+  String get introductionBody1 => '在全球的餐廳選擇食物時，感到舒適自在';
+
+  @override
+  String get introductionTitle2 => '您想如何掃描菜單？';
+
+  @override
+  String get introductionBody2_1 => '1. 選擇您的語言（英語或母語）';
+
+  @override
+  String get introductionBody2_2 => '2. 選擇您的飲食風格（飲食、愛吃肉等）';
+
+  @override
+  String get introductionBody2_3 => '3. 設置要掃描的菜單數量（菜單越多，細節越少）';
+
+  @override
+  String get introductionTitle3 => '優化您的設置';
+
+  @override
+  String get introductionBody3_1 => '1. 啟用深色模式';
+
+  @override
+  String get introductionBody3_2 => '2. 更改您的帳戶密碼';
+
+  @override
+  String get introductionBody3_3 => '3. 重置您的菜單掃描設置';
+
+  @override
+  String get introductionBody3_4 => '4. 在線保存您的數據以啟用更多功能';
+
+  @override
+  String get introductionTitle4 => '分享您的結果';
+
+  @override
+  String get introductionBody4_1 => '1. 在每個結果上留下備註';
+
+  @override
+  String get introductionBody4_2 => '2. 將結果保存到您的智能手機';
+
+  @override
+  String get introductionBody4_3 => '3. 收藏按鈕和複製結果';
+
+  @override
+  String get introductionTitle5 => '保存您的體驗';
+
+  @override
+  String get introductionBody5_1 => '1. 活躍點（顯示您在Mscanner中的活動）';
+
+  @override
+  String get introductionBody5_2 => '2. 輸入您訪問過的餐廳名稱';
+
+  @override
+  String get introductionBody5_3 => '3. 評價餐廳';
+
+  @override
+  String get introductionBody5_4 => '4. 在地圖上查看您訪問過的地方';
+
+  @override
+  String get skip => '跳過';
+
+  @override
+  String get done => '完成';
+
+  @override
+  String get checkOutRestaurant => '看看這家餐廳！';
+
+  @override
+  String get loadingError => '加載錯誤';
+
+  @override
+  String get confirmMessageTitle => '確認消息';
+
+  @override
+  String get confirmMessageContent => '您確定要刪除嗎？';
+
+  @override
+  String get shareLocation => '分享位置';
+
+  @override
+  String get checkOutContent => '看看這個內容！';
+
+  @override
+  String get shareVia => '通過以下方式分享';
+
+  @override
+  String get cloudsavingError => '雲端儲存錯誤';
+
+  @override
+  String get languagesdescprition => '拍攝食物或菜單的照片，並選擇輸出語言';
+
+  @override
+  String get fooddescprition => '請選擇一種飲食或餐飲計劃。AI將根據您的選擇提供建議和解釋';
+
+  @override
+  String get menudescribe => '請選擇要顯示的菜單項目數量。選擇的項目越少，描述越詳細';
+
+  @override
+  String get darkdescp => '啟用深色模式以獲得更舒適的觀看體驗';
+
+  @override
+  String get changepassdescp => '為了安全起見，請定期更改您的密碼，並使用易於記憶的強密碼';
+
+  @override
+  String get aIresetdescp => '您可以重置AI掃描設置';
+
+  @override
+  String get savedescp => '將輸出數據保存到伺服器。啟用其他功能需要保存';
+
+  @override
+  String get scanFoodPhotoDescription => '拍攝食物或菜單的照片，看看它是什麼！立即嘗試';
+
+  @override
+  String get activepoint => '這些點數顯示用戶的活動指數，未來會提供各種獎勵。';
+
+  @override
+  String get todayrecommand => '今日推薦';
+
+  @override
+  String get cityrecommand => '按地區推薦';
+
+  @override
+  String get account => '帳戶';
+
+  @override
+  String get bookmark => '書籤';
+
+  @override
+  String get map => '地圖';
+
+  @override
+  String get locationPermissionNeeded => '需要位置權限';
+
+  @override
+  String get locationPermissionContent => '此應用程序需要位置權限才能正常運行。請在應用設置中允許位置訪問。';
+
+  @override
+  String get locationServiceDisabled => '位置服務已禁用';
+
+  @override
+  String get locationServiceDisabledContent => '位置服務已禁用。請在設置中啟用位置服務。';
+
+  @override
+  String get openSettings => '打開設定';
+
+  @override
+  String get languagesdescprition1 => '只需掃描，便可解鎖美食世界的樂趣';
+
+  @override
+  String get continueAsGuest => '繼續作為訪客';
+
+  @override
+  String get guestLoginTitle => '來賓登入';
+
+  @override
+  String get guestLoginContent => '您以訪客身份登錄。登出後所有數據將被刪除。';
+
+  @override
+  String get confirm => '確認';
+
+  @override
+  String get guestLoginFailed => '訪客登入失敗。請再試一次。';
+
+  @override
+  String get logoutConfirmationTitle => '登出確認';
+
+  @override
+  String get logoutConfirmationContent => '登出作為訪客將刪除您所有的數據。您要繼續嗎？';
+
+  @override
+  String get convertAccount => '轉換帳戶';
+
+  @override
+  String get accountConversionDescription => '將您的來賓帳戶轉換為永久帳戶以保存您的數據。';
+
+  @override
+  String get accountConversionSuccess => '帳戶成功轉換。';
+
+  @override
+  String get accountConversionFailed => '帳戶轉換失敗';
+
+  @override
+  String get browse => '以訪客身份探索';
+
+  @override
+  String get changepreset => '更改預設設置';
+
+  @override
+  String get viewbylatest => '按最新查看';
+
+  @override
+  String get viewbycountry => '按國家查看';
+
+  @override
+  String get cameraHint => '輕觸相機掃描食品菜單。';
+
+  @override
+  String get manualTitle => '手冊頁面';
+
+  @override
+  String get manualSubtitle => '閱讀我們的文檔';
+
+  @override
+  String get loadingScanning => '正在掃描圖像...';
+
+  @override
+  String get loadingAnalyzing => '使用人工智慧分析菜單...';
+
+  @override
+  String get loadingAlmostDone => '快要完成準備您的結果了...';
+
+  @override
+  String get loadingFinalizing => '完成细节...';
+
+  @override
+  String get loadingWaiting => '再多一點…… 感謝您的耐心！';
+
+  @override
+  String get emergencyTitle => '緊急通知';
+
+  @override
+  String get close => '關閉';
+
+  @override
+  String get dismissToday => '今天不再顯示';
+
+  @override
+  String get gptErrorMessage => '抱歉。\\n與 AI 伺服器通訊時發生錯誤。\\n請稍後再試。';
+
+  @override
+  String get restaurantName => '餐廳名稱';
+
+  @override
+  String get tutorialMode => '教學模式';
+
+  @override
+  String get reviewTitle => '評論';
+
+  @override
+  String get reviewHint => '請輸入對餐廳的簡短評價。';
+
+  @override
+  String get commentSection_title => '🗨 附近用戶評論';
+
+  @override
+  String get commentSection_seeMore => '顯示更多評論 ▼';
+
+  @override
+  String get commentSection_seeLess => '隱藏評論 ▲';
+
+  @override
+  String get commentSection_anonymous => '匿名';
+
+  @override
+  String get commentSection_noContent => '沒有內容';
+
+  @override
+  String get timeAgo_minutes => '分鐘前';
+
+  @override
+  String get timeAgo_hours => '小時前';
+
+  @override
+  String get timeAgo_days => '天前';
+
+  @override
+  String get timeAgo_months => '個月前';
+
+  @override
+  String get timeAgo_years => '年前';
+
+  @override
+  String get commentSection_translate => '翻译';
+
+  @override
+  String get commentSection_original => '原文';
+
+  @override
+  String get iapUnavailable => '應用內購買不可用';
+
+  @override
+  String get noAvailableProducts => '沒有可購買的商品';
+
+  @override
+  String get premiumUserTitle => '高級用戶';
+
+  @override
+  String get premiumUserSubtitle => '已移除廣告';
+
+  @override
+  String get buy => '購買';
+
+  @override
+  String get guestPurchaseMessage => '訪客用戶無法購買';
+
+  @override
+  String get premiumFunctionMessage => '僅限高級服務';
+
+  @override
+  String get multiScan => '批量掃描';
+
+  @override
+  String maxScanImages(int maxCount) {
+    return '僅會掃描前 $maxCount 張圖片。';
+  }
+
+  @override
+  String get restorePurchases => '恢復購買';
+
+  @override
+  String get mergeInProgress => '正在合併圖像…\n請稍候。';
+
+  @override
+  String get fx_title => '貨幣換算';
+
+  @override
+  String get fx_tooltip => '貨幣換算';
+
+  @override
+  String fx_currency_btn(Object code) {
+    return '貨幣：$code';
+  }
+
+  @override
+  String fx_base_date(Object date) {
+    return '基準日期：$date';
+  }
+
+  @override
+  String get fx_unknown => '未知';
+
+  @override
+  String get fx_amount_label => '金額';
+
+  @override
+  String get fx_amount_hint => '例如：100';
+
+  @override
+  String fx_enter_amount_to_convert(Object target) {
+    return '輸入金額後將換算為$target。';
+  }
+
+  @override
+  String get fx_error_no_rate => '沒有該貨幣的匯率資訊。';
+
+  @override
+  String get fx_search_currency_hint => '搜尋貨幣代碼（例如：USD、JPY）';
+
+  @override
+  String get sub_disclaimer_title => '訂閱資訊';
+
+  @override
+  String get sub_trial_free => '首次訂閱用戶在試用期內不會被收費。';
+
+  @override
+  String get sub_auto_renew => '試用結束後將自動轉為付費，如未在當前週期結束前至少24小時取消，將自動續訂。';
+
+  @override
+  String get sub_renew_charge => '續訂費用可能會在當前週期結束前24小時內收取。';
+
+  @override
+  String sub_period_price(Object period, Object price) {
+    return '此訂閱為$period（價格: $price）。';
+  }
+
+  @override
+  String get sub_restore => '之前購買的項目可透過「恢復購買」進行恢復。';
+
+  @override
+  String get terms => '服務條款';
+
+  @override
+  String get privacy => '隱私政策';
+
+  @override
+  String get sub_manage_ios => '費用將透過您的Apple ID收取，可在 設定 > [您的姓名] > 訂閱 中管理或取消。';
+
+  @override
+  String get sub_manage_android => '費用將透過您的Google帳戶收取，可在 Play 商店應用程式 > 個人資料圖示 > 付款與訂閱 > 訂閱 中管理或取消。';
+
+  @override
+  String get sub_badge_trial_1m => '🎁 首次訂閱者享 1 個月免費';
+
+  @override
+  String get iapRestoreError => '還原過程中發生錯誤。';
+
+  @override
+  String get iapRestoreDone => '已恢復購買項目。';
+
+  @override
+  String get iapRestoreEmpty => '沒有可恢復的購買。';
+
+  @override
+  String get iapRestoreTrying => '正在嘗試恢復已購買的項目...';
+
+  @override
+  String get viewOnMap => '在地圖上查看';
+
+  @override
+  String get login_welcomeBack => '歡迎回來';
+
+  @override
+  String get login_subtitle => '用 AI 輕鬆探索美食世界，現在就開始吧。';
+
+  @override
+  String get login_emailLabel => '電子郵件';
+
+  @override
+  String get login_emailHint => 'name@example.com';
+
+  @override
+  String get login_orContinueWith => '或使用以下方式繼續';
+
+  @override
+  String get login_google => '使用 Google 繼續';
+
+  @override
+  String get login_apple => '使用 Apple 繼續';
+
+  @override
+  String get login_noAccount => '還沒有帳號？';
+
+  @override
+  String get login_signUpFree => '免費註冊';
+
+  @override
+  String get signup_subtitle => '建立帳號可儲存掃描、管理預設，並解鎖進階功能。';
+
+  @override
+  String get signup_emailLabel => '電子郵件';
+
+  @override
+  String get signup_emailHint => 'name@example.com';
+
+  @override
+  String get signup_logIn => '登入';
+
+  @override
+  String get map_noTitle => '無標題';
+
+  @override
+  String get map_cuisine => '菜系';
+
+  @override
+  String get map_location => '位置';
+
+  @override
+  String get map_searchHistory => '搜尋紀錄';
+
+  @override
+  String get map_recent => '最近';
+
+  @override
+  String get map_topRated => '評分最高';
+
+  @override
+  String get map_date => '日期';
+
+  @override
+  String get map_clear => '清除';
+
+  @override
+  String get map_noResults => '無結果';
+
+  @override
+  String get map_unknown => '未知';
+
+  @override
+  String get howto_title => '如何使用 Mscanner';
+
+  @override
+  String get howto_step1 => '1. 掃描';
+
+  @override
+  String get howto_desc1 => '菜單或餐點';
+
+  @override
+  String get howto_step2 => '2. 分析';
+
+  @override
+  String get howto_desc2 => 'AI 分析 照片';
+
+  @override
+  String get howto_step3 => '3. 享用';
+
+  @override
+  String get howto_desc3 => '推薦 適合你的 美食';
+
+  @override
+  String get home_searchAiFoodImage => '搜尋 AI 美食圖片…';
+
+  @override
+  String get home_adLabel => '廣告';
+
+  @override
+  String get home_trendingNearYou => '你附近的熱門';
+
+  @override
+  String get home_mscannerPicks => 'Mscanner 精選';
+
+  @override
+  String get home_viewAll => '查看全部';
+
+  @override
+  String get home_errorLoadingCards => '載入卡片錯誤';
+
+  @override
+  String get home_noDataAvailable => '沒有可用資料';
+
+  @override
+  String get home_errorSavingData => '儲存資料錯誤';
+
+  @override
+  String get favoriteList_searchHistory => '搜尋紀錄';
+
+  @override
+  String get favoriteList_all => '全部';
+
+  @override
+  String get favoriteList_recent => '最近';
+
+  @override
+  String get favoriteList_topRated => '評分最高';
+
+  @override
+  String get favoriteList_date => '日期';
+
+  @override
+  String get favoriteList_country => '國家/地區';
+
+  @override
+  String get favoriteList_noDate => '無日期';
+
+  @override
+  String get favoriteList_noHistoryFound => '找不到紀錄';
+
+  @override
+  String get favoriteList_thisWeek => '本週';
+
+  @override
+  String favoriteList_entries(Object count) {
+    return '$count 筆';
+  }
+
+  @override
+  String get favorite_fullMenu => '完整菜單';
+
+  @override
+  String get favorite_menuMain => '主菜';
+
+  @override
+  String get favorite_menuSide => '配菜';
+
+  @override
+  String get favorite_menuMeal => '餐點';
+
+  @override
+  String get favorite_menuDrink => '飲品';
+
+  @override
+  String get favorite_menuBeverage => '飲品';
+
+  @override
+  String get favorite_menuOther => '其他';
+
+  @override
+  String get favorite_summaryTruncated => '摘要（簡版）';
+
+  @override
+  String get favorite_summary => '摘要';
+
+  @override
+  String get favorite_noResponses => '沒有可用內容';
+
+  @override
+  String get favorite_viewFullMenu => '查看完整菜單';
+
+  @override
+  String get favorite_unknownRestaurant => '未知餐廳';
+
+  @override
+  String get favorite_failedSaveChanges => '儲存變更失敗';
+
+  @override
+  String get favorite_renderNotReady => '錯誤：頁面尚未就緒。';
+
+  @override
+  String get favorite_restaurantNameHint => '餐廳名稱';
+
+  @override
+  String get result_fxRateLoadFailed => '載入匯率資料失敗，請檢查網路連線。';
+
+  @override
+  String get result_fxConvertFailed => '金額換算失敗。';
+
+  @override
+  String get result_restoreOriginalCurrency => '還原原始貨幣';
+
+  @override
+  String result_convertToSystemCurrency(Object currency) {
+    return '換算為系統貨幣（$currency）';
+  }
+
+  @override
+  String get result_auto => '自動';
+
+  @override
+  String get result_viewFullMenu => '查看完整菜單';
+
+  @override
+  String get result_preparingMenu => '正在準備詳細菜單…';
+
+  @override
+  String get result_failedLoadSettings => '載入設定失敗，雲端儲存預設開啟。';
+
+  @override
+  String get result_imageUploadFailed => '圖片上傳失敗，請再試一次。';
+
+  @override
+  String get result_analyzing => '正在分析餐點資訊';
+
+  @override
+  String get result_loadingFullMenu => '正在載入完整菜單…';
+
+  @override
+  String get howto_detail_link => '查看更多內容';
+
+  @override
+  String get guestLoginTitle2 => '歡迎，探索者！';
+
+  @override
+  String get guestLoginContent2 => '在訪客模式下，您可以掃描菜單以獲得個人化推薦，但您將無法儲存最愛或在不同裝置間查看歷史紀錄。';
+
+  @override
+  String get confirm2 => '以訪客身分繼續';
+
+  @override
+  String get login2 => '會員登入';
+
+  @override
+  String get result_orderButton => '訂單';
+
+  @override
+  String get result_fullMenuUnavailable => '完整菜單尚未提供。';
+
+  @override
+  String get result_noMenuItemsFound => '未找到菜單項目。';
+
+  @override
+  String get result_notMenuMessage => '這張圖片看起來不像是食品菜單。請重新拍攝，讓菜單名稱或食物名稱能清楚看見。';
+
+  @override
+  String get result_uncertainMenuMessage => '我不確定這是食物菜單。請重新拍攝照片，讓菜單名稱和價格清楚可見。';
+
+  @override
+  String get result_aiTimeoutMoreResponse => '等待更多 AI 回應時逾時。';
+
+  @override
+  String get result_aiTimeoutFirstChunk => '在第一個 AI 資料區塊到達之前超時了。';
+
+  @override
+  String get result_aiTimeoutFullMenu => '等待完整菜單時超時。';
+
+  @override
+  String get result_aiTimeoutFullMenuStream => '等待完整菜單串流時超時。';
+
+  @override
+  String get result_aiReceiveFailedFullMenuStream => '未能接收完整的選單串流。';
+
+  @override
+  String get result_aiEmptyStreamResponse => 'AI 返回了空的串流回應。';
+
+  @override
+  String get tts_orderPhraseTitle => '創建下單用語';
+
+  @override
+  String get tts_scenarioSectionTitle => '選擇情境';
+
+  @override
+  String get tts_modifierSectionTitle => '選擇選項';
+
+  @override
+  String get tts_allergySectionTitle => '選擇過敏症狀';
+
+  @override
+  String get tts_generatePhraseButton => '生成短語';
+
+  @override
+  String get tts_generationFailed => '無法生成短語。請稍後再試一次。';
+
+  @override
+  String get tts_resultSectionTitle => '生成的短語';
+
+  @override
+  String get tts_stop => '停止';
+
+  @override
+  String get tts_listen => '聽著';
+
+  @override
+  String get tts_regenerate => '重新生成';
+
+  @override
+  String get tts_scenarioBasicOrder => '基本訂單';
+
+  @override
+  String get tts_scenarioCustomizeOrder => '請求選項';
+
+  @override
+  String get tts_scenarioAllergyCheck => '檢查過敏史';
+
+  @override
+  String get tts_scenarioRecommendationAsk => '請求推薦';
+
+  @override
+  String get tts_modifierNoCilantro => '不要香菜';
+
+  @override
+  String get tts_modifierNoOnion => '不要洋蔥';
+
+  @override
+  String get tts_modifierLessSpicy => '比較不辣';
+
+  @override
+  String get tts_modifierLessSalty => '少鹹一點';
+
+  @override
+  String get tts_allergyPeanut => '花生';
+
+  @override
+  String get tts_allergyMilk => '牛奶';
+
+  @override
+  String get tts_allergyShrimp => '蝦仁';
+
+  @override
+  String get tts_allergyEgg => '蛋';
+}
