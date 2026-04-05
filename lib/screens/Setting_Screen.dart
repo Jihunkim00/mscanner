@@ -781,11 +781,34 @@ class _SettingScreenState extends State<SettingScreen> {
               children: [
                 CupertinoFormRow(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                    child: Text(
-                      AppLocalizations.of(context)!.guestPurchaseMessage,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14, color: textColor),
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          AppLocalizations.of(context)!.premiumGuestSectionTitle,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: textColor,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          AppLocalizations.of(context)!.premiumGuestSectionMessage,
+                          style: TextStyle(fontSize: 13, color: textColor.withOpacity(0.85)),
+                        ),
+                        const SizedBox(height: 12),
+                        CupertinoButton.filled(
+                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+                          onPressed: _convertAccount,
+                          borderRadius: BorderRadius.circular(10),
+                          child: Text(
+                            AppLocalizations.of(context)!.premiumGuestConvertButton,
+                            style: const TextStyle(fontSize: 14, fontFamily: 'SFProText'),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),

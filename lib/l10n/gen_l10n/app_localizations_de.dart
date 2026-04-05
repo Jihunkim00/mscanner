@@ -1067,4 +1067,29 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tts_allergyEgg => 'Ei';
+
+  @override
+  String get premiumLoginRequiredTitle => 'Sign in to start Premium';
+
+  @override
+  String get premiumLoginRequiredMessage => 'Sign in to restore purchases, keep your subscription, and access Premium across devices.';
+
+  @override
+  String get premiumLoginRequiredAction => 'Sign in to continue';
+
+  @override
+  String get premiumGuestCta => 'Sign in for Premium';
+
+  @override
+  String get premiumStartCta => 'Start Premium';
+
+  @override
+  String get premiumGuestSectionTitle => 'Connect your account before purchasing Premium in guest mode';
+
+  @override
+  String get premiumGuestSectionMessage => 'Premium subscriptions are linked to your account so purchases can be restored and used across devices.';
+
+  @override
+  String get premiumGuestConvertButton => 'Convert account to continue';
+
 }

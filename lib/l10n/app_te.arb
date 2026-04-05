@@ -369,5 +369,13 @@
   "tts_allergyPeanut": "వేరుశెనగ",
   "tts_allergyMilk": "పాలు",
   "tts_allergyShrimp": "రొయ్యలు",
-  "tts_allergyEgg": "గుడ్డు"
+  "tts_allergyEgg": "గుడ్డు",
+  "premiumLoginRequiredTitle": "Sign in to start Premium",
+  "premiumLoginRequiredMessage": "Sign in to restore purchases, keep your subscription, and access Premium across devices.",
+  "premiumLoginRequiredAction": "Sign in to continue",
+  "premiumGuestCta": "Sign in for Premium",
+  "premiumStartCta": "Start Premium",
+  "premiumGuestSectionTitle": "Connect your account before purchasing Premium in guest mode",
+  "premiumGuestSectionMessage": "Premium subscriptions are linked to your account so purchases can be restored and used across devices.",
+  "premiumGuestConvertButton": "Convert account to continue"
 }

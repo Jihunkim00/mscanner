@@ -2219,6 +2219,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Egg'**
   String get tts_allergyEgg;
+
+  /// No description provided for @premiumLoginRequiredTitle.
+  String get premiumLoginRequiredTitle;
+
+  /// No description provided for @premiumLoginRequiredMessage.
+  String get premiumLoginRequiredMessage;
+
+  /// No description provided for @premiumLoginRequiredAction.
+  String get premiumLoginRequiredAction;
+
+  /// No description provided for @premiumGuestCta.
+  String get premiumGuestCta;
+
+  /// No description provided for @premiumStartCta.
+  String get premiumStartCta;
+
+  /// No description provided for @premiumGuestSectionTitle.
+  String get premiumGuestSectionTitle;
+
+  /// No description provided for @premiumGuestSectionMessage.
+  String get premiumGuestSectionMessage;
+
+  /// No description provided for @premiumGuestConvertButton.
+  String get premiumGuestConvertButton;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
