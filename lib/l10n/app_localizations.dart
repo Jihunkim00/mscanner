@@ -2219,6 +2219,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Egg'**
   String get tts_allergyEgg;
+
+  /// No description provided for @premiumLoginRequiredTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to start Premium'**
+  String get premiumLoginRequiredTitle;
+
+  /// No description provided for @premiumLoginRequiredMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to restore purchases, keep your subscription, and access Premium across devices.'**
+  String get premiumLoginRequiredMessage;
+
+  /// No description provided for @premiumLoginRequiredAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to continue'**
+  String get premiumLoginRequiredAction;
+
+  /// No description provided for @premiumGuestCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in for Premium'**
+  String get premiumGuestCta;
+
+  /// No description provided for @premiumStartCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Premium'**
+  String get premiumStartCta;
+
+  /// No description provided for @premiumGuestSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect your account before purchasing Premium in guest mode'**
+  String get premiumGuestSectionTitle;
+
+  /// No description provided for @premiumGuestSectionMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium subscriptions are linked to your account so purchases can be restored and used across devices.'**
+  String get premiumGuestSectionMessage;
+
+  /// No description provided for @premiumGuestConvertButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert account to continue'**
+  String get premiumGuestConvertButton;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

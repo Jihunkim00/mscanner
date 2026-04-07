@@ -1067,4 +1067,28 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get tts_allergyEgg => '달걀';
+
+  @override
+  String get premiumLoginRequiredTitle => '프리미엄을 시작하려면 로그인이 필요해요';
+
+  @override
+  String get premiumLoginRequiredMessage => '구매 내역 복원, 구독 유지, 기기 변경 시 복원을 위해 계정 연결이 필요해요.';
+
+  @override
+  String get premiumLoginRequiredAction => '로그인 후 계속';
+
+  @override
+  String get premiumGuestCta => '로그인 후 프리미엄 시작';
+
+  @override
+  String get premiumStartCta => '프리미엄 시작';
+
+  @override
+  String get premiumGuestSectionTitle => '게스트 모드에서는 프리미엄 구매 전에 계정 연결이 필요해요';
+
+  @override
+  String get premiumGuestSectionMessage => '프리미엄 구독은 계정에 연결되어 구매 내역 복원과 기기 간 유지가 가능해요.';
+
+  @override
+  String get premiumGuestConvertButton => '계정 전환 후 계속';
 }

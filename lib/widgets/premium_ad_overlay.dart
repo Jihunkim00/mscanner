@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 
 class PremiumAdOverlay extends StatelessWidget {
   final ImageProvider image;
@@ -14,6 +15,7 @@ class PremiumAdOverlay extends StatelessWidget {
   final BoxFit imageFit;                // 이미지 채우기 방식 (cover / contain …)
   final Alignment imageAlignment;       // 이미지 앵커 위치
   final double panelOffsetY;            // 패널을 위/아래로 미세 이동 (음수=위로)
+  final bool isGuest;
 
   const PremiumAdOverlay({
     Key? key,
@@ -29,7 +31,8 @@ class PremiumAdOverlay extends StatelessWidget {
     // ⬇️ 기본값
     this.imageFit = BoxFit.contain,
     this.imageAlignment = Alignment.topLeft,
-    this.panelOffsetY = -50,             // 기본은 이동 없음
+    this.panelOffsetY = -50,
+    this.isGuest = false,// 기본은 이동 없음
   }) : super(key: key);
 
   static const _rtlLangs = {'ar', 'ur'};
@@ -94,6 +97,7 @@ class PremiumAdOverlay extends StatelessWidget {
                           premiumMonthlyPrice: premiumMonthlyPrice,
                           isNarrow: isNarrow,
                           onPrimaryTap: onPrimaryTap,
+                          isGuest: isGuest,
                         ),
                       ),
                     ),
@@ -121,6 +125,7 @@ class _Panel extends StatelessWidget {
   final String premiumMonthlyPrice;
   final bool isNarrow;
   final VoidCallback? onPrimaryTap;
+  final bool isGuest;
 
   const _Panel({
     required this.strings,
@@ -128,10 +133,13 @@ class _Panel extends StatelessWidget {
     required this.premiumMonthlyPrice,
     required this.isNarrow,
     this.onPrimaryTap,
+    required this.isGuest,
   });
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final ctaText = isGuest ? l10n.premiumGuestCta : l10n.premiumStartCta;
     final titleStyle = Theme.of(context).textTheme.headlineSmall?.copyWith(
       fontFamily: 'SFPro',
       fontSize: 20,   // 👈 원하는 크기로 고정
@@ -142,13 +150,13 @@ class _Panel extends StatelessWidget {
 
     return DefaultTextStyle.merge(
         style: const TextStyle(
-        decoration: TextDecoration.none,      // ✅ 밑줄 제거
-        decorationColor: Colors.transparent,  // ✅ 혹시 모를 데코 색도 무시
-    ),
-    child: Column(
-    mainAxisSize: MainAxisSize.min,
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
+          decoration: TextDecoration.none, // ✅ 밑줄 제거
+          decorationColor: Colors.transparent, // ✅ 혹시 모를 데코 색도 무시
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
         // 브랜드 텍스트 (불필요하다면 제거 가능)
         // Text("Mscanner", style: TextStyle(fontFamily: 'SFPro', color: Colors.white70, fontSize: 13, letterSpacing: 0.5)),
         SizedBox(height: isNarrow ? 6 : 10),
@@ -156,7 +164,12 @@ class _Panel extends StatelessWidget {
         SizedBox(height: isNarrow ? 8 : 12),
         _PriceRow(icon: Icons.block, label: strings.adFree, price: adFreePrice),
         const SizedBox(height: 6),
-        _PriceRow(icon: Icons.star_rounded, label: strings.premiumMonthly, price: premiumMonthlyPrice, trailing: strings.freeTrial),
+            _PriceRow(
+              icon: Icons.star_rounded,
+              label: strings.premiumMonthly,
+              price: premiumMonthlyPrice,
+              trailing: strings.freeTrial,
+            ),
         SizedBox(height: isNarrow ? 10 : 14),
         SizedBox(
           height: 44,
@@ -168,14 +181,30 @@ class _Panel extends StatelessWidget {
               elevation: 0,
             ),
             onPressed: onPrimaryTap,
-            child: Text(strings.cta, style: const TextStyle(fontFamily: 'SFPro', fontSize: 18, decoration: TextDecoration.none, fontWeight: FontWeight.w600)),
+            child: Text(
+              ctaText,
+              style: const TextStyle(
+                fontFamily: 'SFPro',
+                fontSize: 18,
+                decoration: TextDecoration.none,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 6),
-        Text(strings.disclaimer,
-            style: const TextStyle(fontFamily: 'SFPro', color: Colors.white30, fontSize: 15, decoration: TextDecoration.none,      // ✅ 안전장치)),
-            )      )],
-    ));
+            Text(
+              strings.disclaimer,
+              style: const TextStyle(
+                fontFamily: 'SFPro',
+                color: Colors.white30,
+                fontSize: 15,
+                decoration: TextDecoration.none, // ✅ 안전장치
+              ),
+            ),
+          ],
+        ),
+    );
   }
 }
 

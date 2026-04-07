@@ -369,5 +369,13 @@
   "tts_allergyPeanut": "Yer fıstığı",
   "tts_allergyMilk": "Süt",
   "tts_allergyShrimp": "Karides",
-  "tts_allergyEgg": "Yumurta"
+  "tts_allergyEgg": "Yumurta",
+  "premiumLoginRequiredTitle": "Sign in to start Premium",
+  "premiumLoginRequiredMessage": "Sign in to restore purchases, keep your subscription, and access Premium across devices.",
+  "premiumLoginRequiredAction": "Sign in to continue",
+  "premiumGuestCta": "Sign in for Premium",
+  "premiumStartCta": "Start Premium",
+  "premiumGuestSectionTitle": "Connect your account before purchasing Premium in guest mode",
+  "premiumGuestSectionMessage": "Premium subscriptions are linked to your account so purchases can be restored and used across devices.",
+  "premiumGuestConvertButton": "Convert account to continue"
 }

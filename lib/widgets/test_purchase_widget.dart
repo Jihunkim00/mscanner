@@ -105,7 +105,17 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
   }
 
   Future<void> _checkPreviousPurchase() async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null || currentUser.isAnonymous) {
+      if (!mounted) return;
+      setState(() {
+        _isAdFree = false;
+        _isSubscribed = false;
+      });
+      return;
+    }
+
+    final uid = currentUser.uid;
     bool isAdFree = false;
     bool isSubscribed = false;
 
@@ -260,7 +270,16 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
 
 
   Future<void> _onPurchaseSuccess(PurchaseDetails purchase) async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null || currentUser.isAnonymous) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.premiumLoginRequiredMessage)),
+      );
+      return;
+    }
+
+    final uid = currentUser.uid;
     final ref = FirebaseFirestore.instance.collection('user_points').doc(uid);
 
     try {
@@ -325,6 +344,13 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
   }
 
   void _buy(ProductDetails product) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null || currentUser.isAnonymous) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.premiumLoginRequiredMessage)),
+      );
+      return;
+    }
     await _log.logPremiumCtaClick(
       placement: 'settings',
       plan: product.id == 'premium_monthly' ? 'monthly' : 'remove_ads',

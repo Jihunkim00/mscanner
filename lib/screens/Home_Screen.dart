@@ -31,6 +31,7 @@ import '/widgets/test_purchase_widget.dart';
 import '/screens/log_service.dart';
 import '/widgets/how_to_use_mscanner_card.dart';
 import '/analytics_service.dart';
+import '/screens/Login_Screen.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -147,9 +148,73 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _showPremiumOverlay = false);
   }
 
+  Future<void> _showPurchaseSheet() async {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          builder: (ctx, scrollController) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  child: TestPurchaseWidget(
+                    onPurchased: () {
+                      Navigator.of(context).maybePop(); // 바텀시트 닫기
+                      _closePremiumOverlay(); // 프리미엄 오버레이도 닫기
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
-
-
+  Future<void> _showGuestPremiumPrompt() async {
+    final l10n = AppLocalizations.of(context)!;
+    await showCupertinoModalPopup<void>(
+      context: context,
+      builder: (ctx) => CupertinoActionSheet(
+        title: Text(l10n.premiumLoginRequiredTitle),
+        message: Text(l10n.premiumLoginRequiredMessage),
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => LoginScreen()),
+              );
+            },
+            child: Text(l10n.premiumLoginRequiredAction),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              setState(() => _selectedIndex = 4); // Settings 탭으로 이동
+            },
+            child: Text(l10n.premiumGuestConvertButton),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.of(ctx).pop(),
+          child: Text(l10n.cancel),
+        ),
+      ),
+    );
+  }
 
 
   Future<bool> _shouldShowEmergencyPopup() async {
@@ -960,6 +1025,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         imageFit: BoxFit.cover,       // ✅ 세로 기준으로 꽉 차게
                         imageAlignment: Alignment.topLeft, // ✅ 위쪽 기준
                         panelOffsetY: -60,                // ✅ 텍스트 위로 올리기
+                        isGuest: FirebaseAuth.instance.currentUser == null ||
+                            FirebaseAuth.instance.currentUser!.isAnonymous,
 
                         onPrimaryTap: () async {
                           await LogService().logPremiumCtaClick(placement: 'overlay', plan: 'subscription'); // ⑰ 프리미엄 CTA
@@ -967,38 +1034,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             source: 'home_overlay',
                             trigger: 'overlay_cta',
                           );
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (_) {
-                              return DraggableScrollableSheet(
-                                initialChildSize: 0.7,
-                                minChildSize: 0.5,
-                                maxChildSize: 0.95,
-                                builder: (ctx, scrollController) {
-                                  return Container(
-                                    decoration: const BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(top: 8),
-                                      child: SingleChildScrollView(
-                                        controller: scrollController,
-                                        child: TestPurchaseWidget(
-                                          onPurchased: () {
-                                            Navigator.of(context).maybePop(); // 바텀시트 닫기
-                                            _closePremiumOverlay();          // 프리미엄 오버레이도 닫기
-                                          },
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                          );
+                          final user = FirebaseAuth.instance.currentUser;
+                          final isGuest = user == null || user.isAnonymous;
+                          if (isGuest) {
+                            await _showGuestPremiumPrompt();
+                            return;
+                          }
+                          await _showPurchaseSheet();
                         },
                         onClose: _closePremiumOverlay,
                       )
