@@ -12,6 +12,7 @@ import '/ad_remove_provider.dart'; // 실제 경로로 수정
 import 'package:url_launcher/url_launcher.dart';
 import '/screens/log_service.dart';
 import '/analytics_service.dart';
+import 'package:flutter/cupertino.dart';
 
 
 class TestPurchaseWidget extends StatefulWidget {
@@ -402,6 +403,8 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
         final Color warmText   = isDark ? Colors.white : const Color(0xFF4A3B35);
         final Color warmTextSub= isDark ? Colors.white70 : const Color(0xFF4A3B35).withOpacity(0.75);
         final Color warmIcon   = isDark ? Colors.white : const Color(0xFF5A463F);
+        final Color warmLink = isDark ? const Color(0xFFE5DDD8) : const Color(0xFF5A4942);
+        final Color warmLegal = isDark ? const Color(0xFFC8BCB4) : const Color(0xFF6F5D55);
 
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null) return ListTile(title: Text(_error!));
@@ -554,7 +557,7 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
                 const Divider(),
                 Text(
                   l10n.sub_disclaimer_title, // "구독 안내"
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: warmText),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -570,13 +573,31 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TextButton(
+                    CupertinoButton(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      minSize: 34,
                       onPressed: () => launchUrl(Uri.parse('https://mscanner.net/terms-conditions/')),
-                      child: Text(l10n.terms), // "이용약관"
+                      child: Text(
+                        l10n.terms,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: warmLink,
+                        ),
+                      ),
                     ),
-                    TextButton(
+                    CupertinoButton(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      minSize: 34,
                       onPressed: () => launchUrl(Uri.parse('https://mscanner.net/privacy-policy/')),
-                      child: Text(l10n.privacy), // "개인정보 처리방침"
+                      child: Text(
+                        l10n.privacy,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: warmLink,
+                        ),
+                      ),
                     ),
                   ],
                 )
@@ -590,16 +611,17 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton(
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
+                CupertinoButton(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                  minSize: 34,
                   onPressed: _restoreWithFeedback,
                   child: Text(
                     AppLocalizations.of(context)!.restorePurchases,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: warmLegal,
+                    ),
                   ),
                 ),
               ],

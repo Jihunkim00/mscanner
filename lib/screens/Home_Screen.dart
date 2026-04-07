@@ -32,6 +32,7 @@ import '/screens/log_service.dart';
 import '/widgets/how_to_use_mscanner_card.dart';
 import '/analytics_service.dart';
 import '/screens/Login_Screen.dart';
+import '/helpers/account_upgrade_helper.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -56,6 +57,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool _showPremiumOverlay = false; // 🔹 프리미엄 팝업 표시 여부
   StreamSubscription<User?>? _authSub;
+  bool _isOpeningPurchaseSheet = false;
+  bool _isHandlingPremiumCta = false;
 
   String _nearbyTrendingText(String lang) {
     try {
@@ -149,39 +152,79 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _showPurchaseSheet() async {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.7,
-          minChildSize: 0.5,
-          maxChildSize: 0.95,
-          builder: (ctx, scrollController) {
-            return Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: SingleChildScrollView(
-                  controller: scrollController,
-                  child: TestPurchaseWidget(
-                    onPurchased: () {
-                      Navigator.of(context).maybePop(); // 바텀시트 닫기
-                      _closePremiumOverlay(); // 프리미엄 오버레이도 닫기
-                    },
+    if (_isOpeningPurchaseSheet || !mounted) return;
+    _isOpeningPurchaseSheet = true;
+
+    try {
+      await showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) {
+          return DraggableScrollableSheet(
+            initialChildSize: 0.7,
+            minChildSize: 0.5,
+            maxChildSize: 0.95,
+            builder: (ctx, scrollController) {
+              return Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: SingleChildScrollView(
+                    controller: scrollController,
+                    child: TestPurchaseWidget(
+                      onPurchased: () {
+                        Navigator.of(context).maybePop();
+                        _closePremiumOverlay();
+                      },
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
-        );
-      },
-    );
+              );
+            },
+          );
+        },
+      );
+    } finally {
+      _isOpeningPurchaseSheet = false;
+    }
   }
+
+  Future<void> _handleGuestUpgradeAndContinuePurchase() async {
+    if (_isHandlingPremiumCta || !mounted) return;
+    _isHandlingPremiumCta = true;
+
+    try {
+      final result = await AccountUpgradeHelper.showUpgradeFlow(
+        context,
+        shouldContinueToPurchase: true,
+      );
+      if (!mounted || result == null) return;
+
+      if (!result.success) {
+        if ((result.errorCode ?? '') != 'cancelled') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(result.message ?? 'Sign-in failed.')),
+          );
+        }
+        return;
+      }
+
+      if (result.message != null && result.message!.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message!)));
+      }
+
+      if (result.shouldContinueToPurchase && mounted) {
+        await _showPurchaseSheet();
+      }
+    } finally {
+      _isHandlingPremiumCta = false;
+    }
+  }
+
 
   Future<void> _showGuestPremiumPrompt() async {
     final l10n = AppLocalizations.of(context)!;
@@ -1037,7 +1080,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           final user = FirebaseAuth.instance.currentUser;
                           final isGuest = user == null || user.isAnonymous;
                           if (isGuest) {
-                            await _showGuestPremiumPrompt();
+                            await _handleGuestUpgradeAndContinuePurchase();
                             return;
                           }
                           await _showPurchaseSheet();

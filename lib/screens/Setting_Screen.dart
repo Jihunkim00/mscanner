@@ -16,6 +16,7 @@ import 'package:provider/provider.dart';
 import '/ad_remove_provider.dart'; // 경로에 따라 수정 필요
 import '/screens/log_service.dart';
 import '/analytics_service.dart';
+import '/helpers/account_upgrade_helper.dart';
 
 
 
@@ -308,125 +309,39 @@ class _SettingScreenState extends State<SettingScreen> {
     );
   }
 
-  // **계정 전환 기능 추가**
-  Future<void> _convertAccount() async {
-    final localizations = AppLocalizations.of(context);
-    TextEditingController _conversionEmailController = TextEditingController();
-    TextEditingController _conversionPasswordController = TextEditingController();
-    final isDark = MediaQuery.of(context).platformBrightness == Brightness.dark;
-    await showCupertinoDialog( // 변경: showDialog -> showCupertinoDialog
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: Text(localizations?.convertAccount ?? 'Convert Account'),
-        content: Column(
-          children: [
-            SizedBox(height: 10), // 추가: 내용과 텍스트필드 간격 조정
-            CupertinoTextField(
-              controller: _conversionEmailController,
-              placeholder: 'Email',
-              placeholderStyle: TextStyle(
-                // Light 모드: 진한 회색, Dark 모드: 연한 회색
-                color: isDark ? CupertinoColors.systemGrey : CupertinoColors.placeholderText,
-                fontSize: 14,
-                fontFamily: 'SFProText',
-              ),
-              keyboardType: TextInputType.emailAddress,
-              style: TextStyle(
-                fontFamily: 'SFProText',
-                fontSize: 14,
-                color: isDark ? CupertinoColors.white : CupertinoColors.black,
-              ),
-              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? CupertinoColors.systemGrey5.darkColor
-                    : CupertinoColors.systemGrey6,
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-            ),
-            SizedBox(height: 10),
-            CupertinoTextField(
-              controller: _conversionPasswordController,
-              placeholder: 'Password',
-              placeholderStyle: TextStyle(
-                // Light 모드: 진한 회색, Dark 모드: 연한 회색
-                color: isDark ? CupertinoColors.systemGrey : CupertinoColors.placeholderText,
-                fontSize: 14,
-                fontFamily: 'SFProText',
-              ),
-              obscureText: true,
-              style: TextStyle(
-                fontFamily: 'SFProText',
-                fontSize: 14,
-                color: MediaQuery.of(context).platformBrightness == Brightness.dark
-                    ? CupertinoColors.white
-                    : CupertinoColors.black,
-              ),
-              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-              decoration: BoxDecoration(
-                color: MediaQuery.of(context).platformBrightness == Brightness.dark
-                    ? CupertinoColors.systemGrey5.darkColor
-                    : CupertinoColors.systemGrey6,
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-            ),
-          ],
+  Future<void> _convertAccount({bool continueToPurchase = false}) async {
+    final result = await AccountUpgradeHelper.showUpgradeFlow(
+      context,
+      shouldContinueToPurchase: continueToPurchase,
+    );
+
+    if (!mounted || result == null) return;
+
+    if (result.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result.message ??
+                (AppLocalizations.of(context)?.accountConversionSuccess ??
+                    'Account successfully converted.'),
+          ),
         ),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(localizations?.cancel ?? 'Cancel'),
-          ),
-          CupertinoDialogAction(
-            onPressed: () async {
-              String email = _conversionEmailController.text.trim();
-              String password = _conversionPasswordController.text.trim();
+      );
+      return;
+    }
 
-              try {
-                User? user = FirebaseAuth.instance.currentUser;
-                if (user != null && user.isAnonymous) {
-                  AuthCredential credential = EmailAuthProvider.credential(email: email, password: password);
-                  UserCredential userCredential = await user.linkWithCredential(credential);
+    if ((result.errorCode ?? '') == 'cancelled') return;
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(localizations?.accountConversionSuccess ?? 'Account successfully converted.')),
-                  );
-
-                  Navigator.of(context).pop(); // 다이얼로그 닫기
-                  _navigateAfterSignIn(userCredential.user);
-                }
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(AppLocalizations.of(context)?.accountConversionFailed ?? 'Account conversion failed: $e')),
-                );
-              }
-            },
-            child: Text(localizations?.convertAccount ?? 'Convert'),
-          ),
-        ],
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          result.message ??
+              (AppLocalizations.of(context)?.accountConversionFailed ??
+                  'Account conversion failed.'),
+        ),
       ),
     );
   }
-
-  // **_navigateAfterSignIn 메서드 추가**
-  Future<void> _navigateAfterSignIn(User? user) async {
-    if (user == null) return;
-
-    bool isFirstLogin = user.metadata.creationTime == user.metadata.lastSignInTime;
-
-    if (isFirstLogin) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => PresetSelectionScreen()),
-      );
-    } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
