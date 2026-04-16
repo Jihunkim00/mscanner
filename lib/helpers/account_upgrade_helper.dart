@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import 'package:mscanner/services/account_upgrade_service.dart';
 
 class AccountUpgradeHelper {
@@ -9,33 +10,49 @@ class AccountUpgradeHelper {
       BuildContext context, {
         bool shouldContinueToPurchase = false,
       }) async {
+    final l10n = AppLocalizations.of(context)!;
+
+    final List<_UpgradeAction> orderedActions;
+    if (Platform.isIOS || Platform.isMacOS) {
+      orderedActions = [
+        _UpgradeAction.apple,
+        _UpgradeAction.google,
+        _UpgradeAction.createEmail,
+        _UpgradeAction.signInEmail,
+      ];
+    } else {
+      orderedActions = [
+        _UpgradeAction.google,
+        _UpgradeAction.createEmail,
+        _UpgradeAction.signInEmail,
+      ];
+    }
+
     final action = await showCupertinoModalPopup<_UpgradeAction>(
       context: context,
-      builder: (ctx) => CupertinoActionSheet(
-        title: const Text('Upgrade account'),
-        message: const Text('Sign in or create an account to keep your guest data.'),
-        actions: [
-          CupertinoActionSheetAction(
-            onPressed: () => Navigator.of(ctx).pop(_UpgradeAction.signInEmail),
-            child: const Text('Sign in with email'),
-          ),
-          CupertinoActionSheetAction(
-            onPressed: () => Navigator.of(ctx).pop(_UpgradeAction.createEmail),
-            child: const Text('Create account with email'),
-          ),
-          CupertinoActionSheetAction(
-            onPressed: () => Navigator.of(ctx).pop(_UpgradeAction.google),
-            child: const Text('Continue with Google'),
-          ),
-          if (Platform.isIOS || Platform.isMacOS)
-            CupertinoActionSheetAction(
-              onPressed: () => Navigator.of(ctx).pop(_UpgradeAction.apple),
-              child: const Text('Continue with Apple'),
+      builder: (ctx) => CupertinoTheme(
+        data: CupertinoTheme.of(ctx).copyWith(
+          primaryColor: CupertinoColors.systemBlue,
+        ),
+        child: CupertinoActionSheet(
+          title: Text(l10n.premiumGuestSectionTitle),
+          message: Text(l10n.premiumGuestSectionMessage),
+          actions: orderedActions.map((item) {
+            return CupertinoActionSheetAction(
+              onPressed: () => Navigator.of(ctx).pop(item),
+              child: Text(_actionLabel(l10n, item)),
+            );
+          }).toList(),
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(
+              l10n.cancel,
+              style: const TextStyle(
+                color: CupertinoColors.label,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          onPressed: () => Navigator.of(ctx).pop(),
-          child: const Text('Cancel'),
+          ),
         ),
       ),
     );
@@ -44,13 +61,34 @@ class AccountUpgradeHelper {
 
     switch (action) {
       case _UpgradeAction.signInEmail:
-        return _showEmailDialog(context, createMode: false, shouldContinueToPurchase: shouldContinueToPurchase);
+        return _showEmailDialog(
+          context,
+          createMode: false,
+          shouldContinueToPurchase: shouldContinueToPurchase,
+        );
       case _UpgradeAction.createEmail:
-        return _showEmailDialog(context, createMode: true, shouldContinueToPurchase: shouldContinueToPurchase);
+        return _showEmailDialog(
+          context,
+          createMode: true,
+          shouldContinueToPurchase: shouldContinueToPurchase,
+        );
       case _UpgradeAction.google:
         return AccountUpgradeService.continueWithGoogle();
       case _UpgradeAction.apple:
         return AccountUpgradeService.continueWithApple();
+    }
+  }
+
+  static String _actionLabel(AppLocalizations l10n, _UpgradeAction action) {
+    switch (action) {
+      case _UpgradeAction.apple:
+        return l10n.continueWithApple;
+      case _UpgradeAction.google:
+        return l10n.continueWithGoogle;
+      case _UpgradeAction.createEmail:
+        return '${l10n.createAccount} ${l10n.email}';
+      case _UpgradeAction.signInEmail:
+        return '${l10n.login} ${l10n.email}';
     }
   }
 
@@ -59,44 +97,9 @@ class AccountUpgradeHelper {
         required bool createMode,
         required bool shouldContinueToPurchase,
       }) async {
-    final emailController = TextEditingController();
-    final passwordController = TextEditingController();
-
-    final data = await showCupertinoDialog<Map<String, String>>(
-      context: context,
-      builder: (ctx) => CupertinoAlertDialog(
-        title: Text(createMode ? 'Create account' : 'Sign in'),
-        content: Column(
-          children: [
-            const SizedBox(height: 12),
-            CupertinoTextField(
-              controller: emailController,
-              keyboardType: TextInputType.emailAddress,
-              placeholder: 'Email',
-            ),
-            const SizedBox(height: 8),
-            CupertinoTextField(
-              controller: passwordController,
-              obscureText: true,
-              placeholder: 'Password',
-            ),
-          ],
-        ),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          CupertinoDialogAction(
-            onPressed: () {
-              Navigator.of(ctx).pop({
-                'email': emailController.text.trim(),
-                'password': passwordController.text,
-              });
-            },
-            child: Text(createMode ? 'Create' : 'Sign in'),
-          ),
-        ],
+    final data = await Navigator.of(context).push<Map<String, String>>(
+      MaterialPageRoute(
+        builder: (ctx) => _AccountUpgradeEmailScreen(createMode: createMode),
       ),
     );
 
@@ -124,3 +127,119 @@ class AccountUpgradeHelper {
 }
 
 enum _UpgradeAction { signInEmail, createEmail, google, apple }
+
+class _AccountUpgradeEmailScreen extends StatefulWidget {
+  const _AccountUpgradeEmailScreen({required this.createMode});
+
+  final bool createMode;
+
+  @override
+  State<_AccountUpgradeEmailScreen> createState() => _AccountUpgradeEmailScreenState();
+}
+
+class _AccountUpgradeEmailScreenState extends State<_AccountUpgradeEmailScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _showValidationError = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final isValid = _formKey.currentState?.validate() ?? false;
+    if (!isValid) {
+      setState(() => _showValidationError = true);
+      return;
+    }
+    Navigator.of(context).pop(<String, String>{
+      'email': _emailController.text.trim(),
+      'password': _passwordController.text,
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+    final inputFill = isDark ? const Color(0xFF1F1F1F) : const Color(0xFFF2F4F7);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.createMode ? l10n.createAccount : l10n.login),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  widget.createMode ? '${l10n.createAccount} ${l10n.email}' : '${l10n.login} ${l10n.email}',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 18),
+                TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  autocorrect: false,
+                  decoration: InputDecoration(
+                    labelText: l10n.email,
+                    filled: true,
+                    fillColor: inputFill,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  validator: (value) => (value == null || value.trim().isEmpty) ? l10n.pleaseEnterValidEmail : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: l10n.password,
+                    filled: true,
+                    fillColor: inputFill,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  validator: (value) => (value == null || value.isEmpty) ? l10n.pleaseEnterPassword : null,
+                ),
+                if (_showValidationError) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    '${l10n.pleaseEnterValidEmail} / ${l10n.pleaseEnterPassword}',
+                    style: TextStyle(color: colorScheme.error),
+                  ),
+                ],
+                const SizedBox(height: 20),
+                SizedBox(
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                    ),
+                    child: Text(widget.createMode ? l10n.createAccount : l10n.login),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

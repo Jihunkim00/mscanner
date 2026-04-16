@@ -15,7 +15,6 @@ import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:async'; // To use Timer
 import '/screens/geohash_service.dart'; // Adjust the actual path accordingly
-import 'package:in_app_review/in_app_review.dart';
 import 'nutrition_chart.dart';
 import '/screens/log_service.dart'; // ✅ 로그 서비스 추가
 import 'package:flutter/gestures.dart';
@@ -38,6 +37,9 @@ import '/analytics_service.dart';
 import 'package:mscanner/models/order_phrase_models.dart';
 import 'package:mscanner/widgets/order_phrase_bottom_sheet.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:mscanner/widgets/result/result_decision_cards.dart';
+import 'package:mscanner/screens/result/result_parsing_service.dart';
+import 'package:mscanner/screens/result/result_action_service.dart';
 
 
 
@@ -149,6 +151,8 @@ class _ResultScreenState extends State<ResultScreen> {
     return SupportedLanguage.en;
   }
   bool _analyticsViewedLogged = false;
+  bool _priceCardEventLogged = false;
+  bool _localInsightEventLogged = false;
 
   // ===== Recommended price candidates (for FxQuickFxButton) =====
   double? _parseAmountAny(dynamic v) {
@@ -234,15 +238,7 @@ class _ResultScreenState extends State<ResultScreen> {
   String? _currencyCodeHint;               // ✅ e.g., 'KRW','JPY','USD'
 
   String? _extractCurrencyCodeFromText(String text) {
-    final s = text.toLowerCase();
-
-    if (s.contains('krw') || s.contains('₩') || s.contains('원')) return 'KRW';
-    if (s.contains('jpy') || s.contains('¥') || s.contains('엔화') || s.contains('엔')) return 'JPY';
-    if (s.contains('usd') || s.contains(r'$') || s.contains('달러')) return 'USD';
-    if (s.contains('eur') || s.contains('€') || s.contains('유로')) return 'EUR';
-    if (s.contains('cny') || s.contains('元') || s.contains('위안')) return 'CNY';
-
-    return null;
+    return ResultParsingService.extractCurrencyCodeFromText(text);
   }
 
   double? _amountFromResponses;            // extracted number from AI response
@@ -307,202 +303,41 @@ class _ResultScreenState extends State<ResultScreen> {
 
   // Extract first number (e.g., 12,500 or 12.50)
   double? _extractAmountFromText(String text) {
-    final cleaned = text.replaceAll(',', ' ').replaceAll('\u00A0', ' ');
-    final regex = RegExp(r'(\d+[\s\d]*\.?\d*)');
-    final m = regex.firstMatch(cleaned);
-    if (m == null) return null;
-    final numStr = m.group(1)!.replaceAll(' ', '');
-    return double.tryParse(numStr);
+    return ResultParsingService.extractAmountFromText(text);
   }
 
   // Detect currency symbol from text
   String? _extractCurrencySymbolFromText(String text) {
-    // '$','¥'는 모호해도 힌트로 사용 (국가코드/로케일로 보정)
-    const symbols = ['₩', '€', '£', '₫', '₱', '฿', '₹', '¥', '\$'];
-    for (final s in symbols) {
-      if (text.contains(s)) return s;
-    }
-    return null;
+    return ResultParsingService.extractCurrencySymbolFromText(text);
   }
   // ✅ NEW: parse JSON from responses
 // - 단일 스캔: 첫 번째 유효 JSON 사용
 // - 멀티 스캔: responses 안의 JSON들을 "추천메뉴/전체메뉴" 기준으로 병합(중복 제거)
 
   String? _extractJsonObjectFromText(String input) {
-    var s = input.trim();
-    if (s.isEmpty) return null;
-
-    // 1) ```json ... ``` 코드블록 제거
-    if (s.startsWith('```')) {
-      s = s.replaceAll(RegExp(r'^```[a-zA-Z]*\s*'), '');
-      s = s.replaceAll(RegExp(r'\s*```$'), '');
-      s = s.trim();
-    }
-
-    // 2) RECOMMEND: 라인이 앞에 붙어있으면 제거(첫 '{'부터 자르기)
-    final start = s.indexOf('{');
-    if (start < 0) return null;
-
-    // 3) 마지막 '}'까지
-    final end = s.lastIndexOf('}');
-    if (end < 0 || end <= start) return null;
-
-    final candidate = s.substring(start, end + 1).trim();
-
-    // 4) 빠른 sanity check
-    if (!candidate.startsWith('{') || !candidate.endsWith('}')) return null;
-
-    return candidate;
+    return ResultParsingService.extractJsonObjectFromText(input);
   }
 
   void _parseAiJson() {
-    Map<String, dynamic>? firstJson;
-    final List<Map<String, dynamic>> jsonList = [];
-
-    for (final r in widget.responses) {
-      final raw = r.trim();
-      final s = _extractJsonObjectFromText(raw);
-      if (s == null) continue;
-
-      try {
-        final decoded = jsonDecode(s);
-        if (decoded is Map) {
-          final m = Map<String, dynamic>.from(decoded);
-          firstJson ??= m;
-          jsonList.add(m);
-        }
-      } catch (e) {
-        _aiJsonError = 'jsonDecode failed: $e\nrawHead=${raw.substring(0, raw.length > 120 ? 120 : raw.length)}';
-        continue;
-      }
-    }
-
-    if (firstJson == null) {
-      _aiJson = null;
-      // print('⚠️ no json found. responses=${widget.responses.length} bufferLen=${_aiStreamBuffer.length}');
-      return;
-    }
-
-    final isMulti = (widget.images?.length ?? 0) > 1 || jsonList.length > 1;
-
-    if (!isMulti) {
-      final normalized = Map<String, dynamic>.from(firstJson);
-
-      normalized['result_type'] =
-          (normalized['result_type'] ?? 'menu').toString().trim().toLowerCase();
-
-      normalized['user_message'] =
-          (normalized['user_message'] ?? '').toString().trim();
-
-      _aiJson = normalized;
-      _aiJsonError = null;
-      return;
-    }
-
-    // ---- merge mode ----
-    final merged = Map<String, dynamic>.from(firstJson);
-
-    // 1) merge recommended
-    final List<Map<String, dynamic>> recommendedAll = [];
-    // 2) merge fullMenu categories
-    final Map<String, List<Map<String, dynamic>>> fullMenuAll = {
-      'main': <Map<String, dynamic>>[],
-      'side': <Map<String, dynamic>>[],
-      'meal': <Map<String, dynamic>>[],
-      'drink': <Map<String, dynamic>>[],
-      'beverage': <Map<String, dynamic>>[],
-      'unknown': <Map<String, dynamic>>[],
-    };
-
-    String _dedupKey(Map<String, dynamic> item) {
-      final no = (item['nameOriginal'] ?? '').toString().trim().toLowerCase();
-      final nt = (item['name'] ?? '').toString().trim().toLowerCase();
-      final key = no.isNotEmpty ? no : nt;
-      return key.isNotEmpty ? key : item.toString();
-    }
-
-    List<Map<String, dynamic>> _dedupList(List<Map<String, dynamic>> items) {
-      final seen = <String>{};
-      final out = <Map<String, dynamic>>[];
-      for (final it in items) {
-        final k = _dedupKey(it);
-        if (seen.add(k)) out.add(it);
-      }
-      return out;
-    }
-
-    for (final j in jsonList) {
-      final rec = j['recommended'];
-      if (rec is List) {
-        for (final e in rec) {
-          if (e is Map) recommendedAll.add(Map<String, dynamic>.from(e));
-        }
-      }
-
-      final fm = j['fullMenu'] ?? j['full_menu'] ?? j['menu'] ?? j['menus'];
-      if (fm is Map) {
-        // ✅ new schema면 fm['items']를 사용, 아니면 fm 자체가 items
-        final src = (fm['items'] is Map) ? Map<String, dynamic>.from(fm['items'] as Map) : Map<String, dynamic>.from(fm);
-
-        for (final k in fullMenuAll.keys) {
-          final v = src[k];
-          if (v is List) {
-            for (final e in v) {
-              if (e is Map) fullMenuAll[k]!.add(Map<String, dynamic>.from(e));
-            }
-          }
-        }
-
-        // ✅ summary/truncated는 첫 번째 것 유지 + 없으면 채우기 정도로만(가볍게)
-        if (merged['fullMenu'] is Map) {
-          // no-op
-        }
-      }
-
-    }
-
-    merged['recommended'] = _dedupList(recommendedAll);
-    merged['fullMenu'] = {
-      'items': { for (final k in fullMenuAll.keys) k: _dedupList(fullMenuAll[k]!) },
-      // summary/truncated는 첫 JSON 기준으로 유지 (없으면 빈 값)
-      'summary': (firstJson['fullMenu'] is Map) ? ((firstJson['fullMenu']['summary'] ?? '').toString()) : '',
-      'truncated': (firstJson['fullMenu'] is Map) ? (firstJson['fullMenu']['truncated'] == true) : false,
-    };
-
-    merged['result_type'] =
-        (merged['result_type'] ?? 'menu').toString().trim().toLowerCase();
-
-    merged['user_message'] =
-        (merged['user_message'] ?? '').toString().trim();
-
-    _aiJson = merged;
-    _aiJsonError = null;
+    final parsed = ResultParsingService.parseAiJson(
+      responses: widget.responses,
+      imageCount: widget.images?.length ?? 1,
+    );
+    _aiJson = parsed.aiJson;
+    _aiJsonError = parsed.aiJsonError;
   }
 
   // ✅ NEW: recommended list extractor
   List<Map<String, dynamic>> _getRecommendedItems() {
-    final j = _aiJson;
-    if (j == null) return const [];
-    final rec = j['recommended'];
-    if (rec is List) {
-      return rec
-          .whereType<Map>()
-          .map((e) => Map<String, dynamic>.from(e))
-          .toList();
-    }
-    return const [];
+    return ResultParsingService.getRecommendedItems(_aiJson);
   }
 
   String _aiResultType() {
-    final j = _aiJson;
-    if (j == null) return 'unknown';
-    return (j['result_type'] ?? '').toString().trim().toLowerCase();
+    return ResultParsingService.aiResultType(_aiJson);
   }
 
   String _aiUserMessage() {
-    final j = _aiJson;
-    if (j == null) return '';
-    return (j['user_message'] ?? '').toString().trim();
+    return ResultParsingService.aiUserMessage(_aiJson);
   }
 
   String _buildReadableCopyText() {
@@ -2374,36 +2209,20 @@ class _ResultScreenState extends State<ResultScreen> {
     List<String> recommendedChipLabels = const [],
     List<String> recommendedTags = const [],
   }) {
-    final set = <String>{};
-
-    void addValue(String v) {
-      final s = v.trim().toLowerCase();
-      if (s.isNotEmpty) set.add(s);
-    }
-
-    addValue(original);
-    addValue(translated);
-    addValue(display ?? '');
-
+    final flattenedMenus = <String>[];
     for (final menu in recommendedMenus) {
-      addValue(menu.original);
-      addValue(menu.translated);
-      addValue(menu.display);
+      flattenedMenus.addAll([menu.original, menu.translated, menu.display]);
     }
 
-    for (final label in recommendedChipLabels) {
-      addValue(label);
-    }
-
-    for (final tag in recommendedTags) {
-      addValue(tag);
-    }
-
-    for (final tag in tags) {
-      addValue(tag);
-    }
-
-    return set.toList();
+    return ResultActionService.buildSearchKeywords(
+      original: original,
+      translated: translated,
+      display: display,
+      tags: tags,
+      recommendedMenus: flattenedMenus,
+      recommendedChipLabels: recommendedChipLabels,
+      recommendedTags: recommendedTags,
+    );
   }
 
   List<_MenuNamePair> _extractRecommendedMenuPairs() {
@@ -2448,13 +2267,7 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   String _normalizeMenuText(String input) {
-    return input
-        .toLowerCase()
-        .trim()
-        .replaceAll(RegExp(r'\([^)]*\)'), '')
-        .replaceAll(RegExp(r'[^a-z0-9가-힣\s]'), ' ')
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
+    return ResultParsingService.normalizeMenuText(input);
   }
 
   bool _isStrongMenuMatch({
@@ -2657,24 +2470,19 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   String _safePrefix(String geohash, int len) {
-    if (geohash.isEmpty) return geohash;
-    if (len <= 0) return geohash;
-    return geohash.substring(0, geohash.length < len ? geohash.length : len);
+    return ResultParsingService.safePrefix(geohash, len);
   }
+
   String _buildSearchedMenuDocId({
     required String lang,
     required String geohash,
     required String menuKey,
   }) {
-    final geoPrefix = _safePrefix(geohash.trim(), 6).toLowerCase();
-    final normalizedLang = lang.trim().toLowerCase();
-    final normalizedMenuKey = menuKey.trim().toLowerCase();
-
-    final raw = '${normalizedLang}_${geoPrefix}_$normalizedMenuKey';
-
-    return raw
-        .replaceAll(RegExp(r'[^a-z0-9가-힣_-]'), '_')
-        .replaceAll(RegExp(r'_+'), '_');
+    return ResultActionService.buildSearchedMenuDocId(
+      lang: lang,
+      geohash: geohash,
+      menuKey: menuKey,
+    );
   }
 
 
@@ -3414,28 +3222,11 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   Future<void> _checkAndRequestReview() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    int usageCount = prefs.getInt('usageCount') ?? 0;
-    usageCount++;
-    await prefs.setInt('usageCount', usageCount);
-
-    bool hasReviewed = prefs.getBool('hasReviewed') ?? false;
-
-    if (!hasReviewed) {
-      if (usageCount == 5) {
-        final InAppReview inAppReview = InAppReview.instance;
-        if (await inAppReview.isAvailable()) {
-          await inAppReview.requestReview();
-          await prefs.setBool('hasReviewed', true);
-        }
-      } else if (usageCount > 5 && (usageCount - 5) % 30 == 0) {
-        final InAppReview inAppReview = InAppReview.instance;
-        if (await inAppReview.isAvailable()) {
-          inAppReview.requestReview();
-        }
-      }
-    }
+    await ResultActionService.checkAndRequestReview();
   }
+
+  // TODO(result-refactor): Keep the full save pipeline here for now because it coordinates
+  // UI loading states, snackbars, timers, and navigation side-effects tightly coupled to this screen.
 
   Future<void> _saveScanResult() async {
     if (widget.isTutorial) {
@@ -3484,6 +3275,7 @@ class _ResultScreenState extends State<ResultScreen> {
       );
 
       await _checkAndRequestReview();
+      unawaited(AnalyticsService.instance.logEvent('result_saved'));
 
       Future.delayed(Duration(seconds: 2), () {
         Navigator.pushReplacement(
@@ -3550,6 +3342,7 @@ class _ResultScreenState extends State<ResultScreen> {
     try {
       await LogService().logShareClick(dest: 'system', context: 'result');
       await AnalyticsService.instance.logShareResult(channel: 'system');
+      unawaited(AnalyticsService.instance.logEvent('result_shared'));
 
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         final boundary =
@@ -3897,6 +3690,81 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
+  String _decisionTitle() {
+    final pair = _extractPrimaryMenuPair();
+    if (pair != null && pair.display.trim().isNotEmpty) {
+      return pair.display.trim();
+    }
+    return _extractMenuOnlyFromAiResponses() ??
+        (AppLocalizations.of(context)?.aiAnswer ?? 'ai result');
+  }
+
+  String? _decisionSubtitle() {
+    final short = _extractPrimaryMenuShortDesc().trim();
+    if (short.isNotEmpty) return short;
+
+    final userMsg = _aiUserMessage().trim();
+    if (userMsg.isNotEmpty) {
+      return userMsg.length > 120 ? '${userMsg.substring(0, 120)}…' : userMsg;
+    }
+    return null;
+  }
+
+  List<String> _decisionTags() {
+    return _extractPrimaryMenuTags().take(5).toList();
+  }
+
+  String? _decisionPriceLabel() {
+    final rec = _getRecommendedItems();
+    if (rec.isEmpty) return null;
+    final label = _priceLabelFromItem(rec.first)!.trim();
+    return label.isNotEmpty ? label : null;
+  }
+
+  List<String> _decisionLocalInsights() {
+    final rag = (_ragDetail ?? '').trim();
+    if (rag.isEmpty) return const [];
+
+    final lines = rag
+        .split(RegExp(r'[\n•]+'))
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+
+    return lines.take(3).toList();
+  }
+
+  Widget _buildDecisionSummarySection() {
+    final pair = _extractPrimaryMenuPair();
+    final title = _decisionTitle();
+    final original = pair == null
+        ? null
+        : (pair.original.trim().toLowerCase() == title.trim().toLowerCase()
+        ? null
+        : pair.original.trim());
+
+    return ResultDecisionCards(
+      isDarkMode: _isDarkMode,
+      title: title,
+      originalTitle: original,
+      subtitle: _decisionSubtitle(),
+      priceLabel: _decisionPriceLabel(),
+      tags: _decisionTags(),
+      localInsights: _decisionLocalInsights(),
+      onPriceTap: () {
+        if (_priceCardEventLogged) return;
+        _priceCardEventLogged = true;
+        unawaited(AnalyticsService.instance.logEvent('result_price_card_opened'));
+      },
+      onLocalInsightTap: () {
+        if (_localInsightEventLogged) return;
+        _localInsightEventLogged = true;
+        unawaited(AnalyticsService.instance.logEvent('result_local_insight_opened'));
+      },
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     print("▶️ [ResultScreen] build() at ${DateTime.now().toIso8601String()}");
@@ -3978,6 +3846,8 @@ class _ResultScreenState extends State<ResultScreen> {
                       },
                     ),
                     SizedBox(height: 16),
+                    _buildDecisionSummarySection(),
+                    SizedBox(height: 16),
 
                     // ✅ NEW UI (JSON-based) with fallback to old text
                     _buildScanResultCard(
@@ -3992,7 +3862,7 @@ class _ResultScreenState extends State<ResultScreen> {
 
 
                     // ✅ RAG Answer (허용 사용자만)
-                    if (_isAllowedUser && (_ragDetail?.isNotEmpty ?? false)) ...[
+                    if (_isAllowedUser && (_ragDetail?.isNotEmpty ?? false) && _decisionLocalInsights().length < 3) ...[
                       SizedBox(height: 16),
                       Container(
                         decoration: boxDecoration,

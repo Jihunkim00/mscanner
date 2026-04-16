@@ -20,6 +20,9 @@ android/app/src/main/res/values/strings.xml
 
 # 민감 정보
 .env
+.env.*
+assets/.env
+*.p8
 
 # OS별 불필요 파일
 .DS_Store
