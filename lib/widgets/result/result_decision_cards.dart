@@ -10,6 +10,7 @@ class ResultDecisionCards extends StatelessWidget {
     this.priceLabel,
     this.tags = const <String>[],
     this.localInsights = const <String>[],
+    this.decisionReason,
     this.onPriceTap,
     this.onLocalInsightTap,
   });
@@ -21,6 +22,7 @@ class ResultDecisionCards extends StatelessWidget {
   final String? priceLabel;
   final List<String> tags;
   final List<String> localInsights;
+  final String? decisionReason;
   final VoidCallback? onPriceTap;
   final VoidCallback? onLocalInsightTap;
 
@@ -33,116 +35,131 @@ class ResultDecisionCards extends StatelessWidget {
     final subTextColor =
     isDarkMode ? Colors.white70 : const Color(0xFF6B7280);
 
+    final hasReason = (decisionReason ?? '').trim().isNotEmpty;
     return Container(
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: borderColor),
       ),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: isDarkMode
+                  ? Colors.white.withOpacity(0.08)
+                  : const Color(0xFFF3F4F6),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              'Quick decision',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: textColor,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
           Text(
-            'Quick decision',
+            title,
             style: TextStyle(
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
               color: textColor,
-              fontSize: 16,
+              fontSize: 20,
+              height: 1.15,
             ),
           ),
-          const SizedBox(height: 10),
-          _section(
-            textColor: textColor,
-            subTextColor: subTextColor,
-            label: 'Menu',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: textColor,
-                    fontSize: 15,
-                  ),
+          if ((originalTitle ?? '').trim().isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              originalTitle!.trim(),
+              style: TextStyle(color: subTextColor, fontSize: 13),
+            ),
+          ],
+          if ((subtitle ?? '').trim().isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              subtitle!.trim(),
+              style: TextStyle(color: subTextColor, fontSize: 13, height: 1.35),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+          if (hasReason) ...[
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+              decoration: BoxDecoration(
+                color: isDarkMode
+                    ? Colors.white.withOpacity(0.06)
+                    : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                decisionReason!.trim(),
+                style: TextStyle(
+                  color: textColor.withOpacity(0.88),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
                 ),
-                if ((originalTitle ?? '').trim().isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Text(
-                      originalTitle!.trim(),
-                      style: TextStyle(color: subTextColor, fontSize: 12),
-                    ),
-                  ),
-                if ((subtitle ?? '').trim().isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      subtitle!.trim(),
-                      style: TextStyle(color: subTextColor, fontSize: 12),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-              ],
+              ),
             ),
-          ),
-          if ((priceLabel ?? '').trim().isNotEmpty)
-            _section(
-              textColor: textColor,
-              subTextColor: subTextColor,
-              label: 'Price',
+          ],
+          if ((priceLabel ?? '').trim().isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _tapWrap(
               onTap: onPriceTap,
               child: Text(
                 priceLabel!.trim(),
                 style: TextStyle(
                   color: textColor,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
                 ),
               ),
             ),
-          if (tags.isNotEmpty)
-            _section(
-              textColor: textColor,
-              subTextColor: subTextColor,
-              label: 'Tags',
-              child: Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: tags
-                    .take(5)
-                    .map(
-                      (tag) => Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isDarkMode
-                          ? Colors.white.withOpacity(0.08)
-                          : const Color(0xFFF3F4F6),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      tag,
-                      style: TextStyle(fontSize: 11, color: textColor),
-                    ),
+          ],
+          if (tags.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: tags
+                  .take(5)
+                  .map(
+                    (tag) => Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
                   ),
-                )
-                    .toList(),
-              ),
+                  decoration: BoxDecoration(
+                    color: isDarkMode
+                        ? Colors.white.withOpacity(0.08)
+                        : const Color(0xFFF3F4F6),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    tag,
+                    style: TextStyle(fontSize: 11, color: textColor),
+                  ),
+                ),
+              )
+                  .toList(),
             ),
-          if (localInsights.isNotEmpty)
-            _section(
-              textColor: textColor,
-              subTextColor: subTextColor,
-              label: 'Local insight',
+          ],
+          if (localInsights.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _tapWrap(
               onTap: onLocalInsightTap,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: localInsights
-                    .take(3)
+                    .take(2)
                     .map(
                       (line) => Padding(
                     padding: const EdgeInsets.only(bottom: 4),
@@ -155,50 +172,163 @@ class ResultDecisionCards extends StatelessWidget {
                     .toList(),
               ),
             ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _section({
-    required String label,
+  Widget _tapWrap({
     required Widget child,
-    required Color textColor,
-    required Color subTextColor,
     VoidCallback? onTap,
   }) {
-    final content = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: subTextColor,
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 4),
-        child,
-      ],
+    if (onTap == null) return child;
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: child,
+      ),
     );
+  }
+}
 
-    if (onTap == null) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: content,
-      );
-    }
+class ResultRecommendationCompactCard extends StatelessWidget {
+  const ResultRecommendationCompactCard({
+    super.key,
+    required this.isDarkMode,
+    required this.primaryName,
+    this.secondaryName,
+    this.summary,
+    this.priceLabel,
+    this.tags = const <String>[],
+    this.trailing,
+    this.onPriceTap,
+  });
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2),
-          child: content,
-        ),
+  final bool isDarkMode;
+  final String primaryName;
+  final String? secondaryName;
+  final String? summary;
+  final String? priceLabel;
+  final List<String> tags;
+  final Widget? trailing;
+  final VoidCallback? onPriceTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final borderColor =
+    isDarkMode ? Colors.white.withOpacity(0.07) : const Color(0xFFE5E7EB);
+    final cardColor = isDarkMode ? const Color(0xFF252529) : const Color(0xFFFBFCFE);
+    final textColor = isDarkMode ? Colors.white : const Color(0xFF111827);
+    final subTextColor = isDarkMode ? Colors.white70 : const Color(0xFF6B7280);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: borderColor),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  primaryName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                    color: textColor,
+                  ),
+                ),
+                if ((secondaryName ?? '').trim().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      secondaryName!.trim(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: subTextColor,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                if ((priceLabel ?? '').trim().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: onPriceTap,
+                      child: Text(
+                        priceLabel!.trim(),
+                        style: TextStyle(
+                          color: textColor.withOpacity(0.92),
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ),
+                if ((summary ?? '').trim().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text(
+                      summary!.trim(),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: subTextColor,
+                        fontSize: 12,
+                        height: 1.3,
+                      ),
+                    ),
+                  ),
+                if (tags.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: tags
+                          .take(3)
+                          .map(
+                            (tag) => Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDarkMode
+                                ? Colors.white.withOpacity(0.07)
+                                : const Color(0xFFF3F4F6),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            tag,
+                            style: TextStyle(fontSize: 10, color: textColor),
+                          ),
+                        ),
+                      )
+                          .toList(),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (trailing != null) ...[
+            const SizedBox(width: 10),
+            trailing!,
+          ],
+        ],
       ),
     );
   }

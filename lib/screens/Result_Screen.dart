@@ -27,7 +27,7 @@ import 'dart:ui' as ui;
 import 'package:mscanner/widgets/fx_auto_converter_card.dart';
 import 'package:meta/meta.dart';
 // NOTE: FX/태그 보조 아이콘은 Material 아이콘을 사용합니다.
-import 'package:mscanner/widgets/menu_tag_registry.dart'; // 네 경로에 맞춰
+
 import 'dart:math' as math;
 import '/widgets/ai_food_image_button.dart'; // 파일 경로 맞게
 import 'package:path_provider/path_provider.dart';
@@ -37,6 +37,7 @@ import '/analytics_service.dart';
 import 'package:mscanner/models/order_phrase_models.dart';
 import 'package:mscanner/widgets/order_phrase_bottom_sheet.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:mscanner/widgets/result/result_decision_skeleton.dart';
 import 'package:mscanner/widgets/result/result_decision_cards.dart';
 import 'package:mscanner/screens/result/result_parsing_service.dart';
 import 'package:mscanner/screens/result/result_action_service.dart';
@@ -1411,184 +1412,71 @@ class _ResultScreenState extends State<ResultScreen> {
       });
     }
 
-    // ✅ 이름 2줄 위젯(너가 만든 것 유지하되 폰트만 조금 조정 추천)
-
-    Widget buildDualName() {
-      final o = nameOriginal.trim();
-      final t = nameTranslated.trim();
-      final showTranslation = t.isNotEmpty && o.isNotEmpty && t.toLowerCase() != o.toLowerCase();
-      final primary = o.isNotEmpty ? o : t;
-      final secondary = showTranslation ? t : '';
-
-      final effectivePrice = (_convertedPriceByMenuKey[menuKey] ?? priceLabel)?.trim();
-      final showPrice = effectivePrice != null && effectivePrice.isNotEmpty;
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            primary,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontFamily: 'SFPro',
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              color: textColor,
-              height: 1.08,
-            ),
+    final o = nameOriginal.trim();
+    final t = nameTranslated.trim();
+    final showTranslation =
+        t.isNotEmpty && o.isNotEmpty && t.toLowerCase() != o.toLowerCase();
+    final primary = o.isNotEmpty ? o : t;
+    final secondary = showTranslation ? t : '';
+    final effectivePrice = (_convertedPriceByMenuKey[menuKey] ?? priceLabel)?.trim();
+    final trailing = (!_aiButtonReadyKeys.contains(menuKey) || _searchedMenuDocId == null)
+        ? null
+        : SizedBox(
+      width: 64,
+      height: 64,
+      child: (_existingAiImageUrlByMenuKey[menuKey]?.isNotEmpty == true)
+          ? GestureDetector(
+        onTap: () {
+          final imageUrl = _existingAiImageUrlByMenuKey[menuKey]!;
+          _showAiImagePreview(imageUrl);
+        },
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.network(
+            _existingAiImageUrlByMenuKey[menuKey]!,
+            width: 64,
+            height: 64,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) {
+              return AiFoodImageButton(
+                menuKey: menuKey,
+                menu: pair.toMap(),
+                shortDesc: desc,
+                tags: tags,
+                searchedMenuDocId: searchedMenuDocIdForThisRow,
+                size: 64,
+              );
+            },
           ),
-          if (secondary.isNotEmpty) ...[
-            const SizedBox(height: 3),
-            Text(
-              secondary,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontFamily: 'SFPro',
-                fontSize: 16,
-                color: textColor.withOpacity(0.78),
-                height: 1.05,
-                decoration: TextDecoration.underline,
-                decorationThickness: 1.0,
-                decorationColor: textColor.withOpacity(0.35),
-              ),
-            ),
-          ],
-          if (showPrice) ...[
-            const SizedBox(height: 6),
-            InkWell(
-              borderRadius: BorderRadius.circular(8),
-              onTap: () => _toggleSinglePriceConversion(item),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    child: Text(
-                      effectivePrice!,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontFamily: 'SFPro',
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                        color: textColor.withOpacity(0.92),
-                        height: 1.05,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  if (_singlePriceLoadingMenuKeys.contains(menuKey))
-                    const CupertinoActivityIndicator(radius: 7)
-                  else
-                    Icon(
-                      Icons.currency_exchange,
-                      size: 16,
-                      color: _convertedPriceByMenuKey.containsKey(menuKey)
-                          ? Theme.of(context).colorScheme.primary
-                          : textColor.withOpacity(0.65),
-                    ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      );
-    }
+        ),
+      )
+          : AiFoodImageButton(
+        menuKey: menuKey,
+        menu: pair.toMap(),
+        shortDesc: desc,
+        tags: tags,
+        searchedMenuDocId: searchedMenuDocIdForThisRow,
+        size: 64,
+      ),
+    );
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ✅ 아이콘을 Stack으로 오버레이 (Row에서 제거)
-          Stack(
-            children: [
-              // 왼쪽 컨텐츠 영역: 오른쪽 아이콘 공간만큼 패딩 확보
-              Padding(
-                padding: const EdgeInsets.only(right: 84), // 아이콘 영역 확보(=size+여백)
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    buildDualName(),
-                    if (desc.isNotEmpty) ...[
-                      const SizedBox(height: 10), // ✅ 이름-설명 간격 (원하는 값으로)
-                      Text(
-                        desc,
-                        style: TextStyle(
-                          fontFamily: 'SFPro',
-                          fontSize: 13,
-                          color: textColor,
-                          height: 1.35,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-
-              // 오른쪽 상단에 떠있는 아이콘(레이아웃 높이에 영향 X)
-              Positioned(
-                top: 0,
-                right: 0,
-                child: SizedBox(
-                  width: 80,
-                  height: 80,
-                  child: (!_aiButtonReadyKeys.contains(menuKey) || _searchedMenuDocId == null)
-                      ? const SizedBox.shrink()
-                      : (_existingAiImageUrlByMenuKey[menuKey]?.isNotEmpty == true)
-                      ? GestureDetector(
-                    onTap: () {
-                      final imageUrl =
-                      _existingAiImageUrlByMenuKey[menuKey]!;
-                      _showAiImagePreview(imageUrl);
-                    },
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Image.network(
-                        _existingAiImageUrlByMenuKey[menuKey]!,
-                        width: 80,
-                        height: 80,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) {
-                          return AiFoodImageButton(
-                            menuKey: menuKey,
-                            menu: pair.toMap(),
-                            shortDesc: desc,
-                            tags: tags,
-                            searchedMenuDocId: searchedMenuDocIdForThisRow,
-                            size: 80,
-                          );
-                        },
-                      ),
-                    ),
-                  )
-                      : AiFoodImageButton(
-                    menuKey: menuKey,
-                    menu: pair.toMap(),
-                    shortDesc: desc,
-                    tags: tags,
-                    searchedMenuDocId: searchedMenuDocIdForThisRow,
-                    size: 80,
-                  ),
-                ),
-              ),
-            ],
+          ResultRecommendationCompactCard(
+            isDarkMode: _isDarkMode,
+            primaryName: primary,
+            secondaryName: secondary,
+            summary: desc,
+            priceLabel: effectivePrice,
+            tags: tags,
+            trailing: trailing,
+            onPriceTap: () => _toggleSinglePriceConversion(item),
           ),
-
-          // ✅ 태그는 설명 아래로 바로 붙음 (이제 공백 없음)
-          if (tags.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: tags.take(6).map((t) {
-                return _tagChipPhosphor(rawTag: t, textColor: textColor);
-              }).toList(),
-            ),
-          ],
-          const SizedBox(height: 10),
+          if (isPrimaryRecommended) const SizedBox(height: 4),
+          const SizedBox(height: 8),
           if (_enableOrderPhraseTts)
             Align(
               alignment: Alignment.centerLeft,
@@ -1651,50 +1539,6 @@ class _ResultScreenState extends State<ResultScreen> {
               ),
             ),
 
-          const SizedBox(height: 12),
-          Divider(height: 1, color: textColor.withOpacity(0.12)),
-        ],
-      ),
-    );
-  }
-  Widget _tagChipPhosphor({
-    required String rawTag,
-    required Color textColor,
-  }) {
-    final code = MenuTagRegistry.normalizeCode(rawTag);
-    final icon = MenuTagRegistry.iconForCode(code);
-    final bg = MenuTagRegistry.backgroundForCode(code);
-    final showCheck = MenuTagRegistry.isCheckTag(code);
-
-    // 배경색이 밝으니 아이콘/텍스트는 다크톤으로 통일(테마 무관하게 깔끔)
-    const foreground = Color(0xFF1F2937);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.black.withOpacity(0.08)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 18, color: foreground),
-          const SizedBox(width: 8),
-          Text(
-            rawTag, // 지금은 원문 태그 그대로 표시 (나중에 code->l10n 라벨로 바꾸면 됨)
-            style: const TextStyle(
-              fontFamily: 'SFPro',
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: foreground,
-              height: 1.0,
-            ),
-          ),
-          if (showCheck) ...[
-            const SizedBox(width: 10),
-            Icon(Icons.check_rounded, size: 14, color: foreground),
-          ],
         ],
       ),
     );
@@ -1723,6 +1567,9 @@ class _ResultScreenState extends State<ResultScreen> {
               !hasJsonRec;
 
       final isStillLoading = shouldHideRawAiText;
+      if (isStillLoading && resultType != 'not_menu' && resultType != 'uncertain') {
+        return const SizedBox.shrink();
+      }
 
       final fallbackDisplayText = userMessage.isNotEmpty
           ? userMessage
@@ -1738,71 +1585,6 @@ class _ResultScreenState extends State<ResultScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  localizations.aiAnswer,
-                  style: TextStyle(
-                    fontFamily: 'SFPro',
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-                ),
-                const Spacer(),
-                if ((_amountFromResponses ?? 0) > 0 && resultType == 'menu')
-                  FxQuickFxButton(
-                    initialAmount: _amountFromResponses ?? 0,
-                    detectedCountryCode: _isoCountryCode,
-                    currencySymbolHint: _currencySymbolHint,
-                    initialTarget: _defaultTargetCurrencyFromSystemLanguage(),
-                    iconSize: 18,
-                    padding: EdgeInsets.zero,
-                    parsedAmounts: _amountCandidates,
-                  )
-              ],
-            ),
-            const SizedBox(height: 5),
-            if (isStillLoading && resultType != 'not_menu' && resultType != 'uncertain')
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: AnimatedDotsText(
-                      baseText:
-                      AppLocalizations.of(context)?.result_analyzing ?? 'Analyzing',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white60
-                            : CupertinoColors.systemGrey2,
-                        decoration: TextDecoration.none,
-                      ),
-                    ),
-                  ),
-                  Builder(builder: (_) {
-                    final nutritionData =
-                    parseNutritionalData(widget.responses.join('\n\n'));
-                    if (nutritionData.containsKey('calories')) {
-                      return Padding(
-                        padding: const EdgeInsets.only(left: 8),
-                        child: SizedBox(
-                          width: 60,
-                          height: 60,
-                          child: NutritionChart(
-                            calories: nutritionData['calories'],
-                            protein: nutritionData['protein'] ?? 0,
-                            carbs: nutritionData['carbs'] ?? 0,
-                            fat: nutritionData['fat'] ?? 0,
-                          ),
-                        ),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  }),
-                ],
-              ),
-            const SizedBox(height: 12),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -1817,30 +1599,7 @@ class _ResultScreenState extends State<ResultScreen> {
                       : const Color(0xFFEAECF0),
                 ),
               ),
-              child: isStillLoading && resultType != 'not_menu' && resultType != 'uncertain'
-                  ? Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const CupertinoActivityIndicator(radius: 8),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      AppLocalizations.of(context)?.result_preparingMenu ??
-                          'Preparing...',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontFamily: 'SFPro',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: textColor.withOpacity(0.65),
-                      ),
-                    ),
-                  ),
-                ],
-              )
-                  : Text(
+              child: Text(
                 fallbackDisplayText,
                 style: TextStyle(
                   fontFamily: 'SFPro',
@@ -3710,6 +3469,20 @@ class _ResultScreenState extends State<ResultScreen> {
     return null;
   }
 
+  String? _decisionReason() {
+    final tags = _decisionTags();
+    if (tags.isNotEmpty) {
+      return '${tags.take(2).join(' · ')} 특징이라 빠르게 고르기 좋아요.';
+    }
+    final subtitle = _decisionSubtitle()?.trim() ?? '';
+    if (subtitle.isNotEmpty) {
+      return subtitle.length > 52 ? '${subtitle.substring(0, 52)}…' : subtitle;
+    }
+    final local = _decisionLocalInsights();
+    if (local.isNotEmpty) return local.first;
+    return null;
+  }
+
   List<String> _decisionTags() {
     return _extractPrimaryMenuTags().take(5).toList();
   }
@@ -3735,6 +3508,15 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   Widget _buildDecisionSummarySection() {
+    final rec = _getRecommendedItems();
+    final isLoadingTop = _isWaitingFullMenu && rec.isEmpty;
+    if (isLoadingTop) {
+      return ResultDecisionSkeletonCard(
+        isDarkMode: _isDarkMode,
+        showResultListSkeleton: true,
+      );
+    }
+
     final pair = _extractPrimaryMenuPair();
     final title = _decisionTitle();
     final original = pair == null
@@ -3748,6 +3530,7 @@ class _ResultScreenState extends State<ResultScreen> {
       title: title,
       originalTitle: original,
       subtitle: _decisionSubtitle(),
+      decisionReason: _decisionReason(),
       priceLabel: _decisionPriceLabel(),
       tags: _decisionTags(),
       localInsights: _decisionLocalInsights(),
