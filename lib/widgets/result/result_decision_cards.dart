@@ -1,6 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:mscanner/widgets/menu_tag_registry.dart';
 
+const Set<String> _quickDecisionRegistryCodes = <String>{
+  MenuTagRegistry.recommended,
+  MenuTagRegistry.signature,
+  MenuTagRegistry.popular,
+  MenuTagRegistry.spicy,
+  MenuTagRegistry.seafood,
+  MenuTagRegistry.egg,
+  MenuTagRegistry.vegan,
+  MenuTagRegistry.vegetarian,
+  MenuTagRegistry.halal,
+  MenuTagRegistry.glutenFree,
+  MenuTagRegistry.dairyFree,
+  MenuTagRegistry.nutAllergy,
+  MenuTagRegistry.pescatarian,
+  MenuTagRegistry.grill,
+  MenuTagRegistry.stew,
+};
+
 String quickDecisionTagLabel(String code) {
   switch (code) {
     case MenuTagRegistry.recommended:
@@ -39,6 +57,13 @@ String quickDecisionTagLabel(String code) {
       return pretty[0].toUpperCase() + pretty.substring(1);
   }
 }
+
+String _plainQuickTagLabel(String raw) {
+  final pretty = raw.trim().replaceAll('_', ' ');
+  if (pretty.isEmpty) return '';
+  return pretty[0].toUpperCase() + pretty.substring(1);
+}
+
 
 class ResultDecisionCards extends StatelessWidget {
   const ResultDecisionCards({
@@ -175,6 +200,14 @@ class ResultDecisionCards extends StatelessWidget {
               spacing: 6,
               runSpacing: 6,
               children: tags.take(2).map((tag) {
+                final normalized = MenuTagRegistry.normalizeCode(tag).trim();
+                final isRegistryTag =
+                _quickDecisionRegistryCodes.contains(normalized);
+                final label = isRegistryTag
+                    ? quickDecisionTagLabel(normalized)
+                    : _plainQuickTagLabel(tag);
+                if (label.isEmpty) return const SizedBox.shrink();
+
                 return Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
@@ -194,14 +227,16 @@ class ResultDecisionCards extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        MenuTagRegistry.iconForCode(tag),
-                        size: 11.5,
-                        color: textColor.withOpacity(0.72),
-                      ),
-                      const SizedBox(width: 4),
+                      if (isRegistryTag) ...[
+                        Icon(
+                          MenuTagRegistry.iconForCode(normalized),
+                          size: 11.5,
+                          color: textColor.withOpacity(0.72),
+                        ),
+                        const SizedBox(width: 4),
+                      ],
                       Text(
-                        quickDecisionTagLabel(tag),
+                        label,
                         style: TextStyle(
                           fontSize: 10.5,
                           color: textColor.withOpacity(0.82),

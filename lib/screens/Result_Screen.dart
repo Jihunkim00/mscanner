@@ -2019,11 +2019,15 @@ class _ResultScreenState extends State<ResultScreen> {
     final rawTags = rec.first['tags'];
     if (rawTags is! List) return const [];
 
-    return rawTags
-        .map((e) => e.toString().trim())
-        .where((e) => e.isNotEmpty)
-        .toSet()
-        .toList();
+    final ordered = <String>[];
+    final seen = <String>{};
+    for (final raw in rawTags) {
+      final tag = raw.toString().trim();
+      if (tag.isEmpty) continue;
+      if (!seen.add(tag)) continue;
+      ordered.add(tag);
+    }
+    return ordered;
   }
 
   String _normalizeMenuText(String input) {
@@ -3486,12 +3490,12 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   List<String> _decisionQuickTags() {
-    const groupA = <String>{
+    const groupAOrdered = <String>[
       MenuTagRegistry.recommended,
       MenuTagRegistry.signature,
       MenuTagRegistry.popular,
-    };
-    const groupB = <String>{
+    ];
+    const groupBOrdered = <String>[
       MenuTagRegistry.spicy,
       MenuTagRegistry.seafood,
       MenuTagRegistry.egg,
@@ -3504,37 +3508,54 @@ class _ResultScreenState extends State<ResultScreen> {
       MenuTagRegistry.pescatarian,
       MenuTagRegistry.grill,
       MenuTagRegistry.stew,
+    ];
+    const recognizedCodes = <String>{
+      ...groupAOrdered,
+      ...groupBOrdered,
     };
 
-    final normalized = <String>[];
-    final seen = <String>{};
-    for (final raw in _extractPrimaryMenuTags()) {
-      final code = MenuTagRegistry.normalizeCode(raw).trim();
-      if (code.isEmpty) continue;
-      if (seen.add(code)) normalized.add(code);
-    }
+    final recognized = <String>[];
+    final fallbackRaw = <String>[];
+    final seenNormalized = <String>{};
 
-    String? topDecisionTag;
-    for (final code in normalized) {
-      if (groupA.contains(code)) {
-        topDecisionTag = code;
-        break;
+    for (final raw in _extractPrimaryMenuTags()) {
+      final trimmed = raw.trim();
+      if (trimmed.isEmpty) continue;
+
+      final normalized = MenuTagRegistry.normalizeCode(trimmed).trim();
+      if (normalized.isEmpty) continue;
+      if (!seenNormalized.add(normalized)) continue;
+
+      if (recognizedCodes.contains(normalized)) {
+        recognized.add(normalized);
+      } else {
+        fallbackRaw.add(trimmed);
       }
     }
 
+    final recognizedSet = recognized.toSet();
     final selected = <String>[];
-    if (topDecisionTag != null) {
-      selected.add(topDecisionTag);
+
+    for (final code in groupAOrdered) {
+      if (recognizedSet.contains(code)) {
+        selected.add(code);
+        break; // up to 1 from Group A
+      }
     }
 
-    for (final code in normalized) {
+    for (final code in groupBOrdered) {
       if (selected.length >= 2) break;
-      if (!groupB.contains(code)) continue;
+      if (!recognizedSet.contains(code)) continue;
       if (selected.contains(code)) continue;
       selected.add(code);
     }
 
-    return selected.take(2).toList();
+    for (final raw in fallbackRaw) {
+      if (selected.length >= 2) break;
+      selected.add(raw);
+    }
+
+    return selected.take(2).toList(growable: false);
   }
 
 
