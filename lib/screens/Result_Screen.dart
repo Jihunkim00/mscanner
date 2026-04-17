@@ -39,6 +39,7 @@ import 'package:mscanner/widgets/order_phrase_bottom_sheet.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:mscanner/widgets/result/result_decision_skeleton.dart';
 import 'package:mscanner/widgets/result/result_decision_cards.dart';
+import 'package:mscanner/widgets/menu_tag_registry.dart';
 import 'package:mscanner/screens/result/result_parsing_service.dart';
 import 'package:mscanner/screens/result/result_action_service.dart';
 
@@ -3470,9 +3471,10 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   String? _decisionReason() {
-    final tags = _decisionTags();
+    final tags = _decisionQuickTags();
     if (tags.isNotEmpty) {
-      return '${tags.take(2).join(' · ')} 특징이라 빠르게 고르기 좋아요.';
+      final labels = tags.map(quickDecisionTagLabel).toList();
+      return '${labels.take(2).join(' · ')} 특징이라 빠르게 고르기 좋아요.';
     }
     final subtitle = _decisionSubtitle()?.trim() ?? '';
     if (subtitle.isNotEmpty) {
@@ -3483,9 +3485,58 @@ class _ResultScreenState extends State<ResultScreen> {
     return null;
   }
 
-  List<String> _decisionTags() {
-    return _extractPrimaryMenuTags().take(5).toList();
+  List<String> _decisionQuickTags() {
+    const groupA = <String>{
+      MenuTagRegistry.recommended,
+      MenuTagRegistry.signature,
+      MenuTagRegistry.popular,
+    };
+    const groupB = <String>{
+      MenuTagRegistry.spicy,
+      MenuTagRegistry.seafood,
+      MenuTagRegistry.egg,
+      MenuTagRegistry.vegan,
+      MenuTagRegistry.vegetarian,
+      MenuTagRegistry.halal,
+      MenuTagRegistry.glutenFree,
+      MenuTagRegistry.dairyFree,
+      MenuTagRegistry.nutAllergy,
+      MenuTagRegistry.pescatarian,
+      MenuTagRegistry.grill,
+      MenuTagRegistry.stew,
+    };
+
+    final normalized = <String>[];
+    final seen = <String>{};
+    for (final raw in _extractPrimaryMenuTags()) {
+      final code = MenuTagRegistry.normalizeCode(raw).trim();
+      if (code.isEmpty) continue;
+      if (seen.add(code)) normalized.add(code);
+    }
+
+    String? topDecisionTag;
+    for (final code in normalized) {
+      if (groupA.contains(code)) {
+        topDecisionTag = code;
+        break;
+      }
+    }
+
+    final selected = <String>[];
+    if (topDecisionTag != null) {
+      selected.add(topDecisionTag);
+    }
+
+    for (final code in normalized) {
+      if (selected.length >= 2) break;
+      if (!groupB.contains(code)) continue;
+      if (selected.contains(code)) continue;
+      selected.add(code);
+    }
+
+    return selected.take(2).toList();
   }
+
 
   String? _decisionPriceLabel() {
     final rec = _getRecommendedItems();
@@ -3532,7 +3583,7 @@ class _ResultScreenState extends State<ResultScreen> {
       subtitle: _decisionSubtitle(),
       decisionReason: _decisionReason(),
       priceLabel: _decisionPriceLabel(),
-      tags: _decisionTags(),
+      tags: _decisionQuickTags(),
       localInsights: _decisionLocalInsights(),
       onPriceTap: () {
         if (_priceCardEventLogged) return;

@@ -1,4 +1,44 @@
 import 'package:flutter/material.dart';
+import 'package:mscanner/widgets/menu_tag_registry.dart';
+
+String quickDecisionTagLabel(String code) {
+  switch (code) {
+    case MenuTagRegistry.recommended:
+      return 'Recommended';
+    case MenuTagRegistry.signature:
+      return 'Signature';
+    case MenuTagRegistry.popular:
+      return 'Popular';
+    case MenuTagRegistry.spicy:
+      return 'Spicy';
+    case MenuTagRegistry.seafood:
+      return 'Seafood';
+    case MenuTagRegistry.egg:
+      return 'Egg';
+    case MenuTagRegistry.vegan:
+      return 'Vegan';
+    case MenuTagRegistry.vegetarian:
+      return 'Vegetarian';
+    case MenuTagRegistry.halal:
+      return 'Halal';
+    case MenuTagRegistry.glutenFree:
+      return 'Gluten Free';
+    case MenuTagRegistry.dairyFree:
+      return 'Dairy Free';
+    case MenuTagRegistry.nutAllergy:
+      return 'Nut Allergy';
+    case MenuTagRegistry.pescatarian:
+      return 'Pescatarian';
+    case MenuTagRegistry.grill:
+      return 'Grill';
+    case MenuTagRegistry.stew:
+      return 'Stew';
+    default:
+      final pretty = code.trim().replaceAll('_', ' ');
+      if (pretty.isEmpty) return '';
+      return pretty[0].toUpperCase() + pretty.substring(1);
+  }
+}
 
 class ResultDecisionCards extends StatelessWidget {
   const ResultDecisionCards({
@@ -36,6 +76,7 @@ class ResultDecisionCards extends StatelessWidget {
     isDarkMode ? Colors.white70 : const Color(0xFF6B7280);
 
     final hasReason = (decisionReason ?? '').trim().isNotEmpty;
+
     return Container(
       decoration: BoxDecoration(
         color: cardColor,
@@ -84,7 +125,11 @@ class ResultDecisionCards extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               subtitle!.trim(),
-              style: TextStyle(color: subTextColor, fontSize: 13, height: 1.35),
+              style: TextStyle(
+                color: subTextColor,
+                fontSize: 13,
+                height: 1.35,
+              ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -129,27 +174,44 @@ class ResultDecisionCards extends StatelessWidget {
             Wrap(
               spacing: 6,
               runSpacing: 6,
-              children: tags
-                  .take(5)
-                  .map(
-                    (tag) => Container(
+              children: tags.take(2).map((tag) {
+                return Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
                     color: isDarkMode
-                        ? Colors.white.withOpacity(0.08)
+                        ? Colors.white.withOpacity(0.06)
                         : const Color(0xFFF3F4F6),
+                    border: Border.all(
+                      color: isDarkMode
+                          ? Colors.white.withOpacity(0.10)
+                          : const Color(0xFFE5E7EB),
+                    ),
                     borderRadius: BorderRadius.circular(999),
                   ),
-                  child: Text(
-                    tag,
-                    style: TextStyle(fontSize: 11, color: textColor),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        MenuTagRegistry.iconForCode(tag),
+                        size: 11.5,
+                        color: textColor.withOpacity(0.72),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        quickDecisionTagLabel(tag),
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          color: textColor.withOpacity(0.82),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              )
-                  .toList(),
+                );
+              }).toList(),
             ),
           ],
           if (localInsights.isNotEmpty) ...[
@@ -158,18 +220,15 @@ class ResultDecisionCards extends StatelessWidget {
               onTap: onLocalInsightTap,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: localInsights
-                    .take(2)
-                    .map(
-                      (line) => Padding(
+                children: localInsights.take(2).map((line) {
+                  return Padding(
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Text(
                       '• $line',
                       style: TextStyle(color: subTextColor, fontSize: 12),
                     ),
-                  ),
-                )
-                    .toList(),
+                  );
+                }).toList(),
               ),
             ),
           ],
@@ -220,9 +279,11 @@ class ResultRecommendationCompactCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final borderColor =
     isDarkMode ? Colors.white.withOpacity(0.07) : const Color(0xFFE5E7EB);
-    final cardColor = isDarkMode ? const Color(0xFF252529) : const Color(0xFFFBFCFE);
+    final cardColor =
+    isDarkMode ? const Color(0xFF252529) : const Color(0xFFFBFCFE);
     final textColor = isDarkMode ? Colors.white : const Color(0xFF111827);
-    final subTextColor = isDarkMode ? Colors.white70 : const Color(0xFF6B7280);
+    final subTextColor =
+    isDarkMode ? Colors.white70 : const Color(0xFF6B7280);
 
     return Container(
       width: double.infinity,
@@ -298,10 +359,8 @@ class ResultRecommendationCompactCard extends StatelessWidget {
                     child: Wrap(
                       spacing: 6,
                       runSpacing: 6,
-                      children: tags
-                          .take(3)
-                          .map(
-                            (tag) => Container(
+                      children: tags.take(3).map((tag) {
+                        return Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
                             vertical: 4,
@@ -314,11 +373,13 @@ class ResultRecommendationCompactCard extends StatelessWidget {
                           ),
                           child: Text(
                             tag,
-                            style: TextStyle(fontSize: 10, color: textColor),
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: textColor,
+                            ),
                           ),
-                        ),
-                      )
-                          .toList(),
+                        );
+                      }).toList(),
                     ),
                   ),
               ],
