@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mscanner/widgets/menu_tag_registry.dart';
+import 'package:mscanner/widgets/result/result_ui_copy.dart';
 
 const Set<String> _quickDecisionRegistryCodes = <String>{
   MenuTagRegistry.recommended,
@@ -64,6 +65,11 @@ String _plainQuickTagLabel(String raw) {
   return pretty[0].toUpperCase() + pretty.substring(1);
 }
 
+String _quickDecisionBadgeLabel(BuildContext context) {
+  return ResultUiCopy.text(context, ResultUiCopy.quickPickBadge);
+}
+
+
 
 class ResultDecisionCards extends StatelessWidget {
   const ResultDecisionCards({
@@ -108,97 +114,103 @@ class ResultDecisionCards extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: borderColor),
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
             decoration: BoxDecoration(
               color: isDarkMode
-                  ? Colors.white.withOpacity(0.08)
+                  ? Colors.white.withOpacity(0.07)
                   : const Color(0xFFF3F4F6),
               borderRadius: BorderRadius.circular(999),
             ),
             child: Text(
-              'Quick decision',
+              _quickDecisionBadgeLabel(context),
               style: TextStyle(
-                fontWeight: FontWeight.w700,
-                color: textColor,
-                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: textColor.withOpacity(0.85),
+                fontSize: 11,
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(
             title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontWeight: FontWeight.w800,
               color: textColor,
-              fontSize: 20,
-              height: 1.15,
+              fontSize: 19,
+              height: 1.2,
             ),
           ),
           if ((originalTitle ?? '').trim().isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(
               originalTitle!.trim(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(color: subTextColor, fontSize: 13),
             ),
           ],
           if ((subtitle ?? '').trim().isNotEmpty) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 7),
             Text(
               subtitle!.trim(),
               style: TextStyle(
                 color: subTextColor,
-                fontSize: 13,
+                fontSize: 12.5,
                 height: 1.35,
               ),
-              maxLines: 2,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           ],
-          if (hasReason) ...[
-            const SizedBox(height: 12),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-              decoration: BoxDecoration(
-                color: isDarkMode
-                    ? Colors.white.withOpacity(0.06)
-                    : const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                decisionReason!.trim(),
-                style: TextStyle(
-                  color: textColor.withOpacity(0.88),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
           if ((priceLabel ?? '').trim().isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             _tapWrap(
               onTap: onPriceTap,
               child: Text(
                 priceLabel!.trim(),
                 style: TextStyle(
-                  color: textColor,
+                  color: textColor.withOpacity(0.95),
                   fontWeight: FontWeight.w700,
-                  fontSize: 14,
+                  fontSize: 13.5,
+                ),
+              ),
+            ),
+          ],
+          if (hasReason) ...[
+            const SizedBox(height: 9),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
+                color: isDarkMode
+                    ? Colors.white.withOpacity(0.045)
+                    : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                decisionReason!.trim(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: textColor.withOpacity(0.78),
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
           ],
           if (tags.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Wrap(
-              spacing: 6,
-              runSpacing: 6,
+              spacing: 5,
+              runSpacing: 5,
               children: tags.take(2).map((tag) {
                 final normalized = MenuTagRegistry.normalizeCode(tag).trim();
                 final isRegistryTag =
@@ -211,16 +223,16 @@ class ResultDecisionCards extends StatelessWidget {
                 return Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
-                    vertical: 4,
+                    vertical: 3,
                   ),
                   decoration: BoxDecoration(
                     color: isDarkMode
-                        ? Colors.white.withOpacity(0.06)
-                        : const Color(0xFFF3F4F6),
+                        ? Colors.white.withOpacity(0.045)
+                        : const Color(0xFFF7F8FA),
                     border: Border.all(
                       color: isDarkMode
-                          ? Colors.white.withOpacity(0.10)
-                          : const Color(0xFFE5E7EB),
+                          ? Colors.white.withOpacity(0.08)
+                          : const Color(0xFFE8EBF0),
                     ),
                     borderRadius: BorderRadius.circular(999),
                   ),
@@ -230,16 +242,16 @@ class ResultDecisionCards extends StatelessWidget {
                       if (isRegistryTag) ...[
                         Icon(
                           MenuTagRegistry.iconForCode(normalized),
-                          size: 11.5,
-                          color: textColor.withOpacity(0.72),
+                          size: 10.5,
+                          color: textColor.withOpacity(0.6),
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 3),
                       ],
                       Text(
                         label,
                         style: TextStyle(
-                          fontSize: 10.5,
-                          color: textColor.withOpacity(0.82),
+                          fontSize: 10,
+                          color: textColor.withOpacity(0.74),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -322,7 +334,7 @@ class ResultRecommendationCompactCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 10),
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(14),
@@ -340,8 +352,8 @@ class ResultRecommendationCompactCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
                     color: textColor,
                   ),
                 ),
@@ -354,7 +366,7 @@ class ResultRecommendationCompactCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: subTextColor,
-                        fontSize: 12,
+                        fontSize: 11.5,
                       ),
                     ),
                   ),
@@ -367,9 +379,9 @@ class ResultRecommendationCompactCard extends StatelessWidget {
                       child: Text(
                         priceLabel!.trim(),
                         style: TextStyle(
-                          color: textColor.withOpacity(0.92),
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
+                          color: textColor.withOpacity(0.85),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12.5,
                         ),
                       ),
                     ),
@@ -379,26 +391,26 @@ class ResultRecommendationCompactCard extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 6),
                     child: Text(
                       summary!.trim(),
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: subTextColor,
-                        fontSize: 12,
+                        fontSize: 11.5,
                         height: 1.3,
                       ),
                     ),
                   ),
                 if (tags.isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.only(top: 7),
                     child: Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
+                      spacing: 5,
+                      runSpacing: 5,
                       children: tags.take(3).map((tag) {
                         return Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
+                            horizontal: 7,
+                            vertical: 3,
                           ),
                           decoration: BoxDecoration(
                             color: isDarkMode
@@ -409,8 +421,8 @@ class ResultRecommendationCompactCard extends StatelessWidget {
                           child: Text(
                             tag,
                             style: TextStyle(
-                              fontSize: 10,
-                              color: textColor,
+                              fontSize: 9.5,
+                              color: textColor.withOpacity(0.85),
                             ),
                           ),
                         );

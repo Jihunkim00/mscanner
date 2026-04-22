@@ -39,6 +39,7 @@ import 'package:mscanner/widgets/order_phrase_bottom_sheet.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:mscanner/widgets/result/result_decision_skeleton.dart';
 import 'package:mscanner/widgets/result/result_decision_cards.dart';
+import 'package:mscanner/widgets/result/result_ui_copy.dart';
 import 'package:mscanner/widgets/menu_tag_registry.dart';
 import 'package:mscanner/screens/result/result_parsing_service.dart';
 import 'package:mscanner/screens/result/result_action_service.dart';
@@ -1643,7 +1644,8 @@ class _ResultScreenState extends State<ResultScreen> {
           Row(
             children: [
               Text(
-                AppLocalizations.of(context)?.home_mscannerPicks ?? 'recommend',
+                AppLocalizations.of(context)?.home_mscannerPicks ??
+                    ResultUiCopy.text(context, ResultUiCopy.recommendationHeaderFallback),
                 style: TextStyle(
                   fontFamily: 'SFPro',
                   fontWeight: FontWeight.bold,
@@ -1675,7 +1677,7 @@ class _ResultScreenState extends State<ResultScreen> {
           ),
           const SizedBox(height: 12),
           // ✅ 추천칩 이후, 전체 결과가 아직이면 로딩 표시
-          if (_isWaitingFullMenu) ...[
+          if (_isWaitingFullMenu && rec.isNotEmpty) ...[
             const SizedBox(height: 10),
             Row(
               children: [
@@ -1683,7 +1685,7 @@ class _ResultScreenState extends State<ResultScreen> {
                 const SizedBox(width: 10),
                 Text(
                   AppLocalizations.of(context)?.result_loadingFullMenu ??
-                      'Loading full menu…',
+                      ResultUiCopy.text(context, ResultUiCopy.loadingFallback),
                   style: TextStyle(
                     fontFamily: 'SFPro',
                     fontSize: 12,
@@ -3476,16 +3478,78 @@ class _ResultScreenState extends State<ResultScreen> {
 
   String? _decisionReason() {
     final tags = _decisionQuickTags();
-    if (tags.isNotEmpty) {
-      final labels = tags.map(quickDecisionTagLabel).toList();
-      return '${labels.take(2).join(' · ')} 특징이라 빠르게 고르기 좋아요.';
+    final reasonFromTags = _decisionReasonFromTags(tags);
+    if (reasonFromTags != null) {
+      return reasonFromTags;
     }
     final subtitle = _decisionSubtitle()?.trim() ?? '';
     if (subtitle.isNotEmpty) {
-      return subtitle.length > 52 ? '${subtitle.substring(0, 52)}…' : subtitle;
+      final cleanSubtitle = subtitle
+          .replaceAll(RegExp(r'\s+'), ' ')
+          .replaceAll(RegExp(r'[\[\]{}<>]'), '')
+          .trim();
+      if (cleanSubtitle.isNotEmpty) {
+        return cleanSubtitle.length > 70
+            ? '${cleanSubtitle.substring(0, 70).trimRight()}…'
+            : cleanSubtitle;
+      }
     }
     final local = _decisionLocalInsights();
-    if (local.isNotEmpty) return local.first;
+    if (local.isNotEmpty) {
+      final cleanLocal = local.first
+          .replaceAll(RegExp(r'\s+'), ' ')
+          .replaceAll(RegExp(r'^[•\-\s]+'), '')
+          .trim();
+      if (cleanLocal.isNotEmpty) {
+        return cleanLocal.length > 70
+            ? '${cleanLocal.substring(0, 70).trimRight()}…'
+            : cleanLocal;
+      }
+    }
+
+    return ResultUiCopy.text(context, ResultUiCopy.reasonWeakSignal);
+  }
+
+  String? _decisionReasonFromTags(List<String> tags) {
+    if (tags.isEmpty) return null;
+
+    final normalized = tags
+        .map((e) => MenuTagRegistry.normalizeCode(e).trim())
+        .where((e) => e.isNotEmpty)
+        .toSet();
+    bool has(String code) => normalized.contains(code);
+    if (has(MenuTagRegistry.popular) || has(MenuTagRegistry.recommended)) {
+      return ResultUiCopy.text(context, ResultUiCopy.reasonPopular);
+    }
+    if (has(MenuTagRegistry.signature)) {
+      return ResultUiCopy.text(context, ResultUiCopy.reasonSignature);
+    }
+    if (has(MenuTagRegistry.seafood) || has(MenuTagRegistry.pescatarian)) {
+      return ResultUiCopy.text(context, ResultUiCopy.reasonSeafood);
+    }
+    if (has(MenuTagRegistry.spicy)) {
+      return ResultUiCopy.text(context, ResultUiCopy.reasonSpicy);
+    }
+    if (has(MenuTagRegistry.vegan) || has(MenuTagRegistry.vegetarian)) {
+      return ResultUiCopy.text(context, ResultUiCopy.reasonVegan);
+    }
+    if (has(MenuTagRegistry.glutenFree) || has(MenuTagRegistry.dairyFree)) {
+      return ResultUiCopy.text(context, ResultUiCopy.reasonDietary);
+    }
+    if (has(MenuTagRegistry.grill)) {
+      return ResultUiCopy.text(context, ResultUiCopy.reasonGrill);
+    }
+    if (has(MenuTagRegistry.stew)) {
+      return ResultUiCopy.text(context, ResultUiCopy.reasonStew);
+    }
+    final firstLabel = quickDecisionTagLabel(tags.first).trim();
+    if (firstLabel.isNotEmpty) {
+      return ResultUiCopy.text(
+        context,
+        ResultUiCopy.reasonStyleWithLabel,
+        args: {'label': firstLabel},
+      );
+    }
     return null;
   }
 
