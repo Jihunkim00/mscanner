@@ -437,7 +437,7 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
 
     await prefs.setString(SettingsHelper.selectedLanguageCodeKey, _selectedLanguageCode);
     await prefs.setString(SettingsHelper.selectedFoodStyleKey, _selectedFoodStyle);
-    await prefs.setString(SettingsHelper.selectedMenuNumberKey, _selectedMenuNumber);
+    await prefs.setString(SettingsHelper.selectedMenuNumberKey, normalizedMenuCount);
 
     print('Saved Language Code: $_selectedLanguageCode');
     print('Saved Food Style: $_selectedFoodStyle');

@@ -156,6 +156,8 @@ class _ResultScreenState extends State<ResultScreen> {
   bool _analyticsViewedLogged = false;
   bool _priceCardEventLogged = false;
   bool _localInsightEventLogged = false;
+  Timer? _stuckUiTimer;
+  bool _showStuckFallback = false;
 
   // ===== Recommended price candidates (for FxQuickFxButton) =====
   double? _parseAmountAny(dynamic v) {
@@ -1561,6 +1563,7 @@ class _ResultScreenState extends State<ResultScreen> {
 
     final canShowMenu = _hasUsableFullMenu();
     final canShowPartialActions = _canShowTerminalActions;
+    print('FULLMENU state => selected=$_selectedMenuNumber, enabled=$_isFullMenuEnabled, hasFast=$hasFast, hasJsonRec=$hasJsonRec, usable=${_hasUsableFullMenu()}');
 
     if (!hasFast && !hasJsonRec) {
       final shouldHideRawAiText =
@@ -1570,7 +1573,34 @@ class _ResultScreenState extends State<ResultScreen> {
 
       final isStillLoading = shouldHideRawAiText;
       if (isStillLoading && resultType != 'not_menu' && resultType != 'uncertain') {
-        return const SizedBox.shrink();
+        final loadingText =
+        _showStuckFallback
+            ? (AppLocalizations.of(context)?.result_aiTimeoutFullMenu ??
+            AppLocalizations.of(context)?.result_loadingFullMenu ??
+            ResultUiCopy.text(context, ResultUiCopy.loadingFallback))
+            : (AppLocalizations.of(context)?.result_loadingFullMenu ??
+            ResultUiCopy.text(context, ResultUiCopy.loadingFallback));
+
+        return Container(
+          decoration: boxDecoration,
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              const CupertinoActivityIndicator(radius: 10),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  loadingText,
+                  style: TextStyle(
+                    fontFamily: 'SFPro',
+                    fontSize: 13,
+                    color: textColor.withOpacity(0.82),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
       }
 
       final fallbackDisplayText = userMessage.isNotEmpty
@@ -1722,13 +1752,13 @@ class _ResultScreenState extends State<ResultScreen> {
 
           const SizedBox(height: 10),
 
-
-          Row(
-            children: [
-              Expanded(
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: canShowMenu ? _showFullMenuSheet : null,
+          if (_isFullMenuEnabled)
+            Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: canShowMenu ? _showFullMenuSheet : null,
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -2422,6 +2452,8 @@ class _ResultScreenState extends State<ResultScreen> {
   bool _isAllowedUser = false;
   Uint8List? _mergedImageBytes; // ✅ 병합된 이미지 저장용
   bool _pendingSave = false; // ✅ merge 완료 후 자동 저장 요청 플래그
+  String _selectedMenuNumber = '1-5';
+  bool get _isFullMenuEnabled => _selectedMenuNumber == 'all';
 
   Timer? _timer; // Timer variable
   bool _isLoadingError = false; // Error state variable
@@ -2462,6 +2494,8 @@ class _ResultScreenState extends State<ResultScreen> {
   @override
   void initState() {
     super.initState();
+    _loadMenuNumberSetting();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_analyticsViewedLogged) {
         _analyticsViewedLogged = true;
@@ -2477,6 +2511,15 @@ class _ResultScreenState extends State<ResultScreen> {
 // ✅ 스트리밍이 있으면: Result에서 바로 받아서 RECOMMEND 먼저 반영
     if (widget.responseStream != null) {
       _aiGotFirstChunk = false;
+      _stuckUiTimer = Timer(const Duration(seconds: 25), () {
+        if (!mounted) return;
+        if (_aiStreamDone) return;
+        if (_fastRecommend.isEmpty && _getRecommendedItems().isEmpty) {
+          setState(() {
+            _showStuckFallback = true;
+          });
+        }
+      });
 
       _aiFirstChunkTimer = Timer(const Duration(seconds: 20), () {
         if (_aiStreamDone || _aiGotFirstChunk) return;
@@ -2776,7 +2819,10 @@ class _ResultScreenState extends State<ResultScreen> {
     _timer?.cancel();
     _aiStreamSub?.cancel();
     _revealTimer?.cancel();
+    _stuckUiTimer?.cancel();
     _cancelAiStreamTimers();
+    _stuckUiTimer?.cancel();
+    _showStuckFallback = false;
     _storeNameController.dispose();
     _reviewController.dispose();
     super.dispose();
@@ -2842,6 +2888,47 @@ class _ResultScreenState extends State<ResultScreen> {
       );
     }
   }
+  Future<void> _loadMenuNumberSetting() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (!mounted) return;
+
+      final raw = prefs.getString('selectedMenuNumber') ?? '1-5';
+      final normalized = _normalizeMenuNumber(raw);
+
+      setState(() {
+        _selectedMenuNumber = normalized;
+      });
+
+      print('selectedMenuNumber(raw)=$raw');
+      print('selectedMenuNumber(normalized)=$_selectedMenuNumber');
+    } catch (e) {
+      print('loadMenuNumber error=$e');
+      if (!mounted) return;
+      setState(() {
+        _selectedMenuNumber = '1-5';
+      });
+    }
+  }
+
+  String _normalizeMenuNumber(String value) {
+    final v = value.trim().toLowerCase();
+
+    if (v == 'all' || v == '전체' || v == 'all menus') return 'all';
+
+    if (v == '1' || v == '1개') return '1';
+
+    if (v == '1-3' || v == '1~3' || v == '1~ 3' || v == '1 ~ 3') {
+      return '1-3';
+    }
+
+    if (v == '1-5' || v == '1~5' || v == '1~ 5' || v == '1 ~ 5') {
+      return '1-5';
+    }
+
+    return v;
+  }
+
 
   Future<void> _saveSettings() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -3626,7 +3713,11 @@ class _ResultScreenState extends State<ResultScreen> {
   String? _decisionPriceLabel() {
     final rec = _getRecommendedItems();
     if (rec.isEmpty) return null;
-    final label = _priceLabelFromItem(rec.first)!.trim();
+
+    final rawLabel = _priceLabelFromItem(rec.first);
+    if (rawLabel == null) return null;
+
+    final label = rawLabel.trim();
     return label.isNotEmpty ? label : null;
   }
 

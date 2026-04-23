@@ -66,6 +66,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
   bool _isLoadingError = false;
   bool _hasNavigated = false;
   final AsyncRequestGate _gptRequestGate = AsyncRequestGate();
+  Timer? _loadingWatchdog;
 
   /// GPT 분석 Future는 initState 에서 바로 시작
   late Future<_PreparedVisionInput> _preparedFuture;
@@ -80,6 +81,10 @@ class _LoadingScreenState extends State<LoadingScreen> {
     super.initState();
     // 위치 기반 RAG 컨텍스트를 포함한 분석 준비
     _preparedFuture = _prepareVisionInput();
+    _loadingWatchdog = Timer(const Duration(seconds: 40), () {
+      if (!mounted || _hasNavigated || _isLoadingError) return;
+      _showErrorUI();
+    });
     _showAdThenHandleGpt();
   }
 
@@ -409,13 +414,18 @@ class _LoadingScreenState extends State<LoadingScreen> {
   }
 
   @override
+  void dispose() {
+    _loadingWatchdog?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     final isDark = Theme
         .of(context)
         .brightness == Brightness.dark;
     final mediaQuery = MediaQuery.of(context); // 🔥 build 메서드 초반에!
-
 
     return CupertinoPageScaffold(
       backgroundColor: isDark ? Colors.black : Color(0xFFEFEFF4),
