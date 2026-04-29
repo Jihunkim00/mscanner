@@ -88,86 +88,81 @@ class SettingsHelper {
 You MUST output ONLY valid JSON (no extra text, markdown, code fences, explanations, or RECOMMEND line).
 
 Goal:
-- Extract visible food menu items from the image/OCR.
-- Return detailed recommended items and brief remaining menu items for the app UI.
+- Extract menu items from the provided image/OCR text.
+- Produce results for the app UI: "Recommended Dishes" chips + optional "Full Menu" preview.
 
-Rules:
-1) Output language:
-- shortDesc, tags, userMessage, reason, fullMenu.summary must be in outputLanguage = "$outputLang".
-- nameOriginal must be the exact original menu text from image/OCR only.
-- nameOriginal must exclude prices, numbers, bullets, option markers, and category/header text.
-- originLanguageCode must match the language of nameOriginal.
-- name must be the translated menu name in outputLanguage. If uncertain or same, use nameOriginal.
+Hard rules:
+1) Output language rule:
+   - shortDesc, tags MUST be written in outputLanguage = "$outputLang".
+   - nameOriginal MUST be the EXACT original text extracted from the image/OCR (do NOT translate).
+   - originLanguageCode MUST be the language of nameOriginal (ISO code like ko, en, ja, zh, th...).
+- nameOriginal MUST be only the dish/menu item text itself from the image/OCR (do NOT translate).
+- Exclude prices, item numbers, bullets, option markers, and surrounding category/header text from nameOriginal.
+- originLanguageCode MUST be the language of nameOriginal (ISO code like ko, en, ja, zh, th...).
 
-2) nameOriginalReading:
-- nameOriginalReading is pronunciation only for the dish name itself.
-- Never replace nameOriginal with reading text.
-- Exclude prices, numbers, category labels, and translated text.
-- For Japanese, prefer hiragana when confident.
-- If uncertain, use "".
+- nameOriginalReading is for TTS only. Keep it separate from display text.
+- nameOriginalReading MUST contain only the pronunciation of the dish name itself.
+- NEVER include prices, item numbers, sizes, option markers, punctuation-only tokens, category labels, or translated text in nameOriginalReading.
+- For Japanese, prefer hiragana reading in nameOriginalReading when confident.
+- Do NOT output Korean pronunciation for Japanese items.
+- Do NOT output romaji unless the original itself is already written in romaji.
+- If reading is uncertain, set nameOriginalReading="".
+- NEVER replace nameOriginal with reading text.
 
-3) Only use items visible in the image/OCR. Never invent menu items.
-
-4) If this is not a food menu, return:
-{
-  "isMenu": false,
-  "userMessage": "short display message in outputLanguage",
-  "outputLanguage": "$outputLang",
-  "reason": "short string"
-}
-
-5) styleHint="$styleHint" is ranking preference only. Do not hallucinate dietary facts.
-
+- name MUST be the translated name in outputLanguage. If translation is identical or uncertain, set name = nameOriginal.
+2) Never invent items not visible in the image/OCR.
+3) If the image is NOT a food menu, return isMenu=false with a short reason and a short userMessage for display.
+4) Keep shortDesc to 1–2 sentences max.
+5) Use styleHint="$styleHint" only as ranking preference (do NOT hallucinate dietary tags).
 6) menuCountHint="$menuCountHint" controls recommended count only:
-- "1": exactly 1 recommended item. fullMenu should be empty or minimal.
-- "1-3": up to 3 recommended items. fullMenu should be empty or minimal.
-- "1-5": up to 5 recommended items. fullMenu should be empty or minimal.
-- "all": recommended may be 1-4 items only. Use most remaining tokens for fullMenu.items.
-- For difficult menus, it is better to return fewer recommended items and more fullMenu items.
+   - "1": exactly 1 recommended item. fullMenu should be empty or minimal.
+   - "1-3": up to 3 recommended items. fullMenu should be empty or minimal.
+   - "1-5": up to 5 recommended items. fullMenu should be empty or minimal.
+   - "all": recommended may be 1-4 items only. Use most remaining tokens for fullMenu.items.
+   - For difficult menus, it is better to return fewer recommended items and more fullMenu items.
 
-7) Recommended items:
-- recommended must contain only the most reliable top items.
-- For difficult menus, recommended may be empty.
-- shortDesc should be 0-1 short sentence.
-- If details are unclear, set shortDesc="".
-- If price is unclear, all prices may be null.
-- If tags are unclear, use [].
-- If confidence is unclear, use a rough value like 0.35 to 0.6.
-- Do NOT infer ingredients, cooking style, or flavor unless clearly readable.
-- Avoid generic phrases like "delicious".
+7) TOKEN SAFETY (VERY IMPORTANT):
+   - Keep the entire JSON compact.
+   - Use short ids like "m1", "m2", "m3".
+   - If menuCountHint is not "all", spend tokens on recommended items, not fullMenu.
+   - If menuCountHint is "all", spend most tokens on fullMenu.items, not on descriptions.
+   - If not all items fit, set fullMenu.truncated=true.
+   - Keep nulls where schema requires them, but avoid verbose text.
+   - For difficult or very long menus, prefer many readable names with empty shortDesc and null prices over rich prose.
+   - Do not spend many tokens trying to explain uncertain items.
+   - It is better to return minimal valid item objects than to fail the whole JSON.
+   - If the menu is difficult, dense, handwritten, vertical, or partially occluded, prioritize extraction reliability over completeness, translation quality, and description quality.
 
-8) Full menu:
-- fullMenu is the main output area for menuCountHint="all".
-- If menuCountHint is not "all", fullMenu.items should be empty or minimal.
-- fullMenu.items must contain only remaining non-recommended menu items.
-- Never repeat any recommended item in fullMenu.items.
-- Merge obvious duplicates caused by OCR, repeated headers, numbering, prices, spacing, or punctuation.
-- For difficult menus (handwritten, vertical, dense, low-contrast, partially occluded), prioritize extracting as many readable item names as possible.
-- It is acceptable for many fullMenu items to have:
-  shortDesc="",
-  tags=[],
-  prices with all null values,
-  name=nameOriginal,
-  rough category="unknown",
-  rough confidence like 0.3 to 0.5.
-- If some items are only partially readable, include the readable portion instead of omitting the item entirely.
-- If vertical or rotated text is present, mentally normalize reading direction before extraction.
-- For Japanese vertical menu text, prioritize item name extraction over pronunciation/detail quality.
-- fullMenu.summary should be very short or empty. Prefer item coverage over prose.
+8) Tags limit:
+   - "tags" MUST contain at most 4 strings per item. (0–4)
 
-9) Token safety:
-- Keep the JSON compact.
-- Use short ids like "m1", "m2", "m3".
-- tags: 0 to 2 items max.
-- If menuCountHint is not "all", spend tokens on recommended items, not fullMenu.
-- If menuCountHint is "all", spend most tokens on fullMenu.items, not on descriptions.
-- If not all items fit, set fullMenu.truncated=true.
-- Keep nulls where schema requires them, but avoid verbose text.
-- For difficult or very long menus, prefer many readable names with empty shortDesc and null prices over rich prose.
-- Do not spend many tokens trying to explain uncertain items.
-- It is better to return minimal valid item objects than to fail the whole JSON.
+9) ID format:
+   - "id" MUST be short and unique within this response.
+   - Use simple IDs like "m1", "m2", "m3"... (no long UUIDs)
 
-- If the menu is difficult, dense, handwritten, vertical, or partially occluded, prioritize extraction reliability over completeness, translation quality, and description quality.
+10) Detail quality (IMPORTANT):
+   - For EACH recommended item, shortDesc MUST mention:
+     (a) ingredients OR cooking method AND (b) flavor profile (e.g., spicy/savory) in 1–2 sentences.
+   - Avoid generic phrases like "delicious". Be concrete.
+
+11) Full menu:
+   - fullMenu is the main output area for menuCountHint="all".
+   - If menuCountHint is not "all", fullMenu.items should be empty or minimal.
+   - fullMenu.items must contain only remaining non-recommended menu items.
+   - Never repeat any recommended item in fullMenu.items.
+   - Merge obvious duplicates caused by OCR, repeated headers, numbering, prices, spacing, or punctuation.
+   - For difficult menus (handwritten, vertical, dense, low-contrast, partially occluded), prioritize extracting as many readable item names as possible.
+   - It is acceptable for many fullMenu items to have:
+     shortDesc="",
+     tags=[],
+     prices with all null values,
+     name=nameOriginal,
+     rough category="unknown",
+     rough confidence like 0.3 to 0.5.
+   - If some items are only partially readable, include the readable portion instead of omitting the item entirely.
+   - If vertical or rotated text is present, mentally normalize reading direction before extraction.
+   - For Japanese vertical menu text, prioritize item name extraction over pronunciation/detail quality.
+   - fullMenu.summary should be very short or empty. Prefer item coverage over prose.
 
 Return JSON with EXACT schema:
 
@@ -176,6 +171,7 @@ Return JSON with EXACT schema:
   "userMessage": "string",
   "outputLanguage": "$outputLang",
   "place": { "name": null, "address": null, "city": null },
+
   "recommended": [
     {
       "id": "string",
@@ -184,18 +180,13 @@ Return JSON with EXACT schema:
       "originLanguageCode": "string",
       "nameOriginalReading": "string",
       "shortDesc": "string",
-      "prices": {
-        "small": null,
-        "medium": null,
-        "large": null,
-        "single": null,
-        "currency": "ISO 4217 code or null"
-      },
+      "prices": { "small": null, "medium": null, "large": null, "single": null, "currency": "ISO 4217 code like KRW, JPY, USD, EUR, etc. or null" },
       "tags": ["string"],
       "category": "main|side|meal|drink|beverage|unknown",
       "confidence": 0.0
     }
   ],
+
   "fullMenu": {
     "items": {
       "main": [],
@@ -208,6 +199,23 @@ Return JSON with EXACT schema:
     "summary": "string",
     "truncated": true
   }
+}
+
+Full menu output rule:
+- Always fill "recommended" as the most reliable top items only.
+- fullMenu.items must contain only remaining non-recommended menu items.
+- Never repeat any recommended item in fullMenu.items.
+- If menuCountHint is not "all", fullMenu.items should be empty or minimal.
+- If menuCountHint="all", use most remaining tokens for fullMenu.items and keep descriptions short or empty.
+- fullMenu.summary should be very short or empty. Prefer item coverage over prose.
+- If not all items fit, set fullMenu.truncated=true; otherwise false.
+
+If isMenu=false, return EXACTLY:
+{
+  "isMenu": false,
+  "userMessage": "short display message in outputLanguage",
+  "outputLanguage": "$outputLang",
+  "reason": "short string"
 }
 ''';
 

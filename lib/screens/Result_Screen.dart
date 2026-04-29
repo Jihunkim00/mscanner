@@ -1383,6 +1383,180 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
 
+  Widget _buildFlexibleRecommendationCard({
+    required bool isDarkMode,
+    required String primaryName,
+    required String secondaryName,
+    required String summary,
+    required String? priceLabel,
+    required List<String> tags,
+    Widget? trailing,
+    VoidCallback? onPriceTap,
+  }) {
+    final cardBg = isDarkMode ? const Color(0xFF252529) : Colors.white;
+    final borderColor = isDarkMode
+        ? Colors.white.withOpacity(0.08)
+        : const Color(0xFFE5E7EB);
+    final titleColor = isDarkMode ? Colors.white : const Color(0xFF111827);
+    final subColor = isDarkMode ? Colors.white70 : const Color(0xFF6B7280);
+    final chipBg = isDarkMode
+        ? Colors.white.withOpacity(0.08)
+        : const Color(0xFFF3F4F6);
+
+    final cleanSummary = summary.trim();
+    final cleanPrice = priceLabel?.trim();
+    final visibleTags = tags
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .take(4)
+        .toList();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: borderColor),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDarkMode ? 0.18 : 0.04),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (primaryName.trim().isNotEmpty)
+                  Text(
+                    primaryName.trim(),
+                    softWrap: true,
+                    overflow: TextOverflow.visible,
+                    style: TextStyle(
+                      fontFamily: 'SFPro',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      height: 1.25,
+                      color: titleColor,
+                    ),
+                  ),
+                if (secondaryName.trim().isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    secondaryName.trim(),
+                    softWrap: true,
+                    overflow: TextOverflow.visible,
+                    style: TextStyle(
+                      fontFamily: 'SFPro',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      height: 1.3,
+                      color: subColor,
+                    ),
+                  ),
+                ],
+                if (cleanSummary.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    cleanSummary,
+                    softWrap: true,
+                    overflow: TextOverflow.visible,
+                    style: TextStyle(
+                      fontFamily: 'SFPro',
+                      fontSize: 13,
+                      height: 1.45,
+                      color: subColor,
+                    ),
+                  ),
+                ],
+                if ((cleanPrice != null && cleanPrice.isNotEmpty) ||
+                    visibleTags.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      if (cleanPrice != null && cleanPrice.isNotEmpty)
+                        InkWell(
+                          borderRadius: BorderRadius.circular(999),
+                          onTap: onPriceTap,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: chipBg,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  cleanPrice,
+                                  style: TextStyle(
+                                    fontFamily: 'SFPro',
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: titleColor,
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                                Icon(
+                                  Icons.currency_exchange,
+                                  size: 14,
+                                  color: subColor,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ...visibleTags.map(
+                            (tag) => Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: chipBg,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            tag,
+                            softWrap: true,
+                            overflow: TextOverflow.visible,
+                            style: TextStyle(
+                              fontFamily: 'SFPro',
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: subColor,
+                              height: 1.2,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (trailing != null) ...[
+            const SizedBox(width: 12),
+            trailing,
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildDishRow(
       Map<String, dynamic> item,
       Color textColor, {
@@ -1469,7 +1643,7 @@ class _ResultScreenState extends State<ResultScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ResultRecommendationCompactCard(
+          _buildFlexibleRecommendationCard(
             isDarkMode: _isDarkMode,
             primaryName: primary,
             secondaryName: secondary,
@@ -1759,133 +1933,133 @@ class _ResultScreenState extends State<ResultScreen> {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(16),
                     onTap: canShowMenu ? _showFullMenuSheet : null,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 180),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                    decoration: BoxDecoration(
-                      color: canShowMenu
-                          ? (_isDarkMode
-                          ? const Color(0xFF2A2A2E)
-                          : const Color(0xFFF6F7F9))
-                          : (_isDarkMode
-                          ? const Color(0xFF232326)
-                          : const Color(0xFFF3F4F6)),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                      decoration: BoxDecoration(
                         color: canShowMenu
                             ? (_isDarkMode
-                            ? Colors.white.withOpacity(0.08)
-                            : const Color(0xFFE5E7EB))
+                            ? const Color(0xFF2A2A2E)
+                            : const Color(0xFFF6F7F9))
                             : (_isDarkMode
-                            ? Colors.white.withOpacity(0.05)
-                            : const Color(0xFFEAECF0)),
+                            ? const Color(0xFF232326)
+                            : const Color(0xFFF3F4F6)),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: canShowMenu
+                              ? (_isDarkMode
+                              ? Colors.white.withOpacity(0.08)
+                              : const Color(0xFFE5E7EB))
+                              : (_isDarkMode
+                              ? Colors.white.withOpacity(0.05)
+                              : const Color(0xFFEAECF0)),
+                        ),
                       ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (!canShowMenu && _isWaitingFullMenu) ...[
-                          const CupertinoActivityIndicator(radius: 8),
-                          const SizedBox(width: 8),
-                        ] else if (canShowMenu) ...[
-                          Icon(
-                            CupertinoIcons.square_list,
-                            size: 18,
-                            color: textColor.withOpacity(0.86),
-                          ),
-                          const SizedBox(width: 8),
-                        ],
-                        Flexible(
-                          child: Text(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (!canShowMenu && _isWaitingFullMenu) ...[
+                            const CupertinoActivityIndicator(radius: 8),
+                            const SizedBox(width: 8),
+                          ] else if (canShowMenu) ...[
+                            Icon(
+                              CupertinoIcons.square_list,
+                              size: 18,
+                              color: textColor.withOpacity(0.86),
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                          Flexible(
+                            child: Text(
 
-                            canShowMenu
-                                ? (AppLocalizations.of(context)?.result_viewFullMenu ??
-                                'View Full Menu')
-                                : (_isWaitingFullMenu
-                                ? (AppLocalizations.of(context)?.result_preparingMenu ??
-                                'Preparing...')
-                                : 'Menu details unavailable'),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontFamily: 'SFPro',
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: canShowMenu
-                                  ? textColor
-                                  : textColor.withOpacity(0.65),
+                              canShowMenu
+                                  ? (AppLocalizations.of(context)?.result_viewFullMenu ??
+                                  'View Full Menu')
+                                  : (_isWaitingFullMenu
+                                  ? (AppLocalizations.of(context)?.result_preparingMenu ??
+                                  'Preparing...')
+                                  : 'Menu details unavailable'),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: 'SFPro',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: canShowMenu
+                                    ? textColor
+                                    : textColor.withOpacity(0.65),
+                              ),
                             ),
                           ),
-                        ),
-                        if (canShowMenu) ...[
-                          const SizedBox(width: 6),
-                          Icon(
-                            CupertinoIcons.chevron_up_chevron_down,
-                            size: 13,
-                            color: textColor.withOpacity(0.45),
-                          ),
+                          if (canShowMenu) ...[
+                            const SizedBox(width: 6),
+                            Icon(
+                              CupertinoIcons.chevron_up_chevron_down,
+                              size: 13,
+                              color: textColor.withOpacity(0.45),
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
                 ),
-              ),
 
-              // ✅ 로딩 끝난 뒤에만 copy/share 노출
-              if (canShowPartialActions) ...[
-                const SizedBox(width: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    color: _isDarkMode
-                        ? const Color(0xFF2A2A2E)
-                        : const Color(0xFFF6F7F9),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
+                // ✅ 로딩 끝난 뒤에만 copy/share 노출
+                if (canShowPartialActions) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    decoration: BoxDecoration(
                       color: _isDarkMode
-                          ? Colors.white.withOpacity(0.08)
-                          : const Color(0xFFE5E7EB),
+                          ? const Color(0xFF2A2A2E)
+                          : const Color(0xFFF6F7F9),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: _isDarkMode
+                            ? Colors.white.withOpacity(0.08)
+                            : const Color(0xFFE5E7EB),
+                      ),
+                    ),
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.copy,
+                        color: textColor.withOpacity(0.86),
+                        size: 20,
+                      ),
+                      onPressed: () {
+                        final copySource = widget.responses.isNotEmpty
+                            ? widget.responses.join('\n\n')
+                            : _aiStreamBuffer.toString();
+                        _copyTextToClipboard(copySource);
+                      },
                     ),
                   ),
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.copy,
-                      color: textColor.withOpacity(0.86),
-                      size: 20,
-                    ),
-                    onPressed: () {
-                      final copySource = widget.responses.isNotEmpty
-                          ? widget.responses.join('\n\n')
-                          : _aiStreamBuffer.toString();
-                      _copyTextToClipboard(copySource);
-                    },
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    color: _isDarkMode
-                        ? const Color(0xFF2A2A2E)
-                        : const Color(0xFFF6F7F9),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
+                  const SizedBox(width: 8),
+                  Container(
+                    decoration: BoxDecoration(
                       color: _isDarkMode
-                          ? Colors.white.withOpacity(0.08)
-                          : const Color(0xFFE5E7EB),
+                          ? const Color(0xFF2A2A2E)
+                          : const Color(0xFFF6F7F9),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: _isDarkMode
+                            ? Colors.white.withOpacity(0.08)
+                            : const Color(0xFFE5E7EB),
+                      ),
+                    ),
+                    child: IconButton(
+                      icon: Icon(
+                        CupertinoIcons.square_arrow_up,
+                        color: textColor.withOpacity(0.86),
+                        size: 22,
+                      ),
+                      onPressed: _shareCapturedImage,
                     ),
                   ),
-                  child: IconButton(
-                    icon: Icon(
-                      CupertinoIcons.square_arrow_up,
-                      color: textColor.withOpacity(0.86),
-                      size: 22,
-                    ),
-                    onPressed: _shareCapturedImage,
-                  ),
-                ),
+                ],
               ],
-            ],
-          ),
+            ),
         ],
       ),
     );

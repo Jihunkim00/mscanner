@@ -17,6 +17,16 @@ import 'package:getwidget/getwidget.dart'; // GetWidget 패키지 임포트
 import 'dart:convert';
 import 'package:mscanner/widgets/menu_tag_registry.dart';
 import 'package:mscanner/utils/ai_result_copy_formatter.dart';
+import 'package:mscanner/widgets/result/result_decision_cards.dart';
+
+
+class _FavoriteMenuNamePair {
+  final String original;
+  final String translated;
+  const _FavoriteMenuNamePair({required this.original, required this.translated});
+
+  String get display => translated.trim().isNotEmpty ? translated.trim() : original.trim();
+}
 
 class FavoriteScreen extends StatefulWidget {
   final String documentId;
@@ -527,7 +537,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                 : nameTranslated;
 
             final desc = (m['shortDesc'] ?? '').toString();
-            final price = (m['price'] ?? '').toString().trim();
+            final price = _priceLabelFromItem(m) ?? '';
 
             return Column(
               children: [
@@ -642,61 +652,294 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     );
   }
 
-  Widget _buildDishRow(Map<String, dynamic> item, Color textColor) {
+
+  double? _parseAmountAny(dynamic v) {
+    if (v == null) return null;
+    if (v is num) return v.toDouble();
+    if (v is String) {
+      final cleaned = v.trim().replaceAll(',', '').replaceAll('\u00A0', ' ');
+      if (cleaned.isEmpty) return null;
+      final m = RegExp(r'(\d+(?:\.\d+)?)').firstMatch(cleaned);
+      if (m == null) return null;
+      return double.tryParse(m.group(1)!);
+    }
+    return null;
+  }
+
+  String? _currencyCodeFromItem(Map<String, dynamic> item) {
+    String? code;
+    final prices = item['prices'];
+    if (prices is Map) {
+      code = (prices['currency'] ?? prices['currencyCode'])?.toString();
+    }
+    code ??= (item['currency'] ?? item['currencyCode'] ?? item['priceCurrency'])?.toString();
+    final c = code?.trim().toUpperCase();
+    return (c == null || c.isEmpty || c == 'NULL') ? null : c;
+  }
+
+  String? _symbolForCurrency(String? code) {
+    switch ((code ?? '').toUpperCase()) {
+      case 'KRW':
+        return '₩';
+      case 'JPY':
+      case 'CNY':
+        return '¥';
+      case 'USD':
+        return r'$';
+      case 'EUR':
+        return '€';
+      case 'GBP':
+        return '£';
+      case 'VND':
+        return '₫';
+      case 'THB':
+        return '฿';
+      case 'PHP':
+        return '₱';
+      case 'INR':
+        return '₹';
+      default:
+        return null;
+    }
+  }
+
+  String _commaInt(int n) {
+    final sign = n < 0 ? '-' : '';
+    var s = n.abs().toString();
+    final buf = StringBuffer();
+    for (int i = 0; i < s.length; i++) {
+      final idxFromEnd = s.length - i;
+      buf.write(s[i]);
+      if (idxFromEnd > 1 && idxFromEnd % 3 == 1) buf.write(',');
+    }
+    return sign + buf.toString();
+  }
+
+  String _formatAmount(double v) {
+    if ((v - v.roundToDouble()).abs() < 0.000001) return _commaInt(v.round());
+    var s = v.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '');
+    final parts = s.split('.');
+    final head = _commaInt(int.tryParse(parts.first) ?? 0);
+    return parts.length == 2 ? '$head.${parts[1]}' : head;
+  }
+
+  String _formatMoney(double amount, {String? currencyCode}) {
+    final sym = _symbolForCurrency(currencyCode);
+    final a = _formatAmount(amount);
+    if (sym != null && sym.isNotEmpty) {
+      final base = '$sym$a';
+      if (currencyCode == 'USD' || currencyCode == 'JPY' || currencyCode == 'CNY') {
+        return '$base ($currencyCode)';
+      }
+      return base;
+    }
+    if (currencyCode != null && currencyCode.isNotEmpty) return '$currencyCode $a';
+    return a;
+  }
+
+  String _formatMoneyRange(double min, double max, {String? currencyCode}) {
+    final sym = _symbolForCurrency(currencyCode);
+    final aMin = _formatAmount(min);
+    final aMax = _formatAmount(max);
+    if (sym != null && sym.isNotEmpty) {
+      var base = '$sym$aMin~$sym$aMax';
+      if (currencyCode == 'USD' || currencyCode == 'JPY' || currencyCode == 'CNY') {
+        base += ' ($currencyCode)';
+      }
+      return base;
+    }
+    if (currencyCode != null && currencyCode.isNotEmpty) return '$currencyCode $aMin~$aMax';
+    return '$aMin~$aMax';
+  }
+
+  String? _priceLabelFromItem(Map<String, dynamic> item) {
+    final code = _currencyCodeFromItem(item);
+    final vals = <double>[];
+    final prices = item['prices'];
+    if (prices is Map) {
+      for (final k in const ['single', 'small', 'medium', 'large']) {
+        final a = _parseAmountAny(prices[k]);
+        if (a != null && a > 0) vals.add(a);
+      }
+    }
+    if (vals.isEmpty) {
+      final raw = (item['price'] ?? '').toString().trim();
+      if (raw.isNotEmpty && RegExp(r'[^\d\s,.]').hasMatch(raw)) return raw;
+      final a = _parseAmountAny(item['price']);
+      if (a != null && a > 0) vals.add(a);
+    }
+    if (vals.isEmpty) return null;
+    vals.sort();
+    return vals.length == 1
+        ? _formatMoney(vals.first, currencyCode: code)
+        : _formatMoneyRange(vals.first, vals.last, currencyCode: code);
+  }
+
+  bool _hasAnyFullMenuItems(Map<String, dynamic>? itemsMap) {
+    if (itemsMap == null || itemsMap.isEmpty) return false;
+    for (final v in itemsMap.values) {
+      if (v is List && v.isNotEmpty) return true;
+    }
+    return false;
+  }
+
+  bool _hasUsableFullMenu() {
+    final j = _aiJson;
+    if (j == null) return false;
+    final rawFm = j['fullMenu'] ?? j['full_menu'] ?? j['menu'] ?? j['menus'];
+    if (rawFm is! Map) return false;
+
+    Map<String, dynamic>? itemsMap;
+    String summary = '';
+    if (rawFm['items'] is Map) {
+      itemsMap = Map<String, dynamic>.from(rawFm['items'] as Map);
+      summary = (rawFm['summary'] ?? '').toString().trim();
+    } else {
+      itemsMap = Map<String, dynamic>.from(rawFm);
+      summary = (rawFm['summary'] ?? '').toString().trim();
+    }
+    return _hasAnyFullMenuItems(itemsMap) || summary.isNotEmpty;
+  }
+
+  _FavoriteMenuNamePair? _extractPrimaryMenuPair() {
+    final rec = _getRecommendedItems();
+    if (rec.isEmpty) return null;
+    final first = rec.first;
+    final original = (first['nameOriginal'] ?? '').toString().trim();
+    final translated = (first['name'] ?? '').toString().trim();
+    if (original.isEmpty && translated.isEmpty) return null;
+    return _FavoriteMenuNamePair(original: original, translated: translated);
+  }
+
+  String _decisionTitle() {
+    final pair = _extractPrimaryMenuPair();
+    if (pair != null && pair.display.isNotEmpty) return pair.display;
+    return (_favoriteData?['primary_menu'] ??
+        _favoriteData?['menu_name'] ??
+        _favoriteData?['menuName'] ??
+        _favoriteData?['restaurantName'] ??
+        AppLocalizations.of(context)?.favorite_unknownRestaurant ??
+        'Scan result')
+        .toString();
+  }
+
+  String? _decisionOriginalTitle() {
+    final pair = _extractPrimaryMenuPair();
+    if (pair == null) return null;
+    final title = pair.display.trim().toLowerCase();
+    final original = pair.original.trim();
+    if (original.isEmpty || original.toLowerCase() == title) return null;
+    return original;
+  }
+
+  String _decisionSubtitle() {
+    final country = (_favoriteData?['country'] ?? '').toString().trim();
+    final city = (_favoriteData?['city'] ?? '').toString().trim();
+    final restaurant = (_favoriteData?['restaurantName'] ?? '').toString().trim();
+    final location = [country, city].where((e) => e.isNotEmpty).join(', ');
+    if (restaurant.isNotEmpty && location.isNotEmpty) return '$restaurant · $location';
+    if (restaurant.isNotEmpty) return restaurant;
+    if (location.isNotEmpty) return location;
+    return AppLocalizations.of(context)?.aiAnswer ?? 'Recommended Dishes';
+  }
+
+  String? _decisionReason() {
+    final rec = _getRecommendedItems();
+    if (rec.isEmpty) return null;
+    final desc = (rec.first['shortDesc'] ?? '').toString().trim();
+    return desc.isEmpty ? null : desc;
+  }
+
+  String? _decisionPriceLabel() {
+    final rec = _getRecommendedItems();
+    if (rec.isEmpty) return null;
+    return _priceLabelFromItem(rec.first);
+  }
+
+  List<String> _decisionQuickTags() {
+    final rec = _getRecommendedItems();
+    if (rec.isEmpty) return const [];
+    final tags = rec.first['tags'];
+    if (tags is! List) return const [];
+    return tags.map((e) => e.toString().trim()).where((e) => e.isNotEmpty).take(6).toList();
+  }
+
+  List<String> _decisionLocalInsights() {
+    final out = <String>[];
+    final other = (_favoriteData?['other'] ?? '').toString().trim();
+    final country = (_favoriteData?['country'] ?? '').toString().trim();
+    final city = (_favoriteData?['city'] ?? '').toString().trim();
+    final whenRaw = (_favoriteData?['timestamp'] ?? '').toString().trim();
+
+    if (city.isNotEmpty || country.isNotEmpty) {
+      out.add([city, country].where((e) => e.isNotEmpty).join(', '));
+    }
+    if (other.isNotEmpty) out.add(other);
+    if (whenRaw.isNotEmpty) {
+      try {
+        out.add(DateFormat('MMM dd, yyyy').format(DateTime.parse(whenRaw)));
+      } catch (_) {}
+    }
+    return out.take(3).toList();
+  }
+
+  Widget _buildDecisionSummarySection() {
+    final title = _decisionTitle();
+    return ResultDecisionCards(
+      isDarkMode: _isDarkMode,
+      title: title,
+      originalTitle: _decisionOriginalTitle(),
+      subtitle: _decisionSubtitle(),
+      decisionReason: _decisionReason(),
+      priceLabel: _decisionPriceLabel(),
+      tags: _decisionQuickTags(),
+      localInsights: _decisionLocalInsights(),
+      onPriceTap: () {},
+      onLocalInsightTap: () {},
+    );
+  }
+
+  Widget _buildDishRow(
+      Map<String, dynamic> item,
+      Color textColor, {
+        required bool isPrimaryRecommended,
+      }) {
     final nameOriginal = (item['nameOriginal'] ?? '').toString().trim();
     final nameTranslated = (item['name'] ?? '').toString().trim();
     final desc = (item['shortDesc'] ?? '').toString();
+    final priceLabel = _priceLabelFromItem(item);
 
-    // ✅ 여기! (label 방어)
     final label = nameOriginal.isNotEmpty ? nameOriginal : nameTranslated;
     if (label.isEmpty) return const SizedBox.shrink();
 
-    final displayName = (nameOriginal.isNotEmpty)
-        ? (nameTranslated.isNotEmpty &&
-        nameTranslated.toLowerCase() != nameOriginal.toLowerCase()
-        ? '$nameOriginal ($nameTranslated)'
-        : nameOriginal)
-        : nameTranslated;
+    final showTranslation = nameTranslated.isNotEmpty &&
+        nameOriginal.isNotEmpty &&
+        nameTranslated.toLowerCase() != nameOriginal.toLowerCase();
+
+    final primary = nameOriginal.isNotEmpty ? nameOriginal : nameTranslated;
+    final secondary = showTranslation ? nameTranslated : '';
 
     final tags = (item['tags'] is List)
         ? (item['tags'] as List).map((e) => e.toString()).toList()
         : <String>[];
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            displayName,
-            style: TextStyle(
-              fontFamily: 'SFPro',
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              color: textColor,
-            ),
+          ResultRecommendationCompactCard(
+            isDarkMode: _isDarkMode,
+            primaryName: primary,
+            secondaryName: secondary,
+            summary: desc,
+            priceLabel: priceLabel,
+            tags: tags,
+            trailing: null,
+            onPriceTap: () {},
           ),
-          const SizedBox(height: 6),
-          if (desc.isNotEmpty)
-            Text(
-              desc,
-              style: TextStyle(
-                fontFamily: 'SFPro',
-                fontSize: 13,
-                color: textColor,
-              ),
-            ),
-          const SizedBox(height: 10),
-          if (tags.isNotEmpty)
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: tags.take(6).map((t) {
-                return _tagChipPhosphor(rawTag: t);
-              }).toList(),
-            ),
-          const SizedBox(height: 12),
-          Divider(height: 1, color: textColor.withOpacity(0.12)),
+          if (isPrimaryRecommended) const SizedBox(height: 4),
+          const SizedBox(height: 8),
         ],
       ),
     );
@@ -760,7 +1003,8 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            AppLocalizations.of(context)!.aiAnswer,
+            AppLocalizations.of(context)?.home_mscannerPicks ??
+                AppLocalizations.of(context)!.aiAnswer,
             style: TextStyle(
               fontFamily: 'SFPro',
               fontWeight: FontWeight.bold,
@@ -769,14 +1013,20 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          ...rec.map((item) => _buildDishRow(item, textColor)).toList(),
+          ...rec.asMap().entries.map((entry) {
+            return _buildDishRow(
+              entry.value,
+              textColor,
+              isPrimaryRecommended: entry.key == 0,
+            );
+          }).toList(),
           const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
                 child: InkWell(
                   borderRadius: BorderRadius.circular(16),
-                  onTap: () => _showFullMenuSheet(textColor),
+                  onTap: _hasUsableFullMenu() ? () => _showFullMenuSheet(textColor) : null,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     decoration: BoxDecoration(
@@ -834,12 +1084,12 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                   ),
                 ),
                 child: IconButton(
-                  icon: Icon(
-                    Icons.copy,
-                    color: textColor.withOpacity(0.86),
-                    size: 20,
-                  ),
-                  onPressed: () => _copyTextToClipboard(_buildReadableCopyText())
+                    icon: Icon(
+                      Icons.copy,
+                      color: textColor.withOpacity(0.86),
+                      size: 20,
+                    ),
+                    onPressed: () => _copyTextToClipboard(_buildReadableCopyText())
                 ),
               ),
               const SizedBox(width: 8),
@@ -1179,6 +1429,8 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                       ),
                     ],
                   ),
+                  SizedBox(height: 16),
+                  _buildDecisionSummarySection(),
                   SizedBox(height: 16),
                   // ✅ AI 응답 (JSON 칩 UI + 구버전 텍스트 fallback)
                   _buildAiAnswerSection(
