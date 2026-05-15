@@ -1,0 +1,3 @@
+functions/**/*.ts text eol=lf
+functions/**/*.js text eol=lf
+functions/.eslintrc.js text eol=lf
