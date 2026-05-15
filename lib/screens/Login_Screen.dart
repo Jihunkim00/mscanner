@@ -1,4 +1,5 @@
 import 'dart:io'; // 플랫폼을 감지하기 위해 dart:io 패키지 추가
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,12 +7,20 @@ import 'package:google_sign_in/google_sign_in.dart';
 import '/screens/Home_Screen.dart';
 import '/screens/SignUp_Screen.dart';
 import '/screens/ChangePassword_Screen.dart';
-
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '/screens/log_service.dart'; // ✅ 로그 서비스 추가
 import '/screens/url_launcher1.dart'; // ← 만들어둔 위젯 import 추가
+import 'dart:convert';
+import 'dart:math';
+import 'package:crypto/crypto.dart';
+import '/analytics_service.dart';
+
+enum GuestWelcomeAction {
+  continueGuest,
+  signIn,
+}
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -20,106 +29,341 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   String? _errorMessage;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AnalyticsService.instance.setCurrentScreen('login_screen');
+    });
+    _initGoogleSignIn();
+  }
+
+  Future<void> _initGoogleSignIn() async {
+    await _googleSignIn.initialize(
+      // ✅ Android에서는 반드시 Web Client ID 지정해야 함
+      serverClientId:
+      '522189466074-ijitmvohfhromjc32kkjs6khbprasp8e.apps.googleusercontent.com',
+      // ✅ iOS에서는 clientId 지정 (Firebase Console iOS OAuth ID)
+      clientId: Platform.isIOS
+          ? '522189466074-qjculmgnptdeorlv86rh9e0uulp934rs.apps.googleusercontent.com'
+          : null,
+    );
+  }
+
+
   Future<User?> _signInWithGoogle() async {
+    await LogService().logLoginAttempt(method: 'google');
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        return null;
+      final account = await _googleSignIn.authenticate(); // ← signIn() 아님
+      final idToken = account.authentication.idToken; // ← property, nullable
+
+      if (idToken == null) {
+        throw Exception('Google idToken is null');
       }
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(idToken: idToken);
+      final userCredential =
+      await FirebaseAuth.instance.signInWithCredential(credential);
 
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      final UserCredential userCredential = await _auth.signInWithCredential(credential);
+      await LogService().logLoginSuccess(method: 'google');
+      await AnalyticsService.instance.setUserId(userCredential.user?.uid);
       return userCredential.user;
     } catch (e) {
-      print('Google sign-in error: $e');
-      // 에러 메시지 제거
+      await LogService().logLoginFail(
+          method: 'google', errorCode: 'exception', errorMsg: e.toString());
+      debugPrint('Google sign-in error: $e');
       return null;
     }
   }
 
+  String _generateNonce([int length = 32]) {
+    const charset =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(length, (_) => charset[random.nextInt(charset.length)])
+        .join();
+  }
+
+  String _sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
   Future<User?> _signInWithApple() async {
+    await LogService().logLoginAttempt(method: 'apple');
     try {
-      // Apple 인증 요청
+      // 1) rawNonce 생성 + 해시
+      final rawNonce = _generateNonce();
+      final hashedNonce = _sha256ofString(rawNonce);
+
+      // 2) 애플 인증 (hashedNonce 전달)
       final appleCredential = await SignInWithApple.getAppleIDCredential(
         scopes: [
           AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName,
+          AppleIDAuthorizationScopes.fullName
         ],
+        nonce: hashedNonce,
       );
 
-      // Firebase로 전달할 OAuthCredential 생성
-      final oauthCredential = OAuthProvider("apple.com").credential(
-        idToken: appleCredential.identityToken,
-        accessToken: appleCredential.authorizationCode,
+      // 3) Firebase용 credential (idToken + rawNonce + AppleFullPersonName(널 불가))
+      final oauth = AppleAuthProvider.credentialWithIDToken(
+        appleCredential.identityToken!, // String (not null)
+        rawNonce, // String (not null)
+        AppleFullPersonName(
+          // 객체 자체는 not null, 내부 필드는 null 허용
+          givenName: appleCredential.givenName,
+          familyName: appleCredential.familyName,
+        ),
       );
 
-      // Firebase 로그인 시도
-      final UserCredential userCredential = await _auth.signInWithCredential(oauthCredential);
+      final userCredential =
+      await FirebaseAuth.instance.signInWithCredential(oauth);
+      await LogService().logLoginSuccess(method: 'apple');
+      await AnalyticsService.instance.setUserId(userCredential.user?.uid);
       return userCredential.user;
     } catch (e) {
-      print('Apple sign-in error: $e');
-      // 에러 메시지 제거
+      await LogService().logLoginFail(
+          method: 'password', errorCode: 'exception', errorMsg: e.toString());
+      debugPrint('Apple sign-in error: $e');
       return null;
     }
   }
 
   Future<void> _signInWithEmailPassword() async {
+    await LogService().logLoginAttempt(method: 'password');
+
     try {
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      final userCredential = await _auth.signInWithEmailAndPassword(
         email: _emailController.text,
         password: _passwordController.text,
       );
 
-      await LogService().logLoginSuccess(); // ✅ 추가된 부분
+      await LogService().logLoginSuccess(method: 'password');
 
-      _navigateAfterSignIn(userCredential.user);
+      final user = userCredential.user;
+      if (user != null) {
+        await AnalyticsService.instance.setUserId(user.uid);
+      }
+
+      _navigateAfterSignIn(user);
     } catch (e) {
+      await LogService().logLoginFail(
+        method: 'password',
+        errorCode: 'exception',
+        errorMsg: e.toString(),
+      );
+
       setState(() {
         _errorMessage = e.toString();
       });
     }
   }
 
-  // **게스트 로그인 기능 추가 및 Cupertino 스타일 다이얼로그로 변경**
   Future<void> _signInAsGuest() async {
+    await LogService().logLoginAttempt(method: 'guest');
     try {
       UserCredential userCredential = await _auth.signInAnonymously();
+      await LogService().logLoginSuccess(method: 'guest');
+      await AnalyticsService.instance.setUserId(userCredential.user?.uid);
 
-      // 게스트 로그인 성공 시 Cupertino 스타일 다이얼로그 표시
-      await showCupertinoDialog(
-        context: context,
-        builder: (context) => CupertinoAlertDialog(
-          title: Text(AppLocalizations.of(context)?.guestLoginTitle ?? 'Guest Login'),
-          content: Text(AppLocalizations.of(context)?.guestLoginContent ??
-              'You are logged in as a guest. All data will be deleted upon logout.'),
-          actions: [
-            CupertinoDialogAction(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(AppLocalizations.of(context)?.confirm ?? 'Confirm'),
-            ),
-          ],
-        ),
+      final action = await _showGuestWelcomePopup();
+
+      if (!mounted) return;
+
+      if (action == GuestWelcomeAction.signIn) {
+        await FirebaseAuth.instance.signOut();
+        return;
+      }
+
+      if (action == GuestWelcomeAction.continueGuest) {
+        _navigateAfterSignIn(userCredential.user);
+      }
+    } on FirebaseAuthException catch (e) {
+      await LogService().logLoginFail(
+        method: 'guest',
+        errorCode: e.code,
+        errorMsg: e.message,
       );
-
-      _navigateAfterSignIn(userCredential.user);
-    } catch (e) {
       setState(() {
-        _errorMessage =
-            AppLocalizations.of(context)?.guestLoginFailed ?? 'Guest login failed. Please try again.';
+        _errorMessage = AppLocalizations.of(context)?.guestLoginFailed ??
+            'Guest login failed. Please try again.';
       });
-      print('Guest sign-in error: $e');
+    } catch (e) {
+      await LogService().logLoginFail(
+        method: 'guest',
+        errorCode: 'exception',
+        errorMsg: e.toString(),
+      );
+      setState(() {
+        _errorMessage = AppLocalizations.of(context)?.guestLoginFailed ??
+            'Guest login failed. Please try again.';
+      });
     }
+  }
+
+  Future<GuestWelcomeAction?> _showGuestWelcomePopup() {
+    final localizations = AppLocalizations.of(context);
+
+    return showCupertinoModalPopup<GuestWelcomeAction>(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.18),
+      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+      builder: (context) {
+        return SafeArea(
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(24, 12, 24, 28),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(32),
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 46,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD1D5DB),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                    const SizedBox(height: 22),
+
+                    SizedBox(
+                      width: double.infinity,
+                      height: 200,
+                      child: ClipRect(
+                        child: Transform.translate(
+                          offset: const Offset(0, -4),
+                          child: OverflowBox(
+                            alignment: Alignment.topCenter,
+                            maxHeight: 340,
+                            child: Image.asset(
+                              'assets/images/guest_welcome.png',
+                              height: 285,
+                              fit: BoxFit.fitHeight,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    Text(
+                      localizations?.guestLoginTitle ?? 'Welcome, Explorer!',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontFamily: 'SF Pro Display',
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.black,
+                      ),
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    Text(
+                      localizations?.guestLoginContent ??
+                          'In Guest Mode, you can scan food menus to get personalized recommendations, but you won’t be able to save your favorites or view history across devices.',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontFamily: 'SF Pro Display',
+                        fontSize: 17,
+                        height: 1.45,
+                        color: Color(0xFF222222),
+                      ),
+                    ),
+
+                    const SizedBox(height: 28),
+
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(28),
+                          gradient: const LinearGradient(
+                            colors: [
+                              Color(0xFF4A84D8),
+                              Color(0xFF5A92E5),
+                            ],
+                          ),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x334A84D8),
+                              blurRadius: 12,
+                              offset: Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(
+                              context,
+                              GuestWelcomeAction.continueGuest,
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(28),
+                            ),
+                          ),
+                          child: Text(
+                            localizations?.confirm2 ?? "Got it, let's go!",
+                            style: const TextStyle(
+                              fontFamily: 'SF Pro Display',
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(
+                          context,
+                          GuestWelcomeAction.signIn,
+                        );
+                      },
+                      child: Text(
+                        localizations?.cancel ?? 'back',
+                        style: const TextStyle(
+                          fontFamily: 'SF Pro Display',
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF4A84D8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _navigateAfterSignIn(User? user) async {
@@ -131,244 +375,449 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final isDarkMode = AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark;
 
-    return Scaffold(
-      backgroundColor: isDarkMode ? Colors.black : Color(0xFFEFEFF4),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(height: 100),
-                Semantics(
-                  label: 'App logo and title',
-                  child: Image.asset(
-                    'assets/images/tittle.png', // 이미지 경로를 적절히 수정
-                    width: 220, // 원하는 이미지 너비
-                    height: 100, // 원하는 이미지 높이
+    // UI theme tokens (스크린샷 스타일)
+    const primaryOrange = Color(0xFFD8753B);
+    final bgColor = isDarkMode ? const Color(0xFF0B0B0B) : const Color(0xFFEFEFF4);
+    final cardColor = isDarkMode ? const Color(0xFF141414) : Colors.white;
+    final fieldFill = isDarkMode ? const Color(0xFF1F1F1F) : const Color(0xFFF2F4F7);
+    final dividerColor = isDarkMode ? Colors.white24 : Colors.black12;
+    final double appleScale = isDarkMode ? 1.18 : 1.10;
+    final googleIconAsset = isDarkMode
+        ? 'assets/images/google_dark.png'
+        : 'assets/images/google_light.png';
+
+    final appleIconAsset = isDarkMode
+        ? 'assets/images/apple_dark.png'
+        : 'assets/images/apple_light.png';
+
+    InputDecoration _fieldDecoration({
+      required String label,
+      required IconData icon,
+      String? hint,
+    }) {
+      return InputDecoration(
+        labelText: label,
+        hintText: hint,
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        prefixIcon: Icon(icon, size: 20),
+        filled: true,
+        fillColor: fieldFill,
+        border: OutlineInputBorder(
+          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+      );
+    }
+    Widget _authIcon(String asset, {double box = 22, double scale = 1.0}) {
+      return SizedBox(
+        width: box,
+        height: box,
+        child: Transform.scale(
+          scale: scale,
+          child: Image.asset(asset, fit: BoxFit.contain),
+        ),
+      );
+    }
+
+    Widget _socialLoginButton({
+      required VoidCallback? onPressed,
+      required String label,
+      required String iconAsset,
+      required double iconScale,
+      required bool isDarkMode,
+      required Color dividerColor,
+    }) {
+      return SizedBox(
+        height: 52,
+        child: OutlinedButton(
+          onPressed: onPressed,
+          style: OutlinedButton.styleFrom(
+            foregroundColor: isDarkMode ? Colors.white : Colors.black,
+            side: BorderSide(color: dividerColor),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _authIcon(iconAsset, box: 20, scale: iconScale),
+              const SizedBox(width: 6),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    softWrap: false,
+                    style: const TextStyle(
+                      fontFamily: 'SFPro',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-
-                SizedBox(height: 50),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    children: [
-                      Semantics(
-                        label: 'Sign in with Google',
-                        child: ElevatedButton.icon(
-                          onPressed: () async {
-                            User? user = await _signInWithGoogle();
-                            if (user != null) {
-                              await LogService().logLoginSuccess(); // ✅ 추가된 부분
-                              _navigateAfterSignIn(user);
-                            }
-                          },
-                          icon: Image.asset(
-                            'assets/images/google_logo.png',
-                            width: 24,
-                            height: 24,
-                            semanticLabel: 'Google logo',
-                          ),
-                          label: Text(localizations?.continueWithGoogle ?? 'Continue with Google'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: Colors.black,
-                            minimumSize: Size(double.infinity, 60),
-                          ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    return Scaffold(
+      backgroundColor: bgColor,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 520),
+              child: Column(
+                children: [
+                  // 카드
+                  Container(
+                    decoration: BoxDecoration(
+                      color: cardColor,
+                      borderRadius: BorderRadius.circular(26),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(isDarkMode ? 0.45 : 0.18),
+                          blurRadius: 24,
+                          offset: const Offset(0, 12),
                         ),
-                      ),
-                      SizedBox(height: 20),
-                      // Apple 로그인 버튼은 iOS 플랫폼에서만 표시
-                      if (Platform.isIOS)
-                        Semantics(
-                          label: 'Sign in with Apple',
-                          child: ElevatedButton.icon(
-                            onPressed: () async {
-                              User? user = await _signInWithApple();
-                              if (user != null) {
-                                await LogService()
-                                    .logLoginSuccess(); // ✅ 추가된 부분
-                                _navigateAfterSignIn(user);
-                              }
-                            },
-                            icon: Image.asset(
-                              'assets/images/apple_logo.png',
-                              width: 24,
-                              height: 24,
-                              semanticLabel: 'Apple logo',
-                            ),
-                            label:
-                            Text(localizations?.continueWithApple ?? 'Continue with Apple'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.black,
-                              foregroundColor: Colors.white,
-                              minimumSize: Size(double.infinity, 60),
-                            ),
-                          ),
-                        ),
-                      SizedBox(height: 20),
-                      // **게스트 로그인 버튼 추가**
-                      Semantics(
-                        label: 'Continue as Guest',
-                        child: ElevatedButton(
-                          onPressed: _signInAsGuest,
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: Size(double.infinity, 60),
-                            backgroundColor: Colors.grey[300],
-                            foregroundColor: Colors.black,
-                          ),
-                          child: Text(
-                            localizations?.continueAsGuest ?? 'Continue as Guest',
-                            style: TextStyle(fontFamily: 'SFPro', fontSize: 16),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      Semantics(
-                        label: 'Email input field',
-                        child: CupertinoTextField(
-                          controller: _emailController,
-                          placeholder: localizations?.email ?? 'Email',
-                          placeholderStyle: TextStyle(
-                              color: isDarkMode ? Colors.white54 : Colors.grey),
-                          padding: EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          style: TextStyle(
-                              fontFamily: 'SFPro',
-                              color: isDarkMode ? Colors.white : Colors.black),
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      Semantics(
-                        label: 'Password input field',
-                        child: CupertinoTextField(
-                          controller: _passwordController,
-                          placeholder: localizations?.password ?? 'Password',
-                          obscureText: true,
-                          placeholderStyle: TextStyle(
-                              color: isDarkMode ? Colors.white54 : Colors.grey),
-                          padding: EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          style: TextStyle(
-                              fontFamily: 'SFPro',
-                              color: isDarkMode ? Colors.white : Colors.black),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      Semantics(
-                        label: 'Forgot Password link',
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              CupertinoPageRoute(
-                                  builder: (context) => ChangePasswordScreen()),
-                            );
-                          },
-                          child: Text(
-                            localizations?.forgotPassword ?? 'Forgot Password?',
-                            style: TextStyle(
-                                fontFamily: 'SFPro',
-                                fontSize: 14,
-                                color: Colors.blue),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      if (_errorMessage != null)
-                        Semantics(
-                          label: 'Error message',
-                          child: Padding(
-                            padding: const EdgeInsets.only(bottom: 20.0),
-                            child: Text(
-                              _errorMessage!,
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          ),
-                        ),
-                      Semantics(
-                        label: 'Login button',
-                        child: ElevatedButton(
-                          onPressed: _signInWithEmailPassword,
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: Size(double.infinity, 50),
-                            backgroundColor: Colors.blue,
-                          ),
-                          child: Text(
-                            localizations?.login ?? 'Log in',
-                            style: TextStyle(
-                                fontFamily: 'SFPro',
-                                fontSize: 16,
-                                color: Colors.white),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      Semantics(
-                        label: 'Sign up new account button',
-                        child: OutlinedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => SignUpScreen()),
-                            );
-                          },
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: Size(double.infinity, 50),
-                            backgroundColor: Colors.white,
-                            side: BorderSide(color: Colors.white),
-                          ),
-                          child: Text(
-                            localizations?.signUpNewAccount ?? 'Sign up new Account',
-                            style: TextStyle(
-                                fontFamily: 'SFPro',
-                                fontSize: 16,
-                                color: Colors.black),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      Semantics(
-                        label: 'Privacy policy and terms links',
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 20.0),
-                          child: Column(
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(26),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // 상단 이미지 + 닫기
+                          Stack(
                             children: [
-                              CustomLinkLauncher(
-                                url: 'https://mscanner.net/privacy-policy/',
-                                title: localizations?.privacyPolicy ?? 'Privacy Policy',
-                                centerAlign: true, // 🔹 중앙 정렬
-
+                              SizedBox(
+                                height: 150,
+                                width: double.infinity,
+                                child: Image.asset(
+                                  // ⚠️ 음식 사진으로 교체 추천
+                                  'assets/images/login_header.png',
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) {
+                                    // asset 없을 때 fallback
+                                    return Container(
+                                      color: fieldFill,
+                                      alignment: Alignment.center,
+                                      child: Image.asset(
+                                        'assets/images/tittle.png',
+                                        width: 170,
+                                        fit: BoxFit.contain,
+                                      ),
+                                    );
+                                  },
+                                ),
                               ),
-                              CustomLinkLauncher(
-                                url: 'https://mscanner.net/terms-conditions/',
-                                title: localizations?.termsAndConditions ?? 'Terms & Conditions',
-                                centerAlign: true, // 🔹 중앙 정렬
-
+                              Positioned(
+                                right: 10,
+                                top: 10,
+                                child: Material(
+                                  color: Colors.black.withOpacity(0.25),
+                                  shape: const CircleBorder(),
+                                  child: IconButton(
+                                    icon: const Icon(Icons.close, color: Colors.white),
+                                    onPressed: () {
+                                      if (Navigator.of(context).canPop()) {
+                                        Navigator.of(context).pop();
+                                      }
+                                    },
+                                  ),
+                                ),
                               ),
                             ],
                           ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Text(
+                                  localizations?.login_welcomeBack ?? 'Welcome back',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontFamily: 'SFPro',
+                                    fontSize: 25,
+                                    fontWeight: FontWeight.w800,
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : const Color(0xFF111827),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  localizations?.login_subtitle ?? 'Discover the world through its flavors with AI intelligence. Your culinary journey continues here.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontFamily: 'SFPro',
+                                    height: 1.35,
+                                    fontSize: 14,
+                                    color: isDarkMode
+                                        ? Colors.white70
+                                        : const Color(0xFF6B7280),
+                                  ),
+                                ),
+                                const SizedBox(height: 18),
+
+                                // 이메일
+                                TextField(
+                                  controller: _emailController,
+                                  keyboardType: TextInputType.emailAddress,
+                                  autocorrect: false,
+                                  textInputAction: TextInputAction.next,
+                                  style: TextStyle(
+                                    fontFamily: 'SFPro',
+                                    color: isDarkMode ? Colors.white : Colors.black,
+                                  ),
+                                  decoration: _fieldDecoration(
+                                    label: localizations?.login_emailLabel ?? 'Email Address',
+                                    icon: Icons.mail_outline,
+                                    hint: localizations?.login_emailHint ?? 'name@example.com',
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+
+                                // 비밀번호
+                                TextField(
+                                  controller: _passwordController,
+                                  obscureText: true,
+                                  textInputAction: TextInputAction.done,
+                                  style: TextStyle(
+                                    fontFamily: 'SFPro',
+                                    color: isDarkMode ? Colors.white : Colors.black,
+                                  ),
+                                  decoration: _fieldDecoration(
+                                    label: localizations?.password ?? 'Password',
+                                    icon: Icons.lock_outline,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        CupertinoPageRoute(
+                                            builder: (context) =>
+                                                ChangePasswordScreen()),
+                                      );
+                                    },
+                                    child: Text(
+                                      localizations?.forgotPassword ??
+                                          'Forgot Password?',
+                                      style: const TextStyle(
+                                        fontFamily: 'SFPro',
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: primaryOrange,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                                const SizedBox(height: 14),
+
+                                if (_errorMessage != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 10.0),
+                                    child: Text(
+                                      _errorMessage!,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(color: Colors.red),
+                                    ),
+                                  ),
+
+                                // Sign In
+                                SizedBox(
+                                  height: 54,
+                                  child: ElevatedButton(
+                                    onPressed: _signInWithEmailPassword,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: primaryOrange,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                    child: Text(
+                                      localizations?.login ?? 'Sign In',
+                                      style: const TextStyle(
+                                        fontFamily: 'SFPro',
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                                const SizedBox(height: 14),
+
+                                // Divider
+                                Row(
+                                  children: [
+                                    Expanded(
+                                        child: Divider(
+                                            color: dividerColor, height: 1)),
+                                    Padding(
+                                      padding:
+                                      const EdgeInsets.symmetric(horizontal: 10),
+                                      child: Text(
+                                        localizations?.login_orContinueWith ?? 'OR CONTINUE WITH',
+                                        style: TextStyle(
+                                          fontFamily: 'SFPro',
+                                          fontSize: 12,
+                                          letterSpacing: 1.2,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDarkMode
+                                              ? Colors.white54
+                                              : const Color(0xFF9CA3AF),
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                        child: Divider(
+                                            color: dividerColor, height: 1)),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 14),
+
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _socialLoginButton(
+                                        onPressed: () async {
+                                          User? user = await _signInWithGoogle();
+                                          if (user != null) _navigateAfterSignIn(user);
+                                        },
+                                        label: localizations?.login_google ?? 'Google Sign In',
+                                        iconAsset: googleIconAsset,
+                                        iconScale: 1.0,
+                                        isDarkMode: isDarkMode,
+                                        dividerColor: dividerColor,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: _socialLoginButton(
+                                        onPressed: Platform.isIOS
+                                            ? () async {
+                                          User? user = await _signInWithApple();
+                                          if (user != null) _navigateAfterSignIn(user);
+                                        }
+                                            : null,
+                                        label: localizations?.login_apple ?? 'Apple Sign In',
+                                        iconAsset: appleIconAsset,
+                                        iconScale: appleScale,
+                                        isDarkMode: isDarkMode,
+                                        dividerColor: dividerColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 10),
+
+                                // Guest
+                                Center(
+                                  child: TextButton(
+                                    onPressed: _signInAsGuest,
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: primaryOrange,
+                                    ),
+                                    child: Text(
+                                      localizations?.continueAsGuest ??
+                                          'Continue as Guest',
+                                      style: const TextStyle(
+                                        fontFamily: 'SFPro',
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                                const SizedBox(height: 6),
+
+                                // Privacy / Terms
+                                Column(
+                                  children: [
+                                    CustomLinkLauncher(
+                                      url: 'https://mscanner.net/privacy-policy/',
+                                      title: localizations?.privacyPolicy ??
+                                          'Privacy Policy',
+                                      centerAlign: true,
+                                    ),
+                                    CustomLinkLauncher(
+                                      url:
+                                      'https://mscanner.net/terms-conditions/',
+                                      title: localizations?.termsAndConditions ??
+                                          'Terms & Conditions',
+                                      centerAlign: true,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // 하단 Sign up 텍스트
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        localizations?.login_noAccount ?? "Don't have an account?",
+                        style: TextStyle(
+                          fontFamily: 'SFPro',
+                          color: isDarkMode
+                              ? Colors.white70
+                              : const Color(0xFF6B7280),
                         ),
                       ),
-                      SizedBox(height: 5),
+                      const SizedBox(width: 6),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => SignUpScreen()),
+                          );
+                        },
+                        child: Text(
+                          localizations?.login_signUpFree ?? 'Sign up for free',
+                          style: TextStyle(
+                            fontFamily: 'SFPro',
+                            fontWeight: FontWeight.w800,
+                            color: primaryOrange,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
-                ),
-              ]),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

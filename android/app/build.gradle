@@ -1,7 +1,8 @@
 plugins {
     id "com.android.application"
-    id "org.jetbrains.kotlin.android" version "2.0.0"
+    id "org.jetbrains.kotlin.android" version "2.1.0"
     id "dev.flutter.flutter-gradle-plugin"
+    id "com.google.gms.google-services"
 }
 
 def localProperties = new Properties()
@@ -24,8 +25,8 @@ if (flutterVersionName == null) {
 
 android {
     namespace "com.thj.mscanner"
-    compileSdk 35 // ✅ 직접 설정하여 명확히 표시
-    ndkVersion flutter.ndkVersion
+    compileSdk 36 // ✅ 직접 설정하여 명확히 표시
+    ndkVersion "28.0.12674087"   // ✅ r28 명시 고정
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17 // ✅ Java 17로 변경
@@ -37,8 +38,8 @@ android {
 
     defaultConfig {
         applicationId "com.thj.mscanner"
-        minSdk 23
-        targetSdk 35 // ✅ 직접 설정하여 명확히 표시
+        minSdkVersion flutter.minSdkVersion
+        targetSdk 36 // ✅ 직접 설정하여 명확히 표시
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
@@ -58,8 +59,15 @@ android {
     buildTypes {
         release {
             signingConfig signingConfigs.release
+
+
+        }
+        debug {
+            minifyEnabled false
         }
     }
+
+
 }
 
 flutter {
@@ -69,4 +77,17 @@ flutter {
 dependencies {
     implementation 'com.android.billingclient:billing:6.1.0' // 최신 버전
     implementation "com.android.billingclient:billing-ktx:6.1.0"
+}
+tasks.register("printNdk") {
+    doLast {
+        println ">>> Using ndkVersion = ${android.ndkVersion}"
+    }
+}
+
+configurations.configureEach {
+    resolutionStrategy {
+        dependencySubstitution {
+            substitute(module("com.mapbox.maps:android")).using(module("com.mapbox.maps:android-ndk27:11.14.0"))
+        }
+    }
 }

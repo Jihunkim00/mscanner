@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:getwidget/getwidget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 
 class DetailScreen extends StatefulWidget {
   final List<Map<String, String>> items;
@@ -26,6 +27,22 @@ class _DetailScreenState extends State<DetailScreen> {
     super.initState();
     // initialIndex로 PageView 시작점 설정
     _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+
+  bool _isSearchedMenuCard(Map<String, String> data) {
+    return (data['card_type'] ?? '') == 'searched_menu';
+  }
+
+  List<String> _parseMenuTags(Map<String, String> data) {
+    final raw =
+    (data['menu_tags_csv'] ?? data['recommended_chip_labels_csv'] ?? '').trim();
+    if (raw.isEmpty) return const [];
+    return raw
+        .split('||')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
   }
 
   @override
@@ -54,10 +71,19 @@ class _DetailScreenState extends State<DetailScreen> {
       Map<String, String> data,
       int pageIndex,
       ) {
+    if (_isSearchedMenuCard(data)) {
+      return _buildSearchedMenuDetailItem(context, data);
+    }
+    return _buildVerifiedDetailItem(context, data);
+  }
+
+  Widget _buildVerifiedDetailItem(
+      BuildContext context,
+      Map<String, String> data,
+      ) {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDarkMode ? CupertinoColors.white : CupertinoColors.black;
 
-    // 주요 필드들
     final String imageUrl = data['image_url'] ?? '';
     final String title = data['title'] ?? 'No Title';
     final String subtitle = data['subtitle'] ?? 'No Subtitle';
@@ -68,7 +94,6 @@ class _DetailScreenState extends State<DetailScreen> {
     final String? imageUrl4 = data['image_url_4'];
     final String? imageUrl5 = data['image_url_5'];
 
-    // 추가 이미지 리스트
     final List<String> additionalImageUrls = [
       if (imageUrl2 != null && imageUrl2.isNotEmpty) imageUrl2,
       if (imageUrl3 != null && imageUrl3.isNotEmpty) imageUrl3,
@@ -76,7 +101,6 @@ class _DetailScreenState extends State<DetailScreen> {
       if (imageUrl5 != null && imageUrl5.isNotEmpty) imageUrl5,
     ];
 
-    // detail 일부만 표시
     final String trimmedDetail = (detail.length > 200)
         ? detail.substring(0, 200) + '...'
         : detail;
@@ -86,7 +110,6 @@ class _DetailScreenState extends State<DetailScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 상단 메인 이미지
             Expanded(
               flex: 2,
               child: GFImageOverlay(
@@ -136,8 +159,6 @@ class _DetailScreenState extends State<DetailScreen> {
                 ),
               ),
             ),
-
-            // 하단 텍스트 + 추가 이미지
             Expanded(
               flex: 1,
               child: SingleChildScrollView(
@@ -145,7 +166,6 @@ class _DetailScreenState extends State<DetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // detail 일부 표시
                     Html(
                       data: trimmedDetail,
                       style: {
@@ -156,8 +176,6 @@ class _DetailScreenState extends State<DetailScreen> {
                         ),
                       },
                     ),
-
-                    // more... 버튼
                     if (detail.length > 200)
                       GestureDetector(
                         onTap: () {
@@ -199,10 +217,7 @@ class _DetailScreenState extends State<DetailScreen> {
                           ),
                         ),
                       ),
-
                     const SizedBox(height: 20),
-
-                    // 하단 추가 이미지 가로 스크롤
                     _buildImageCarousel(context, additionalImageUrls),
                   ],
                 ),
@@ -210,8 +225,152 @@ class _DetailScreenState extends State<DetailScreen> {
             ),
           ],
         ),
+        Positioned(
+          top: Platform.isIOS ? 46 : 26,
+          left: 1,
+          child: IconButton(
+            icon: const Icon(
+              CupertinoIcons.back,
+              color: Colors.white,
+              size: 30.0,
+            ),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
+      ],
+    );
+  }
 
-        // 왼쪽 상단 뒤로가기 버튼
+  Widget _buildSearchedMenuDetailItem(
+      BuildContext context,
+      Map<String, String> data,
+      ) {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDarkMode ? CupertinoColors.white : CupertinoColors.black;
+    final backgroundColor =
+    isDarkMode ? CupertinoColors.black : const Color(0xFFEFEFF4);
+
+    final imageUrl = (data['image_full_url'] ?? data['image_url'] ?? '').trim();
+    final title = data['title'] ?? 'Menu';
+    final shortDesc = (data['short_desc'] ?? '').trim();
+    final tags = _parseMenuTags(data);
+    final localizations = AppLocalizations.of(context);
+
+    return Stack(
+      children: [
+        Column(
+          children: [
+            Expanded(
+              flex: 3,
+              child: GestureDetector(
+                onTap: () {
+                  if (imageUrl.isNotEmpty) {
+                    _showFullScreenCarousel(context, [imageUrl], 0);
+                  }
+                },
+                child: Container(
+                  width: double.infinity,
+                  color: Colors.black,
+                  child: imageUrl.isNotEmpty
+                      ? Image.network(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: backgroundColor,
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.restaurant,
+                        size: 56,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  )
+                      : Container(
+                    color: backgroundColor,
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.restaurant,
+                      size: 56,
+                      color: textColor.withOpacity(0.7),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 18, 16, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppLocalizations.of(context)!.home_trendingNearYou,
+                      style: TextStyle(
+                        color: textColor.withOpacity(0.78),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'SFProDisplay',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
+                    ),
+                    if (tags.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: tags
+                            .take(8)
+                            .map(
+                              (tag) => Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDarkMode
+                                  ? Colors.white10
+                                  : Colors.black.withOpacity(0.05),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              tag,
+                              style: TextStyle(
+                                color: textColor,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        )
+                            .toList(),
+                      ),
+                    ],
+                    if (shortDesc.isNotEmpty) ...[
+                      const SizedBox(height: 18),
+                      Text(
+                        shortDesc,
+                        style: TextStyle(
+                          color: textColor.withOpacity(0.88),
+                          fontSize: 14,
+                          height: 1.45,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
         Positioned(
           top: Platform.isIOS ? 46 : 26,
           left: 1,

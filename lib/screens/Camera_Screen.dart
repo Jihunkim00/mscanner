@@ -7,11 +7,14 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import '/widgets/photo_capture_widget.dart';
+import '/screens/log_service.dart';
+import '/analytics_service.dart';
+
 
 
 class CameraScreen extends StatefulWidget {
   final VoidCallback onCancel;
-  final bool isPremium;
+  final bool isPremium; // (하위 호환 유지용) 상위에서 넘기면 우선 사용, 없으면 Provider 사용
   CameraScreen({
     required this.onCancel,
     this.isPremium = false,           // 기본값 false
@@ -58,9 +61,27 @@ class _CameraScreenState extends State<CameraScreen> {
     setState(() => _isProcessing = true);
 
     try {
+      // 프리미엄이 아니면 1장만 허용(혹시 위젯 변경/플랫폼 버그 등으로 여러 장 올 경우 대비)
+      // 멀티스캔 탭에서만 여러 장 허용: 네비게이션에서 넘긴 flag만 사용
+      final isMultiMode = widget.isPremium; // (이름 그대로: 멀티스캔 여부)
+      final incoming = isMultiMode ? rawFiles : (rawFiles.isNotEmpty ? [rawFiles.first] : rawFiles);
+
+      await AnalyticsService.instance.logScanStarted(
+        scanMode: isMultiMode ? 'multi' : 'single',
+        entryPoint: isMultiMode ? 'multi_scan_tab' : 'camera_tab',
+        imageCount: incoming.length,
+      );
+
+      // 🔹 [LOG] ② 멀티 스캔: 사진 선택 후 전송
+      if (isMultiMode && incoming.isNotEmpty) {
+        // 여러 장이면 개수도 같이 남김
+        await LogService().logMultiScanSubmit(imageCount: incoming.length);
+      }
+
+
       // 1) 이미지 압축
       List<File> files = [];
-      for (var f in rawFiles) {
+      for (var f in incoming) {
         files.add(await compressImage(f));
       }
 
@@ -83,11 +104,17 @@ class _CameraScreenState extends State<CameraScreen> {
               images: files.length > 1 ? files : null,
               captureTime: captureTime,
               position: position,
+              maxOutputTokens: isMultiMode ? 9000 : 3000,
             ),
           ),
         );
       });
     } catch (e) {
+      await AnalyticsService.instance.logScanFailed(
+        scanMode: widget.isPremium ? 'multi' : 'single',
+        stage: 'camera_capture',
+        errorCode: e.toString(),
+      );
       // 에러 발생 시에도 위젯이 살아있으면 스낵바 표시
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -110,23 +137,39 @@ class _CameraScreenState extends State<CameraScreen> {
   Future<File> compressImage(File file) async {
     final tempDir = await getTemporaryDirectory();
     final targetPath =
-        '${tempDir.path}/compressed_${DateTime
-        .now()
-        .millisecondsSinceEpoch}.jpg';
+        '${tempDir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
-    var result = await FlutterImageCompress.compressAndGetFile(
+    // 🔎 원본 크기 로그(디버그)
+    try {
+      final inSize = await file.length();
+      print('🖼️ [Compress] input = ${(inSize / 1024).toStringAsFixed(1)} KB');
+    } catch (_) {}
+
+    // ✅ 분석/OCR 용도: 과도한 원본(4K/8K) 전송 방지
+    // - 메뉴판은 1280~1600px 정도면 충분한 경우가 대부분
+    final result = await FlutterImageCompress.compressAndGetFile(
       file.absolute.path,
       targetPath,
-      minHeight: 1920,
-      minWidth: 1080,
-      quality: 50,
+      format: CompressFormat.jpeg,
+      quality: 85,          // 50~70 권장 (OCR 고려)
+      minWidth: 1400,        // ✅ 너무 큰 원본을 줄이기 위한 기준
+      minHeight: 1400,
+      keepExif: false,
     );
 
-    if (result != null) {
-      return File(result.path); // XFile을 File로 변환
-    } else {
+    if (result == null) {
       throw Exception('Failed to compress image');
     }
+
+    final outFile = File(result.path);
+
+    // 🔎 압축 후 크기 로그(디버그)
+    try {
+      final outSize = await outFile.length();
+      print('🗜️ [Compress] output = ${(outSize / 1024).toStringAsFixed(1)} KB');
+    } catch (_) {}
+
+    return outFile;
   }
 
 
@@ -291,6 +334,10 @@ class _CameraScreenState extends State<CameraScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    // Provider 기준으로 최신 구독 상태를 읽고, 상위에서 명시적으로 넘긴 값이 true면 그걸 우선.
+// 네비게이션에서 넘긴 값으로만 멀티/싱글 결정
+    final isMultiMode = widget.isPremium;
+    final maxCount = isMultiMode ? 4 : 1;
     return WillPopScope(
       onWillPop: () async {
         // Flutter 레벨 뒤로가기도 홈으로
@@ -301,10 +348,10 @@ class _CameraScreenState extends State<CameraScreen> {
         backgroundColor: isDark ? Colors.black : Colors.white,
         appBar: AppBar(leading: SizedBox.shrink(), /*…*/),
         body: PhotoCaptureWidget(
-          isMulti: widget.isPremium,
-          maxCount: 4,
+          isMulti: isMultiMode,
+          maxCount: maxCount,
           onCaptured: _onCaptured,
-          onCancel: widget.onCancel,  // ← 여기를 연결
+          onCancel: widget.onCancel,
         ),
       ),
     );
