@@ -151,3 +151,29 @@ app.*.symbols
 !/dev/ci/**/Gemfile.lock
 function/
 functions/
+
+
+# Secrets
+.env
+*.env
+*.p8
+*.pem
+*.key
+*secret*
+*Secret*
+
+# Flutter / generated
+.flutter-plugins
+.flutter-plugins-dependencies
+.dart_tool/
+build/
+*.zip
+
+# Android generated
+android/app/.cxx/
+**/.cxx/
+
+# Firebase / platform local config
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+lib/firebase_options.dart
