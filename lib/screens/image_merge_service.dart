@@ -16,6 +16,7 @@ class ImageMergeService {
     final cellH = images.map((i) => i.height).reduce(max);
 
     // 3) 비율 유지 중앙 크롭
+    final labelH = count > 1 ? 56 : 0;
     final fitted = images.map((src) => _fitAndCrop(src, cellW, cellH)).toList();
 
     // 4) 그리드(column, row) 계산
@@ -23,13 +24,31 @@ class ImageMergeService {
     final rows = (count == 2) ? 2 : ((count + 1) ~/ 2);
 
     // 5) 빈 캔버스 생성 (named parameters)
-    final merged = Image(width: cellW * cols, height: cellH * rows);
+    final merged = Image(width: cellW * cols, height: (cellH + labelH) * rows);
 
     // 6) 각 셀에 compositeImage 로 붙여넣기
     for (int i = 0; i < count; i++) {
       final x = (i % cols) * cellW;
-      final y = (i ~/ cols) * cellH;
-      compositeImage(merged, fitted[i], dstX: x, dstY: y);
+      final y = (i ~/ cols) * (cellH + labelH);
+      if (labelH > 0) {
+        fillRect(
+          merged,
+          x1: x,
+          y1: y,
+          x2: x + cellW - 1,
+          y2: y + labelH - 1,
+          color: ColorRgb8(255, 255, 255),
+        );
+        drawString(
+          merged,
+          '[PHOTO ${i + 1}]',
+          font: arial24,
+          x: x + 16,
+          y: y + 16,
+          color: ColorRgb8(0, 0, 0),
+        );
+      }
+      compositeImage(merged, fitted[i], dstX: x, dstY: y + labelH);
     }
 
     // 7) JPEG 압축 후 반환

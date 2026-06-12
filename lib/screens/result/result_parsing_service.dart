@@ -100,6 +100,13 @@ class ResultParsingService {
           (normalized['result_type'] ?? 'menu').toString().trim().toLowerCase();
       normalized['user_message'] =
           (normalized['user_message'] ?? '').toString().trim();
+      if ((normalized['scanMode'] ?? '').toString().toLowerCase() == 'multi') {
+        return ResultParsingOutput(
+          aiJson: normalizeMultiScanFields(normalized, imageCount: imageCount),
+          aiJsonError: null,
+        );
+      }
+      normalized['scanMode'] = (normalized['scanMode'] ?? 'single').toString();
       return ResultParsingOutput(aiJson: normalized, aiJsonError: null);
     }
 
@@ -153,7 +160,10 @@ class ResultParsingService {
         (merged['result_type'] ?? 'menu').toString().trim().toLowerCase();
     merged['user_message'] = (merged['user_message'] ?? '').toString().trim();
 
-    return ResultParsingOutput(aiJson: merged, aiJsonError: null);
+    return ResultParsingOutput(
+      aiJson: normalizeMultiScanFields(merged, imageCount: imageCount),
+      aiJsonError: null,
+    );
   }
 
   static List<Map<String, dynamic>> getRecommendedItems(Map<String, dynamic>? aiJson) {
@@ -226,4 +236,166 @@ class ResultParsingService {
     }
     return out;
   }
+  static Map<String, dynamic> normalizeMultiScanFields(
+    Map<String, dynamic> input, {
+    required int imageCount,
+  }) {
+    final normalized = Map<String, dynamic>.from(input);
+    final photoAnalyses = _safePhotoAnalyses(normalized['photoAnalyses']);
+    final mergedResult = _safeMergedResult(
+      normalized['mergedResult'],
+      photoAnalyses: photoAnalyses,
+      fallbackPhotoCount: imageCount,
+      fallbackUniqueCount: _countLegacyMenuItems(normalized),
+    );
+
+    normalized['scanMode'] = 'multi';
+    normalized['photoAnalyses'] = photoAnalyses;
+    normalized['mergedResult'] = mergedResult;
+    if (_countLegacyMenuItems(normalized) == 0 && photoAnalyses.isNotEmpty) {
+      normalized['fullMenu'] = {
+        'items': {
+          'main': <Map<String, dynamic>>[],
+          'side': <Map<String, dynamic>>[],
+          'meal': <Map<String, dynamic>>[],
+          'drink': <Map<String, dynamic>>[],
+          'beverage': <Map<String, dynamic>>[],
+          'unknown': _itemsFromPhotoAnalyses(photoAnalyses),
+        },
+        'summary': '',
+        'truncated': false,
+      };
+    }
+
+    return normalized;
+  }
+
+  static List<Map<String, dynamic>> getPhotoAnalyses(Map<String, dynamic>? aiJson) {
+    if (aiJson == null) return const [];
+    return _safePhotoAnalyses(aiJson['photoAnalyses']);
+  }
+
+  static Map<String, dynamic> getMergedResult(
+    Map<String, dynamic>? aiJson, {
+    required int fallbackPhotoCount,
+  }) {
+    if (aiJson == null) {
+      return _safeMergedResult(
+        null,
+        photoAnalyses: const [],
+        fallbackPhotoCount: fallbackPhotoCount,
+        fallbackUniqueCount: 0,
+      );
+    }
+    final photoAnalyses = _safePhotoAnalyses(aiJson['photoAnalyses']);
+    return _safeMergedResult(
+      aiJson['mergedResult'],
+      photoAnalyses: photoAnalyses,
+      fallbackPhotoCount: fallbackPhotoCount,
+      fallbackUniqueCount: _countLegacyMenuItems(aiJson),
+    );
+  }
+
+  static List<Map<String, dynamic>> _safePhotoAnalyses(dynamic raw) {
+    if (raw is! List) return <Map<String, dynamic>>[];
+    return raw.whereType<Map>().map((e) {
+      final m = Map<String, dynamic>.from(e);
+      m['photoIndex'] = _intValue(m['photoIndex']);
+      m['detectedSections'] = (m['detectedSections'] is List)
+          ? List<dynamic>.from(m['detectedSections'] as List)
+          : <dynamic>[];
+      m['itemCount'] = _intValue(m['itemCount']);
+      m['readableItemCount'] = _intValue(m['readableItemCount']);
+      m['unclearItemCount'] = _intValue(m['unclearItemCount']);
+      m['items'] = (m['items'] is List) ? List<dynamic>.from(m['items'] as List) : <dynamic>[];
+      return m;
+    }).toList();
+  }
+
+  static Map<String, dynamic> _safeMergedResult(
+    dynamic raw, {
+    required List<Map<String, dynamic>> photoAnalyses,
+    required int fallbackPhotoCount,
+    required int fallbackUniqueCount,
+  }) {
+    final m = raw is Map ? Map<String, dynamic>.from(raw) : <String, dynamic>{};
+    final totalFromPhotos = photoAnalyses.fold<int>(0, (sum, e) => sum + _intValue(e['itemCount']));
+    final unique = _intValue(m['uniqueItemCount']) > 0
+        ? _intValue(m['uniqueItemCount'])
+        : (fallbackUniqueCount > 0 ? fallbackUniqueCount : totalFromPhotos);
+    final total = _intValue(m['totalItemCount']) > 0
+        ? _intValue(m['totalItemCount'])
+        : (totalFromPhotos > 0 ? totalFromPhotos : fallbackUniqueCount);
+    final duplicates = _intValue(m['duplicateItemCount']) > 0
+        ? _intValue(m['duplicateItemCount'])
+        : (total > unique ? total - unique : 0);
+
+    return {
+      ...m,
+      'totalPhotoCount': _intValue(m['totalPhotoCount']) > 0
+          ? _intValue(m['totalPhotoCount'])
+          : fallbackPhotoCount,
+      'totalItemCount': total,
+      'uniqueItemCount': unique,
+      'duplicateItemCount': duplicates,
+      'recommendedItems': m['recommendedItems'] is List ? m['recommendedItems'] : <dynamic>[],
+      'signatureItems': m['signatureItems'] is List ? m['signatureItems'] : <dynamic>[],
+      'popularItems': m['popularItems'] is List ? m['popularItems'] : <dynamic>[],
+      'localInsights': m['localInsights'] is List ? m['localInsights'] : <dynamic>[],
+    };
+  }
+
+
+  static List<Map<String, dynamic>> _itemsFromPhotoAnalyses(
+    List<Map<String, dynamic>> photoAnalyses,
+  ) {
+    final out = <Map<String, dynamic>>[];
+    var id = 1;
+    for (final analysis in photoAnalyses) {
+      final items = analysis['items'];
+      if (items is! List) continue;
+      for (final item in items.whereType<Map>()) {
+        final m = Map<String, dynamic>.from(item);
+        final original = (m['originalName'] ?? m['nameOriginal'] ?? '').toString();
+        final translated = (m['translatedName'] ?? m['name'] ?? original).toString();
+        if (original.trim().isEmpty && translated.trim().isEmpty) continue;
+        out.add({
+          'id': 'p${analysis['photoIndex']}_${id++}',
+          'nameOriginal': original,
+          'name': translated.trim().isNotEmpty ? translated : original,
+          'shortDesc': (m['description'] ?? m['shortDesc'] ?? '').toString(),
+          'price': (m['price'] ?? '').toString(),
+          'tags': <String>[],
+          'category': 'unknown',
+          'confidence': m['confidence'] ?? 0.0,
+          'isUnclear': m['isUnclear'] == true,
+        });
+      }
+    }
+    return _dedupList(out);
+  }
+  static int _intValue(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.round();
+    if (value is String) return int.tryParse(value.trim()) ?? 0;
+    return 0;
+  }
+
+  static int _countLegacyMenuItems(Map<String, dynamic> aiJson) {
+    var count = 0;
+    final rec = aiJson['recommended'];
+    if (rec is List) count += rec.whereType<Map>().length;
+
+    final fm = aiJson['fullMenu'] ?? aiJson['full_menu'] ?? aiJson['menu'] ?? aiJson['menus'];
+    if (fm is Map) {
+      final src = (fm['items'] is Map)
+          ? Map<String, dynamic>.from(fm['items'] as Map)
+          : Map<String, dynamic>.from(fm);
+      for (final v in src.values) {
+        if (v is List) count += v.whereType<Map>().length;
+      }
+    }
+    return count;
+  }
+
 }

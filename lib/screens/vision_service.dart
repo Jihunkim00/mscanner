@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '/helpers/settings_helper.dart';
+import 'package:mscanner/models/scan_mode.dart';
+import 'package:mscanner/screens/vision_prompt_builder.dart';
 import 'package:mscanner/utils/sse_event_parser.dart';
 
 class VisionService {
@@ -19,6 +21,8 @@ class VisionService {
       File imageFile, {
         String? promptContext,
         int maxOutputTokens = 3000, // ✅ 추가
+        ScanMode scanMode = ScanMode.single,
+        int photoCount = 1,
       }) async {
 
     try {
@@ -32,209 +36,19 @@ class VisionService {
 
 
       final presetId = await SettingsHelper.getPreset();
-      const String _streamProtocol = '''[OUTPUT PROTOCOL]
-Output exactly ONE JSON object.
-- No RECOMMEND line
-- No markdown
-- No code fences
-- No extra text
-- Keep the JSON key order as: isMenu, outputLanguage, place, recommended, fullMenu
-''';
       final question = await SettingsHelper.getQuestionByPreset(presetId);
 
-      // 1) RAG + 프리셋 질문을 하나로 합친 텍스트
-      final Map<String, String> ragPrefixMap = {
-        'ko': '''[장소 메모]
-{promptContext}
-
-이 이미지가 음식 메뉴나 음식 사진이라면, 내용을 번역하고 설명 및 추천해 주세요.
-음식과 관련 없어 보이면 그렇게 말씀해 주세요.
-
-{question}
-''',
-        'en': '''[Location Memo]
-{promptContext}
-
-If this image is a food menu or food photo, please translate, describe, and recommend it.
-If it doesn’t seem food-related, just say so.
-
-{question}
-''',
-        'ja': '''[Location Memo]
-{promptContext}
-
-この画像が料理のメニューや料理の写真であれば、翻訳して説明し、推薦してください。
-食べ物に関係がないようであれば、そのように言ってください。
-
-{question}
-''',
-        'zh': '''[Location Memo]
-{promptContext}
-
-如果此图像是食物菜单或食物照片，请翻译、描述并推荐。
-如果看起来与食物无关，请指出。
-
-{question}
-''',
-        'zh-Hans': '''[Location Memo]
-{promptContext}
-
-如果此图像是食物菜单或食物照片，请翻译、描述并推荐。
-如果看起来与食物无关，请指出。
-
-{question}
-''',
-        'zh-Hant': '''[Location Memo]
-{promptContext}
-
-如果此圖像是食物菜單或食物照片，請翻譯、描述並推薦。
-如果看起來與食物無關，請說明。
-
-{question}
-''',
-        'hi': '''[Location Memo]
-{promptContext}
-
-यदि यह चित्र खाद्य मेनू या खाद्य फ़ोटो है, तो कृपया इसका अनुवाद करें, वर्णन करें और अनुशंसा करें।
-यदि यह खाद्य से संबंधित नहीं लगता है, तो बस बता दें।
-
-{question}
-''',
-        'es': '''[Location Memo]
-{promptContext}
-
-Si esta imagen es un menú o una foto de comida, por favor tradúcelo, descríbelo y haz una recomendación.
-Si no parece relacionado con comida, simplemente dilo.
-
-{question}
-''',
-        'fr': '''[Location Memo]
-{promptContext}
-
-Si cette image est un menu ou une photo de nourriture, veuillez la traduire, la décrire et faire une recommandation.
-Si cela ne semble pas lié à la nourriture, dites-le simplement.
-
-{question}
-''',
-        'vi': '''[Location Memo]
-{promptContext}
-
-Nếu hình ảnh này là thực đơn hoặc ảnh món ăn, vui lòng dịch, mô tả và gợi ý.
-Nếu không liên quan đến thực phẩm, chỉ cần nói vậy.
-
-{question}
-''',
-        'th': '''[Location Memo]
-{promptContext}
-
-หากภาพนี้เป็นเมนูอาหารหรือภาพอาหาร โปรดแปล อธิบาย และแนะนำ
-หากดูไม่เกี่ยวกับอาหาร โปรดบอกด้วย
-
-{question}
-''',
-        'ar': '''[Location Memo]
-{promptContext}
-
-إذا كانت هذه الصورة قائمة طعام أو صورة طعام، يرجى ترجمتها ووصفها وتقديم التوصيات.
-إذا لم تكن لها علاقة بالطعام، فقط قل ذلك.
-
-{question}
-''',
-        'bn': '''[Location Memo]
-{promptContext}
-
-এই ছবিটি যদি খাবারের মেনু বা খাবারের ছবি হয়, অনুগ্রহ করে এটি অনুবাদ করুন, বর্ণনা করুন এবং সুপারিশ করুন।
-যদি এটি খাবারের সাথে সম্পর্কিত না হয়, তাহলে শুধু বলুন।
-
-{question}
-''',
-        'ru': '''[Location Memo]
-{promptContext}
-
-Если это изображение меню или фотографии еды, пожалуйста, переведите, опишите и дайте рекомендации.
-Если это не связано с едой, просто скажите об этом.
-
-{question}
-''',
-        'pt': '''[Location Memo]
-{promptContext}
-
-Se esta imagem for um menu de comida ou foto de comida, por favor, traduza, descreva e recomende.
-Se não parecer relacionado à comida, apenas diga isso.
-
-{question}
-''',
-        'pt-BR': '''[Location Memo]
-{promptContext}
-
-Se esta imagem for um cardápio ou uma foto de comida, por favor, traduza, descreva e recomende.
-Se não parecer relacionado à comida, apenas diga isso.
-
-{question}
-''',
-        'ur': '''[Location Memo]
-{promptContext}
-
-اگر یہ تصویر کھانے کے مینو یا کھانے کی تصویر ہے تو براہ کرم اس کا ترجمہ کریں، وضاحت کریں اور سفارش کریں۔
-اگر یہ کھانے سے متعلق نہیں لگتا تو صرف اتنا کہہ دیں۔
-
-{question}
-''',
-        'id': '''[Location Memo]
-{promptContext}
-
-Jika gambar ini adalah menu makanan atau foto makanan, silakan terjemahkan, jelaskan, dan rekomendasikan.
-Jika tidak tampak terkait dengan makanan, cukup katakan saja.
-
-{question}
-''',
-        'de': '''[Location Memo]
-{promptContext}
-
-Wenn dieses Bild ein Speisekarte oder Essensfoto ist, bitte übersetzen, beschreiben und empfehlen.
-Wenn es nicht mit Essen zu tun hat, sagen Sie es einfach.
-
-{question}
-''',
-        'mr': '''[Location Memo]
-{promptContext}
-
-हे चित्र अन्न मेनू किंवा अन्नाचे छायाचित्र असल्यास, कृपया त्याचे भाषांतर करा, वर्णन करा आणि शिफारस करा.
-जर ते अन्नाशी संबंधित वाटत नसेल तर फक्त तसेच सांगा.
-
-{question}
-''',
-        'te': '''[Location Memo]
-{promptContext}
-
-ఈ చిత్రం ఆహార మెనూ లేదా ఆహార ఫోటో అయితే, దయచేసి అనువదించండి, వివరించండి మరియు సిఫార్సు చేయండి.
-అది ఆహారంతో సంబంధం లేకపోతే, కేవలం అలా చెప్పండి.
-
-{question}
-''',
-        'tr': '''[Location Memo]
-{promptContext}
-
-Bu resim bir yemek menüsü veya yemek fotoğrafıysa, lütfen çevirin, açıklayın ve önerin.
-Yemekle ilgili görünmüyorsa, sadece belirtin.
-
-{question}
-''',
-      };
-
-
-// 2) contentList에 mergedPrompt(텍스트)와 이미지(blocl)만 담습니다.
+      // 1) 스캔 모드별 Vision prompt를 분리해서 구성합니다.
       final langCode = await SettingsHelper.getLanguageCode();
+      final mergedPromptWithProtocol = buildVisionPrompt(
+        scanMode: scanMode,
+        targetLanguage: langCode,
+        promptContext: _resolvePromptContext(promptContext),
+        question: question,
+        photoCount: photoCount,
+      );
 
-// ragPrefixMap에서 해당 언어 템플릿 가져와서 context, question 대체
-      final template = ragPrefixMap[langCode] ?? ragPrefixMap['en']!;
-      final mergedPrompt = template
-          .replaceAll('{promptContext}', _resolvePromptContext(promptContext))
-          .replaceAll('{question}', question ?? '');
-
-      final mergedPromptWithProtocol = _streamProtocol + "\n" + mergedPrompt;
-
-
+// 2) contentList에 mode-specific prompt(텍스트)와 이미지(block)만 담습니다.
       final List<Map<String, dynamic>> contentList = [
         {
           'type': 'text',
@@ -258,7 +72,7 @@ Yemekle ilgili görünmüyorsa, sadece belirtin.
 
 
       final tReq0 = DateTime.now();
-      print('🚀 [Vision] request start ${tReq0.toIso8601String()} maxTokens=$maxOutputTokens model=gpt-5-mini rag=$_useRag');
+      print('🚀 [Vision] request start ${tReq0.toIso8601String()} maxTokens=$maxOutputTokens model=gpt-5-mini rag=$_useRag scanMode=${scanMode.wireName} photoCount=$photoCount');
 
       final response = await http.post(
         Uri.parse('https://api.openai.com/v1/chat/completions'),
@@ -298,66 +112,23 @@ Yemekle ilgili görünmüyorsa, sadece belirtin.
       File imageFile, {
         String? promptContext,
         int maxOutputTokens = 3000,
+        ScanMode scanMode = ScanMode.single,
+        int photoCount = 1,
       }) async* {
     final bytes = await imageFile.readAsBytes();
     final base64Image = base64Encode(bytes);
 
     final presetId = await SettingsHelper.getPreset();
     final question = await SettingsHelper.getQuestionByPreset(presetId);
-
-    const String _streamProtocol = '''[OUTPUT PROTOCOL]
-Output exactly ONE JSON object using the existing app schema.
-- No RECOMMEND line
-- No markdown
-- No code fences
-- No extra text
-- Keep the JSON key order as: isMenu, outputLanguage, place, recommended, fullMenu
-''';
-
     final lang = (await SettingsHelper.getLanguageCode()).toString();
 
-    // same templates as analyzeImage (subset; unknown langs fall back to en)
-    final Map<String, String> ragPrefixMap = {
-      'ko': '''[장소 메모]
-{promptContext}
-
-이 이미지가 음식 메뉴나 음식 사진이라면, 내용을 번역하고 설명 및 추천해 주세요.
-음식과 관련 없어 보이면 그렇게 말씀해 주세요.
-
-{question}
-''',
-      'en': '''[Location Memo]
-{promptContext}
-
-If this image is a food menu or food photo, please translate, describe, and recommend it.
-If it doesn’t seem food-related, just say so.
-
-{question}
-''',
-      'ja': '''[Location Memo]
-{promptContext}
-
-この画像が料理のメニューや料理の写真であれば、翻訳して説明し、推薦してください。
-食べ物に関係がないようであれば、そのように言ってください。
-
-{question}
-''',
-      'zh': '''[Location Memo]
-{promptContext}
-
-如果此图像是食物菜单或食物照片，请翻译、描述并推荐。
-如果看起来与食物无关，请指出。
-
-{question}
-''',
-    };
-
-    final template = ragPrefixMap[lang] ?? ragPrefixMap['en']!;
-    final mergedPrompt = template
-        .replaceAll('{promptContext}', _resolvePromptContext(promptContext))
-        .replaceAll('{question}', question ?? '');
-
-    final mergedPromptWithProtocol = _streamProtocol + "\n" + mergedPrompt;
+    final mergedPromptWithProtocol = buildVisionPrompt(
+      scanMode: scanMode,
+      targetLanguage: lang,
+      promptContext: _resolvePromptContext(promptContext),
+      question: question,
+      photoCount: photoCount,
+    );
 
     final List<Map<String, dynamic>> contentList = [
       {'type': 'text', 'text': mergedPromptWithProtocol},

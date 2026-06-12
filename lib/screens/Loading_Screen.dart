@@ -18,6 +18,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import '/screens/image_merge_service.dart';
+import 'package:mscanner/models/scan_mode.dart';
 import 'package:mscanner/utils/async_request_gate.dart';
 
 
@@ -29,7 +30,14 @@ Future<Uint8List> mergeImages(List<Uint8List> bytesList) async {
 class _PreparedVisionInput {
   final File visionFile;
   final String promptContext;
-  _PreparedVisionInput(this.visionFile, this.promptContext);
+  final ScanMode scanMode;
+  final int photoCount;
+  _PreparedVisionInput(
+    this.visionFile,
+    this.promptContext,
+    this.scanMode,
+    this.photoCount,
+  );
 }
 
 
@@ -119,9 +127,12 @@ class _LoadingScreenState extends State<LoadingScreen> {
     }
     print('▶️ [RAG Context] promptContext: $promptContext');
     final files = widget.images ?? [widget.image!];
+    final scanMode = files.length > 1 ? ScanMode.multi : ScanMode.single;
     return VisionService.analyzeImage(
       files.first,
       promptContext: promptContext,
+      scanMode: scanMode,
+      photoCount: files.length,
     );
   }
 
@@ -229,7 +240,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
       print('🗜️ [Vision] send file size = ${(sz / 1024).toStringAsFixed(1)} KB');
     } catch (_) {}
 
-    return _PreparedVisionInput(visionFile, promptContext);
+    final scanMode = files.length > 1 ? ScanMode.multi : ScanMode.single;
+    return _PreparedVisionInput(visionFile, promptContext, scanMode, files.length);
   }
 
   Future<List<String>> _waitFirstRecommendFromStream(
@@ -289,6 +301,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
           prepared.visionFile,
           promptContext: prepared.promptContext,
           maxOutputTokens: widget.maxOutputTokens,
+          scanMode: prepared.scanMode,
+          photoCount: prepared.photoCount,
         );
 
         final stream = rawStream
@@ -327,6 +341,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
             prepared.visionFile,
             promptContext: prepared.promptContext,
             maxOutputTokens: widget.maxOutputTokens,
+            scanMode: prepared.scanMode,
+            photoCount: prepared.photoCount,
           ).timeout(_fallbackAnalyzeTimeout);
 
           if (!_hasNavigated && mounted) {
@@ -358,10 +374,9 @@ class _LoadingScreenState extends State<LoadingScreen> {
     if (!mounted || _hasNavigated) return;
     setState(() => _isLoadingError = true);
     Future.delayed(Duration(seconds: 5), () {
-      if (!_hasNavigated) {
-        _hasNavigated = true;
-        Navigator.of(context).pushReplacementNamed('/home');
-      }
+      if (!mounted || _hasNavigated) return;
+      _hasNavigated = true;
+      Navigator.of(context).pushReplacementNamed('/home');
     });
   }
 
