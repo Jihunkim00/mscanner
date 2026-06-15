@@ -337,6 +337,140 @@ class _ResultScreenState extends State<ResultScreen> {
     return ResultParsingService.getRecommendedItems(_aiJson);
   }
 
+  bool get _isMultiScanResult {
+    final jsonMode = (_aiJson?['scanMode'] ?? '').toString().toLowerCase();
+    return jsonMode == 'multi' || ((widget.images?.length ?? 1) > 1);
+  }
+
+  List<Map<String, dynamic>> _getPhotoAnalyses() {
+    return ResultParsingService.getPhotoAnalyses(_aiJson);
+  }
+
+  Map<String, dynamic> _getMergedResult() {
+    return ResultParsingService.getMergedResult(
+      _aiJson,
+      fallbackPhotoCount: widget.images?.length ?? 1,
+    );
+  }
+
+  int _asInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.round();
+    if (value is String) return int.tryParse(value.trim()) ?? 0;
+    return 0;
+  }
+
+  Widget _buildMultiScanSummaryCard({
+    required Color textColor,
+    required BoxDecoration boxDecoration,
+  }) {
+    if (!_isMultiScanResult) return const SizedBox.shrink();
+
+    final analyses = _getPhotoAnalyses();
+    final merged = _getMergedResult();
+    final total = _asInt(merged['totalItemCount']);
+    final unique = _asInt(merged['uniqueItemCount']);
+    final duplicate = _asInt(merged['duplicateItemCount']);
+    final photoCount = _asInt(merged['totalPhotoCount']) > 0
+        ? _asInt(merged['totalPhotoCount'])
+        : (widget.images?.length ?? 1);
+    final muted = textColor.withOpacity(0.72);
+    final loc = AppLocalizations.of(context)!;
+
+    final lines = <String>[];
+    if (analyses.isEmpty) {
+      lines.add(loc.multiScanDetailsUnavailable);
+    } else {
+      for (final analysis in analyses) {
+        final index = _asInt(analysis['photoIndex']);
+        final displayIndex = index > 0 ? index : lines.length + 1;
+        final itemCount = _asInt(analysis['itemCount']);
+        final unclearCount = _asInt(analysis['unclearItemCount']);
+        if (itemCount <= 0 && unclearCount <= 0) {
+          lines.add(loc.multiScanNoReadableItems(displayIndex));
+        } else if (unclearCount > 0) {
+          lines.add(loc.multiScanPhotoItemsUnclear(displayIndex, itemCount, unclearCount));
+        } else {
+          lines.add(loc.multiScanPhotoItemsDetected(displayIndex, itemCount));
+        }
+      }
+    }
+
+    final totalLine = total > 0 || unique > 0 || duplicate > 0
+        ? (duplicate > 0
+            ? loc.multiScanTotalSummaryWithDuplicates(total, unique, duplicate)
+            : loc.multiScanTotalSummary(total, unique))
+        : loc.multiScanTotalPhotoCount(photoCount);
+
+    return Container(
+      decoration: boxDecoration,
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(CupertinoIcons.square_stack_3d_up, size: 18, color: textColor),
+              const SizedBox(width: 8),
+              Text(
+                loc.multiScanSummaryTitle,
+                style: TextStyle(
+                  fontFamily: 'SFPro',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: textColor,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ...lines.map(
+            (line) => Padding(
+              padding: const EdgeInsets.only(top: 3),
+              child: Text(
+                line,
+                style: TextStyle(
+                  fontFamily: 'SFPro',
+                  fontSize: 12,
+                  height: 1.35,
+                  color: muted,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            totalLine,
+            style: TextStyle(
+              fontFamily: 'SFPro',
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: textColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Map<String, dynamic> _multiScanSaveFields() {
+    if (!_isMultiScanResult) {
+      return {'scanMode': 'single', 'photoCount': widget.images?.length ?? 1};
+    }
+    final photoAnalyses = _getPhotoAnalyses();
+    final merged = _getMergedResult();
+    return {
+      'scanMode': 'multi',
+      'photoCount': widget.images?.length ?? _asInt(merged['totalPhotoCount']),
+      'photoAnalyses': photoAnalyses,
+      'mergedResult': merged,
+      'totalItemCount': _asInt(merged['totalItemCount']),
+      'uniqueItemCount': _asInt(merged['uniqueItemCount']),
+      'duplicateItemCount': _asInt(merged['duplicateItemCount']),
+    };
+  }
+
+
   String _aiResultType() {
     return ResultParsingService.aiResultType(_aiJson);
   }
@@ -424,10 +558,13 @@ class _ResultScreenState extends State<ResultScreen> {
     if (s == null) return false;
 
     try {
-      final decoded = jsonDecode(s);
-      if (decoded is Map) {
-        _aiJson = Map<String, dynamic>.from(decoded);
-        _aiJsonError = null;
+      final parsed = ResultParsingService.parseAiJson(
+        responses: [s],
+        imageCount: widget.images?.length ?? 1,
+      );
+      if (parsed.aiJson != null) {
+        _aiJson = parsed.aiJson;
+        _aiJsonError = parsed.aiJsonError;
         return true;
       }
     } catch (e) {
@@ -3169,6 +3306,7 @@ class _ResultScreenState extends State<ResultScreen> {
           'food_detail': _foodDetail,
           'liked': _isLiked,
           if (primary != null) 'primary_menu': primary,
+          ..._multiScanSaveFields(),
           // ✅ 나중에 준비되면 이 필드도 같이 저장하면 “대표 음식사진” 표시 가능
           // 'food_image_url': foodImageUrl,
           'review': _reviewController.text.trim(),
@@ -4031,6 +4169,13 @@ class _ResultScreenState extends State<ResultScreen> {
                     ),
                     SizedBox(height: 16),
                     _buildDecisionSummarySection(),
+                    if (_isMultiScanResult) ...[
+                      SizedBox(height: 16),
+                      _buildMultiScanSummaryCard(
+                        textColor: textColor,
+                        boxDecoration: boxDecoration,
+                      ),
+                    ],
                     SizedBox(height: 16),
 
                     // ✅ NEW UI (JSON-based) with fallback to old text
