@@ -377,5 +377,49 @@
   "premiumStartCta": "프리미엄 시작",
   "premiumGuestSectionTitle": "게스트 모드에서는 프리미엄 구매 전에 계정 연결이 필요해요",
   "premiumGuestSectionMessage": "프리미엄 구독은 계정에 연결되어 구매 내역 복원과 기기 간 유지가 가능해요.",
-  "premiumGuestConvertButton": "계정 전환 후 계속"
+  "premiumGuestConvertButton": "계정 전환 후 계속",
+  "multiScanSummaryTitle": "멀티 스캔 요약",
+  "multiScanPhotoItemsDetected": "사진 {index}: 메뉴 {count}개 감지",
+  "@multiScanPhotoItemsDetected": {
+    "placeholders": {
+      "index": {},
+      "count": {}
+    }
+  },
+  "multiScanPhotoItemsUnclear": "사진 {index}: 메뉴 {count}개 감지 / 읽기 어려움 {unclear}개",
+  "@multiScanPhotoItemsUnclear": {
+    "placeholders": {
+      "index": {},
+      "count": {},
+      "unclear": {}
+    }
+  },
+  "multiScanNoReadableItems": "사진 {index}: 읽을 수 있는 메뉴가 감지되지 않음",
+  "@multiScanNoReadableItems": {
+    "placeholders": {
+      "index": {}
+    }
+  },
+  "multiScanTotalSummary": "총 {total}개 감지 / 중복 제거 후 {unique}개",
+  "@multiScanTotalSummary": {
+    "placeholders": {
+      "total": {},
+      "unique": {}
+    }
+  },
+  "multiScanTotalSummaryWithDuplicates": "총 {total}개 감지 / 중복 제거 후 {unique}개 (중복 {duplicates}개)",
+  "@multiScanTotalSummaryWithDuplicates": {
+    "placeholders": {
+      "total": {},
+      "unique": {},
+      "duplicates": {}
+    }
+  },
+  "multiScanTotalPhotoCount": "총 사진 수: {count}",
+  "@multiScanTotalPhotoCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "multiScanDetailsUnavailable": "사진별 분석 정보는 없지만 병합 결과는 안전하게 볼 수 있습니다."
 }

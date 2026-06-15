@@ -1002,6 +1002,43 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get result_aiEmptyStreamResponse => 'AI가 빈 스트림 응답을 반환했습니다.';
 
+
+  @override
+  String get multiScanSummaryTitle => '멀티 스캔 요약';
+
+  @override
+  String multiScanPhotoItemsDetected(Object index, Object count) {
+    return '사진 $index: 메뉴 $count개 감지';
+  }
+
+  @override
+  String multiScanPhotoItemsUnclear(Object index, Object count, Object unclear) {
+    return '사진 $index: 메뉴 $count개 감지 / 읽기 어려움 $unclear개';
+  }
+
+  @override
+  String multiScanNoReadableItems(Object index) {
+    return '사진 $index: 읽을 수 있는 메뉴가 감지되지 않음';
+  }
+
+  @override
+  String multiScanTotalSummary(Object total, Object unique) {
+    return '총 $total개 감지 / 중복 제거 후 $unique개';
+  }
+
+  @override
+  String multiScanTotalSummaryWithDuplicates(Object total, Object unique, Object duplicates) {
+    return '총 $total개 감지 / 중복 제거 후 $unique개 (중복 $duplicates개)';
+  }
+
+  @override
+  String multiScanTotalPhotoCount(Object count) {
+    return '총 사진 수: $count';
+  }
+
+  @override
+  String get multiScanDetailsUnavailable => '사진별 분석 정보는 없지만 병합 결과는 안전하게 볼 수 있습니다.';
+
   @override
   String get tts_orderPhraseTitle => '주문 문구 생성';
 
