@@ -1,14 +1,22 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 import '/helpers/settings_helper.dart';
 import 'package:mscanner/models/scan_mode.dart';
 import 'package:mscanner/screens/vision_prompt_builder.dart';
-import 'package:mscanner/utils/sse_event_parser.dart';
 
 class VisionService {
   static const bool _useRag = false;
+
+  static final FirebaseFunctions _functions =
+  FirebaseFunctions.instanceFor(region: 'asia-northeast3');
+
+  // 실제 OpenAI 호출은 Cloud Function 내부에서 처리합니다.
+  // 여기 값은 로그/Cloud 전달용입니다. Cloud에서 모델을 고정하고 있으면 무시되어도 됩니다.
+  static const String _visionModel = 'gpt-5.4-mini';
 
   static String _resolvePromptContext(String? promptContext) {
     if (!_useRag) return '';
@@ -16,208 +24,262 @@ class VisionService {
     return safe.length > 3000 ? safe.substring(0, 3000) : safe;
   }
 
-  // 기존: static Future<String> analyzeImage(File imageFile) async {
+  /// 기존 호출부 호환용 fallback.
+  /// PR #9 LoadingScreen에서는 scanMode/photoCount를 직접 넘기므로 그 값을 우선 사용합니다.
+  static ScanMode _resolveScanMode({
+    ScanMode? scanMode,
+    required int maxOutputTokens,
+  }) {
+    if (scanMode != null) return scanMode;
+    return maxOutputTokens >= 9000 ? ScanMode.multi : ScanMode.single;
+  }
+
+  static int _resolvePhotoCount({
+    required ScanMode scanMode,
+    required int photoCount,
+  }) {
+    if (scanMode == ScanMode.multi) {
+      return photoCount < 2 ? 2 : photoCount;
+    }
+    return 1;
+  }
+
+  static Future<String> _buildPrompt({
+    required ScanMode scanMode,
+    required int photoCount,
+    required String? promptContext,
+  }) async {
+    final presetId = await SettingsHelper.getPreset();
+    final question = await SettingsHelper.getQuestionByPreset(presetId);
+    final langCode = await SettingsHelper.getLanguageCode();
+
+    return buildVisionPrompt(
+      scanMode: scanMode,
+      targetLanguage: langCode,
+      promptContext: _resolvePromptContext(promptContext),
+      question: question ?? '',
+      photoCount: photoCount,
+    );
+  }
+
+  static Future<String> _callAnalyzeVision({
+    required String imageBase64,
+    required String prompt,
+    required int maxOutputTokens,
+    required ScanMode scanMode,
+    required int photoCount,
+    required String responseMode,
+  }) async {
+    try {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        await FirebaseAuth.instance.signInAnonymously();
+      }
+
+      print(
+        '🚀 [Functions] analyzeVision call '
+            'model=$_visionModel '
+            'scanMode=${scanMode.wireName} '
+            'photoCount=$photoCount '
+            'responseMode=$responseMode '
+            'maxTokens=$maxOutputTokens '
+            'imageBase64Len=${imageBase64.length}',
+      );
+
+      final callable = _functions.httpsCallable(
+        'analyzeVision',
+        options: HttpsCallableOptions(
+          timeout: const Duration(seconds: 180),
+        ),
+      );
+
+      final result = await callable.call({
+        'imageBase64': imageBase64,
+        'prompt': prompt,
+        'maxOutputTokens': maxOutputTokens,
+        'scanMode': scanMode.wireName,
+        'photoCount': photoCount,
+        'responseMode': responseMode,
+
+        // Cloud Function에서 model payload를 받도록 구현되어 있으면 사용됩니다.
+        // Cloud에서 모델을 고정하고 있으면 이 값은 무시되어도 괜찮습니다.
+        'model': _visionModel,
+      });
+
+      final rawData = result.data;
+      final data = rawData is Map
+          ? Map<String, dynamic>.from(rawData)
+          : <String, dynamic>{'result': rawData?.toString() ?? ''};
+
+      final text = data['result']?.toString() ??
+          data['text']?.toString() ??
+          data['content']?.toString() ??
+          '';
+
+      print(
+        '✅ [Functions] analyzeVision success '
+            'model=${data['model']} '
+            'scanMode=${data['scanMode']} '
+            'photoCount=${data['photoCount']} '
+            'responseMode=${data['responseMode']} '
+            'maxOutputTokens=${data['maxOutputTokens']} '
+            'textLen=${text.trim().length}',
+      );
+
+      if (text.trim().isEmpty) {
+        print('⚠️ [Functions] empty response data=$data');
+        throw const FormatException('Empty Functions response');
+      }
+
+      return text;
+    } on FirebaseFunctionsException catch (e) {
+      print(
+        '❌ [Functions] analyzeVision failed '
+            'code=${e.code} message=${e.message} details=${e.details}',
+      );
+      rethrow;
+    } catch (e) {
+      print('❌ [Functions] analyzeVision unknown error=$e');
+      rethrow;
+    }
+  }
+
   static Future<String> analyzeImage(
       File imageFile, {
         String? promptContext,
-        int maxOutputTokens = 3000, // ✅ 추가
-        ScanMode scanMode = ScanMode.single,
+        int maxOutputTokens = 3000,
+        ScanMode? scanMode,
         int photoCount = 1,
       }) async {
-
     try {
-      final bytes = await imageFile.readAsBytes();
-      final kb = bytes.length / 1024;
-      print('🗜️ [Vision] bytes=${kb.toStringAsFixed(1)}KB file=${imageFile.path}');
-
-      final tEncode0 = DateTime.now();
-      final base64Image = base64Encode(bytes);
-      print('⏱️ [Vision] base64Encode ${DateTime.now().difference(tEncode0).inMilliseconds}ms');
-
-
-      final presetId = await SettingsHelper.getPreset();
-      final question = await SettingsHelper.getQuestionByPreset(presetId);
-
-      // 1) 스캔 모드별 Vision prompt를 분리해서 구성합니다.
-      final langCode = await SettingsHelper.getLanguageCode();
-      final mergedPromptWithProtocol = buildVisionPrompt(
+      final resolvedScanMode = _resolveScanMode(
         scanMode: scanMode,
-        targetLanguage: langCode,
-        promptContext: _resolvePromptContext(promptContext),
-        question: question,
+        maxOutputTokens: maxOutputTokens,
+      );
+
+      final resolvedPhotoCount = _resolvePhotoCount(
+        scanMode: resolvedScanMode,
         photoCount: photoCount,
       );
 
-// 2) contentList에 mode-specific prompt(텍스트)와 이미지(block)만 담습니다.
-      final List<Map<String, dynamic>> contentList = [
-        {
-          'type': 'text',
-          'text': mergedPromptWithProtocol,
-        },
-        {
-          'type': 'image_url',
-          'image_url': {'url': 'data:image/jpeg;base64,$base64Image'},
-        },
-      ];
+      final bytes = await imageFile.readAsBytes();
+      final kb = bytes.length / 1024;
+      print(
+        '🗜️ [Vision] bytes=${kb.toStringAsFixed(1)}KB '
+            'file=${imageFile.path}',
+      );
 
-// 3) messages 배열에는 user 메시지 하나만. content에 contentList 배열을 넘겨야 합니다.
-      final payload = {
-        'model': 'gpt-5-mini',
-        'messages': [
-          {'role': 'user', 'content': contentList}
-        ],
-        'reasoning_effort': 'low',              // ✅ 빈 응답/짧은 응답 방지에 도움
-        'max_completion_tokens': maxOutputTokens,
-      };
+      final tEncode0 = DateTime.now();
+      final base64Image = base64Encode(bytes);
+      print(
+        '⏱️ [Vision] base64Encode '
+            '${DateTime.now().difference(tEncode0).inMilliseconds}ms',
+      );
 
+      final prompt = await _buildPrompt(
+        scanMode: resolvedScanMode,
+        photoCount: resolvedPhotoCount,
+        promptContext: promptContext,
+      );
 
       final tReq0 = DateTime.now();
-      print('🚀 [Vision] request start ${tReq0.toIso8601String()} maxTokens=$maxOutputTokens model=gpt-5-mini rag=$_useRag scanMode=${scanMode.wireName} photoCount=$photoCount');
 
-      final response = await http.post(
-        Uri.parse('https://api.openai.com/v1/chat/completions'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${dotenv.env['API_KEY']}',
-        },
-        body: jsonEncode(payload),
+      print(
+        '🚀 [Vision] functions request start ${tReq0.toIso8601String()} '
+            'maxTokens=$maxOutputTokens '
+            'model=$_visionModel '
+            'scanMode=${resolvedScanMode.wireName} '
+            'photoCount=$resolvedPhotoCount '
+            'rag=$_useRag',
+      );
+
+      final text = await _callAnalyzeVision(
+        imageBase64: base64Image,
+        prompt: prompt,
+        maxOutputTokens: maxOutputTokens,
+        scanMode: resolvedScanMode,
+        photoCount: resolvedPhotoCount,
+        responseMode: 'normal',
       );
 
       final reqMs = DateTime.now().difference(tReq0).inMilliseconds;
-      print('⏱️ [Vision] response in ${reqMs}ms status=${response.statusCode}');
+      print('⏱️ [Vision] functions response in ${reqMs}ms');
+      print('🧾 [Vision] contentLen=${text.trim().length}');
 
-      if (response.statusCode == 200) {
-        final json = jsonDecode(utf8.decode(response.bodyBytes));
-        final content = json['choices']?[0]?['message']?['content'];
-        final text = (content is String) ? content : (content?.toString() ?? '');
-        print('🧾 [Vision] contentLen=${text.trim().length}');
-        if (text.trim().isEmpty) {
-          print('⚠️ [Vision] EMPTY content body=${utf8.decode(response.bodyBytes)}');
-        }
-        return text;
-
-
-      } else {
-        final body = utf8.decode(response.bodyBytes);
-        print('❌ [Vision] error body=$body');
-        throw Exception('GPT 응답 실패: ${response.statusCode}\n$body');
-      }
-
+      return text;
     } catch (e) {
       throw Exception('Vision 분석 중 오류: $e');
     }
   }
-  /// ✅ Streaming version: yields incremental text chunks (SSE)
+
+  /// 기존 LoadingScreen 구조 유지를 위해 Stream<String> 형태는 유지합니다.
+  /// Firebase callable은 SSE streaming이 아니므로 최종 결과를 한 번 받아 yield 합니다.
   static Stream<String> analyzeImageStream(
       File imageFile, {
         String? promptContext,
         int maxOutputTokens = 3000,
-        ScanMode scanMode = ScanMode.single,
+        ScanMode? scanMode,
         int photoCount = 1,
       }) async* {
-    final bytes = await imageFile.readAsBytes();
-    final base64Image = base64Encode(bytes);
-
-    final presetId = await SettingsHelper.getPreset();
-    final question = await SettingsHelper.getQuestionByPreset(presetId);
-    final lang = (await SettingsHelper.getLanguageCode()).toString();
-
-    final mergedPromptWithProtocol = buildVisionPrompt(
-      scanMode: scanMode,
-      targetLanguage: lang,
-      promptContext: _resolvePromptContext(promptContext),
-      question: question,
-      photoCount: photoCount,
-    );
-
-    final List<Map<String, dynamic>> contentList = [
-      {'type': 'text', 'text': mergedPromptWithProtocol},
-      {
-        'type': 'image_url',
-        'image_url': {'url': 'data:image/jpeg;base64,$base64Image'},
-
-      },
-    ];
-
-    final payload = {
-      'model': 'gpt-5.4-mini',
-      'messages': [
-        {'role': 'user', 'content': contentList}
-      ],
-      'reasoning_effort': 'low',
-      'max_completion_tokens': maxOutputTokens,
-      'stream': true,
-    };
-
-    final client = http.Client();
     try {
-      final request = http.Request(
-        'POST',
-        Uri.parse('https://api.openai.com/v1/chat/completions'),
+      final resolvedScanMode = _resolveScanMode(
+        scanMode: scanMode,
+        maxOutputTokens: maxOutputTokens,
       );
-      request.headers.addAll({
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${dotenv.env['API_KEY']}',
-      });
-      request.body = jsonEncode(payload);
 
-      final streamedResponse = await client
-          .send(request)
-          .timeout(const Duration(seconds: 20));
-      if (streamedResponse.statusCode != 200) {
-        final errBody = await streamedResponse.stream.bytesToString();
-        throw Exception('Stream request failed: ${streamedResponse.statusCode} $errBody');
-      }
+      final resolvedPhotoCount = _resolvePhotoCount(
+        scanMode: resolvedScanMode,
+        photoCount: photoCount,
+      );
 
-      final parser = SseEventParser();
-      final decoder = utf8.decoder;
-      var hasContent = false;
+      final bytes = await imageFile.readAsBytes();
+      final kb = bytes.length / 1024;
+      print(
+        '🗜️ [VisionStream] bytes=${kb.toStringAsFixed(1)}KB '
+            'file=${imageFile.path}',
+      );
 
-      final guardedStream = streamedResponse.stream
-          .transform(decoder)
-          .timeout(const Duration(seconds: 45));
+      final tEncode0 = DateTime.now();
+      final base64Image = base64Encode(bytes);
+      print(
+        '⏱️ [VisionStream] base64Encode '
+            '${DateTime.now().difference(tEncode0).inMilliseconds}ms',
+      );
 
-      await for (final chunk in guardedStream) {
-        for (final data in parser.addChunk(chunk)) {
-          if (data == '[DONE]') {
-            if (!hasContent) {
-              throw const FormatException('Empty streaming response');
-            }
-            return;
-          }
+      final prompt = await _buildPrompt(
+        scanMode: resolvedScanMode,
+        photoCount: resolvedPhotoCount,
+        promptContext: promptContext,
+      );
 
-          try {
-            final j = jsonDecode(data);
-            final delta = j['choices']?[0]?['delta']?['content'];
-            if (delta is String && delta.isNotEmpty) {
-              hasContent = true;
-              yield delta;
-            }
-          } catch (_) {
-            // ignore malformed chunk
-          }
-        }
-      }
+      final tReq0 = DateTime.now();
 
-      for (final data in parser.flush()) {
-        if (data == '[DONE]') break;
-        try {
-          final j = jsonDecode(data);
-          final delta = j['choices']?[0]?['delta']?['content'];
-          if (delta is String && delta.isNotEmpty) {
-            hasContent = true;
-            yield delta;
-          }
-        } catch (_) {}
-      }
+      print(
+        '🚀 [VisionStream] functions request start '
+            '${tReq0.toIso8601String()} '
+            'maxTokens=$maxOutputTokens '
+            'model=$_visionModel '
+            'scanMode=${resolvedScanMode.wireName} '
+            'photoCount=$resolvedPhotoCount '
+            'rag=$_useRag',
+      );
 
-      if (!hasContent) {
-        throw const FormatException('Empty streaming response');
-      }
-    } finally {
-      client.close();
+      final text = await _callAnalyzeVision(
+        imageBase64: base64Image,
+        prompt: prompt,
+        maxOutputTokens: maxOutputTokens,
+        scanMode: resolvedScanMode,
+        photoCount: resolvedPhotoCount,
+        responseMode: 'stream',
+      );
+
+      final reqMs = DateTime.now().difference(tReq0).inMilliseconds;
+      print('⏱️ [VisionStream] functions response in ${reqMs}ms');
+      print('🧾 [VisionStream] contentLen=${text.trim().length}');
+
+      yield text;
+    } catch (e) {
+      throw Exception('Vision streaming 분석 중 오류: $e');
     }
   }
-
-
 }
