@@ -249,10 +249,13 @@ class ResultParsingService {
       fallbackUniqueCount: _countLegacyMenuItems(normalized),
     );
 
+    final hadLegacyMenuItems = _countLegacyMenuItems(normalized) > 0;
+
     normalized['scanMode'] = 'multi';
     normalized['photoAnalyses'] = photoAnalyses;
     normalized['mergedResult'] = mergedResult;
-    if (_countLegacyMenuItems(normalized) == 0 && photoAnalyses.isNotEmpty) {
+    _applyRecommendedItemsFallback(normalized, mergedResult);
+    if (!hadLegacyMenuItems && photoAnalyses.isNotEmpty) {
       normalized['fullMenu'] = {
         'items': {
           'main': <Map<String, dynamic>>[],
@@ -304,10 +307,24 @@ class ResultParsingService {
       m['detectedSections'] = (m['detectedSections'] is List)
           ? List<dynamic>.from(m['detectedSections'] as List)
           : <dynamic>[];
-      m['itemCount'] = _intValue(m['itemCount']);
-      m['readableItemCount'] = _intValue(m['readableItemCount']);
-      m['unclearItemCount'] = _intValue(m['unclearItemCount']);
-      m['items'] = (m['items'] is List) ? List<dynamic>.from(m['items'] as List) : <dynamic>[];
+      final items = (m['items'] is List)
+          ? List<dynamic>.from(m['items'] as List)
+          : <dynamic>[];
+      final rawItemCount = _intValue(m['itemCount']);
+      final rawUnclearCount = _intValue(m['unclearItemCount']);
+      final fallbackItemCount = items.whereType<Map>().length;
+      final itemCount = rawItemCount > 0 ? rawItemCount : fallbackItemCount;
+      final unclearCount = rawUnclearCount;
+      final rawReadableCount = _intValue(m['readableItemCount']);
+      final fallbackReadableCount = itemCount - unclearCount;
+      final readableCount = rawReadableCount > 0
+          ? rawReadableCount
+          : fallbackReadableCount.clamp(0, itemCount).toInt();
+
+      m['items'] = items;
+      m['itemCount'] = itemCount;
+      m['unclearItemCount'] = unclearCount;
+      m['readableItemCount'] = readableCount;
       return m;
     }).toList();
   }
@@ -346,6 +363,40 @@ class ResultParsingService {
   }
 
 
+
+  static void _applyRecommendedItemsFallback(
+    Map<String, dynamic> normalized,
+    Map<String, dynamic> mergedResult,
+  ) {
+    final existing = normalized['recommended'];
+    if (existing is List && existing.isNotEmpty) return;
+
+    final rawRecommendedItems = mergedResult['recommendedItems'];
+    if (rawRecommendedItems is! List || rawRecommendedItems.isEmpty) return;
+
+    var id = 1;
+    final mapped = <Map<String, dynamic>>[];
+    for (final item in rawRecommendedItems.whereType<Map>()) {
+      final m = Map<String, dynamic>.from(item);
+      final original = (m['originalName'] ?? m['nameOriginal'] ?? '').toString();
+      final name = (m['translatedName'] ?? m['name'] ?? original).toString();
+      if (original.trim().isEmpty && name.trim().isEmpty) continue;
+
+      mapped.add({
+        'id': (m['id'] ?? 'mr${id++}').toString(),
+        'nameOriginal': original,
+        'name': name.trim().isNotEmpty ? name : original,
+        'shortDesc': (m['description'] ?? m['shortDesc'] ?? '').toString(),
+        'price': (m['price'] ?? '').toString(),
+        'reason': (m['reason'] ?? '').toString(),
+        'tags': m['tags'] is List ? List<dynamic>.from(m['tags'] as List) : <dynamic>[],
+      });
+    }
+
+    if (mapped.isNotEmpty) {
+      normalized['recommended'] = mapped;
+    }
+  }
   static List<Map<String, dynamic>> _itemsFromPhotoAnalyses(
     List<Map<String, dynamic>> photoAnalyses,
   ) {

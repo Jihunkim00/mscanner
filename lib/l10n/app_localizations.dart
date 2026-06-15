@@ -2088,6 +2088,55 @@ abstract class AppLocalizations {
   /// **'AI returned an empty stream response.'**
   String get result_aiEmptyStreamResponse;
 
+
+  /// No description provided for @multiScanSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Multi-scan summary'**
+  String get multiScanSummaryTitle;
+
+  /// No description provided for @multiScanPhotoItemsDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo {index}: {count} items detected'**
+  String multiScanPhotoItemsDetected(Object index, Object count);
+
+  /// No description provided for @multiScanPhotoItemsUnclear.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo {index}: {count} items detected / {unclear} unclear'**
+  String multiScanPhotoItemsUnclear(Object index, Object count, Object unclear);
+
+  /// No description provided for @multiScanNoReadableItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo {index}: no readable menu items detected'**
+  String multiScanNoReadableItems(Object index);
+
+  /// No description provided for @multiScanTotalSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Total {total} detected / {unique} after duplicate removal'**
+  String multiScanTotalSummary(Object total, Object unique);
+
+  /// No description provided for @multiScanTotalSummaryWithDuplicates.
+  ///
+  /// In en, this message translates to:
+  /// **'Total {total} detected / {unique} after duplicate removal ({duplicates} duplicates)'**
+  String multiScanTotalSummaryWithDuplicates(Object total, Object unique, Object duplicates);
+
+  /// No description provided for @multiScanTotalPhotoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Total photo count: {count}'**
+  String multiScanTotalPhotoCount(Object count);
+
+  /// No description provided for @multiScanDetailsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo analysis details are unavailable, but the merged result is safe to view.'**
+  String get multiScanDetailsUnavailable;
+
   /// No description provided for @tts_orderPhraseTitle.
   ///
   /// In en, this message translates to:

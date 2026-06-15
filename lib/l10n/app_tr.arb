@@ -377,5 +377,49 @@
   "premiumStartCta": "Start Premium",
   "premiumGuestSectionTitle": "Connect your account before purchasing Premium in guest mode",
   "premiumGuestSectionMessage": "Premium subscriptions are linked to your account so purchases can be restored and used across devices.",
-  "premiumGuestConvertButton": "Convert account to continue"
+  "premiumGuestConvertButton": "Convert account to continue",
+  "multiScanSummaryTitle": "Multi-scan summary",
+  "multiScanPhotoItemsDetected": "Photo {index}: {count} items detected",
+  "@multiScanPhotoItemsDetected": {
+    "placeholders": {
+      "index": {},
+      "count": {}
+    }
+  },
+  "multiScanPhotoItemsUnclear": "Photo {index}: {count} items detected / {unclear} unclear",
+  "@multiScanPhotoItemsUnclear": {
+    "placeholders": {
+      "index": {},
+      "count": {},
+      "unclear": {}
+    }
+  },
+  "multiScanNoReadableItems": "Photo {index}: no readable menu items detected",
+  "@multiScanNoReadableItems": {
+    "placeholders": {
+      "index": {}
+    }
+  },
+  "multiScanTotalSummary": "Total {total} detected / {unique} after duplicate removal",
+  "@multiScanTotalSummary": {
+    "placeholders": {
+      "total": {},
+      "unique": {}
+    }
+  },
+  "multiScanTotalSummaryWithDuplicates": "Total {total} detected / {unique} after duplicate removal ({duplicates} duplicates)",
+  "@multiScanTotalSummaryWithDuplicates": {
+    "placeholders": {
+      "total": {},
+      "unique": {},
+      "duplicates": {}
+    }
+  },
+  "multiScanTotalPhotoCount": "Total photo count: {count}",
+  "@multiScanTotalPhotoCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "multiScanDetailsUnavailable": "Photo analysis details are unavailable, but the merged result is safe to view."
 }

@@ -375,10 +375,11 @@ class _ResultScreenState extends State<ResultScreen> {
         ? _asInt(merged['totalPhotoCount'])
         : (widget.images?.length ?? 1);
     final muted = textColor.withOpacity(0.72);
+    final loc = AppLocalizations.of(context)!;
 
     final lines = <String>[];
     if (analyses.isEmpty) {
-      lines.add('Photo analysis details are unavailable, but the merged result is safe to view.');
+      lines.add(loc.multiScanDetailsUnavailable);
     } else {
       for (final analysis in analyses) {
         final index = _asInt(analysis['photoIndex']);
@@ -386,19 +387,20 @@ class _ResultScreenState extends State<ResultScreen> {
         final itemCount = _asInt(analysis['itemCount']);
         final unclearCount = _asInt(analysis['unclearItemCount']);
         if (itemCount <= 0 && unclearCount <= 0) {
-          lines.add('Photo $displayIndex: no readable menu items detected');
+          lines.add(loc.multiScanNoReadableItems(displayIndex));
         } else if (unclearCount > 0) {
-          lines.add('Photo $displayIndex: $itemCount items detected / $unclearCount unclear');
+          lines.add(loc.multiScanPhotoItemsUnclear(displayIndex, itemCount, unclearCount));
         } else {
-          lines.add('Photo $displayIndex: $itemCount items detected');
+          lines.add(loc.multiScanPhotoItemsDetected(displayIndex, itemCount));
         }
       }
     }
 
     final totalLine = total > 0 || unique > 0 || duplicate > 0
-        ? 'Total $total detected / $unique after duplicate removal'
-            '${duplicate > 0 ? ' ($duplicate duplicates)' : ''}'
-        : 'Total photo count: $photoCount';
+        ? (duplicate > 0
+            ? loc.multiScanTotalSummaryWithDuplicates(total, unique, duplicate)
+            : loc.multiScanTotalSummary(total, unique))
+        : loc.multiScanTotalPhotoCount(photoCount);
 
     return Container(
       decoration: boxDecoration,
@@ -411,7 +413,7 @@ class _ResultScreenState extends State<ResultScreen> {
               Icon(CupertinoIcons.square_stack_3d_up, size: 18, color: textColor),
               const SizedBox(width: 8),
               Text(
-                'Multi-scan summary',
+                loc.multiScanSummaryTitle,
                 style: TextStyle(
                   fontFamily: 'SFPro',
                   fontSize: 15,

@@ -96,45 +96,19 @@ class _LoadingScreenState extends State<LoadingScreen> {
     _showAdThenHandleGpt();
   }
 
-  /// geohash로 장소 메모를 DB에서 불러와 promptContext에 삽입한 뒤 GPT 호출
+  /// Legacy non-streaming analysis helper. Keep it aligned with _prepareVisionInput()
+  /// so multi-scan never analyzes only the first source image.
   Future<String> _prepareAndAnalyze() async {
-    String promptContext = '';
-    if (widget.position != null) {
-      final geohash = GeohashService().generateGeohash(
-        widget.position!.latitude,
-        widget.position!.longitude,
-      );
-      final firestoreFuture = FirebaseFirestore.instance
-          .collection('rag_data')
-          .where('geohashes', arrayContains: geohash)
-          .limit(1)
-          .get();
-
-      final prefsFuture = SharedPreferences.getInstance();
-
-      final results = await Future.wait([firestoreFuture, prefsFuture]);
-
-      final snapshot = results[0] as QuerySnapshot;
-      final prefs = results[1] as SharedPreferences;
-
-      if (snapshot.docs.isNotEmpty) {
-        final data = snapshot.docs.first.data() as Map<String, dynamic>;
-        String lang = prefs.getString('selectedLanguageCode') ?? Platform.localeName.split('_').first;
-        lang = lang.replaceAll('-', '_');
-        promptContext = data['detail_$lang'] ?? '';
-      }
-
-    }
-    print('▶️ [RAG Context] promptContext: $promptContext');
-    final files = widget.images ?? [widget.image!];
-    final scanMode = files.length > 1 ? ScanMode.multi : ScanMode.single;
+    final prepared = await _prepareVisionInput();
     return VisionService.analyzeImage(
-      files.first,
-      promptContext: promptContext,
-      scanMode: scanMode,
-      photoCount: files.length,
+      prepared.visionFile,
+      promptContext: prepared.promptContext,
+      scanMode: prepared.scanMode,
+      photoCount: prepared.photoCount,
+      maxOutputTokens: widget.maxOutputTokens,
     );
   }
+
 
 
   @override
