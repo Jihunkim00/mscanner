@@ -1,12 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+
 import '/helpers/settings_helper.dart';
-import 'package:mscanner/utils/sse_event_parser.dart';
 
 class VisionService {
   static const bool _useRag = false;
+
+  static final FirebaseFunctions _functions =
+  FirebaseFunctions.instanceFor(region: 'asia-northeast3');
 
   static String _resolvePromptContext(String? promptContext) {
     if (!_useRag) return '';
@@ -14,37 +17,76 @@ class VisionService {
     return safe.length > 3000 ? safe.substring(0, 3000) : safe;
   }
 
-  // 기존: static Future<String> analyzeImage(File imageFile) async {
-  static Future<String> analyzeImage(
-      File imageFile, {
-        String? promptContext,
-        int maxOutputTokens = 3000, // ✅ 추가
-      }) async {
+  static String _resolveScanMode(int maxOutputTokens) {
+    return maxOutputTokens >= 9000 ? 'multi' : 'single';
+  }
 
+  static Future<String> _callAnalyzeVision({
+    required String imageBase64,
+    required String prompt,
+    required int maxOutputTokens,
+    required String scanMode,
+    required String responseMode,
+  }) async {
     try {
-      final bytes = await imageFile.readAsBytes();
-      final kb = bytes.length / 1024;
-      print('🗜️ [Vision] bytes=${kb.toStringAsFixed(1)}KB file=${imageFile.path}');
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        await FirebaseAuth.instance.signInAnonymously();
+      }
 
-      final tEncode0 = DateTime.now();
-      final base64Image = base64Encode(bytes);
-      print('⏱️ [Vision] base64Encode ${DateTime.now().difference(tEncode0).inMilliseconds}ms');
+      print(
+        '🚀 [Functions] analyzeVision call '
+            'scanMode=$scanMode responseMode=$responseMode '
+            'maxTokens=$maxOutputTokens imageBase64Len=${imageBase64.length}',
+      );
 
 
-      final presetId = await SettingsHelper.getPreset();
-      const String _streamProtocol = '''[OUTPUT PROTOCOL]
-Output exactly ONE JSON object.
-- No RECOMMEND line
-- No markdown
-- No code fences
-- No extra text
-- Keep the JSON key order as: isMenu, outputLanguage, place, recommended, fullMenu
-''';
-      final question = await SettingsHelper.getQuestionByPreset(presetId);
+      final callable = _functions.httpsCallable(
+        'analyzeVision',
+        options: HttpsCallableOptions(
+          timeout: const Duration(seconds: 120),
+        ),
+      );
 
-      // 1) RAG + 프리셋 질문을 하나로 합친 텍스트
-      final Map<String, String> ragPrefixMap = {
-        'ko': '''[장소 메모]
+      final result = await callable.call({
+        'imageBase64': imageBase64,
+        'prompt': prompt,
+        'maxOutputTokens': maxOutputTokens,
+        'scanMode': scanMode,
+        'responseMode': responseMode,
+      });
+
+      final data = Map<String, dynamic>.from(result.data as Map);
+      final text = data['result']?.toString() ?? '';
+
+      print(
+        '✅ [Functions] analyzeVision success '
+            'model=${data['model']} scanMode=${data['scanMode']} '
+            'responseMode=${data['responseMode']} '
+            'maxOutputTokens=${data['maxOutputTokens']} '
+            'textLen=${text.trim().length}',
+      );
+
+      if (text.trim().isEmpty) {
+        throw const FormatException('Empty Functions response');
+      }
+
+      return text;
+    } on FirebaseFunctionsException catch (e) {
+      print(
+        '❌ [Functions] analyzeVision failed '
+            'code=${e.code} message=${e.message} details=${e.details}',
+      );
+      rethrow;
+    } catch (e) {
+      print('❌ [Functions] analyzeVision unknown error=$e');
+      rethrow;
+    }
+  }
+
+  static Map<String, String> _fullPromptTemplates() {
+    return {
+      'ko': '''[장소 메모]
 {promptContext}
 
 이 이미지가 음식 메뉴나 음식 사진이라면, 내용을 번역하고 설명 및 추천해 주세요.
@@ -52,7 +94,7 @@ Output exactly ONE JSON object.
 
 {question}
 ''',
-        'en': '''[Location Memo]
+      'en': '''[Location Memo]
 {promptContext}
 
 If this image is a food menu or food photo, please translate, describe, and recommend it.
@@ -60,7 +102,7 @@ If it doesn’t seem food-related, just say so.
 
 {question}
 ''',
-        'ja': '''[Location Memo]
+      'ja': '''[Location Memo]
 {promptContext}
 
 この画像が料理のメニューや料理の写真であれば、翻訳して説明し、推薦してください。
@@ -68,7 +110,7 @@ If it doesn’t seem food-related, just say so.
 
 {question}
 ''',
-        'zh': '''[Location Memo]
+      'zh': '''[Location Memo]
 {promptContext}
 
 如果此图像是食物菜单或食物照片，请翻译、描述并推荐。
@@ -76,7 +118,7 @@ If it doesn’t seem food-related, just say so.
 
 {question}
 ''',
-        'zh-Hans': '''[Location Memo]
+      'zh-Hans': '''[Location Memo]
 {promptContext}
 
 如果此图像是食物菜单或食物照片，请翻译、描述并推荐。
@@ -84,7 +126,7 @@ If it doesn’t seem food-related, just say so.
 
 {question}
 ''',
-        'zh-Hant': '''[Location Memo]
+      'zh-Hant': '''[Location Memo]
 {promptContext}
 
 如果此圖像是食物菜單或食物照片，請翻譯、描述並推薦。
@@ -92,7 +134,7 @@ If it doesn’t seem food-related, just say so.
 
 {question}
 ''',
-        'hi': '''[Location Memo]
+      'hi': '''[Location Memo]
 {promptContext}
 
 यदि यह चित्र खाद्य मेनू या खाद्य फ़ोटो है, तो कृपया इसका अनुवाद करें, वर्णन करें और अनुशंसा करें।
@@ -100,7 +142,7 @@ If it doesn’t seem food-related, just say so.
 
 {question}
 ''',
-        'es': '''[Location Memo]
+      'es': '''[Location Memo]
 {promptContext}
 
 Si esta imagen es un menú o una foto de comida, por favor tradúcelo, descríbelo y haz una recomendación.
@@ -108,7 +150,7 @@ Si no parece relacionado con comida, simplemente dilo.
 
 {question}
 ''',
-        'fr': '''[Location Memo]
+      'fr': '''[Location Memo]
 {promptContext}
 
 Si cette image est un menu ou une photo de nourriture, veuillez la traduire, la décrire et faire une recommandation.
@@ -116,7 +158,7 @@ Si cela ne semble pas lié à la nourriture, dites-le simplement.
 
 {question}
 ''',
-        'vi': '''[Location Memo]
+      'vi': '''[Location Memo]
 {promptContext}
 
 Nếu hình ảnh này là thực đơn hoặc ảnh món ăn, vui lòng dịch, mô tả và gợi ý.
@@ -124,7 +166,7 @@ Nếu không liên quan đến thực phẩm, chỉ cần nói vậy.
 
 {question}
 ''',
-        'th': '''[Location Memo]
+      'th': '''[Location Memo]
 {promptContext}
 
 หากภาพนี้เป็นเมนูอาหารหรือภาพอาหาร โปรดแปล อธิบาย และแนะนำ
@@ -132,7 +174,7 @@ Nếu không liên quan đến thực phẩm, chỉ cần nói vậy.
 
 {question}
 ''',
-        'ar': '''[Location Memo]
+      'ar': '''[Location Memo]
 {promptContext}
 
 إذا كانت هذه الصورة قائمة طعام أو صورة طعام، يرجى ترجمتها ووصفها وتقديم التوصيات.
@@ -140,7 +182,7 @@ Nếu không liên quan đến thực phẩm, chỉ cần nói vậy.
 
 {question}
 ''',
-        'bn': '''[Location Memo]
+      'bn': '''[Location Memo]
 {promptContext}
 
 এই ছবিটি যদি খাবারের মেনু বা খাবারের ছবি হয়, অনুগ্রহ করে এটি অনুবাদ করুন, বর্ণনা করুন এবং সুপারিশ করুন।
@@ -148,7 +190,7 @@ Nếu không liên quan đến thực phẩm, chỉ cần nói vậy.
 
 {question}
 ''',
-        'ru': '''[Location Memo]
+      'ru': '''[Location Memo]
 {promptContext}
 
 Если это изображение меню или фотографии еды, пожалуйста, переведите, опишите и дайте рекомендации.
@@ -156,7 +198,7 @@ Nếu không liên quan đến thực phẩm, chỉ cần nói vậy.
 
 {question}
 ''',
-        'pt': '''[Location Memo]
+      'pt': '''[Location Memo]
 {promptContext}
 
 Se esta imagem for um menu de comida ou foto de comida, por favor, traduza, descreva e recomende.
@@ -164,7 +206,7 @@ Se não parecer relacionado à comida, apenas diga isso.
 
 {question}
 ''',
-        'pt-BR': '''[Location Memo]
+      'pt-BR': '''[Location Memo]
 {promptContext}
 
 Se esta imagem for um cardápio ou uma foto de comida, por favor, traduza, descreva e recomende.
@@ -172,7 +214,7 @@ Se não parecer relacionado à comida, apenas diga isso.
 
 {question}
 ''',
-        'ur': '''[Location Memo]
+      'ur': '''[Location Memo]
 {promptContext}
 
 اگر یہ تصویر کھانے کے مینو یا کھانے کی تصویر ہے تو براہ کرم اس کا ترجمہ کریں، وضاحت کریں اور سفارش کریں۔
@@ -180,7 +222,7 @@ Se não parecer relacionado à comida, apenas diga isso.
 
 {question}
 ''',
-        'id': '''[Location Memo]
+      'id': '''[Location Memo]
 {promptContext}
 
 Jika gambar ini adalah menu makanan atau foto makanan, silakan terjemahkan, jelaskan, dan rekomendasikan.
@@ -188,7 +230,7 @@ Jika tidak tampak terkait dengan makanan, cukup katakan saja.
 
 {question}
 ''',
-        'de': '''[Location Memo]
+      'de': '''[Location Memo]
 {promptContext}
 
 Wenn dieses Bild ein Speisekarte oder Essensfoto ist, bitte übersetzen, beschreiben und empfehlen.
@@ -196,7 +238,7 @@ Wenn es nicht mit Essen zu tun hat, sagen Sie es einfach.
 
 {question}
 ''',
-        'mr': '''[Location Memo]
+      'mr': '''[Location Memo]
 {promptContext}
 
 हे चित्र अन्न मेनू किंवा अन्नाचे छायाचित्र असल्यास, कृपया त्याचे भाषांतर करा, वर्णन करा आणि शिफारस करा.
@@ -204,7 +246,7 @@ Wenn es nicht mit Essen zu tun hat, sagen Sie es einfach.
 
 {question}
 ''',
-        'te': '''[Location Memo]
+      'te': '''[Location Memo]
 {promptContext}
 
 ఈ చిత్రం ఆహార మెనూ లేదా ఆహార ఫోటో అయితే, దయచేసి అనువదించండి, వివరించండి మరియు సిఫార్సు చేయండి.
@@ -212,7 +254,7 @@ Wenn es nicht mit Essen zu tun hat, sagen Sie es einfach.
 
 {question}
 ''',
-        'tr': '''[Location Memo]
+      'tr': '''[Location Memo]
 {promptContext}
 
 Bu resim bir yemek menüsü veya yemek fotoğrafıysa, lütfen çevirin, açıklayın ve önerin.
@@ -220,104 +262,11 @@ Yemekle ilgili görünmüyorsa, sadece belirtin.
 
 {question}
 ''',
-      };
-
-
-// 2) contentList에 mergedPrompt(텍스트)와 이미지(blocl)만 담습니다.
-      final langCode = await SettingsHelper.getLanguageCode();
-
-// ragPrefixMap에서 해당 언어 템플릿 가져와서 context, question 대체
-      final template = ragPrefixMap[langCode] ?? ragPrefixMap['en']!;
-      final mergedPrompt = template
-          .replaceAll('{promptContext}', _resolvePromptContext(promptContext))
-          .replaceAll('{question}', question ?? '');
-
-      final mergedPromptWithProtocol = _streamProtocol + "\n" + mergedPrompt;
-
-
-      final List<Map<String, dynamic>> contentList = [
-        {
-          'type': 'text',
-          'text': mergedPromptWithProtocol,
-        },
-        {
-          'type': 'image_url',
-          'image_url': {'url': 'data:image/jpeg;base64,$base64Image'},
-        },
-      ];
-
-// 3) messages 배열에는 user 메시지 하나만. content에 contentList 배열을 넘겨야 합니다.
-      final payload = {
-        'model': 'gpt-5-mini',
-        'messages': [
-          {'role': 'user', 'content': contentList}
-        ],
-        'reasoning_effort': 'low',              // ✅ 빈 응답/짧은 응답 방지에 도움
-        'max_completion_tokens': maxOutputTokens,
-      };
-
-
-      final tReq0 = DateTime.now();
-      print('🚀 [Vision] request start ${tReq0.toIso8601String()} maxTokens=$maxOutputTokens model=gpt-5-mini rag=$_useRag');
-
-      final response = await http.post(
-        Uri.parse('https://api.openai.com/v1/chat/completions'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${dotenv.env['API_KEY']}',
-        },
-        body: jsonEncode(payload),
-      );
-
-      final reqMs = DateTime.now().difference(tReq0).inMilliseconds;
-      print('⏱️ [Vision] response in ${reqMs}ms status=${response.statusCode}');
-
-      if (response.statusCode == 200) {
-        final json = jsonDecode(utf8.decode(response.bodyBytes));
-        final content = json['choices']?[0]?['message']?['content'];
-        final text = (content is String) ? content : (content?.toString() ?? '');
-        print('🧾 [Vision] contentLen=${text.trim().length}');
-        if (text.trim().isEmpty) {
-          print('⚠️ [Vision] EMPTY content body=${utf8.decode(response.bodyBytes)}');
-        }
-        return text;
-
-
-      } else {
-        final body = utf8.decode(response.bodyBytes);
-        print('❌ [Vision] error body=$body');
-        throw Exception('GPT 응답 실패: ${response.statusCode}\n$body');
-      }
-
-    } catch (e) {
-      throw Exception('Vision 분석 중 오류: $e');
-    }
+    };
   }
-  /// ✅ Streaming version: yields incremental text chunks (SSE)
-  static Stream<String> analyzeImageStream(
-      File imageFile, {
-        String? promptContext,
-        int maxOutputTokens = 3000,
-      }) async* {
-    final bytes = await imageFile.readAsBytes();
-    final base64Image = base64Encode(bytes);
 
-    final presetId = await SettingsHelper.getPreset();
-    final question = await SettingsHelper.getQuestionByPreset(presetId);
-
-    const String _streamProtocol = '''[OUTPUT PROTOCOL]
-Output exactly ONE JSON object using the existing app schema.
-- No RECOMMEND line
-- No markdown
-- No code fences
-- No extra text
-- Keep the JSON key order as: isMenu, outputLanguage, place, recommended, fullMenu
-''';
-
-    final lang = (await SettingsHelper.getLanguageCode()).toString();
-
-    // same templates as analyzeImage (subset; unknown langs fall back to en)
-    final Map<String, String> ragPrefixMap = {
+  static Map<String, String> _streamPromptTemplates() {
+    return {
       'ko': '''[장소 메모]
 {promptContext}
 
@@ -351,102 +300,131 @@ If it doesn’t seem food-related, just say so.
 {question}
 ''',
     };
+  }
 
-    final template = ragPrefixMap[lang] ?? ragPrefixMap['en']!;
+  static Future<String> _buildPrompt({
+    required String outputProtocol,
+    required String? promptContext,
+    required bool streamMode,
+  }) async {
+    final presetId = await SettingsHelper.getPreset();
+    final question = await SettingsHelper.getQuestionByPreset(presetId);
+    final langCode = await SettingsHelper.getLanguageCode();
+
+    final templates = streamMode ? _streamPromptTemplates() : _fullPromptTemplates();
+    final template = templates[langCode] ?? templates['en']!;
+
     final mergedPrompt = template
         .replaceAll('{promptContext}', _resolvePromptContext(promptContext))
         .replaceAll('{question}', question ?? '');
 
-    final mergedPromptWithProtocol = _streamProtocol + "\n" + mergedPrompt;
+    return '$outputProtocol\n$mergedPrompt';
+  }
 
-    final List<Map<String, dynamic>> contentList = [
-      {'type': 'text', 'text': mergedPromptWithProtocol},
-      {
-        'type': 'image_url',
-        'image_url': {'url': 'data:image/jpeg;base64,$base64Image'},
-
-      },
-    ];
-
-    final payload = {
-      'model': 'gpt-5.4-mini',
-      'messages': [
-        {'role': 'user', 'content': contentList}
-      ],
-      'reasoning_effort': 'low',
-      'max_completion_tokens': maxOutputTokens,
-      'stream': true,
-    };
-
-    final client = http.Client();
+  static Future<String> analyzeImage(
+      File imageFile, {
+        String? promptContext,
+        int maxOutputTokens = 3000,
+      }) async {
     try {
-      final request = http.Request(
-        'POST',
-        Uri.parse('https://api.openai.com/v1/chat/completions'),
+      final bytes = await imageFile.readAsBytes();
+      final kb = bytes.length / 1024;
+      print('🗜️ [Vision] bytes=${kb.toStringAsFixed(1)}KB file=${imageFile.path}');
+
+      final tEncode0 = DateTime.now();
+      final base64Image = base64Encode(bytes);
+      print('⏱️ [Vision] base64Encode ${DateTime.now().difference(tEncode0).inMilliseconds}ms');
+
+      const outputProtocol = '''[OUTPUT PROTOCOL]
+Output exactly ONE JSON object.
+- No RECOMMEND line
+- No markdown
+- No code fences
+- No extra text
+- Keep the JSON key order as: isMenu, outputLanguage, place, recommended, fullMenu
+''';
+
+      final mergedPromptWithProtocol = await _buildPrompt(
+        outputProtocol: outputProtocol,
+        promptContext: promptContext,
+        streamMode: false,
       );
-      request.headers.addAll({
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${dotenv.env['API_KEY']}',
-      });
-      request.body = jsonEncode(payload);
 
-      final streamedResponse = await client
-          .send(request)
-          .timeout(const Duration(seconds: 20));
-      if (streamedResponse.statusCode != 200) {
-        final errBody = await streamedResponse.stream.bytesToString();
-        throw Exception('Stream request failed: ${streamedResponse.statusCode} $errBody');
-      }
+      final scanMode = _resolveScanMode(maxOutputTokens);
+      final tReq0 = DateTime.now();
 
-      final parser = SseEventParser();
-      final decoder = utf8.decoder;
-      var hasContent = false;
+      print(
+        '🚀 [Vision] functions request start ${tReq0.toIso8601String()} '
+            'maxTokens=$maxOutputTokens model=gpt-5-mini scanMode=$scanMode rag=$_useRag',
+      );
 
-      final guardedStream = streamedResponse.stream
-          .transform(decoder)
-          .timeout(const Duration(seconds: 45));
+      final text = await _callAnalyzeVision(
+        imageBase64: base64Image,
+        prompt: mergedPromptWithProtocol,
+        maxOutputTokens: maxOutputTokens,
+        scanMode: scanMode,
+        responseMode: 'normal',
+      );
 
-      await for (final chunk in guardedStream) {
-        for (final data in parser.addChunk(chunk)) {
-          if (data == '[DONE]') {
-            if (!hasContent) {
-              throw const FormatException('Empty streaming response');
-            }
-            return;
-          }
+      final reqMs = DateTime.now().difference(tReq0).inMilliseconds;
+      print('⏱️ [Vision] functions response in ${reqMs}ms');
+      print('🧾 [Vision] contentLen=${text.trim().length}');
 
-          try {
-            final j = jsonDecode(data);
-            final delta = j['choices']?[0]?['delta']?['content'];
-            if (delta is String && delta.isNotEmpty) {
-              hasContent = true;
-              yield delta;
-            }
-          } catch (_) {
-            // ignore malformed chunk
-          }
-        }
-      }
-
-      for (final data in parser.flush()) {
-        if (data == '[DONE]') break;
-        try {
-          final j = jsonDecode(data);
-          final delta = j['choices']?[0]?['delta']?['content'];
-          if (delta is String && delta.isNotEmpty) {
-            hasContent = true;
-            yield delta;
-          }
-        } catch (_) {}
-      }
-
-      if (!hasContent) {
-        throw const FormatException('Empty streaming response');
-      }
-    } finally {
-      client.close();
+      return text;
+    } catch (e) {
+      throw Exception('Vision 분석 중 오류: $e');
     }
   }
 
+  /// 기존 LoadingScreen 구조 유지를 위해 Stream<String> 형태는 유지합니다.
+  /// 단, Firebase callable은 SSE streaming이 아니므로 최종 결과를 한 번 받아 yield 합니다.
+  static Stream<String> analyzeImageStream(
+      File imageFile, {
+        String? promptContext,
+        int maxOutputTokens = 3000,
+      }) async* {
+    try {
+      final bytes = await imageFile.readAsBytes();
+      final base64Image = base64Encode(bytes);
 
+      const outputProtocol = '''[OUTPUT PROTOCOL]
+Output exactly ONE JSON object using the existing app schema.
+- No RECOMMEND line
+- No markdown
+- No code fences
+- No extra text
+- Keep the JSON key order as: isMenu, outputLanguage, place, recommended, fullMenu
+''';
+
+      final mergedPromptWithProtocol = await _buildPrompt(
+        outputProtocol: outputProtocol,
+        promptContext: promptContext,
+        streamMode: true,
+      );
+
+      final scanMode = _resolveScanMode(maxOutputTokens);
+      final tReq0 = DateTime.now();
+
+      print(
+        '🚀 [VisionStream] functions request start ${tReq0.toIso8601String()} '
+            'maxTokens=$maxOutputTokens model=gpt-5.4-mini scanMode=$scanMode rag=$_useRag',
+      );
+
+      final text = await _callAnalyzeVision(
+        imageBase64: base64Image,
+        prompt: mergedPromptWithProtocol,
+        maxOutputTokens: maxOutputTokens,
+        scanMode: scanMode,
+        responseMode: 'stream',
+      );
+
+      final reqMs = DateTime.now().difference(tReq0).inMilliseconds;
+      print('⏱️ [VisionStream] functions response in ${reqMs}ms');
+      print('🧾 [VisionStream] contentLen=${text.trim().length}');
+
+      yield text;
+    } catch (e) {
+      throw Exception('Vision streaming 분석 중 오류: $e');
+    }
+  }
 }

@@ -151,3 +151,5 @@ app.*.symbols
 !/dev/ci/**/Gemfile.lock
 function/
 functions/
+
+strings.xml
