@@ -5,6 +5,8 @@ import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import 'map_screen.dart';
 import 'favorite_list_screen.dart';
+import '/screens/log_service.dart';
+
 
 class HistoryScreen extends StatefulWidget {
   @override
@@ -14,11 +16,20 @@ class HistoryScreen extends StatefulWidget {
 class _HistoryScreenState extends State<HistoryScreen> {
   bool _isDarkMode = false;
   String _currentSegment = 'Saved';
+  bool _sentHistoryOpen = false;
+
 
   @override
   void initState() {
     super.initState();
     _checkDarkMode();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!_sentHistoryOpen) {
+        _sentHistoryOpen = true;
+        await LogService().logHistoryOpen(); // ⑨ 이력 화면 진입
+      }
+    });
+
   }
 
   Future<void> _checkDarkMode() async {
@@ -49,10 +60,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
           backgroundColor: CupertinoColors.systemGrey5,
           thumbColor: CupertinoColors.systemGrey,
           groupValue: _currentSegment,
-          onValueChanged: (String? value) {
+          onValueChanged: (String? value) async {
             setState(() {
               _currentSegment = value ?? 'Saved';
             });
+
+            if (_currentSegment == 'Map') {
+              await LogService().logMapOpen(from: 'history'); // ⑪ 지도 버튼(탭) 누름
+            } else if (_currentSegment == 'Saved') {
+              // 필요하면 여기서도 다시 기록할 수 있지만, 기본은 최초 1회만 기록 권장
+              // if (!_sentHistoryOpen) { _sentHistoryOpen = true; await LogService().logHistoryOpen(); }
+            }
           },
           children: {
             'Saved': Text(

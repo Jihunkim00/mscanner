@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>3D Terrain Animation</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+    <style>
+        body, html { margin:0; padding:0; width:100%; height:100%; }
+        #map { position:absolute; top:0; bottom:0; width:100%; }
+        .marker {
+          background-size: cover;
+          border-radius: 50%;
+          will-change: transform;
+          width: 50px;
+          height: 50px;
+          transform: scale(0);
+          transition: transform 0.5s ease;
+        }
+        #startBtn {
+          position: absolute;
+          top: 20px;
+          right: 20px;
+          z-index: 1;
+          padding: 10px 16px;
+          background: white;
+          border: none;
+          border-radius: 4px;
+          font-size: 14px;
+          cursor: pointer;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+<button id="startBtn">애니메이션 시작</button>
+<script>
+    // Flutter 에서 치환된 값
+    const places = JSON.parse(window.PLACES_JSON);
+    mapboxgl.accessToken = window.MAPBOX_TOKEN;
+
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/outdoors-v12',
+      center: [places[0].lng, places[0].lat],
+      zoom: 14,
+      pitch: 60,
+      bearing: -20,
+      antialias: true
+    });
+
+    map.on('load', () => {
+      // 1) DEM 기반 terrain
+      map.addSource('dem', {
+        'type': 'raster-dem',
+        'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+        'tileSize': 512,
+        'maxzoom': 14
+      });
+      map.setTerrain({ source: 'dem', exaggeration: 1.5 });
+
+      // hillshade 레이어 추가 (쉐이딩)
+      map.addLayer({
+        'id': 'hillshade',
+        'type': 'hillshade',
+        'source': 'dem'
+      });
+
+      // 2) 이동 경로
+      if (places.length >= 2) {
+        const coords = places.map(p => [p.lng, p.lat]);
+        map.addSource('route', {
+          'type': 'geojson',
+          'data': {
+            'type': 'Feature',
+            'geometry': { 'type': 'LineString', 'coordinates': coords }
+          }
+        });
+        map.addLayer({
+          'id': 'route-line',
+          'type': 'line',
+          'source': 'route',
+          'layout': { 'line-cap': 'round', 'line-join': 'round' },
+          'paint': {
+            'line-color': '#ff7e5f',
+            'line-width': 8,
+            'line-opacity': 0.8
+          }
+        });
+      }
+
+      // 3) 마커 준비 (숨긴 상태)
+      const markers = places.map(p => {
+        const el = document.createElement('div');
+        el.className = 'marker';
+        el.style.backgroundImage = `url(${p.img})`;
+        return new mapboxgl.Marker({ element: el, anchor: 'center' })
+          .setLngLat([p.lng, p.lat])
+          .addTo(map);
+      });
+
+      // 4) 애니메이션
+      let idx = 0;
+      const speed = 0.2; // 기본 speed 1 → 0.2로 느리게
+      async function animateNext() {
+        if (idx >= places.length) return;
+        const target = places[idx];
+
+        // 카메라 이동
+        map.flyTo({
+          center: [target.lng, target.lat],
+          zoom: 14,
+          speed,
+          curve: 1.2
+        });
+
+        // 이동 완료 대기
+        map.once('moveend', () => {
+          // 마커 점진 확대
+          const el = markers[idx].getElement();
+          let scale = 0.1;
+          const grow = () => {
+            if (scale <= 1.0) {
+              el.style.transform = `scale(${scale})`;
+              scale += 0.1;
+              setTimeout(grow, 200);
+            } else {
+              idx++;
+              // 다음 애니메이션까지 2초 간격
+              setTimeout(animateNext, 2000);
+            }
+          };
+          grow();
+        });
+      }
+
+      // 버튼에 연결
+      document.getElementById('startBtn').addEventListener('click', animateNext);
+    });
+</script>
+</body>
+</html>

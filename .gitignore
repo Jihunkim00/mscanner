@@ -12,7 +12,7 @@ ios/Runner/AppDelegate.swift
 lib/firebase_options.dart
 android/app/keystore.properties
 ios/Runner/GoogleService-Info.plist
-
+android/app/src/main/res/values/strings.xml
 
 # IDE 설정
 .idea/
@@ -20,6 +20,9 @@ ios/Runner/GoogleService-Info.plist
 
 # 민감 정보
 .env
+.env.*
+assets/.env
+*.p8
 
 # OS별 불필요 파일
 .DS_Store
@@ -146,3 +149,7 @@ app.*.symbols
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 !/dev/ci/**/Gemfile.lock
+function/
+functions/
+
+strings.xml

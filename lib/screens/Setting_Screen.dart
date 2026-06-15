@@ -14,6 +14,11 @@ import 'package:package_info_plus/package_info_plus.dart'; // 패키지 추가
 import '/widgets/test_purchase_widget.dart'; // 추가된 위젯 import
 import 'package:provider/provider.dart';
 import '/ad_remove_provider.dart'; // 경로에 따라 수정 필요
+import '/screens/log_service.dart';
+import '/analytics_service.dart';
+import '/helpers/account_upgrade_helper.dart';
+
+
 
 class SettingScreen extends StatefulWidget {
   @override
@@ -26,17 +31,34 @@ class _SettingScreenState extends State<SettingScreen> {
   bool _isDarkMode = false;
   bool _isPasswordChangeVisible = false;
   bool _isCloudSaveEnabled = true; // 클라우드 저장 기본 활성화
-  String _selectedEngine = 'GPT-4o';
+  String _selectedEngine = 'GPT-4.1-mini';
   String _appVersion = '1.0.0'; // 기본 버전
   User? user;
   int _userPoints = 0;
 
+    // ✅ 추가: photoURL 유무 확인 + 이니셜 추출
+    bool _hasPhoto(User? u) => u?.photoURL != null && u!.photoURL!.isNotEmpty;
+    String _initialsFrom(String? nameOrEmail) {
+        final s = (nameOrEmail ?? '').trim();
+        if (s.isEmpty) return '👤';
+        final parts = s.split(RegExp(r'\s+'));
+        if (parts.length >= 2) {
+          return (parts[0].substring(0, 1) + parts[1].substring(0, 1)).toUpperCase();
+        }
+        return s.substring(0, 1).toUpperCase();
+      }
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AnalyticsService.instance.setCurrentScreen('setting_screen');
+    });
     _loadSettings();
     _fetchUserProfile();
     _fetchAppVersion(); // 앱 버전 불러오기
+
+    LogService().logSettingsOpen();
   }
 
   Future<void> _fetchAppVersion() async {
@@ -57,7 +79,7 @@ class _SettingScreenState extends State<SettingScreen> {
     bool isDarkMode = savedThemeMode == AdaptiveThemeMode.dark;
 
     // 엔진 설정 로드
-    String selectedEngine = await SettingsHelper.getSelectedEngine() ?? 'GPT-4o';
+    String selectedEngine = await SettingsHelper.getSelectedEngine() ?? 'GPT-4.1-mini';
 
     // 상태 업데이트
     setState(() {
@@ -74,23 +96,40 @@ class _SettingScreenState extends State<SettingScreen> {
 
   Future<void> _fetchUserProfile() async {
     user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      DocumentSnapshot userPointsDoc = await FirebaseFirestore.instance
-          .collection('user_points')
-          .doc(user!.uid)
-          .get();
+    if (user == null) return;
 
-      if (userPointsDoc.exists) {
-        setState(() {
-          _userPoints = userPointsDoc.get('points') ?? 0;
-        });
+    final docRef = FirebaseFirestore.instance
+        .collection('user_points')
+        .doc(user!.uid);
+
+    final snap = await docRef.get();
+
+    int points = 0;
+
+    if (snap.exists) {
+      final data = snap.data() as Map<String, dynamic>?;
+
+      // points 필드가 없거나 null인 경우 대비
+      final raw = data != null ? data['points'] : null;
+      if (raw is int) {
+        points = raw;
+      } else if (raw is double) {
+        points = raw.toInt();
       } else {
-        setState(() {
-          _userPoints = 0;
-        });
+        // 스키마 보정: 필드가 없으면 기본값으로 채움
+        await docRef.set({'points': 0}, SetOptions(merge: true));
       }
+    } else {
+      // 문서 자체가 없으면 생성
+      await docRef.set({'points': 0});
     }
+
+    if (!mounted) return;
+    setState(() {
+      _userPoints = points;
+    });
   }
+
 
   Future<void> _toggleCloudSave(bool value, {bool initialLoad = false}) async {
     setState(() {
@@ -270,134 +309,50 @@ class _SettingScreenState extends State<SettingScreen> {
     );
   }
 
-  // **계정 전환 기능 추가**
-  Future<void> _convertAccount() async {
-    final localizations = AppLocalizations.of(context);
-    TextEditingController _conversionEmailController = TextEditingController();
-    TextEditingController _conversionPasswordController = TextEditingController();
-    final isDark = MediaQuery.of(context).platformBrightness == Brightness.dark;
-    await showCupertinoDialog( // 변경: showDialog -> showCupertinoDialog
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: Text(localizations?.convertAccount ?? 'Convert Account'),
-        content: Column(
-          children: [
-            SizedBox(height: 10), // 추가: 내용과 텍스트필드 간격 조정
-            CupertinoTextField(
-              controller: _conversionEmailController,
-              placeholder: 'Email',
-              placeholderStyle: TextStyle(
-                // Light 모드: 진한 회색, Dark 모드: 연한 회색
-                color: isDark ? CupertinoColors.systemGrey : CupertinoColors.placeholderText,
-                fontSize: 14,
-                fontFamily: 'SFProText',
-              ),
-              keyboardType: TextInputType.emailAddress,
-              style: TextStyle(
-                fontFamily: 'SFProText',
-                fontSize: 14,
-                color: isDark ? CupertinoColors.white : CupertinoColors.black,
-              ),
-              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? CupertinoColors.systemGrey5.darkColor
-                    : CupertinoColors.systemGrey6,
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-            ),
-            SizedBox(height: 10),
-            CupertinoTextField(
-              controller: _conversionPasswordController,
-              placeholder: 'Password',
-              placeholderStyle: TextStyle(
-                // Light 모드: 진한 회색, Dark 모드: 연한 회색
-                color: isDark ? CupertinoColors.systemGrey : CupertinoColors.placeholderText,
-                fontSize: 14,
-                fontFamily: 'SFProText',
-              ),
-              obscureText: true,
-              style: TextStyle(
-                fontFamily: 'SFProText',
-                fontSize: 14,
-                color: MediaQuery.of(context).platformBrightness == Brightness.dark
-                    ? CupertinoColors.white
-                    : CupertinoColors.black,
-              ),
-              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-              decoration: BoxDecoration(
-                color: MediaQuery.of(context).platformBrightness == Brightness.dark
-                    ? CupertinoColors.systemGrey5.darkColor
-                    : CupertinoColors.systemGrey6,
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-            ),
-          ],
+  Future<void> _convertAccount({bool continueToPurchase = false}) async {
+    final result = await AccountUpgradeHelper.showUpgradeFlow(
+      context,
+      shouldContinueToPurchase: continueToPurchase,
+    );
+
+    if (!mounted || result == null) return;
+
+    if (result.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result.message ??
+                (AppLocalizations.of(context)?.accountConversionSuccess ??
+                    'Account successfully converted.'),
+          ),
         ),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(localizations?.cancel ?? 'Cancel'),
-          ),
-          CupertinoDialogAction(
-            onPressed: () async {
-              String email = _conversionEmailController.text.trim();
-              String password = _conversionPasswordController.text.trim();
+      );
+      return;
+    }
 
-              try {
-                User? user = FirebaseAuth.instance.currentUser;
-                if (user != null && user.isAnonymous) {
-                  AuthCredential credential = EmailAuthProvider.credential(email: email, password: password);
-                  UserCredential userCredential = await user.linkWithCredential(credential);
+    if ((result.errorCode ?? '') == 'cancelled') return;
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(localizations?.accountConversionSuccess ?? 'Account successfully converted.')),
-                  );
-
-                  Navigator.of(context).pop(); // 다이얼로그 닫기
-                  _navigateAfterSignIn(userCredential.user);
-                }
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(AppLocalizations.of(context)?.accountConversionFailed ?? 'Account conversion failed: $e')),
-                );
-              }
-            },
-            child: Text(localizations?.convertAccount ?? 'Convert'),
-          ),
-        ],
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          result.message ??
+              (AppLocalizations.of(context)?.accountConversionFailed ??
+                  'Account conversion failed.'),
+        ),
       ),
     );
   }
-
-  // **_navigateAfterSignIn 메서드 추가**
-  Future<void> _navigateAfterSignIn(User? user) async {
-    if (user == null) return;
-
-    bool isFirstLogin = user.metadata.creationTime == user.metadata.lastSignInTime;
-
-    if (isFirstLogin) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => PresetSelectionScreen()),
-      );
-    } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final Color backgroundColor = _isDarkMode ? CupertinoColors.black : Color(0xFFEFEFF4);
     final Color textColor = _isDarkMode ? CupertinoColors.white : CupertinoColors.black;
     final Color dropdownColor = _isDarkMode ? Colors.grey[900]! : Colors.white;
-    final isAdRemoved = context.watch<AdRemoveProvider>().isAdRemoved;
+    final isAdRemoved  = context.watch<AdRemoveProvider>().isAdRemoved;
+    final isSubscribed = context.watch<AdRemoveProvider>().isSubscribed;
 
     bool isGuest = user != null && user!.isAnonymous;
+
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
@@ -426,20 +381,74 @@ class _SettingScreenState extends State<SettingScreen> {
             ),
             children: [
               CupertinoFormRow(
-                prefix: CircleAvatar(
-                  radius: 18,
-                  backgroundColor: isGuest ? Colors.blue[300] : null,
-                  child: isGuest
-                      ? Text(
-                    'GUEST',
-                    style: TextStyle(
-                      fontSize: 9,
-                      color: _isDarkMode ? CupertinoColors.white : CupertinoColors.black,
-                    ),
-                  )
-                      : null,
-                  backgroundImage: isGuest ? null : NetworkImage(user?.photoURL ?? 'https://via.placeholder.com/150'),
+                prefix: SizedBox(
+                  width: 36,
+                  height: 36,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      CircleAvatar(
+                        radius: 18,
+                        backgroundColor: isGuest ? Colors.blue[300] : null,
+                      // ✅ 변경: photoURL 있을 때만 네트워크 이미지 사용
+                                              backgroundImage: (!isGuest && _hasPhoto(user))
+                                    ? NetworkImage(user!.photoURL!)
+                                : null,
+                            // ✅ 변경: 게스트는 "GUEST", 그 외 photo 없으면 이니셜 표시
+                            child: isGuest
+                                ? Text(
+                                    'GUEST',
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      color: _isDarkMode ? CupertinoColors.white : CupertinoColors.black,
+                                    ),
+                                  )
+                                : (!_hasPhoto(user))
+                                    ? Text(
+                                        _initialsFrom(user?.displayName ?? user?.email),
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      )
+                                    : null,
+                      ),
+
+                      // PRO 배지 (구독자일 때만 표시)
+                      if (!isGuest && isSubscribed)
+                        Positioned(
+                          right: -2,
+                          bottom: -2,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: CupertinoColors.activeBlue,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: _isDarkMode ? CupertinoColors.black : CupertinoColors.white,
+                                width: 1.0,
+                              ),
+                              boxShadow: const [
+                                BoxShadow(blurRadius: 1, offset: Offset(0, 1), color: Colors.black26),
+                              ],
+                            ),
+                            child: const Text(
+                              'PRO',
+                              style: TextStyle(
+                                fontSize: 6,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
+
+
+
                 child: Row(
                   children: [
                     SizedBox(width: 8), // 프로필 사진과 텍스트 사이에 약간의 간격 추가
@@ -687,11 +696,34 @@ class _SettingScreenState extends State<SettingScreen> {
               children: [
                 CupertinoFormRow(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                    child: Text(
-                      AppLocalizations.of(context)!.guestPurchaseMessage,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14, color: textColor),
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          AppLocalizations.of(context)!.premiumGuestSectionTitle,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: textColor,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          AppLocalizations.of(context)!.premiumGuestSectionMessage,
+                          style: TextStyle(fontSize: 13, color: textColor.withOpacity(0.85)),
+                        ),
+                        const SizedBox(height: 12),
+                        CupertinoButton.filled(
+                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+                          onPressed: _convertAccount,
+                          borderRadius: BorderRadius.circular(10),
+                          child: Text(
+                            AppLocalizations.of(context)!.premiumGuestConvertButton,
+                            style: const TextStyle(fontSize: 14, fontFamily: 'SFProText'),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),

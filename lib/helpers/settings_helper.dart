@@ -1,10 +1,14 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
 
 class SettingsHelper {
   static const String _questionKey = 'gpt_question';
   static const String _presetKey = 'preset';
   static const String _engineKey = 'selected_engine';
   static const String _customPresetDescriptionKey = 'custom_preset_description';
+  static const String selectedLanguageCodeKey = 'selectedLanguageCode';
+  static const String selectedFoodStyleKey = 'selectedFoodStyle';
+  static const String selectedMenuNumberKey = 'selectedMenuNumber';
 
   // Save the question text
   static Future<void> saveQuestion(String question) async {
@@ -65,6 +69,246 @@ class SettingsHelper {
     }
   }
 
+
+  static String buildPresetDescription({
+    required String selectedLanguageCode,
+    required String selectedFoodStyle,
+    required String selectedMenuNumber,
+  }) {
+    debugPrint('Creating preset description for language code: $selectedLanguageCode');
+
+    final outputLang = selectedLanguageCode;
+    final styleHint = selectedFoodStyle;
+    final rawMenuCountHint = selectedMenuNumber.trim();
+    final menuCountHint = rawMenuCountHint;
+
+
+    // ✅ 공통 베이스(스키마/규칙) — 영어로 고정해도 outputLanguage로 결과 언어는 맞춰짐
+    final base = '''
+You MUST output ONLY valid JSON (no extra text, markdown, code fences, explanations, or RECOMMEND line).
+
+Goal:
+- Extract menu items from the provided image/OCR text.
+- Produce results for the app UI: "Recommended Dishes" chips + optional "Full Menu" preview.
+
+Hard rules:
+1) Output language rule:
+   - shortDesc, tags MUST be written in outputLanguage = "$outputLang".
+   - nameOriginal MUST be the EXACT original text extracted from the image/OCR (do NOT translate).
+   - originLanguageCode MUST be the language of nameOriginal (ISO code like ko, en, ja, zh, th...).
+- nameOriginal MUST be only the dish/menu item text itself from the image/OCR (do NOT translate).
+- Exclude prices, item numbers, bullets, option markers, and surrounding category/header text from nameOriginal.
+- originLanguageCode MUST be the language of nameOriginal (ISO code like ko, en, ja, zh, th...).
+
+- nameOriginalReading is for TTS only. Keep it separate from display text.
+- nameOriginalReading MUST contain only the pronunciation of the dish name itself.
+- NEVER include prices, item numbers, sizes, option markers, punctuation-only tokens, category labels, or translated text in nameOriginalReading.
+- For Japanese, prefer hiragana reading in nameOriginalReading when confident.
+- Do NOT output Korean pronunciation for Japanese items.
+- Do NOT output romaji unless the original itself is already written in romaji.
+- If reading is uncertain, set nameOriginalReading="".
+- NEVER replace nameOriginal with reading text.
+
+- name MUST be the translated name in outputLanguage. If translation is identical or uncertain, set name = nameOriginal.
+2) Never invent items not visible in the image/OCR.
+3) If the image is NOT a food menu, return isMenu=false with a short reason and a short userMessage for display.
+4) Keep shortDesc to 1–2 sentences max.
+5) Use styleHint="$styleHint" only as ranking preference (do NOT hallucinate dietary tags).
+6) menuCountHint="$menuCountHint" controls recommended count only:
+   - "1": exactly 1 recommended item. fullMenu should be empty or minimal.
+   - "1-3": up to 3 recommended items. fullMenu should be empty or minimal.
+   - "1-5": up to 5 recommended items. fullMenu should be empty or minimal.
+   - "all": recommended may be 1-4 items only. Use most remaining tokens for fullMenu.items.
+   - For difficult menus, it is better to return fewer recommended items and more fullMenu items.
+
+7) TOKEN SAFETY (VERY IMPORTANT):
+   - Keep the entire JSON compact.
+   - Use short ids like "m1", "m2", "m3".
+   - If menuCountHint is not "all", spend tokens on recommended items, not fullMenu.
+   - If menuCountHint is "all", spend most tokens on fullMenu.items, not on descriptions.
+   - If not all items fit, set fullMenu.truncated=true.
+   - Keep nulls where schema requires them, but avoid verbose text.
+   - For difficult or very long menus, prefer many readable names with empty shortDesc and null prices over rich prose.
+   - Do not spend many tokens trying to explain uncertain items.
+   - It is better to return minimal valid item objects than to fail the whole JSON.
+   - If the menu is difficult, dense, handwritten, vertical, or partially occluded, prioritize extraction reliability over completeness, translation quality, and description quality.
+
+8) Tags limit:
+   - "tags" MUST contain at most 4 strings per item. (0–4)
+
+9) ID format:
+   - "id" MUST be short and unique within this response.
+   - Use simple IDs like "m1", "m2", "m3"... (no long UUIDs)
+
+10) Detail quality (IMPORTANT):
+   - For EACH recommended item, shortDesc MUST mention:
+     (a) ingredients OR cooking method AND (b) flavor profile (e.g., spicy/savory) in 1–2 sentences.
+   - Avoid generic phrases like "delicious". Be concrete.
+
+11) Full menu:
+   - fullMenu is the main output area for menuCountHint="all".
+   - If menuCountHint is not "all", fullMenu.items should be empty or minimal.
+   - fullMenu.items must contain only remaining non-recommended menu items.
+   - Never repeat any recommended item in fullMenu.items.
+   - Merge obvious duplicates caused by OCR, repeated headers, numbering, prices, spacing, or punctuation.
+   - For difficult menus (handwritten, vertical, dense, low-contrast, partially occluded), prioritize extracting as many readable item names as possible.
+   - It is acceptable for many fullMenu items to have:
+     shortDesc="",
+     tags=[],
+     prices with all null values,
+     name=nameOriginal,
+     rough category="unknown",
+     rough confidence like 0.3 to 0.5.
+   - If some items are only partially readable, include the readable portion instead of omitting the item entirely.
+   - If vertical or rotated text is present, mentally normalize reading direction before extraction.
+   - For Japanese vertical menu text, prioritize item name extraction over pronunciation/detail quality.
+   - fullMenu.summary should be very short or empty. Prefer item coverage over prose.
+
+Return JSON with EXACT schema:
+
+{
+  "isMenu": true,
+  "userMessage": "string",
+  "outputLanguage": "$outputLang",
+  "place": { "name": null, "address": null, "city": null },
+
+  "recommended": [
+    {
+      "id": "string",
+      "nameOriginal": "string",
+      "name": "string",
+      "originLanguageCode": "string",
+      "nameOriginalReading": "string",
+      "shortDesc": "string",
+      "prices": { "small": null, "medium": null, "large": null, "single": null, "currency": "ISO 4217 code like KRW, JPY, USD, EUR, etc. or null" },
+      "tags": ["string"],
+      "category": "main|side|meal|drink|beverage|unknown",
+      "confidence": 0.0
+    }
+  ],
+
+  "fullMenu": {
+    "items": {
+      "main": [],
+      "side": [],
+      "meal": [],
+      "drink": [],
+      "beverage": [],
+      "unknown": []
+    },
+    "summary": "string",
+    "truncated": true
+  }
+}
+
+Full menu output rule:
+- Always fill "recommended" as the most reliable top items only.
+- fullMenu.items must contain only remaining non-recommended menu items.
+- Never repeat any recommended item in fullMenu.items.
+- If menuCountHint is not "all", fullMenu.items should be empty or minimal.
+- If menuCountHint="all", use most remaining tokens for fullMenu.items and keep descriptions short or empty.
+- fullMenu.summary should be very short or empty. Prefer item coverage over prose.
+- If not all items fit, set fullMenu.truncated=true; otherwise false.
+
+If isMenu=false, return EXACTLY:
+{
+  "isMenu": false,
+  "userMessage": "short display message in outputLanguage",
+  "outputLanguage": "$outputLang",
+  "reason": "short string"
+}
+''';
+
+    // ✅ 언어별 “한 줄 안내”만 유지 (지원 언어 전부 유지)
+    String intro;
+    switch (selectedLanguageCode) {
+      case 'ko':
+        intro = '아래 규칙을 따르고, 반드시 JSON만 출력해. 설명 문단은 절대 쓰지 마.\n';
+        break;
+      case 'ja':
+        intro = '必ずJSONのみを出力してください。説明文は出力しないでください。\n';
+        break;
+      case 'zh':
+      case 'zh-Hans':
+        intro = '请只输出JSON，不要输出任何解释性文字。\n';
+        break;
+      case 'zh-Hant':
+        intro = '請只輸出JSON，不要輸出任何說明文字。\n';
+        break;
+      case 'hi':
+        intro = 'केवल JSON आउटपुट करें। कोई व्याख्यात्मक पाठ न लिखें।\n';
+        break;
+      case 'es':
+        intro = 'Devuelve SOLO JSON. No escribas texto explicativo.\n';
+        break;
+      case 'fr':
+        intro = 'Retourne UNIQUEMENT du JSON. Aucun texte explicatif.\n';
+        break;
+      case 'vi':
+        intro = 'Chỉ trả về JSON. Không viết đoạn giải thích.\n';
+        break;
+      case 'th':
+        intro = 'โปรดส่งออกเป็น JSON เท่านั้น ห้ามมีข้อความอธิบาย\n';
+        break;
+      case 'ar':
+        intro = 'أخرج JSON فقط دون أي نص إضافي.\n';
+        break;
+      case 'bn':
+        intro = 'শুধুমাত্র JSON আউটপুট দিন। কোনো ব্যাখ্যামূলক লেখা নয়।\n';
+        break;
+      case 'ru':
+        intro = 'Выводи ТОЛЬКО JSON. Без пояснительного текста.\n';
+        break;
+      case 'pt':
+      case 'pt-BR':
+        intro = 'Retorne SOMENTE JSON. Sem texto explicativo.\n';
+        break;
+      case 'ur':
+        intro = 'صرف JSON آؤٹ پٹ کریں، کوئی اضافی متن نہیں۔\n';
+        break;
+      case 'id':
+        intro = 'Keluarkan HANYA JSON. Jangan tulis teks penjelasan.\n';
+        break;
+      case 'de':
+        intro = 'Gib NUR JSON aus. Kein erklärender Text.\n';
+        break;
+      case 'mr':
+        intro = 'फक्त JSON आउटपुट करा. स्पष्टीकरणात्मक मजकूर नको.\n';
+        break;
+      case 'te':
+        intro = 'JSON మాత్రమే ఇవ్వండి. వివరణాత్మక వచనం రాయకండి.\n';
+        break;
+      case 'tr':
+        intro = 'Yalnızca JSON döndür. Açıklama metni yazma.\n';
+        break;
+      default:
+        intro = 'Output ONLY JSON. No explanatory text.\n';
+    }
+
+    return intro + base;
+  }
+
+
+
+  static Future<void> refreshCustomPresetDescriptionFromSavedSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    final selectedLanguageCode =
+        prefs.getString(selectedLanguageCodeKey) ?? 'en';
+    final selectedFoodStyle =
+        prefs.getString(selectedFoodStyleKey) ?? 'AI recommend';
+    final selectedMenuNumber =
+        prefs.getString(selectedMenuNumberKey) ?? '1-5';
+
+    final presetDescription = buildPresetDescription(
+      selectedLanguageCode: selectedLanguageCode,
+      selectedFoodStyle: selectedFoodStyle,
+      selectedMenuNumber: selectedMenuNumber,
+    );
+
+    await saveCustomPresetDescription(presetDescription);
+  }
+
+
   // Save the selected engine
   static Future<void> saveSelectedEngine(String engine) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -89,5 +333,4 @@ class SettingsHelper {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_languageCodeKey) ?? 'en'; // 기본값 영어
   }
-
 }

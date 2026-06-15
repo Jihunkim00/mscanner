@@ -40,6 +40,7 @@ class _CommentSectionState extends State<CommentSection> {
     final filtered = snapshot.docs.where((doc) => doc['uid'] != currentUser?.uid).toList();
 
     print('📦 불러온 리뷰 개수 (자기 댓글 제외 후): ${filtered.length}');
+    if (!mounted) return;           // ← 추가
     setState(() {
       _comments = filtered.cast<QueryDocumentSnapshot<Map<String, dynamic>>>();
       _translatedStates = List.filled(_comments.length, false);
@@ -158,11 +159,13 @@ class _CommentSectionState extends State<CommentSection> {
                           originalText,
                           to: systemLang,
                         );
+                        if (!mounted) return;         // ← 추가
                         setState(() {
                           _translatedTexts[index] = translation.text;
                           _translatedStates[index] = true;
                         });
                       } else {
+                        if (!mounted) return;         // ← 추가
                         setState(() {
                           _translatedStates[index] = false;
                         });
