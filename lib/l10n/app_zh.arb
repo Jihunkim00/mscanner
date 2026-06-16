@@ -217,6 +217,7 @@
       }
     }
   },
+  "stableMultiScanMaxPhotos": "为了稳定分析，请一次最多选择 {count} 张照片。",
   "restorePurchases": "恢复购买",
   "mergeInProgress": "正在合并图像…\n请稍候。",
   "@mergeInProgress": {

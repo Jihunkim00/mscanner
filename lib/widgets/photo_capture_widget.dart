@@ -47,13 +47,14 @@ class _PhotoCaptureWidgetState extends State<PhotoCaptureWidget> {
         widget.onCancel();
         return;
       }
-      // ★ 5장 이상 선택 시, 스낵바 안내는 띄우되 앞의 4장만 사용
+      // PR #9: 이번 릴리스에서는 멀티 스캔 안정성을 위해 최대 3장만 분석한다.
       if (pickedFiles.length > widget.maxCount) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(AppLocalizations.of(context)!.maxScanImages(widget.maxCount))
-          ),
-        );
+        final message = AppLocalizations.of(
+          context,
+        )!.stableMultiScanMaxPhotos(widget.maxCount);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
       }
       final files = pickedFiles
           .take(widget.maxCount)
@@ -83,24 +84,26 @@ class _PhotoCaptureWidgetState extends State<PhotoCaptureWidget> {
       onWillPop: () async => false,
       child: Center(
         child: _photos.isEmpty
-        // 사진 선택 전에는 빈 화면. 아이콘도 제거
+            // 사진 선택 전에는 빈 화면. 아이콘도 제거
             ? SizedBox.shrink()
-        // 선택된 사진 썸네일만 표시
+            // 선택된 사진 썸네일만 표시
             : Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: _photos
-              .map((file) => ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: Image.file(
-              file,
-              width: 80,
-              height: 80,
-              fit: BoxFit.cover,
-            ),
-          ))
-              .toList(),
-        ),
+                spacing: 8,
+                runSpacing: 8,
+                children: _photos
+                    .map(
+                      (file) => ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: Image.file(
+                          file,
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
       ),
     );
   }

@@ -1380,6 +1380,12 @@ abstract class AppLocalizations {
   /// **'Only the first {maxCount} images will be scanned.'**
   String maxScanImages(int maxCount);
 
+  /// Shown when the user selects more photos than the stable multi-scan limit.
+  ///
+  /// In en, this message translates to:
+  /// **'For stable analysis, please select up to {count} photos at a time.'**
+  String stableMultiScanMaxPhotos(int count);
+
   /// No description provided for @restorePurchases.
   ///
   /// In en, this message translates to:

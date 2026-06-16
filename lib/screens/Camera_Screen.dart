@@ -337,7 +337,7 @@ class _CameraScreenState extends State<CameraScreen> {
     // Provider 기준으로 최신 구독 상태를 읽고, 상위에서 명시적으로 넘긴 값이 true면 그걸 우선.
 // 네비게이션에서 넘긴 값으로만 멀티/싱글 결정
     final isMultiMode = widget.isPremium;
-    final maxCount = isMultiMode ? 4 : 1;
+    final maxCount = isMultiMode ? 3 : 1;
     return WillPopScope(
       onWillPop: () async {
         // Flutter 레벨 뒤로가기도 홈으로

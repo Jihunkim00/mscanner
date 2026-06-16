@@ -637,6 +637,11 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
+  String stableMultiScanMaxPhotos(int count) {
+    return 'Để phân tích ổn định, vui lòng chọn tối đa $count ảnh mỗi lần.';
+  }
+
+  @override
   String get restorePurchases => 'Khôi phục Mua hàng';
 
   @override

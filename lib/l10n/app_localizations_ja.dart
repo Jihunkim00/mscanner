@@ -637,6 +637,11 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String stableMultiScanMaxPhotos(int count) {
+    return '安定した分析のため、一度に最大$count枚まで選択してください。';
+  }
+
+  @override
   String get restorePurchases => '購入を復元する';
 
   @override

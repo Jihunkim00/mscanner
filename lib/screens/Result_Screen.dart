@@ -324,9 +324,12 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   void _parseAiJson() {
+    final imageCount = widget.images?.length ?? 1;
     final parsed = ResultParsingService.parseAiJson(
       responses: widget.responses,
-      imageCount: widget.images?.length ?? 1,
+      imageCount: imageCount,
+      scanMode: imageCount > 1 ? 'multi' : 'single',
+      photoCount: imageCount,
     );
     _aiJson = parsed.aiJson;
     _aiJsonError = parsed.aiJsonError;
@@ -558,9 +561,12 @@ class _ResultScreenState extends State<ResultScreen> {
     if (s == null) return false;
 
     try {
+      final imageCount = widget.images?.length ?? 1;
       final parsed = ResultParsingService.parseAiJson(
         responses: [s],
-        imageCount: widget.images?.length ?? 1,
+        imageCount: imageCount,
+        scanMode: imageCount > 1 ? 'multi' : 'single',
+        photoCount: imageCount,
       );
       if (parsed.aiJson != null) {
         _aiJson = parsed.aiJson;

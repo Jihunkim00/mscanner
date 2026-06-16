@@ -637,6 +637,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String stableMultiScanMaxPhotos(int count) {
+    return 'Pour une analyse stable, sélectionnez jusqu’à $count photos à la fois.';
+  }
+
+  @override
   String get restorePurchases => 'Restaurer les achats';
 
   @override

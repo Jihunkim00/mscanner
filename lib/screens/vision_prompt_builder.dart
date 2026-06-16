@@ -111,6 +111,13 @@ Multi-scan JSON requirements:
 - scanMode must be "multi".
 - totalPhotoCount should be $photoCount.
 - Keep existing fields recommended and fullMenu populated from the merged result so legacy UI still works.
+- Compact output rules for stability:
+  - recommended must contain at most 5 best items.
+  - fullMenu must contain at most 40 unique, readable items across all sections.
+  - Keep every item description/reason short (one concise phrase or sentence).
+  - Keep photoAnalyses item descriptions short; do not write long explanations.
+  - If many menu items are visible, prioritize readable, priced, and recommended/signature items.
+  - Prefer compact strings and arrays; do not include markdown or commentary outside JSON.
 - Add the following fields as additive fields:
 {
   "scanMode": "multi",

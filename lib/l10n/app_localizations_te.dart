@@ -637,6 +637,11 @@ class AppLocalizationsTe extends AppLocalizations {
   }
 
   @override
+  String stableMultiScanMaxPhotos(int count) {
+    return 'స్థిరమైన విశ్లేషణ కోసం, దయచేసి ఒకేసారి గరిష్టంగా $count ఫోటోలు మాత్రమే ఎంచుకోండి.';
+  }
+
+  @override
   String get restorePurchases => 'కొనుగోళ్లు పునరుద్ధరించండి';
 
   @override

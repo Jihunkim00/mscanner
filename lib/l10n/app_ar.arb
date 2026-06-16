@@ -217,6 +217,7 @@
       }
     }
   },
+  "stableMultiScanMaxPhotos": "لضمان تحليل مستقر، يُرجى اختيار ما يصل إلى {count} صور في كل مرة.",
   "restorePurchases": "استعادة المشتريات",
   "mergeInProgress": "جاري دمج الصور…\nيرجى الانتظار.",
   "@mergeInProgress": {

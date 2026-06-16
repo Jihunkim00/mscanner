@@ -217,6 +217,7 @@
       }
     }
   },
+  "stableMultiScanMaxPhotos": "স্থিতিশীল বিশ্লেষণের জন্য, একবারে সর্বোচ্চ {count}টি ছবি নির্বাচন করুন।",
   "restorePurchases": "ক্রয় পুনরুদ্ধার করুন",
   "mergeInProgress": "চিত্র একত্রিত করা হচ্ছে…\nঅনুগ্রহ করে অপেক্ষা করুন।",
   "@mergeInProgress": {

@@ -637,6 +637,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String stableMultiScanMaxPhotos(int count) {
+    return '为了稳定分析，请一次最多选择 $count 张照片。';
+  }
+
+  @override
   String get restorePurchases => '恢复购买';
 
   @override
@@ -1763,6 +1768,11 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   }
 
   @override
+  String stableMultiScanMaxPhotos(int count) {
+    return '为了稳定分析，请一次最多选择 $count 张照片。';
+  }
+
+  @override
   String get restorePurchases => '恢复购买';
 
   @override
@@ -2886,6 +2896,11 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   @override
   String maxScanImages(int maxCount) {
     return '僅會掃描前 $maxCount 張圖片。';
+  }
+
+  @override
+  String stableMultiScanMaxPhotos(int count) {
+    return '為了穩定分析，請一次最多選擇 $count 張照片。';
   }
 
   @override

@@ -217,6 +217,7 @@
       }
     }
   },
+  "stableMultiScanMaxPhotos": "Kararlı analiz için lütfen tek seferde en fazla {count} fotoğraf seçin.",
   "restorePurchases": "Satın Alımları Geri Yükle",
   "mergeInProgress": "Görseller birleştiriliyor…\nLütfen bekleyin.",
   "@mergeInProgress": {

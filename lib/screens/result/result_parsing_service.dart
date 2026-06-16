@@ -11,6 +11,25 @@ class ResultParsingOutput {
 }
 
 class ResultParsingService {
+  static void _logParseFailure({
+    required String raw,
+    required Object exception,
+    String? scanMode,
+    int? photoCount,
+  }) {
+    final first = raw.substring(0, raw.length > 500 ? 500 : raw.length);
+    final last = raw.length > 500 ? raw.substring(raw.length - 500) : raw;
+    print(
+      '❌ [ResultParsing] JSON parse failed '
+      'responseLength=${raw.length} '
+      'scanMode=${scanMode ?? 'unknown'} '
+      'photoCount=${photoCount ?? 'unknown'} '
+      'exception=$exception\n'
+      'first500=$first\n'
+      'last500=$last',
+    );
+  }
+
   static String? extractCurrencyCodeFromText(String text) {
     final s = text.toLowerCase();
 
@@ -65,6 +84,8 @@ class ResultParsingService {
   static ResultParsingOutput parseAiJson({
     required List<String> responses,
     required int imageCount,
+    String? scanMode,
+    int? photoCount,
   }) {
     Map<String, dynamic>? firstJson;
     final List<Map<String, dynamic>> jsonList = [];
@@ -73,7 +94,16 @@ class ResultParsingService {
     for (final r in responses) {
       final raw = r.trim();
       final s = extractJsonObjectFromText(raw);
-      if (s == null) continue;
+      if (s == null) {
+        _logParseFailure(
+          raw: raw,
+          exception: 'No JSON object found in response',
+          scanMode: scanMode,
+          photoCount: photoCount ?? imageCount,
+        );
+        aiJsonError ??= 'No JSON object found in response';
+        continue;
+      }
 
       try {
         final decoded = jsonDecode(s);
@@ -83,8 +113,14 @@ class ResultParsingService {
           jsonList.add(m);
         }
       } catch (e) {
+        _logParseFailure(
+          raw: raw,
+          exception: e,
+          scanMode: scanMode,
+          photoCount: photoCount ?? imageCount,
+        );
         aiJsonError =
-        'jsonDecode failed: $e\nrawHead=${raw.substring(0, raw.length > 120 ? 120 : raw.length)}';
+            'jsonDecode failed: $e\nrawHead=${raw.substring(0, raw.length > 120 ? 120 : raw.length)}';
       }
     }
 

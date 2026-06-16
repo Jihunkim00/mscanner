@@ -217,6 +217,7 @@
       }
     }
   },
+  "stableMultiScanMaxPhotos": "Agar analisis stabil, pilih maksimal {count} foto sekaligus.",
   "restorePurchases": "Pulihkan Pembelian",
   "mergeInProgress": "Menggabungkan gambar…\nHarap tunggu.",
   "@mergeInProgress": {

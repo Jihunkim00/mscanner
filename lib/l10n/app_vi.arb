@@ -218,6 +218,7 @@
       }
     }
   },
+  "stableMultiScanMaxPhotos": "Để phân tích ổn định, vui lòng chọn tối đa {count} ảnh mỗi lần.",
   "restorePurchases": "Khôi phục Mua hàng",
   "mergeInProgress": "Đang gộp ảnh…\nVui lòng chờ.",
   "@mergeInProgress": {

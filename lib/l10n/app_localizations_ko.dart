@@ -637,6 +637,11 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String stableMultiScanMaxPhotos(int count) {
+    return '안정적인 분석을 위해 한 번에 최대 $count장까지 선택해 주세요.';
+  }
+
+  @override
   String get restorePurchases => '구매 복원하기';
 
   @override

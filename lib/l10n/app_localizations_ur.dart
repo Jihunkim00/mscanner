@@ -637,6 +637,11 @@ class AppLocalizationsUr extends AppLocalizations {
   }
 
   @override
+  String stableMultiScanMaxPhotos(int count) {
+    return 'مستحکم تجزیے کے لیے، براہ کرم ایک وقت میں زیادہ سے زیادہ $count تصاویر منتخب کریں۔';
+  }
+
+  @override
   String get restorePurchases => 'خریداریوں کی بحالی کریں';
 
   @override

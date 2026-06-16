@@ -217,6 +217,7 @@
       }
     }
   },
+  "stableMultiScanMaxPhotos": "เพื่อการวิเคราะห์ที่เสถียร โปรดเลือกได้สูงสุด {count} รูปต่อครั้ง",
   "restorePurchases": "กู้คืนการซื้อ",
   "mergeInProgress": "กำลังรวมภาพ…\nกรุณารอสักครู่",
   "@mergeInProgress": {
