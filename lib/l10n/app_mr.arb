@@ -217,6 +217,7 @@
       }
     }
   },
+  "stableMultiScanMaxPhotos": "स्थिर विश्लेषणासाठी, कृपया एकावेळी जास्तीत जास्त {count} फोटो निवडा.",
   "restorePurchases": "खरेदी पुनर्संचयित करा",
   "mergeInProgress": "प्रतिमा एकत्र केली जात आहेत…\nकृपया प्रतीक्षा करा.",
   "@mergeInProgress": {

@@ -637,6 +637,11 @@ class AppLocalizationsBn extends AppLocalizations {
   }
 
   @override
+  String stableMultiScanMaxPhotos(int count) {
+    return 'স্থিতিশীল বিশ্লেষণের জন্য, একবারে সর্বোচ্চ $countটি ছবি নির্বাচন করুন।';
+  }
+
+  @override
   String get restorePurchases => 'ক্রয় পুনরুদ্ধার করুন';
 
   @override
@@ -1002,43 +1007,6 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get result_aiEmptyStreamResponse => 'এআই একটি খালি স্ট্রিম প্রতিক্রিয়া ফেরত দিয়েছে.';
 
-
-  @override
-  String get multiScanSummaryTitle => 'Multi-scan summary';
-
-  @override
-  String multiScanPhotoItemsDetected(Object index, Object count) {
-    return 'Photo $index: $count items detected';
-  }
-
-  @override
-  String multiScanPhotoItemsUnclear(Object index, Object count, Object unclear) {
-    return 'Photo $index: $count items detected / $unclear unclear';
-  }
-
-  @override
-  String multiScanNoReadableItems(Object index) {
-    return 'Photo $index: no readable menu items detected';
-  }
-
-  @override
-  String multiScanTotalSummary(Object total, Object unique) {
-    return 'Total $total detected / $unique after duplicate removal';
-  }
-
-  @override
-  String multiScanTotalSummaryWithDuplicates(Object total, Object unique, Object duplicates) {
-    return 'Total $total detected / $unique after duplicate removal ($duplicates duplicates)';
-  }
-
-  @override
-  String multiScanTotalPhotoCount(Object count) {
-    return 'Total photo count: $count';
-  }
-
-  @override
-  String get multiScanDetailsUnavailable => 'Photo analysis details are unavailable, but the merged result is safe to view.';
-
   @override
   String get tts_orderPhraseTitle => 'অর্ডার করার বাক্যাংশ তৈরি করুন';
 
@@ -1128,4 +1096,40 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get multiScanSummaryTitle => 'Multi-scan summary';
+
+  @override
+  String multiScanPhotoItemsDetected(Object index, Object count) {
+    return 'Photo $index: $count items detected';
+  }
+
+  @override
+  String multiScanPhotoItemsUnclear(Object index, Object count, Object unclear) {
+    return 'Photo $index: $count items detected / $unclear unclear';
+  }
+
+  @override
+  String multiScanNoReadableItems(Object index) {
+    return 'Photo $index: no readable menu items detected';
+  }
+
+  @override
+  String multiScanTotalSummary(Object total, Object unique) {
+    return 'Total $total detected / $unique after duplicate removal';
+  }
+
+  @override
+  String multiScanTotalSummaryWithDuplicates(Object total, Object unique, Object duplicates) {
+    return 'Total $total detected / $unique after duplicate removal ($duplicates duplicates)';
+  }
+
+  @override
+  String multiScanTotalPhotoCount(Object count) {
+    return 'Total photo count: $count';
+  }
+
+  @override
+  String get multiScanDetailsUnavailable => 'Photo analysis details are unavailable, but the merged result is safe to view.';
 }

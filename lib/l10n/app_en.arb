@@ -217,6 +217,16 @@
       }
     }
   },
+  "stableMultiScanMaxPhotos": "For stable analysis, please select up to {count} photos at a time.",
+  "@stableMultiScanMaxPhotos": {
+    "description": "Shown when the user selects more photos than the stable multi-scan limit.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
   "restorePurchases": "Restore Purchases",
   "mergeInProgress": "Merging images…\nPlease wait.",
   "@mergeInProgress": {

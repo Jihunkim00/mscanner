@@ -637,6 +637,11 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String stableMultiScanMaxPhotos(int count) {
+    return 'Kararlı analiz için lütfen tek seferde en fazla $count fotoğraf seçin.';
+  }
+
+  @override
   String get restorePurchases => 'Satın Alımları Geri Yükle';
 
   @override

@@ -637,6 +637,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String stableMultiScanMaxPhotos(int count) {
+    return 'لضمان تحليل مستقر، يُرجى اختيار ما يصل إلى $count صور في كل مرة.';
+  }
+
+  @override
   String get restorePurchases => 'استعادة المشتريات';
 
   @override

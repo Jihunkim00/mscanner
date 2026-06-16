@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 
 /// PhotoCaptureWidget
 ///
@@ -48,13 +49,12 @@ class _PhotoCaptureWidgetState extends State<PhotoCaptureWidget> {
       }
       // PR #9: 이번 릴리스에서는 멀티 스캔 안정성을 위해 최대 3장만 분석한다.
       if (pickedFiles.length > widget.maxCount) {
-        final languageCode = Localizations.localeOf(context).languageCode;
-        final message = languageCode == 'ko'
-            ? '안정적인 분석을 위해 한 번에 최대 3장까지 선택해 주세요.'
-            : 'For stable analysis, please select up to 3 photos at a time.';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
+        final message = AppLocalizations.of(
+          context,
+        )!.stableMultiScanMaxPhotos(widget.maxCount);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
       }
       final files = pickedFiles
           .take(widget.maxCount)
@@ -84,24 +84,26 @@ class _PhotoCaptureWidgetState extends State<PhotoCaptureWidget> {
       onWillPop: () async => false,
       child: Center(
         child: _photos.isEmpty
-        // 사진 선택 전에는 빈 화면. 아이콘도 제거
+            // 사진 선택 전에는 빈 화면. 아이콘도 제거
             ? SizedBox.shrink()
-        // 선택된 사진 썸네일만 표시
+            // 선택된 사진 썸네일만 표시
             : Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: _photos
-              .map((file) => ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: Image.file(
-              file,
-              width: 80,
-              height: 80,
-              fit: BoxFit.cover,
-            ),
-          ))
-              .toList(),
-        ),
+                spacing: 8,
+                runSpacing: 8,
+                children: _photos
+                    .map(
+                      (file) => ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: Image.file(
+                          file,
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
       ),
     );
   }

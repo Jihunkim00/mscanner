@@ -217,6 +217,7 @@
       }
     }
   },
+  "stableMultiScanMaxPhotos": "安定した分析のため、一度に最大{count}枚まで選択してください。",
   "restorePurchases": "購入を復元する",
   "mergeInProgress": "画像をマージしています…\nしばらくお待ちください。",
   "@mergeInProgress": {

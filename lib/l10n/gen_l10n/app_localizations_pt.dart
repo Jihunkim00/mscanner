@@ -637,6 +637,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String stableMultiScanMaxPhotos(int count) {
+    return 'Para uma análise estável, selecione até $count fotos por vez.';
+  }
+
+  @override
   String get restorePurchases => 'Restaurar Compras';
 
   @override
@@ -1002,43 +1007,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get result_aiEmptyStreamResponse => 'A IA retornou uma resposta de fluxo vazia.';
 
-
-  @override
-  String get multiScanSummaryTitle => 'Multi-scan summary';
-
-  @override
-  String multiScanPhotoItemsDetected(Object index, Object count) {
-    return 'Photo $index: $count items detected';
-  }
-
-  @override
-  String multiScanPhotoItemsUnclear(Object index, Object count, Object unclear) {
-    return 'Photo $index: $count items detected / $unclear unclear';
-  }
-
-  @override
-  String multiScanNoReadableItems(Object index) {
-    return 'Photo $index: no readable menu items detected';
-  }
-
-  @override
-  String multiScanTotalSummary(Object total, Object unique) {
-    return 'Total $total detected / $unique after duplicate removal';
-  }
-
-  @override
-  String multiScanTotalSummaryWithDuplicates(Object total, Object unique, Object duplicates) {
-    return 'Total $total detected / $unique after duplicate removal ($duplicates duplicates)';
-  }
-
-  @override
-  String multiScanTotalPhotoCount(Object count) {
-    return 'Total photo count: $count';
-  }
-
-  @override
-  String get multiScanDetailsUnavailable => 'Photo analysis details are unavailable, but the merged result is safe to view.';
-
   @override
   String get tts_orderPhraseTitle => 'Criar frase de encomenda';
 
@@ -1128,6 +1096,42 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get multiScanSummaryTitle => 'Multi-scan summary';
+
+  @override
+  String multiScanPhotoItemsDetected(Object index, Object count) {
+    return 'Photo $index: $count items detected';
+  }
+
+  @override
+  String multiScanPhotoItemsUnclear(Object index, Object count, Object unclear) {
+    return 'Photo $index: $count items detected / $unclear unclear';
+  }
+
+  @override
+  String multiScanNoReadableItems(Object index) {
+    return 'Photo $index: no readable menu items detected';
+  }
+
+  @override
+  String multiScanTotalSummary(Object total, Object unique) {
+    return 'Total $total detected / $unique after duplicate removal';
+  }
+
+  @override
+  String multiScanTotalSummaryWithDuplicates(Object total, Object unique, Object duplicates) {
+    return 'Total $total detected / $unique after duplicate removal ($duplicates duplicates)';
+  }
+
+  @override
+  String multiScanTotalPhotoCount(Object count) {
+    return 'Total photo count: $count';
+  }
+
+  @override
+  String get multiScanDetailsUnavailable => 'Photo analysis details are unavailable, but the merged result is safe to view.';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -1763,6 +1767,11 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   }
 
   @override
+  String stableMultiScanMaxPhotos(int count) {
+    return 'Para uma análise estável, selecione até $count fotos por vez.';
+  }
+
+  @override
   String get restorePurchases => 'Restaurar Compras';
 
   @override
@@ -2128,43 +2137,6 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   @override
   String get result_aiEmptyStreamResponse => 'A IA retornou uma resposta de stream vazia.';
 
-
-  @override
-  String get multiScanSummaryTitle => 'Multi-scan summary';
-
-  @override
-  String multiScanPhotoItemsDetected(Object index, Object count) {
-    return 'Photo $index: $count items detected';
-  }
-
-  @override
-  String multiScanPhotoItemsUnclear(Object index, Object count, Object unclear) {
-    return 'Photo $index: $count items detected / $unclear unclear';
-  }
-
-  @override
-  String multiScanNoReadableItems(Object index) {
-    return 'Photo $index: no readable menu items detected';
-  }
-
-  @override
-  String multiScanTotalSummary(Object total, Object unique) {
-    return 'Total $total detected / $unique after duplicate removal';
-  }
-
-  @override
-  String multiScanTotalSummaryWithDuplicates(Object total, Object unique, Object duplicates) {
-    return 'Total $total detected / $unique after duplicate removal ($duplicates duplicates)';
-  }
-
-  @override
-  String multiScanTotalPhotoCount(Object count) {
-    return 'Total photo count: $count';
-  }
-
-  @override
-  String get multiScanDetailsUnavailable => 'Photo analysis details are unavailable, but the merged result is safe to view.';
-
   @override
   String get tts_orderPhraseTitle => 'Crie uma frase de pedido';
 
@@ -2254,4 +2226,40 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get multiScanSummaryTitle => 'Multi-scan summary';
+
+  @override
+  String multiScanPhotoItemsDetected(Object index, Object count) {
+    return 'Photo $index: $count items detected';
+  }
+
+  @override
+  String multiScanPhotoItemsUnclear(Object index, Object count, Object unclear) {
+    return 'Photo $index: $count items detected / $unclear unclear';
+  }
+
+  @override
+  String multiScanNoReadableItems(Object index) {
+    return 'Photo $index: no readable menu items detected';
+  }
+
+  @override
+  String multiScanTotalSummary(Object total, Object unique) {
+    return 'Total $total detected / $unique after duplicate removal';
+  }
+
+  @override
+  String multiScanTotalSummaryWithDuplicates(Object total, Object unique, Object duplicates) {
+    return 'Total $total detected / $unique after duplicate removal ($duplicates duplicates)';
+  }
+
+  @override
+  String multiScanTotalPhotoCount(Object count) {
+    return 'Total photo count: $count';
+  }
+
+  @override
+  String get multiScanDetailsUnavailable => 'Photo analysis details are unavailable, but the merged result is safe to view.';
 }

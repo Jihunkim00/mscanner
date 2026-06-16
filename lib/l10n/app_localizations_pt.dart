@@ -637,6 +637,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String stableMultiScanMaxPhotos(int count) {
+    return 'Para uma análise estável, selecione até $count fotos por vez.';
+  }
+
+  @override
   String get restorePurchases => 'Restaurar Compras';
 
   @override
@@ -1760,6 +1765,11 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   @override
   String maxScanImages(int maxCount) {
     return 'Apenas as primeiras $maxCount imagens serão escaneadas.';
+  }
+
+  @override
+  String stableMultiScanMaxPhotos(int count) {
+    return 'Para uma análise estável, selecione até $count fotos por vez.';
   }
 
   @override

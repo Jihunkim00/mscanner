@@ -637,6 +637,11 @@ class AppLocalizationsBn extends AppLocalizations {
   }
 
   @override
+  String stableMultiScanMaxPhotos(int count) {
+    return 'স্থিতিশীল বিশ্লেষণের জন্য, একবারে সর্বোচ্চ $countটি ছবি নির্বাচন করুন।';
+  }
+
+  @override
   String get restorePurchases => 'ক্রয় পুনরুদ্ধার করুন';
 
   @override
