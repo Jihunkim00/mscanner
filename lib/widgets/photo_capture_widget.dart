@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 
 /// PhotoCaptureWidget
 ///
@@ -47,12 +46,14 @@ class _PhotoCaptureWidgetState extends State<PhotoCaptureWidget> {
         widget.onCancel();
         return;
       }
-      // ★ 5장 이상 선택 시, 스낵바 안내는 띄우되 앞의 4장만 사용
+      // PR #9: 이번 릴리스에서는 멀티 스캔 안정성을 위해 최대 3장만 분석한다.
       if (pickedFiles.length > widget.maxCount) {
+        final languageCode = Localizations.localeOf(context).languageCode;
+        final message = languageCode == 'ko'
+            ? '안정적인 분석을 위해 한 번에 최대 3장까지 선택해 주세요.'
+            : 'For stable analysis, please select up to 3 photos at a time.';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(AppLocalizations.of(context)!.maxScanImages(widget.maxCount))
-          ),
+          SnackBar(content: Text(message)),
         );
       }
       final files = pickedFiles
