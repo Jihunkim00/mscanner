@@ -44,8 +44,6 @@ import 'package:mscanner/widgets/menu_tag_registry.dart';
 import 'package:mscanner/screens/result/result_parsing_service.dart';
 import 'package:mscanner/screens/result/result_action_service.dart';
 
-
-
 // NOTE: searched_menu 저장은 UI 흐름과 분리(비동기)해서 실행합니다.
 
 /// 파일 최상단에 선언
@@ -55,8 +53,8 @@ Future<Uint8List> mergeImages(List<Uint8List> bytesList) async {
 
 class ResultScreen extends StatefulWidget {
   final File image;
-  final List<File>? images;      // ← 멀티 이미지 리스트 필드 추가
-  final List<String> responses;   // ← String → List<String>
+  final List<File>? images; // ← 멀티 이미지 리스트 필드 추가
+  final List<String> responses; // ← String → List<String>
   final Position? position;
   final DateTime captureTime;
   final bool isFromHistory;
@@ -70,8 +68,8 @@ class ResultScreen extends StatefulWidget {
 
   ResultScreen({
     required this.image,
-    this.images,                  // ← 생성자에 images 파라미터 추가
-    required this.responses,       // ← List<String> 받도록
+    this.images, // ← 생성자에 images 파라미터 추가
+    required this.responses, // ← List<String> 받도록
     this.position,
     required this.captureTime,
     this.isFromHistory = false,
@@ -115,18 +113,17 @@ class _MenuNamePair {
   }
 
   Map<String, dynamic> toMap() => {
-    'original': _o,
-    'translated': _t,
-  };
+        'original': _o,
+        'translated': _t,
+      };
 }
-
-
 
 class _ResultScreenState extends State<ResultScreen> {
   // ✅ ResultScreen에서 주문 문구/TTS 진입 기능 토글
   // false: 버튼 비활성화 유지
   // true : 버튼 즉시 재활성화
-  static const bool _enableOrderPhraseTts = false; //TTS 활성화 ########### 한글 일어 영문간
+  static const bool _enableOrderPhraseTts =
+      false; //TTS 활성화 ########### 한글 일어 영문간
 
   static final RegExp _jaScriptRegex = RegExp(r'[\u3040-\u30FF\u4E00-\u9FFF]');
   static final RegExp _koScriptRegex = RegExp(r'[\uAC00-\uD7AF]');
@@ -137,6 +134,7 @@ class _ResultScreenState extends State<ResultScreen> {
     if (code == 'ja') return SupportedLanguage.ja;
     return SupportedLanguage.ko;
   }
+
   SupportedLanguage _orderPhraseOriginLanguage({
     required String menuOriginal,
     String? originLanguageCode,
@@ -153,6 +151,7 @@ class _ResultScreenState extends State<ResultScreen> {
     if (cc == 'JP') return SupportedLanguage.ja;
     return SupportedLanguage.en;
   }
+
   bool _analyticsViewedLogged = false;
   bool _priceCardEventLogged = false;
   bool _localInsightEventLogged = false;
@@ -174,7 +173,8 @@ class _ResultScreenState extends State<ResultScreen> {
     return null;
   }
 
-  List<double> _extractAmountsFromRecommendedPrices(List<Map<String, dynamic>> items) {
+  List<double> _extractAmountsFromRecommendedPrices(
+      List<Map<String, dynamic>> items) {
     final out = <double>[];
     for (final item in items) {
       // new schema: prices.{single/small/medium/large}
@@ -202,7 +202,6 @@ class _ResultScreenState extends State<ResultScreen> {
 
   final Set<String> _aiButtonReadyKeys = <String>{};
 
-
 // ===== Streaming AI response =====
   StreamSubscription<String>? _aiStreamSub;
   final StringBuffer _aiStreamBuffer = StringBuffer();
@@ -215,17 +214,18 @@ class _ResultScreenState extends State<ResultScreen> {
   Timer? _aiHardTimeoutTimer;
   bool _aiGotFirstChunk = false;
 
-  bool get _isWaitingFullMenu => widget.responseStream != null && !_aiStreamDone;
+  bool get _isWaitingFullMenu =>
+      widget.responseStream != null && !_aiStreamDone;
 
   // ✅ 추가
   bool get _hasAnyAiText =>
       _aiStreamBuffer.toString().trim().isNotEmpty ||
-          widget.responses.any((e) => e.trim().isNotEmpty);
+      widget.responses.any((e) => e.trim().isNotEmpty);
 
   bool get _hasPartialAiResult =>
       _fastRecommend.isNotEmpty ||
-          _getRecommendedItems().isNotEmpty ||
-          _hasAnyAiText;
+      _getRecommendedItems().isNotEmpty ||
+      _hasAnyAiText;
 
   bool get _canShowTerminalActions =>
       _aiJson != null || (_aiStreamDone && _hasPartialAiResult);
@@ -238,15 +238,15 @@ class _ResultScreenState extends State<ResultScreen> {
   Timer? _revealTimer;
 
   // === Auto FX: detected hints ===
-  String? _isoCountryCode;                 // e.g., 'KR', 'JP'
-  String? _currencySymbolHint;             // e.g., '₩','€','$','¥'
-  String? _currencyCodeHint;               // ✅ e.g., 'KRW','JPY','USD'
+  String? _isoCountryCode; // e.g., 'KR', 'JP'
+  String? _currencySymbolHint; // e.g., '₩','€','$','¥'
+  String? _currencyCodeHint; // ✅ e.g., 'KRW','JPY','USD'
 
   String? _extractCurrencyCodeFromText(String text) {
     return ResultParsingService.extractCurrencyCodeFromText(text);
   }
 
-  double? _amountFromResponses;            // extracted number from AI response
+  double? _amountFromResponses; // extracted number from AI response
 
   bool _sentAiImpression = false;
   bool _sentRagImpression = false;
@@ -258,18 +258,13 @@ class _ResultScreenState extends State<ResultScreen> {
   Map<String, dynamic>? _aiJson;
   String? _aiJsonError;
 
-
   final Set<String> _aiIconLoading = <String>{};
   final Set<String> _aiImageCheckingKeys = <String>{};
   final Set<String> _aiImageCheckedKeys = <String>{};
   final Map<String, String> _existingAiImageUrlByMenuKey = <String, String>{};
 
-
-
-
-
   // 🔽🔽🔽 [NEW] 다중 금액 후보 보관 리스트
-  List<double> _amountCandidates = [];     // ex) [12500, 3500, 7000]
+  List<double> _amountCandidates = []; // ex) [12500, 3500, 7000]
 
   Future<void> _initCountryCurrencyHints() async {
     try {
@@ -304,8 +299,6 @@ class _ResultScreenState extends State<ResultScreen> {
   // ✅ 주변 타인 메뉴 태그 Future
   Future<List<_MenuTag>>? _nearbyMenuTagsFuture;
 
-
-
   // Extract first number (e.g., 12,500 or 12.50)
   double? _extractAmountFromText(String text) {
     return ResultParsingService.extractAmountFromText(text);
@@ -332,9 +325,45 @@ class _ResultScreenState extends State<ResultScreen> {
     _aiJsonError = parsed.aiJsonError;
   }
 
-  // ✅ NEW: recommended list extractor
+  bool _parseStreamBuffer({required bool logFailure}) {
+    final full = _aiStreamBuffer.toString().trim();
+    if (full.isEmpty) {
+      if (logFailure) {
+        debugPrint('[ResultScreen] stream parse failed=empty response');
+      }
+      return false;
+    }
+
+    final parsed = ResultParsingService.parseAiJson(
+      responses: [full],
+      imageCount: widget.images?.length ?? 1,
+    );
+    final normalized = parsed.aiJson;
+    if (normalized == null) {
+      _aiJsonError = parsed.aiJsonError;
+      if (logFailure) {
+        debugPrint(
+          '[ResultScreen] stream parse failed='
+          '${parsed.aiJsonError ?? 'unknown parse error'}',
+        );
+      }
+      return false;
+    }
+
+    _aiJson = normalized;
+    _aiJsonError = null;
+    final items = ResultParsingService.getItems(normalized);
+    final recommended = ResultParsingService.getRecommendedItems(normalized);
+    final displayItems = ResultParsingService.getDisplayItems(normalized);
+    debugPrint('[ResultScreen] stream parse success items=${items.length}');
+    debugPrint('[ResultScreen] stream recommended=${recommended.length}');
+    debugPrint('[ResultScreen] stream displayItems=${displayItems.length}');
+    return true;
+  }
+
+  // Display list rule: recommended first, otherwise top-level items.
   List<Map<String, dynamic>> _getRecommendedItems() {
-    return ResultParsingService.getRecommendedItems(_aiJson);
+    return ResultParsingService.getDisplayItems(_aiJson);
   }
 
   String _aiResultType() {
@@ -353,9 +382,9 @@ class _ResultScreenState extends State<ResultScreen> {
       priceLabelBuilder: _priceLabelFromItem,
       labels: AiResultCopyFormatterLabels(
         recommendedTitle:
-        AppLocalizations.of(context)?.aiAnswer ?? 'Recommended Dishes',
+            AppLocalizations.of(context)?.aiAnswer ?? 'Recommended Dishes',
         summaryTitle:
-        AppLocalizations.of(context)?.favorite_summary ?? 'Summary',
+            AppLocalizations.of(context)?.favorite_summary ?? 'Summary',
         priceLabel: '가격',
         tagsLabel: '태그',
         noContentFallback: 'No content available',
@@ -403,35 +432,42 @@ class _ResultScreenState extends State<ResultScreen> {
 
   void _armAiInactivityTimeout() {
     _aiInactivityTimer?.cancel();
-    _aiInactivityTimer = Timer(const Duration(seconds: 75), () {
+
+    _aiInactivityTimer = Timer(const Duration(seconds: 130), () {
       if (_aiStreamDone) return;
 
-      _completeAiStream(
+      debugPrint('[ResultScreen] stream inactivity timeout elapsed=130s');
+
+    // 첫 chunk를 아직 못 받은 상태라면, 바로 실패 처리하지 말고 UI 안내만 유지
+      if (!_aiGotFirstChunk && _aiStreamBuffer.toString().trim().isEmpty) {
+        if (mounted) {
+          setState(() {
+            _showStuckFallback = true;
+          });
+        }
+        return;
+      }
+
+    // chunk를 받은 뒤 추가 응답이 멈춘 경우에만 종료 처리
+      _finishAiStreamNow(
         hadError: !_hasPartialAiResult,
         errorMessage: _hasPartialAiResult
             ? null
             : AppLocalizations.of(context)?.result_aiTimeoutMoreResponse,
       );
-
-      if (mounted) setState(() {});
-      _aiStreamSub?.cancel();
     });
   }
 
-  bool _tryParseCurrentStreamJson() {
-    final raw = _aiStreamBuffer.toString().trim();
-    final s = _extractJsonObjectFromText(raw);
-    if (s == null) return false;
-
+  bool _tryParseCurrentStreamJson({bool logFailure = false}) {
     try {
-      final decoded = jsonDecode(s);
-      if (decoded is Map) {
-        _aiJson = Map<String, dynamic>.from(decoded);
-        _aiJsonError = null;
-        return true;
-      }
-    } catch (e) {
+      return _parseStreamBuffer(logFailure: logFailure);
+    } catch (e, stackTrace) {
       _aiJsonError = 'stream jsonDecode failed: $e';
+      debugPrint('[ResultScreen] stream parse failed=$e');
+      debugPrintStack(
+        label: '[ResultScreen] stream parse stack',
+        stackTrace: stackTrace,
+      );
     }
     return false;
   }
@@ -466,11 +502,13 @@ class _ResultScreenState extends State<ResultScreen> {
     });
   }
 
-
   void _showFullMenuSheet() {
     if (!_hasUsableFullMenu()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)?.result_fullMenuUnavailable ?? 'Full menu is not available yet.')),
+        SnackBar(
+            content: Text(
+                AppLocalizations.of(context)?.result_fullMenuUnavailable ??
+                    'Full menu is not available yet.')),
       );
       return;
     }
@@ -496,9 +534,10 @@ class _ResultScreenState extends State<ResultScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final sheetBg = isDark ? const Color(0xFF1C1C1E) : const Color(0xFFFCFCFD);
     final cardBg = isDark ? const Color(0xFF26262A) : Colors.white;
-    final summaryBg = isDark ? const Color(0xFF2C2C31) : const Color(0xFFF6F7F9);
+    final summaryBg =
+        isDark ? const Color(0xFF2C2C31) : const Color(0xFFF6F7F9);
     final borderColor =
-    isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE5E7EB);
+        isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE5E7EB);
     final titleColor = isDark ? Colors.white : const Color(0xFF111827);
     final subColor = isDark ? Colors.white70 : const Color(0xFF6B7280);
     final hasAnyMenuItems = _hasAnyFullMenuItems(itemsMap);
@@ -595,8 +634,12 @@ class _ResultScreenState extends State<ResultScreen> {
                               children: [
                                 Text(
                                   truncated
-                                      ? (AppLocalizations.of(context)?.favorite_summaryTruncated ?? 'Menu Summary')
-                                      : (AppLocalizations.of(context)?.favorite_summary ?? 'Summary'),
+                                      ? (AppLocalizations.of(context)
+                                              ?.favorite_summaryTruncated ??
+                                          'Menu Summary')
+                                      : (AppLocalizations.of(context)
+                                              ?.favorite_summary ??
+                                          'Summary'),
                                   style: TextStyle(
                                     fontFamily: 'SFPro',
                                     fontSize: 13,
@@ -634,7 +677,9 @@ class _ResultScreenState extends State<ResultScreen> {
                               border: Border.all(color: borderColor),
                             ),
                             child: Text(
-                              AppLocalizations.of(context)?.result_noMenuItemsFound ?? 'No menu items found.',
+                              AppLocalizations.of(context)
+                                      ?.result_noMenuItemsFound ??
+                                  'No menu items found.',
                               style: TextStyle(
                                 fontFamily: 'SFPro',
                                 fontSize: 13,
@@ -660,11 +705,11 @@ class _ResultScreenState extends State<ResultScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final sectionBg = isDark ? const Color(0xFF26262A) : Colors.white;
     final borderColor =
-    isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE5E7EB);
+        isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE5E7EB);
     final titleColor = isDark ? Colors.white : const Color(0xFF111827);
     final subColor = isDark ? Colors.white70 : const Color(0xFF6B7280);
     final priceBg =
-    isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFF3F4F6);
+        isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFF3F4F6);
 
     final menuItems = items
         .whereType<Map>()
@@ -696,9 +741,10 @@ class _ResultScreenState extends State<ResultScreen> {
 
             final displayName = nameOriginal.isNotEmpty
                 ? (nameTranslated.isNotEmpty &&
-                nameTranslated.toLowerCase() != nameOriginal.toLowerCase()
-                ? '$nameOriginal ($nameTranslated)'
-                : nameOriginal)
+                        nameTranslated.toLowerCase() !=
+                            nameOriginal.toLowerCase()
+                    ? '$nameOriginal ($nameTranslated)'
+                    : nameOriginal)
                 : nameTranslated;
 
             final desc = (m['shortDesc'] ?? '').toString();
@@ -706,8 +752,9 @@ class _ResultScreenState extends State<ResultScreen> {
 
             final mk = buildMenuKey(nameOriginal, nameTranslated);
             final effectivePrice =
-            (_convertedPriceByMenuKey[mk] ?? priceLabel)?.trim();
-            final showPrice = effectivePrice != null && effectivePrice.isNotEmpty;
+                (_convertedPriceByMenuKey[mk] ?? priceLabel)?.trim();
+            final showPrice =
+                effectivePrice != null && effectivePrice.isNotEmpty;
 
             return Column(
               children: [
@@ -768,7 +815,8 @@ class _ResultScreenState extends State<ResultScreen> {
                                   Icon(
                                     Icons.currency_exchange,
                                     size: 15,
-                                    color: _convertedPriceByMenuKey.containsKey(mk)
+                                    color: _convertedPriceByMenuKey
+                                            .containsKey(mk)
                                         ? Theme.of(context).colorScheme.primary
                                         : subColor,
                                   ),
@@ -801,7 +849,6 @@ class _ResultScreenState extends State<ResultScreen> {
     ];
   }
 
-
 // ===== Price label helpers =====
   String? _currencyCodeFromItem(Map<String, dynamic> item) {
     String? code;
@@ -810,7 +857,8 @@ class _ResultScreenState extends State<ResultScreen> {
       final p = Map<String, dynamic>.from(prices as Map);
       code = (p['currency'] ?? p['currencyCode'])?.toString();
     }
-    code ??= (item['currency'] ?? item['currencyCode'] ?? item['priceCurrency'])?.toString();
+    code ??= (item['currency'] ?? item['currencyCode'] ?? item['priceCurrency'])
+        ?.toString();
     if (code == null) return null;
     final c = code.trim();
     if (c.isEmpty) return null;
@@ -875,21 +923,28 @@ class _ResultScreenState extends State<ResultScreen> {
     return head;
   }
 
-  String _formatMoney(double amount, {String? currencyCode, String? symbolHint, bool includeCodeIfAmbiguous = true}) {
+  String _formatMoney(double amount,
+      {String? currencyCode,
+      String? symbolHint,
+      bool includeCodeIfAmbiguous = true}) {
     final sym = _symbolForCurrency(currencyCode) ?? symbolHint;
     final a = _formatAmount(amount);
     if (sym != null && sym.isNotEmpty) {
       final base = '$sym$a';
-      if (currencyCode != null && includeCodeIfAmbiguous && _isAmbiguousSymbol(sym)) {
+      if (currencyCode != null &&
+          includeCodeIfAmbiguous &&
+          _isAmbiguousSymbol(sym)) {
         return '$base ($currencyCode)';
       }
       return base;
     }
-    if (currencyCode != null && currencyCode.isNotEmpty) return '$currencyCode $a';
+    if (currencyCode != null && currencyCode.isNotEmpty)
+      return '$currencyCode $a';
     return a;
   }
 
-  String _formatMoneyRange(double min, double max, {String? currencyCode, String? symbolHint}) {
+  String _formatMoneyRange(double min, double max,
+      {String? currencyCode, String? symbolHint}) {
     final sym = _symbolForCurrency(currencyCode) ?? symbolHint;
     final aMin = _formatAmount(min);
     final aMax = _formatAmount(max);
@@ -933,11 +988,9 @@ class _ResultScreenState extends State<ResultScreen> {
     if (vals.length == 1) {
       return _formatMoney(vals.first, currencyCode: code, symbolHint: hint);
     }
-    return _formatMoneyRange(vals.first, vals.last, currencyCode: code, symbolHint: hint);
+    return _formatMoneyRange(vals.first, vals.last,
+        currencyCode: code, symbolHint: hint);
   }
-
-
-
 
 // ===== FX: quick convert prices to "system" target currency (toggle) =====
   String? _targetCurrencyCode; // e.g., 'KRW','USD'
@@ -952,7 +1005,7 @@ class _ResultScreenState extends State<ResultScreen> {
     final code = raw.split('-').first;
 
     switch (code) {
-    // East Asia
+      // East Asia
       case 'ko':
         return 'KRW';
       case 'ja':
@@ -961,11 +1014,11 @@ class _ResultScreenState extends State<ResultScreen> {
         if (raw.contains('hant') || raw.endsWith('tw')) return 'TWD';
         return 'CNY';
 
-    // English
+      // English
       case 'en':
         return 'USD';
 
-    // Southeast Asia
+      // Southeast Asia
       case 'th':
         return 'THB';
       case 'vi':
@@ -978,7 +1031,7 @@ class _ResultScreenState extends State<ResultScreen> {
       case 'fil':
         return 'PHP';
 
-    // South / Central Asia
+      // South / Central Asia
       case 'hi':
         return 'INR';
       case 'ru':
@@ -986,11 +1039,11 @@ class _ResultScreenState extends State<ResultScreen> {
       case 'uk':
         return 'UAH';
 
-    // Middle East
+      // Middle East
       case 'ar':
         return '';
 
-    // Europe → 전부 EUR
+      // Europe → 전부 EUR
       case 'fr':
       case 'de':
       case 'es':
@@ -1013,8 +1066,10 @@ class _ResultScreenState extends State<ResultScreen> {
         return '';
     }
   }
+
   TargetCurrency _defaultTargetCurrencyFromSystemLanguage() {
-    final code = ui.PlatformDispatcher.instance.locale.languageCode.toLowerCase();
+    final code =
+        ui.PlatformDispatcher.instance.locale.languageCode.toLowerCase();
     switch (code) {
       case 'ko':
         return TargetCurrency.krw;
@@ -1149,9 +1204,11 @@ class _ResultScreenState extends State<ResultScreen> {
 
     if (toU == fromU) {
       if (vals.length == 1) {
-        return _formatMoney(vals.first, currencyCode: fromU, symbolHint: currencySymbol(fromU));
+        return _formatMoney(vals.first,
+            currencyCode: fromU, symbolHint: currencySymbol(fromU));
       }
-      return _formatMoneyRange(vals.first, vals.last, currencyCode: fromU, symbolHint: currencySymbol(fromU));
+      return _formatMoneyRange(vals.first, vals.last,
+          currencyCode: fromU, symbolHint: currencySymbol(fromU));
     }
 
     final bases = <String>{toU, 'USD', 'EUR', 'KRW', 'JPY', 'CNY'};
@@ -1159,17 +1216,21 @@ class _ResultScreenState extends State<ResultScreen> {
     final baseDoc = pickBestBaseDoc(from: fromU, to: toU, docs: docs);
     if (baseDoc == null) return null;
 
-    double? cMin = convertViaBase(amount: vals.first, from: fromU, to: toU, baseDoc: baseDoc);
-    double? cMax = convertViaBase(amount: vals.last, from: fromU, to: toU, baseDoc: baseDoc);
+    double? cMin = convertViaBase(
+        amount: vals.first, from: fromU, to: toU, baseDoc: baseDoc);
+    double? cMax = convertViaBase(
+        amount: vals.last, from: fromU, to: toU, baseDoc: baseDoc);
     if (cMin == null || cMax == null) return null;
 
     cMin = double.parse(cMin.toStringAsFixed(2));
     cMax = double.parse(cMax.toStringAsFixed(2));
 
     if ((cMin - cMax).abs() < 0.000001) {
-      return _formatMoney(cMin, currencyCode: toU, symbolHint: currencySymbol(toU));
+      return _formatMoney(cMin,
+          currencyCode: toU, symbolHint: currencySymbol(toU));
     }
-    return _formatMoneyRange(cMin, cMax, currencyCode: toU, symbolHint: currencySymbol(toU));
+    return _formatMoneyRange(cMin, cMax,
+        currencyCode: toU, symbolHint: currencySymbol(toU));
   }
 
   Future<void> _toggleBulkPriceConversion() async {
@@ -1202,11 +1263,11 @@ class _ResultScreenState extends State<ResultScreen> {
           localHint = _extractCurrencySymbolFromText(item['price'] as String);
         }
         final from = (code ??
-            _currencyCodeHint ??
-            pickLocalCurrency(
-              detectedCountryCode: _isoCountryCode,
-              currencySymbolHint: localHint ?? _currencySymbolHint,
-            ))
+                _currencyCodeHint ??
+                pickLocalCurrency(
+                  detectedCountryCode: _isoCountryCode,
+                  currencySymbolHint: localHint ?? _currencySymbolHint,
+                ))
             .toUpperCase();
 
         groups.putIfAbsent(from, () => <Map<String, dynamic>>[]).add(item);
@@ -1222,11 +1283,13 @@ class _ResultScreenState extends State<ResultScreen> {
           final vals = _extractPriceValuesFromItem(item);
           if (vals.isEmpty) continue;
 
-          final label = await _convertPriceValuesToLabel(vals: vals, from: from, to: to);
+          final label =
+              await _convertPriceValuesToLabel(vals: vals, from: from, to: to);
           if (label == null) continue;
 
           final nameOriginal = (item['nameOriginal'] ?? '').toString().trim();
-          final nameTranslated = (item['name'] ?? item['nameTranslated'] ?? '').toString().trim();
+          final nameTranslated =
+              (item['name'] ?? item['nameTranslated'] ?? '').toString().trim();
           final mk = buildMenuKey(nameOriginal, nameTranslated);
           converted[mk] = label;
         }
@@ -1242,7 +1305,10 @@ class _ResultScreenState extends State<ResultScreen> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)?.result_fxRateLoadFailed ?? '환율 정보를 불러오지 못했어요. 네트워크 상태를 확인해 주세요.')),
+        SnackBar(
+            content: Text(
+                AppLocalizations.of(context)?.result_fxRateLoadFailed ??
+                    '환율 정보를 불러오지 못했어요. 네트워크 상태를 확인해 주세요.')),
       );
     } finally {
       if (mounted) setState(() => _isBulkConvertingPrices = false);
@@ -1251,7 +1317,8 @@ class _ResultScreenState extends State<ResultScreen> {
 
   Future<void> _toggleSinglePriceConversion(Map<String, dynamic> item) async {
     final nameOriginal = (item['nameOriginal'] ?? '').toString().trim();
-    final nameTranslated = (item['name'] ?? item['nameTranslated'] ?? '').toString().trim();
+    final nameTranslated =
+        (item['name'] ?? item['nameTranslated'] ?? '').toString().trim();
     final mk = buildMenuKey(nameOriginal, nameTranslated);
 
     if (_singlePriceLoadingMenuKeys.contains(mk)) return;
@@ -1276,18 +1343,22 @@ class _ResultScreenState extends State<ResultScreen> {
         localHint = _extractCurrencySymbolFromText(item['price'] as String);
       }
       final from = (code ??
-          _currencyCodeHint ??
-          pickLocalCurrency(
-            detectedCountryCode: _isoCountryCode,
-            currencySymbolHint: localHint ?? _currencySymbolHint,
-          ))
+              _currencyCodeHint ??
+              pickLocalCurrency(
+                detectedCountryCode: _isoCountryCode,
+                currencySymbolHint: localHint ?? _currencySymbolHint,
+              ))
           .toUpperCase();
 
-      final label = await _convertPriceValuesToLabel(vals: vals, from: from, to: to);
+      final label =
+          await _convertPriceValuesToLabel(vals: vals, from: from, to: to);
       if (label == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)?.result_fxConvertFailed ?? '해당 금액의 환율 변환에 실패했어요.')),
+            SnackBar(
+                content: Text(
+                    AppLocalizations.of(context)?.result_fxConvertFailed ??
+                        '해당 금액의 환율 변환에 실패했어요.')),
           );
         }
         return;
@@ -1300,7 +1371,10 @@ class _ResultScreenState extends State<ResultScreen> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)?.result_fxRateLoadFailed ?? '환율 정보를 불러오지 못했어요. 네트워크 상태를 확인해 주세요.')),
+        SnackBar(
+            content: Text(
+                AppLocalizations.of(context)?.result_fxRateLoadFailed ??
+                    '환율 정보를 불러오지 못했어요. 네트워크 상태를 확인해 주세요.')),
       );
     } finally {
       if (mounted) setState(() => _singlePriceLoadingMenuKeys.remove(mk));
@@ -1318,7 +1392,8 @@ class _ResultScreenState extends State<ResultScreen> {
     _aiImageCheckingKeys.add(menuKey);
 
     try {
-      QuerySnapshot<Map<String, dynamic>> snap = await FirebaseFirestore.instance
+      QuerySnapshot<Map<String, dynamic>> snap = await FirebaseFirestore
+          .instance
           .collection('menu_images')
           .where('menu_key', isEqualTo: menuKey)
           .limit(1)
@@ -1342,9 +1417,8 @@ class _ResultScreenState extends State<ResultScreen> {
 
       if (snap.docs.isNotEmpty) {
         final data = snap.docs.first.data();
-        final imageUrl = (data['imageUrl'] ?? data['image_url'] ?? '')
-            .toString()
-            .trim();
+        final imageUrl =
+            (data['imageUrl'] ?? data['image_url'] ?? '').toString().trim();
 
         if (imageUrl.isNotEmpty) {
           _existingAiImageUrlByMenuKey[menuKey] = imageUrl;
@@ -1382,7 +1456,6 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
-
   Widget _buildFlexibleRecommendationCard({
     required bool isDarkMode,
     required String primaryName,
@@ -1394,22 +1467,17 @@ class _ResultScreenState extends State<ResultScreen> {
     VoidCallback? onPriceTap,
   }) {
     final cardBg = isDarkMode ? const Color(0xFF252529) : Colors.white;
-    final borderColor = isDarkMode
-        ? Colors.white.withOpacity(0.08)
-        : const Color(0xFFE5E7EB);
+    final borderColor =
+        isDarkMode ? Colors.white.withOpacity(0.08) : const Color(0xFFE5E7EB);
     final titleColor = isDarkMode ? Colors.white : const Color(0xFF111827);
     final subColor = isDarkMode ? Colors.white70 : const Color(0xFF6B7280);
-    final chipBg = isDarkMode
-        ? Colors.white.withOpacity(0.08)
-        : const Color(0xFFF3F4F6);
+    final chipBg =
+        isDarkMode ? Colors.white.withOpacity(0.08) : const Color(0xFFF3F4F6);
 
     final cleanSummary = summary.trim();
     final cleanPrice = priceLabel?.trim();
-    final visibleTags = tags
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .take(4)
-        .toList();
+    final visibleTags =
+        tags.map((e) => e.trim()).where((e) => e.isNotEmpty).take(4).toList();
 
     return Container(
       width: double.infinity,
@@ -1519,7 +1587,7 @@ class _ResultScreenState extends State<ResultScreen> {
                           ),
                         ),
                       ...visibleTags.map(
-                            (tag) => Container(
+                        (tag) => Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 10,
                             vertical: 6,
@@ -1558,27 +1626,28 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   Widget _buildDishRow(
-      Map<String, dynamic> item,
-      Color textColor, {
-        required bool isPrimaryRecommended,
-      }){
+    Map<String, dynamic> item,
+    Color textColor, {
+    required bool isPrimaryRecommended,
+  }) {
     final nameOriginal = (item['nameOriginal'] ?? '').toString().trim();
-    final nameOriginalReading = (item['nameOriginalReading'] ?? '').toString().trim();
-    final originLanguageCode = (item['originLanguageCode'] ?? '').toString().trim();
+    final nameOriginalReading =
+        (item['nameOriginalReading'] ?? '').toString().trim();
+    final originLanguageCode =
+        (item['originLanguageCode'] ?? '').toString().trim();
     final nameTranslated = (item['name'] ?? '').toString().trim();
     final desc = (item['shortDesc'] ?? '').toString();
     final priceLabel = _priceLabelFromItem(item);
-
-
 
     final tags = (item['tags'] is List)
         ? (item['tags'] as List).map((e) => e.toString()).toList()
         : <String>[];
 
-    final pair = _MenuNamePair(original: nameOriginal, translated: nameTranslated);
+    final pair =
+        _MenuNamePair(original: nameOriginal, translated: nameTranslated);
     final menuKey = buildMenuKey(pair.original, pair.translated);
     final searchedMenuDocIdForThisRow =
-    isPrimaryRecommended ? _searchedMenuDocId : null;
+        isPrimaryRecommended ? _searchedMenuDocId : null;
     if (!_aiImageCheckedKeys.contains(menuKey) &&
         !_aiImageCheckingKeys.contains(menuKey)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1596,47 +1665,49 @@ class _ResultScreenState extends State<ResultScreen> {
         t.isNotEmpty && o.isNotEmpty && t.toLowerCase() != o.toLowerCase();
     final primary = o.isNotEmpty ? o : t;
     final secondary = showTranslation ? t : '';
-    final effectivePrice = (_convertedPriceByMenuKey[menuKey] ?? priceLabel)?.trim();
-    final trailing = (!_aiButtonReadyKeys.contains(menuKey) || _searchedMenuDocId == null)
+    final effectivePrice =
+        (_convertedPriceByMenuKey[menuKey] ?? priceLabel)?.trim();
+    final trailing = (!_aiButtonReadyKeys.contains(menuKey) ||
+            _searchedMenuDocId == null)
         ? null
         : SizedBox(
-      width: 64,
-      height: 64,
-      child: (_existingAiImageUrlByMenuKey[menuKey]?.isNotEmpty == true)
-          ? GestureDetector(
-        onTap: () {
-          final imageUrl = _existingAiImageUrlByMenuKey[menuKey]!;
-          _showAiImagePreview(imageUrl);
-        },
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Image.network(
-            _existingAiImageUrlByMenuKey[menuKey]!,
             width: 64,
             height: 64,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) {
-              return AiFoodImageButton(
-                menuKey: menuKey,
-                menu: pair.toMap(),
-                shortDesc: desc,
-                tags: tags,
-                searchedMenuDocId: searchedMenuDocIdForThisRow,
-                size: 64,
-              );
-            },
-          ),
-        ),
-      )
-          : AiFoodImageButton(
-        menuKey: menuKey,
-        menu: pair.toMap(),
-        shortDesc: desc,
-        tags: tags,
-        searchedMenuDocId: searchedMenuDocIdForThisRow,
-        size: 64,
-      ),
-    );
+            child: (_existingAiImageUrlByMenuKey[menuKey]?.isNotEmpty == true)
+                ? GestureDetector(
+                    onTap: () {
+                      final imageUrl = _existingAiImageUrlByMenuKey[menuKey]!;
+                      _showAiImagePreview(imageUrl);
+                    },
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        _existingAiImageUrlByMenuKey[menuKey]!,
+                        width: 64,
+                        height: 64,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) {
+                          return AiFoodImageButton(
+                            menuKey: menuKey,
+                            menu: pair.toMap(),
+                            shortDesc: desc,
+                            tags: tags,
+                            searchedMenuDocId: searchedMenuDocIdForThisRow,
+                            size: 64,
+                          );
+                        },
+                      ),
+                    ),
+                  )
+                : AiFoodImageButton(
+                    menuKey: menuKey,
+                    menu: pair.toMap(),
+                    shortDesc: desc,
+                    tags: tags,
+                    searchedMenuDocId: searchedMenuDocIdForThisRow,
+                    size: 64,
+                  ),
+          );
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -1662,14 +1733,18 @@ class _ResultScreenState extends State<ResultScreen> {
                 borderRadius: BorderRadius.circular(14),
                 onTap: () {
                   final targetLanguage = _orderPhraseLanguage(context);
-                  final targetMenuName = nameTranslated.isNotEmpty ? nameTranslated : pair.display;
-                  final menuOriginal = nameOriginal.isNotEmpty ? nameOriginal : pair.original;
+                  final targetMenuName =
+                      nameTranslated.isNotEmpty ? nameTranslated : pair.display;
+                  final menuOriginal =
+                      nameOriginal.isNotEmpty ? nameOriginal : pair.original;
 
                   showOrderPhraseBottomSheet(
                     context: context,
                     menuName: targetMenuName,
                     menuOriginal: menuOriginal,
-                    menuOriginalReading: nameOriginalReading.isEmpty ? null : nameOriginalReading,
+                    menuOriginalReading: nameOriginalReading.isEmpty
+                        ? null
+                        : nameOriginalReading,
                     originLanguage: _orderPhraseOriginLanguage(
                       menuOriginal: menuOriginal,
                       originLanguageCode: originLanguageCode,
@@ -1678,7 +1753,8 @@ class _ResultScreenState extends State<ResultScreen> {
                   );
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
                   constraints: const BoxConstraints(minHeight: 32),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
@@ -1701,7 +1777,8 @@ class _ResultScreenState extends State<ResultScreen> {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        AppLocalizations.of(context)?.result_orderButton ?? '주문하기',
+                        AppLocalizations.of(context)?.result_orderButton ??
+                            '주문하기',
                         style: TextStyle(
                           fontFamily: 'SFPro',
                           fontSize: 12,
@@ -1716,7 +1793,6 @@ class _ResultScreenState extends State<ResultScreen> {
                 ),
               ),
             ),
-
         ],
       ),
     );
@@ -1736,24 +1812,25 @@ class _ResultScreenState extends State<ResultScreen> {
     final userMessage = _aiUserMessage();
 
     final canShowMenu = _hasUsableFullMenu();
+    final resultUsable = hasJsonRec || canShowMenu;
     final canShowPartialActions = _canShowTerminalActions;
-    print('FULLMENU state => selected=$_selectedMenuNumber, enabled=$_isFullMenuEnabled, hasFast=$hasFast, hasJsonRec=$hasJsonRec, usable=${_hasUsableFullMenu()}');
+    print(
+        'FULLMENU state => selected=$_selectedMenuNumber, enabled=$_isFullMenuEnabled, hasFast=$hasFast, hasJsonRec=$hasJsonRec, usable=$resultUsable, fullMenuUsable=$canShowMenu');
 
     if (!hasFast && !hasJsonRec) {
       final shouldHideRawAiText =
-          widget.responseStream != null &&
-              !_aiStreamDone &&
-              !hasJsonRec;
+          widget.responseStream != null && !_aiStreamDone && !hasJsonRec;
 
       final isStillLoading = shouldHideRawAiText;
-      if (isStillLoading && resultType != 'not_menu' && resultType != 'uncertain') {
-        final loadingText =
-        _showStuckFallback
+      if (isStillLoading &&
+          resultType != 'not_menu' &&
+          resultType != 'uncertain') {
+        final loadingText = _showStuckFallback
             ? (AppLocalizations.of(context)?.result_aiTimeoutFullMenu ??
-            AppLocalizations.of(context)?.result_loadingFullMenu ??
-            ResultUiCopy.text(context, ResultUiCopy.loadingFallback))
+                AppLocalizations.of(context)?.result_loadingFullMenu ??
+                ResultUiCopy.text(context, ResultUiCopy.loadingFallback))
             : (AppLocalizations.of(context)?.result_loadingFullMenu ??
-            ResultUiCopy.text(context, ResultUiCopy.loadingFallback));
+                ResultUiCopy.text(context, ResultUiCopy.loadingFallback));
 
         return Container(
           decoration: boxDecoration,
@@ -1780,10 +1857,15 @@ class _ResultScreenState extends State<ResultScreen> {
       final fallbackDisplayText = userMessage.isNotEmpty
           ? userMessage
           : (resultType == 'not_menu'
-          ? (AppLocalizations.of(context)?.result_notMenuMessage ?? 'This image does not appear to be a food menu. Please retake the photo so menu names or food names are clearly visible.')
-          : resultType == 'uncertain'
-          ? (AppLocalizations.of(context)?.result_uncertainMenuMessage ?? 'Not sure this is a food menu. Please retake the photo so menu names and prices are clearly visible.')
-          : (AppLocalizations.of(context)?.result_uncertainMenuMessage ?? 'Not sure this is a food menu. Please retake the photo so menu names and prices are clearly visible.'));
+              ? (AppLocalizations.of(context)?.result_notMenuMessage ??
+                  'This image does not appear to be a food menu. Please retake the photo so menu names or food names are clearly visible.')
+              : resultType == 'uncertain'
+                  ? (AppLocalizations.of(context)
+                          ?.result_uncertainMenuMessage ??
+                      'Not sure this is a food menu. Please retake the photo so menu names and prices are clearly visible.')
+                  : (AppLocalizations.of(context)
+                          ?.result_uncertainMenuMessage ??
+                      'Not sure this is a food menu. Please retake the photo so menu names and prices are clearly visible.'));
 
       return Container(
         decoration: boxDecoration,
@@ -1837,19 +1919,18 @@ class _ResultScreenState extends State<ResultScreen> {
       if (_seenFx.add(key)) _fxUniq.add(a);
     }
 
-
     return Container(
       decoration: boxDecoration,
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           Row(
             children: [
               Text(
                 AppLocalizations.of(context)?.home_mscannerPicks ??
-                    ResultUiCopy.text(context, ResultUiCopy.recommendationHeaderFallback),
+                    ResultUiCopy.text(
+                        context, ResultUiCopy.recommendationHeaderFallback),
                 style: TextStyle(
                   fontFamily: 'SFPro',
                   fontWeight: FontWeight.bold,
@@ -1858,25 +1939,31 @@ class _ResultScreenState extends State<ResultScreen> {
                 ),
               ),
               const Spacer(),
-
               if (_fxUniq.isNotEmpty)
                 (_isBulkConvertingPrices
                     ? const CupertinoActivityIndicator(radius: 9)
                     : IconButton(
-                  iconSize: 18,
-                  splashRadius: 18,
-                  padding: EdgeInsets.zero,
-                  tooltip: _bulkPricesConverted
-                      ? (AppLocalizations.of(context)?.result_restoreOriginalCurrency ?? '원래 통화로 되돌리기')
-                      : AppLocalizations.of(context)!.result_convertToSystemCurrency(_targetCurrencyCode ?? (AppLocalizations.of(context)?.result_auto ?? '자동')),
-                  icon: Icon(
-                    Icons.currency_exchange,
-                    color: _bulkPricesConverted
-                        ? Theme.of(context).colorScheme.primary
-                        : textColor.withOpacity(0.92),
-                  ),
-                  onPressed: _toggleBulkPriceConversion,
-                )),
+                        iconSize: 18,
+                        splashRadius: 18,
+                        padding: EdgeInsets.zero,
+                        tooltip: _bulkPricesConverted
+                            ? (AppLocalizations.of(context)
+                                    ?.result_restoreOriginalCurrency ??
+                                '원래 통화로 되돌리기')
+                            : AppLocalizations.of(context)!
+                                .result_convertToSystemCurrency(
+                                    _targetCurrencyCode ??
+                                        (AppLocalizations.of(context)
+                                                ?.result_auto ??
+                                            '자동')),
+                        icon: Icon(
+                          Icons.currency_exchange,
+                          color: _bulkPricesConverted
+                              ? Theme.of(context).colorScheme.primary
+                              : textColor.withOpacity(0.92),
+                        ),
+                        onPressed: _toggleBulkPriceConversion,
+                      )),
             ],
           ),
           const SizedBox(height: 12),
@@ -1912,7 +1999,6 @@ class _ResultScreenState extends State<ResultScreen> {
             const SizedBox(height: 12),
           ],
 
-
           ...rec.asMap().entries.map((entry) {
             final index = entry.key;
             final item = entry.value;
@@ -1922,7 +2008,6 @@ class _ResultScreenState extends State<ResultScreen> {
               isPrimaryRecommended: index == 0,
             );
           }).toList(),
-
 
           const SizedBox(height: 10),
 
@@ -1935,24 +2020,25 @@ class _ResultScreenState extends State<ResultScreen> {
                     onTap: canShowMenu ? _showFullMenuSheet : null,
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 180),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 14),
                       decoration: BoxDecoration(
                         color: canShowMenu
                             ? (_isDarkMode
-                            ? const Color(0xFF2A2A2E)
-                            : const Color(0xFFF6F7F9))
+                                ? const Color(0xFF2A2A2E)
+                                : const Color(0xFFF6F7F9))
                             : (_isDarkMode
-                            ? const Color(0xFF232326)
-                            : const Color(0xFFF3F4F6)),
+                                ? const Color(0xFF232326)
+                                : const Color(0xFFF3F4F6)),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: canShowMenu
                               ? (_isDarkMode
-                              ? Colors.white.withOpacity(0.08)
-                              : const Color(0xFFE5E7EB))
+                                  ? Colors.white.withOpacity(0.08)
+                                  : const Color(0xFFE5E7EB))
                               : (_isDarkMode
-                              ? Colors.white.withOpacity(0.05)
-                              : const Color(0xFFEAECF0)),
+                                  ? Colors.white.withOpacity(0.05)
+                                  : const Color(0xFFEAECF0)),
                         ),
                       ),
                       child: Row(
@@ -1971,14 +2057,15 @@ class _ResultScreenState extends State<ResultScreen> {
                           ],
                           Flexible(
                             child: Text(
-
                               canShowMenu
-                                  ? (AppLocalizations.of(context)?.result_viewFullMenu ??
-                                  'View Full Menu')
+                                  ? (AppLocalizations.of(context)
+                                          ?.result_viewFullMenu ??
+                                      'View Full Menu')
                                   : (_isWaitingFullMenu
-                                  ? (AppLocalizations.of(context)?.result_preparingMenu ??
-                                  'Preparing...')
-                                  : 'Menu details unavailable'),
+                                      ? (AppLocalizations.of(context)
+                                              ?.result_preparingMenu ??
+                                          'Preparing...')
+                                      : 'Menu details unavailable'),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               textAlign: TextAlign.center,
@@ -2065,8 +2152,6 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
-
-
   /// AI 응답에서 1번 메뉴만 추출
   /// - "1.", "1)", "1).", "1]", "1:", "1-" 등 허용
   /// - "1." 형태가 없으면 null 반환(=저장 스킵)
@@ -2114,7 +2199,8 @@ class _ResultScreenState extends State<ResultScreen> {
     if (rec.isEmpty) return null;
 
     final item = rec.first;
-    final o = (item['nameOriginal'] ?? item['original'] ?? '').toString().trim();
+    final o =
+        (item['nameOriginal'] ?? item['original'] ?? '').toString().trim();
     final t = (item['name'] ?? item['translated'] ?? '').toString().trim();
 
     final pair = _MenuNamePair(original: o, translated: t);
@@ -2164,8 +2250,6 @@ class _ResultScreenState extends State<ResultScreen> {
     return '';
   }
 
-
-
   List<String> _buildSearchKeywords({
     required String original,
     required String translated,
@@ -2196,12 +2280,15 @@ class _ResultScreenState extends State<ResultScreen> {
     final seen = <String>{};
 
     for (final item in _getRecommendedItems()) {
-      final original = (item['nameOriginal'] ?? item['original'] ?? '').toString().trim();
-      final translated = (item['name'] ?? item['translated'] ?? '').toString().trim();
+      final original =
+          (item['nameOriginal'] ?? item['original'] ?? '').toString().trim();
+      final translated =
+          (item['name'] ?? item['translated'] ?? '').toString().trim();
       final pair = _MenuNamePair(original: original, translated: translated);
       if (!pair.hasAny) continue;
 
-      final dedupeKey = '${pair.original.toLowerCase()}|${pair.translated.toLowerCase()}';
+      final dedupeKey =
+          '${pair.original.toLowerCase()}|${pair.translated.toLowerCase()}';
       if (seen.add(dedupeKey)) {
         pairs.add(pair);
       }
@@ -2249,11 +2336,11 @@ class _ResultScreenState extends State<ResultScreen> {
     final sourceTranslated = _normalizeMenuText(source.translated);
 
     final candidateKey =
-    _normalizeMenuText((candidate['menu_key'] ?? '').toString());
+        _normalizeMenuText((candidate['menu_key'] ?? '').toString());
     final candidateOriginal =
-    _normalizeMenuText((candidate['menu_original'] ?? '').toString());
+        _normalizeMenuText((candidate['menu_original'] ?? '').toString());
     final candidateTranslated =
-    _normalizeMenuText((candidate['menu_translated'] ?? '').toString());
+        _normalizeMenuText((candidate['menu_translated'] ?? '').toString());
 
     if (sourceKey.isNotEmpty &&
         candidateKey.isNotEmpty &&
@@ -2266,7 +2353,6 @@ class _ResultScreenState extends State<ResultScreen> {
         sourceOriginal == candidateOriginal) {
       return true;
     }
-
 
     return false;
   }
@@ -2312,24 +2398,24 @@ class _ResultScreenState extends State<ResultScreen> {
         continue;
       }
 
-      final thumbUrl = (
-          data['thumb_url'] ??
+      final thumbUrl = (data['thumb_url'] ??
               data['thumbUrl'] ??
               data['image_thumb_url'] ??
               data['menu_image_thumb_url'] ??
               data['imageUrl'] ??
               data['image_url'] ??
-              ''
-      ).toString().trim();
+              '')
+          .toString()
+          .trim();
 
-      final fullUrl = (
-          data['image_url'] ??
+      final fullUrl = (data['image_url'] ??
               data['imageUrl'] ??
               data['full_url'] ??
               data['fullUrl'] ??
               data['menu_image_full_url'] ??
-              thumbUrl
-      ).toString().trim();
+              thumbUrl)
+          .toString()
+          .trim();
 
       if (thumbUrl.isEmpty && fullUrl.isEmpty) continue;
 
@@ -2343,8 +2429,8 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   Future<Map<String, String>> _resolvePrimaryMenuImageFields(
-      _MenuNamePair pair,
-      ) async {
+    _MenuNamePair pair,
+  ) async {
     try {
       final found = await _findMenuImageFromMenuImages(pair: pair);
       if (found == null) {
@@ -2372,9 +2458,6 @@ class _ResultScreenState extends State<ResultScreen> {
     }
   }
 
-
-
-
   void _saveSearchedMenuFireAndForget() {
     if (widget.isTutorial) return;
     if (widget.isFromHistory) return;
@@ -2401,9 +2484,8 @@ class _ResultScreenState extends State<ResultScreen> {
           menuKey: pair.key,
         );
 
-        final docRef = FirebaseFirestore.instance
-            .collection('searched menu')
-            .doc(docId);
+        final docRef =
+            FirebaseFirestore.instance.collection('searched menu').doc(docId);
 
         _searchedMenuDocId = docRef.id;
 
@@ -2426,11 +2508,9 @@ class _ResultScreenState extends State<ResultScreen> {
           'timestamp': DateTime.now().toIso8601String(),
           'last_seen_at': DateTime.now().toIso8601String(),
           'scan_count': FieldValue.increment(1),
-
           'menu_image_status': imageFields['menu_image_status'],
           'menu_image_thumb_url': imageFields['menu_image_thumb_url'],
           'menu_image_full_url': imageFields['menu_image_full_url'],
-
           if (user != null) 'uid': user.uid,
         }, SetOptions(merge: true));
       } catch (e) {
@@ -2454,8 +2534,6 @@ class _ResultScreenState extends State<ResultScreen> {
       menuKey: menuKey,
     );
   }
-
-
 
   /// 저장된 값이 꼬였을 때(한 줄에 2.,3. 붙은 케이스) 표시용으로만 정리
   String _sanitizeMenuName(String raw) {
@@ -2495,9 +2573,8 @@ class _ResultScreenState extends State<ResultScreen> {
     final myUid = FirebaseAuth.instance.currentUser?.uid;
 
     final prefix = _safePrefix(_geohash!, prefixLen);
-    final since = DateTime.now()
-        .subtract(Duration(days: days))
-        .toIso8601String();
+    final since =
+        DateTime.now().subtract(Duration(days: days)).toIso8601String();
 
     final qs = await FirebaseFirestore.instance
         .collection('searched menu')
@@ -2507,7 +2584,6 @@ class _ResultScreenState extends State<ResultScreen> {
         .orderBy('geohash')
         .limit(maxDocs)
         .get();
-
 
     final Map<String, int> counts = {};
     final Map<String, String> displayName = {};
@@ -2522,7 +2598,6 @@ class _ResultScreenState extends State<ResultScreen> {
       final ts = (data['timestamp'] ?? '').toString();
       if (ts.isEmpty) continue;
       if (ts.compareTo(since) < 0) continue;
-
 
       final raw = (data['menu_name'] ?? '').toString();
       final cleaned = _sanitizeMenuName(raw);
@@ -2589,17 +2664,19 @@ class _ResultScreenState extends State<ResultScreen> {
                   children: [
                     for (final t in tags)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(999),
                           border: Border.all(width: 1),
                         ),
                         child: Text(
                           '#${t.name}(${t.count})',
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            fontSize: 11,
-                            height: 1.0,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    fontSize: 11,
+                                    height: 1.0,
+                                  ),
                         ),
                       ),
                   ],
@@ -2608,8 +2685,6 @@ class _ResultScreenState extends State<ResultScreen> {
             ],
           ),
         );
-
-
       },
     );
   }
@@ -2655,7 +2730,10 @@ class _ResultScreenState extends State<ResultScreen> {
       widget.responses.add(full);
     }
 
-    _parseAiJson();
+    final parsed = _tryParseCurrentStreamJson(logFailure: true);
+    if (!parsed && widget.responses.isNotEmpty) {
+      _parseAiJson();
+    }
     _kickoffRecommendedReveal();
 
     if (_pendingSearchedMenuSave) {
@@ -2663,7 +2741,6 @@ class _ResultScreenState extends State<ResultScreen> {
       _saveSearchedMenuFireAndForget();
     }
   }
-
 
   @override
   void initState() {
@@ -2673,7 +2750,8 @@ class _ResultScreenState extends State<ResultScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_analyticsViewedLogged) {
         _analyticsViewedLogged = true;
-        AnalyticsService.instance.logResultViewed(entryPoint: widget.isFromHistory ? 'history' : 'scan_result');
+        AnalyticsService.instance.logResultViewed(
+            entryPoint: widget.isFromHistory ? 'history' : 'scan_result');
       }
     });
     _parseAiJson(); // ✅ NEW: parse JSON response (if any)
@@ -2696,14 +2774,22 @@ class _ResultScreenState extends State<ResultScreen> {
       });
 
       _aiFirstChunkTimer = Timer(const Duration(seconds: 20), () {
+        if (!mounted) return;
         if (_aiStreamDone || _aiGotFirstChunk) return;
-        _finishAiStreamNow(
-          hadError: true,
-          errorMessage: AppLocalizations.of(context)?.result_aiTimeoutFirstChunk,
-        );
+
+        debugPrint('[ResultScreen] stream waiting first chunk elapsed=20s');
+
+  // 중요:
+  // Firebase callable-backed stream은 실제 SSE가 아니라
+  // 서버 응답 전체를 받은 뒤 한 번 yield하는 구조라서
+  // 첫 chunk가 60~90초 뒤에 올 수 있음.
+  // 따라서 여기서 _finishAiStreamNow() 또는 cancel() 하면 안 됨.
+        setState(() {
+         _showStuckFallback = true;
+        });
       });
 
-      _aiHardTimeoutTimer = Timer(const Duration(seconds: 120), () {
+      _aiHardTimeoutTimer = Timer(const Duration(seconds: 180), () {
         if (_aiStreamDone) return;
         _finishAiStreamNow(
           hadError: !_hasPartialAiResult,
@@ -2716,7 +2802,8 @@ class _ResultScreenState extends State<ResultScreen> {
       _armAiInactivityTimeout();
 
       _aiStreamSub = widget.responseStream!.listen(
-            (delta) {
+        (delta) {
+          debugPrint('[ResultScreen] stream chunk len=${delta.length}');
           if (!_aiGotFirstChunk) {
             _aiGotFirstChunk = true;
             _aiFirstChunkTimer?.cancel();
@@ -2744,29 +2831,29 @@ class _ResultScreenState extends State<ResultScreen> {
             }
           }
 
-          // ✅ JSON 완성되면 [DONE] 안 기다리고 바로 terminal 처리
-          if (_tryParseCurrentStreamJson()) {
-            _finishAiStreamNow();
-            return;
-          }
-
           if (mounted) setState(() {});
         },
-        onError: (e) {
+        onError: (Object e, StackTrace stackTrace) {
+          debugPrint('[ResultScreen] stream parse failed=$e');
+          debugPrintStack(
+            label: '[ResultScreen] stream error stack',
+            stackTrace: stackTrace,
+          );
           _finishAiStreamNow(
             hadError: !_hasPartialAiResult,
             errorMessage: _hasPartialAiResult
                 ? null
                 : (e is TimeoutException
-                ? AppLocalizations.of(context)?.result_aiTimeoutFullMenuStream
-                : AppLocalizations.of(context)?.result_aiReceiveFailedFullMenuStream),
+                    ? AppLocalizations.of(context)
+                        ?.result_aiTimeoutFullMenuStream
+                    : AppLocalizations.of(context)
+                        ?.result_aiReceiveFailedFullMenuStream),
           );
         },
         onDone: () {
           final full = _aiStreamBuffer.toString().trim();
-          print('✅ stream done. fullLen=${_aiStreamBuffer.length}');
-          print(
-            '✅ hasJsonStart=${full.contains("{")} hasJsonEnd=${full.contains("}")}',
+          debugPrint(
+            '[ResultScreen] stream done fullLen=${_aiStreamBuffer.length}',
           );
 
           _finishAiStreamNow(
@@ -2781,8 +2868,6 @@ class _ResultScreenState extends State<ResultScreen> {
     } else {
       _kickoffRecommendedReveal();
     }
-
-
 
     _initCountryCurrencyHints();
 
@@ -2799,7 +2884,8 @@ class _ResultScreenState extends State<ResultScreen> {
 
     if (widget.isTutorial) {
       Future.delayed(Duration.zero, () {
-        GestureBinding.instance.pointerRouter.addGlobalRoute(_handleTutorialTap);
+        GestureBinding.instance.pointerRouter
+            .addGlobalRoute(_handleTutorialTap);
       });
     }
 
@@ -2832,12 +2918,12 @@ class _ResultScreenState extends State<ResultScreen> {
 
         setState(() {
           _nearbyMenuTagsFuture = () async {
-            final a = await _fetchNearbyMenuTags(prefixLen: 6, days: 30, maxDocs: 200);
+            final a = await _fetchNearbyMenuTags(
+                prefixLen: 6, days: 30, maxDocs: 200);
             if (a.isNotEmpty) return a;
             return _fetchNearbyMenuTags(prefixLen: 5, days: 30, maxDocs: 200);
           }();
         });
-
 
         // ✅ searched menu 저장(비동기)
         _saveSearchedMenuFireAndForget();
@@ -2857,8 +2943,8 @@ class _ResultScreenState extends State<ResultScreen> {
         // 히스토리에서도 주변태그는 보여주고 싶으면 Future 세팅(원하면 유지)
         if (_geohash != null) {
           _nearbyMenuTagsFuture = () async {
-            final a =
-            await _fetchNearbyMenuTags(prefixLen: 6, days: 30, maxDocs: 200);
+            final a = await _fetchNearbyMenuTags(
+                prefixLen: 6, days: 30, maxDocs: 200);
             if (a.isNotEmpty) return a;
             return _fetchNearbyMenuTags(prefixLen: 5, days: 30, maxDocs: 200);
           }();
@@ -3056,12 +3142,15 @@ class _ResultScreenState extends State<ResultScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context)?.result_failedLoadSettings ?? 'Failed to load settings, cloud save enabled by default'),
+          content: Text(
+              AppLocalizations.of(context)?.result_failedLoadSettings ??
+                  'Failed to load settings, cloud save enabled by default'),
           backgroundColor: Colors.red,
         ),
       );
     }
   }
+
   Future<void> _loadMenuNumberSetting() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -3103,7 +3192,6 @@ class _ResultScreenState extends State<ResultScreen> {
     return v;
   }
 
-
   Future<void> _saveSettings() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('cloudSaveEnabled', _isCloudSaveEnabled);
@@ -3117,7 +3205,7 @@ class _ResultScreenState extends State<ResultScreen> {
     try {
       String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
       Reference ref =
-      FirebaseStorage.instance.ref().child('Beta_test').child(fileName);
+          FirebaseStorage.instance.ref().child('Beta_test').child(fileName);
       SettableMetadata metadata = SettableMetadata(contentType: 'image/jpeg');
 
       UploadTask uploadTask;
@@ -3147,8 +3235,10 @@ class _ResultScreenState extends State<ResultScreen> {
           print('⚠️ Firestore 저장 중단: _imageUrl is null');
           return;
         }
-        final primary = _extractMenuOnlyFromAiResponses(); // 대표 메뉴명 (JSON 있으면 recommended[0] 우선)
-        final docId = '${_geohash ?? 'nogeo'}_${widget.captureTime.toIso8601String()}';
+        final primary =
+            _extractMenuOnlyFromAiResponses(); // 대표 메뉴명 (JSON 있으면 recommended[0] 우선)
+        final docId =
+            '${_geohash ?? 'nogeo'}_${widget.captureTime.toIso8601String()}';
         final docRef = FirebaseFirestore.instance
             .collection('user_data')
             .doc(user.uid)
@@ -3200,8 +3290,8 @@ class _ResultScreenState extends State<ResultScreen> {
     final allGeohashes = {centerHash, ...neighbors};
 
     final prefs = await SharedPreferences.getInstance();
-    final langCode =
-        prefs.getString('selectedLangCode') ?? Platform.localeName.split('_').first;
+    final langCode = prefs.getString('selectedLangCode') ??
+        Platform.localeName.split('_').first;
 
     await FirebaseFirestore.instance.collection('rag_reviews').add({
       'menuName': _storeNameController.text.trim(),
@@ -3274,7 +3364,9 @@ class _ResultScreenState extends State<ResultScreen> {
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context)?.result_imageUploadFailed ?? 'Image upload failed, please try again.'),
+          content: Text(
+              AppLocalizations.of(context)?.result_imageUploadFailed ??
+                  'Image upload failed, please try again.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -3323,7 +3415,7 @@ class _ResultScreenState extends State<ResultScreen> {
   Future<void> _getAddressFromLatLng(Position position) async {
     try {
       List<Placemark> placemarks =
-      await placemarkFromCoordinates(position.latitude, position.longitude);
+          await placemarkFromCoordinates(position.latitude, position.longitude);
       Placemark place = placemarks[0];
 
       setState(() {
@@ -3341,8 +3433,8 @@ class _ResultScreenState extends State<ResultScreen> {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content:
-        Text(AppLocalizations.of(context)?.textCopied ?? 'Text copied to clipboard'),
+        content: Text(AppLocalizations.of(context)?.textCopied ??
+            'Text copied to clipboard'),
         duration: Duration(seconds: 2),
       ),
     );
@@ -3372,9 +3464,8 @@ class _ResultScreenState extends State<ResultScreen> {
       unawaited(AnalyticsService.instance.logEvent('result_shared'));
 
       WidgetsBinding.instance.addPostFrameCallback((_) async {
-        final boundary =
-        _shareWidgetKey.currentContext?.findRenderObject()
-        as RenderRepaintBoundary?;
+        final boundary = _shareWidgetKey.currentContext?.findRenderObject()
+            as RenderRepaintBoundary?;
 
         if (boundary == null) {
           if (!mounted) return;
@@ -3399,7 +3490,8 @@ class _ResultScreenState extends State<ResultScreen> {
         final pngBytes = byteData.buffer.asUint8List();
 
         final tempDir = await getTemporaryDirectory();
-        final file = await File('${tempDir.path}/result_shared_image.png').create();
+        final file =
+            await File('${tempDir.path}/result_shared_image.png').create();
         await file.writeAsBytes(pngBytes);
 
         await Share.shareXFiles(
@@ -3499,9 +3591,10 @@ class _ResultScreenState extends State<ResultScreen> {
     );
 
     String stripPrefix(String s) => s.replaceFirst(
-      RegExp(r'^\s*(?:\d+\.\s*|\d+\)\s*|\(\d+\)\s*|\[\d+\]\s*|[-–—•*·]\s*)'),
-      '',
-    );
+          RegExp(
+              r'^\s*(?:\d+\.\s*|\d+\)\s*|\(\d+\)\s*|\[\d+\]\s*|[-–—•*·]\s*)'),
+          '',
+        );
 
     double? parseNumber(String captured) {
       var p = captured.replaceAll(
@@ -3568,7 +3661,7 @@ class _ResultScreenState extends State<ResultScreen> {
 
           final remain = area.substring(m.end).trimLeft();
           final nextToken =
-          remain.isEmpty ? '' : remain.split(RegExp(r'\s+')).first;
+              remain.isEmpty ? '' : remain.split(RegExp(r'\s+')).first;
 
           final capTrim = captured.trimRight();
 
@@ -3593,7 +3686,8 @@ class _ResultScreenState extends State<ResultScreen> {
 
   Future<void> _fetchFoodDetail() async {
     try {
-      List<String> foodNames = _extractAllFoodNames(widget.responses.join('\n'));
+      List<String> foodNames =
+          _extractAllFoodNames(widget.responses.join('\n'));
       if (foodNames.isEmpty) {
         print('No food names found in response.');
         return;
@@ -3883,7 +3977,6 @@ class _ResultScreenState extends State<ResultScreen> {
     return selected.take(2).toList(growable: false);
   }
 
-
   String? _decisionPriceLabel() {
     final rec = _getRecommendedItems();
     if (rec.isEmpty) return null;
@@ -3923,8 +4016,8 @@ class _ResultScreenState extends State<ResultScreen> {
     final original = pair == null
         ? null
         : (pair.original.trim().toLowerCase() == title.trim().toLowerCase()
-        ? null
-        : pair.original.trim());
+            ? null
+            : pair.original.trim());
 
     return ResultDecisionCards(
       isDarkMode: _isDarkMode,
@@ -3938,16 +4031,17 @@ class _ResultScreenState extends State<ResultScreen> {
       onPriceTap: () {
         if (_priceCardEventLogged) return;
         _priceCardEventLogged = true;
-        unawaited(AnalyticsService.instance.logEvent('result_price_card_opened'));
+        unawaited(
+            AnalyticsService.instance.logEvent('result_price_card_opened'));
       },
       onLocalInsightTap: () {
         if (_localInsightEventLogged) return;
         _localInsightEventLogged = true;
-        unawaited(AnalyticsService.instance.logEvent('result_local_insight_opened'));
+        unawaited(
+            AnalyticsService.instance.logEvent('result_local_insight_opened'));
       },
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -3955,9 +4049,9 @@ class _ResultScreenState extends State<ResultScreen> {
     final localizations = AppLocalizations.of(context);
     final bool showResultActions = !_isWaitingFullMenu;
     final Color backgroundColor =
-    _isDarkMode ? Colors.black : const Color(0xFFF5F6F8);
+        _isDarkMode ? Colors.black : const Color(0xFFF5F6F8);
     final Color textColor =
-    _isDarkMode ? Colors.white : const Color(0xFF111827);
+        _isDarkMode ? Colors.white : const Color(0xFF111827);
 
     final BoxDecoration boxDecoration = BoxDecoration(
       color: _isDarkMode ? const Color(0xFF1F1F22) : Colors.white,
@@ -3996,16 +4090,16 @@ class _ResultScreenState extends State<ResultScreen> {
           leading: widget.isTutorial
               ? null
               : IconButton(
-            icon: Icon(CupertinoIcons.back, color: textColor, size: 30),
-            onPressed: () {
-              if (!_isLoading) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => HomeScreen()),
-                );
-              }
-            },
-          ),
+                  icon: Icon(CupertinoIcons.back, color: textColor, size: 30),
+                  onPressed: () {
+                    if (!_isLoading) {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => HomeScreen()),
+                      );
+                    }
+                  },
+                ),
           title: widget.isTutorial ? TutorialIndicator() : null,
         ),
         body: Stack(
@@ -4023,9 +4117,9 @@ class _ResultScreenState extends State<ResultScreen> {
                           : [widget.image],
                       onTap: (i) {
                         final files =
-                        widget.images != null && widget.images!.isNotEmpty
-                            ? widget.images!
-                            : [widget.image];
+                            widget.images != null && widget.images!.isNotEmpty
+                                ? widget.images!
+                                : [widget.image];
                         _showFullImage(files: files, initialIndex: i);
                       },
                     ),
@@ -4040,13 +4134,13 @@ class _ResultScreenState extends State<ResultScreen> {
                       boxDecoration: boxDecoration,
                     ),
 
-
                     // ✅ 여기! 결과 카드 바깥 바로 아래에 “근처 타인 메뉴 태그”
                     _buildNearbyMenuTags(),
 
-
                     // ✅ RAG Answer (허용 사용자만)
-                    if (_isAllowedUser && (_ragDetail?.isNotEmpty ?? false) && _decisionLocalInsights().length < 3) ...[
+                    if (_isAllowedUser &&
+                        (_ragDetail?.isNotEmpty ?? false) &&
+                        _decisionLocalInsights().length < 3) ...[
                       SizedBox(height: 16),
                       Container(
                         decoration: boxDecoration,
@@ -4125,37 +4219,42 @@ class _ResultScreenState extends State<ResultScreen> {
                             onPressed: _isLoading
                                 ? null
                                 : () {
-                              final _comment = _reviewController.text.trim();
-                              LogService().logSaveClick(
-                                hasComment: _comment.isNotEmpty,
-                                contentLength: _comment.length,
-                                context: 'result',
-                              );
+                                    final _comment =
+                                        _reviewController.text.trim();
+                                    LogService().logSaveClick(
+                                      hasComment: _comment.isNotEmpty,
+                                      contentLength: _comment.length,
+                                      context: 'result',
+                                    );
 
-                              if (!_isMergeDone) {
-                                if (!_pendingSave) {
-                                  setState(() => _pendingSave = true);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(AppLocalizations.of(context)!.mergeInProgress),
-                                    ),
-                                  );
-                                }
-                                return;
-                              }
-                              _saveScanResult();
-                            },
+                                    if (!_isMergeDone) {
+                                      if (!_pendingSave) {
+                                        setState(() => _pendingSave = true);
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                                AppLocalizations.of(context)!
+                                                    .mergeInProgress),
+                                          ),
+                                        );
+                                      }
+                                      return;
+                                    }
+                                    _saveScanResult();
+                                  },
                             style: ElevatedButton.styleFrom(
-                              foregroundColor:
-                              Theme.of(context).brightness == Brightness.dark
+                              foregroundColor: Theme.of(context).brightness ==
+                                      Brightness.dark
                                   ? Colors.grey
                                   : Colors.white,
-                              backgroundColor:
-                              Theme.of(context).brightness == Brightness.dark
+                              backgroundColor: Theme.of(context).brightness ==
+                                      Brightness.dark
                                   ? Colors.grey[800]
                                   : Colors.grey,
                               minimumSize: Size(double.infinity, 48),
-                              textStyle: TextStyle(fontFamily: 'SFPro', fontSize: 14),
+                              textStyle:
+                                  TextStyle(fontFamily: 'SFPro', fontSize: 14),
                             ),
                             child: Text(localizations.save),
                           ),
@@ -4175,9 +4274,8 @@ class _ResultScreenState extends State<ResultScreen> {
                           children: <Widget>[
                             Icon(
                               CupertinoIcons.exclamationmark_triangle,
-                              color: _isDarkMode
-                                  ? Colors.redAccent
-                                  : Colors.red,
+                              color:
+                                  _isDarkMode ? Colors.redAccent : Colors.red,
                               size: 40.0,
                             ),
                             SizedBox(height: 20),
@@ -4285,9 +4383,9 @@ class _AiSparkleIconButtonState extends State<AiSparkleIconButton>
               Positioned(
                 // 스파클이 있는 쪽(좌상단)만 덮기. 필요하면 값 튜닝.
                 left: s * 0.00,
-                top:  s * 0.01,
-                width:  s * 0.75,  // 50% 정도 확대
-                height: s * 0.82,  // 50% 정도 확대
+                top: s * 0.01,
+                width: s * 0.75, // 50% 정도 확대
+                height: s * 0.82, // 50% 정도 확대
                 child: IgnorePointer(
                   child: AnimatedBuilder(
                     animation: _c,
@@ -4338,12 +4436,12 @@ class _SparkleTwinklePainter extends CustomPainter {
   }
 
   void _drawStar(
-      Canvas canvas,
-      Size size, {
-        required Offset center,
-        required double baseRadius,
-        required double phase,
-      }) {
+    Canvas canvas,
+    Size size, {
+    required Offset center,
+    required double baseRadius,
+    required double phase,
+  }) {
     // 트윙클: opacity + scale
     final wave = (math.sin((t + phase) * math.pi * 2) + 1) / 2; // 0..1
     final opacity = ui.lerpDouble(0.15, 1.0, wave)!;
@@ -4387,7 +4485,8 @@ class _SparkleTwinklePainter extends CustomPainter {
     final dotPaint = Paint()
       ..color = Colors.white.withOpacity(0.75 * opacity)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
-    canvas.drawCircle(center.translate(rOuter * 0.35, -rOuter * 0.15), rOuter * 0.12, dotPaint);
+    canvas.drawCircle(center.translate(rOuter * 0.35, -rOuter * 0.15),
+        rOuter * 0.12, dotPaint);
   }
 
   @override
@@ -4420,7 +4519,7 @@ class _AnimatedDotsTextState extends State<AnimatedDotsText> {
     super.initState();
     _timer = Timer.periodic(
       Duration(milliseconds: widget.period.inMilliseconds ~/ 3),
-          (_) {
+      (_) {
         if (!mounted) return;
         setState(() => _dots = (_dots + 1) % 4); // 0~3
       },

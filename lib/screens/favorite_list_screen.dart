@@ -116,12 +116,19 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
       try {
         final decoded = jsonDecode(jsonStr);
         if (decoded is Map) {
-          final rec = decoded['recommended'];
-          if (rec is List && rec.isNotEmpty && rec.first is Map) {
-            final m = Map<String, dynamic>.from(rec.first as Map);
+          final recommended = decoded['recommended'];
+          final items = recommended is List && recommended.isNotEmpty
+              ? recommended
+              : decoded['items'];
+          if (items is List && items.isNotEmpty && items.first is Map) {
+            final m = Map<String, dynamic>.from(items.first as Map);
 
-            final translated = (m['name'] ?? '').toString().trim();        // ✅ 번역명
-            final original = (m['nameOriginal'] ?? '').toString().trim();  // 원문명
+            final translated =
+                (m['name'] ?? m['translatedName'] ?? '').toString().trim();
+            final original =
+                (m['nameOriginal'] ?? m['originalName'] ?? '')
+                    .toString()
+                    .trim();
 
             if (translated.isNotEmpty) return translated;
             if (original.isNotEmpty) return original;

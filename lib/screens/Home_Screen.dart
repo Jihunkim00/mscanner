@@ -1219,11 +1219,18 @@ class _HomeContentState extends State<HomeContent> {
       try {
         final decoded = jsonDecode(s);
         if (decoded is Map) {
-          final rec = decoded['recommended'];
-          if (rec is List && rec.isNotEmpty && rec.first is Map) {
-            final m = Map<String, dynamic>.from(rec.first as Map);
-            final name = (m['name'] ?? '').toString().trim();
-            final nameOriginal = (m['nameOriginal'] ?? '').toString().trim();
+          final recommended = decoded['recommended'];
+          final items = recommended is List && recommended.isNotEmpty
+              ? recommended
+              : decoded['items'];
+          if (items is List && items.isNotEmpty && items.first is Map) {
+            final m = Map<String, dynamic>.from(items.first as Map);
+            final name =
+                (m['name'] ?? m['translatedName'] ?? '').toString().trim();
+            final nameOriginal =
+                (m['nameOriginal'] ?? m['originalName'] ?? '')
+                    .toString()
+                    .trim();
             final pick = nameOriginal.isNotEmpty ? nameOriginal : name;
             if (pick.length >= 2) return pick;
           }

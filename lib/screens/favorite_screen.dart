@@ -272,7 +272,15 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     if (j == null) return const [];
     final rec = j['recommended'];
     if (rec is List) {
-      return rec
+      final recommended = rec
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+      if (recommended.isNotEmpty) return recommended;
+    }
+    final items = j['items'];
+    if (items is List) {
+      return items
           .whereType<Map>()
           .map((e) => Map<String, dynamic>.from(e))
           .toList();

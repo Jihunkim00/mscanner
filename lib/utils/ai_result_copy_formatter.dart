@@ -24,8 +24,7 @@ class AiResultCopyFormatter {
     List<String> fallbackResponses = const [],
     String fallbackStreamText = '',
     String? Function(Map<String, dynamic> item)? priceLabelBuilder,
-    AiResultCopyFormatterLabels labels =
-    const AiResultCopyFormatterLabels(),
+    AiResultCopyFormatterLabels labels = const AiResultCopyFormatterLabels(),
   }) {
     final rec = _getRecommendedItems(aiJson);
 
@@ -99,26 +98,36 @@ class AiResultCopyFormatter {
   }
 
   static List<Map<String, dynamic>> _getRecommendedItems(
-      Map<String, dynamic>? aiJson,
-      ) {
+    Map<String, dynamic>? aiJson,
+  ) {
     if (aiJson == null) return const [];
 
     final rec = aiJson['recommended'];
-    if (rec is! List) return const [];
+    if (rec is List) {
+      final recommended = rec
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+      if (recommended.isNotEmpty) return recommended;
+    }
 
-    return rec
-        .whereType<Map>()
-        .map((e) => Map<String, dynamic>.from(e))
-        .toList();
+    final items = aiJson['items'];
+    if (items is List) {
+      return items
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    }
+    return const [];
   }
 
   static String _menuDisplayName(Map<String, dynamic> item) {
-    final o = (item['nameOriginal'] ?? item['original'] ?? '')
-        .toString()
-        .trim();
-    final t = (item['name'] ?? item['nameTranslated'] ?? item['translated'] ?? '')
-        .toString()
-        .trim();
+    final o =
+        (item['nameOriginal'] ?? item['original'] ?? '').toString().trim();
+    final t =
+        (item['name'] ?? item['nameTranslated'] ?? item['translated'] ?? '')
+            .toString()
+            .trim();
 
     if (o.isNotEmpty && t.isNotEmpty && o.toLowerCase() != t.toLowerCase()) {
       return '$o ($t)';
@@ -139,8 +148,10 @@ class AiResultCopyFormatter {
   static String _extractSummary(Map<String, dynamic>? aiJson) {
     if (aiJson == null) return '';
 
-    final rawFm =
-        aiJson['fullMenu'] ?? aiJson['full_menu'] ?? aiJson['menu'] ?? aiJson['menus'];
+    final rawFm = aiJson['fullMenu'] ??
+        aiJson['full_menu'] ??
+        aiJson['menu'] ??
+        aiJson['menus'];
 
     if (rawFm is Map) {
       return (rawFm['summary'] ?? '').toString().trim();

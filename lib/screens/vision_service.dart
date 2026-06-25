@@ -1,15 +1,18 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
 import '/helpers/settings_helper.dart';
+import '/core/prompt/scan_prompt_builder.dart';
+import '/core/prompt/scan_prompt_preset.dart';
 
 class VisionService {
   static const bool _useRag = false;
 
   static final FirebaseFunctions _functions =
-  FirebaseFunctions.instanceFor(region: 'asia-northeast3');
+      FirebaseFunctions.instanceFor(region: 'asia-northeast3');
 
   static String _resolvePromptContext(String? promptContext) {
     if (!_useRag) return '';
@@ -17,9 +20,13 @@ class VisionService {
     return safe.length > 3000 ? safe.substring(0, 3000) : safe;
   }
 
-  static String _resolveScanMode(int maxOutputTokens) {
-    return maxOutputTokens >= 9000 ? 'multi' : 'single';
-  }
+  static String _resolveScanMode({
+  required int maxOutputTokens,
+  required int imageCount,
+}) {
+  if (imageCount > 1) return 'multi';
+  return 'single';
+}
 
   static Future<String> _callAnalyzeVision({
     required String imageBase64,
@@ -36,10 +43,9 @@ class VisionService {
 
       print(
         '🚀 [Functions] analyzeVision call '
-            'scanMode=$scanMode responseMode=$responseMode '
-            'maxTokens=$maxOutputTokens imageBase64Len=${imageBase64.length}',
+        'scanMode=$scanMode responseMode=$responseMode '
+        'maxTokens=$maxOutputTokens imageBase64Len=${imageBase64.length}',
       );
-
 
       final callable = _functions.httpsCallable(
         'analyzeVision',
@@ -56,15 +62,25 @@ class VisionService {
         'responseMode': responseMode,
       });
 
-      final data = Map<String, dynamic>.from(result.data as Map);
-      final text = data['result']?.toString() ?? '';
+      debugPrint('[VisionScan] callable response received');
+
+      final rawData = result.data;
+      final data = rawData is Map
+          ? Map<String, dynamic>.from(rawData)
+          : <String, dynamic>{};
+      final text =
+          rawData is String ? rawData : data['result']?.toString() ?? '';
+
+      debugPrint(
+        '[VisionScan] raw response preview=${_responsePreview(text)}',
+      );
 
       print(
         '✅ [Functions] analyzeVision success '
-            'model=${data['model']} scanMode=${data['scanMode']} '
-            'responseMode=${data['responseMode']} '
-            'maxOutputTokens=${data['maxOutputTokens']} '
-            'textLen=${text.trim().length}',
+        'model=${data['model']} scanMode=${data['scanMode']} '
+        'responseMode=${data['responseMode']} '
+        'maxOutputTokens=${data['maxOutputTokens']} '
+        'textLen=${text.trim().length}',
       );
 
       if (text.trim().isEmpty) {
@@ -75,13 +91,23 @@ class VisionService {
     } on FirebaseFunctionsException catch (e) {
       print(
         '❌ [Functions] analyzeVision failed '
-            'code=${e.code} message=${e.message} details=${e.details}',
+        'code=${e.code} message=${e.message} details=${e.details}',
       );
       rethrow;
     } catch (e) {
       print('❌ [Functions] analyzeVision unknown error=$e');
       rethrow;
     }
+  }
+
+  static String _responsePreview(String value, {int maxLength = 1200}) {
+    final normalized = value
+        .replaceAll('\r', ' ')
+        .replaceAll('\n', ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    if (normalized.length <= maxLength) return normalized;
+    return '${normalized.substring(0, maxLength)}…';
   }
 
   static Map<String, String> _fullPromptTemplates() {
@@ -303,59 +329,109 @@ If it doesn’t seem food-related, just say so.
   }
 
   static Future<String> _buildPrompt({
-    required String outputProtocol,
     required String? promptContext,
     required bool streamMode,
+    required int maxOutputTokens,
+    required int imageCount,
   }) async {
     final presetId = await SettingsHelper.getPreset();
-    final question = await SettingsHelper.getQuestionByPreset(presetId);
     final langCode = await SettingsHelper.getLanguageCode();
+    final scanMode = _resolveScanMode(
+      maxOutputTokens: maxOutputTokens,
+      imageCount: imageCount,
+    );
+    final isMultiScan = scanMode == 'multi' || imageCount > 1;
 
-    final templates = streamMode ? _streamPromptTemplates() : _fullPromptTemplates();
+    if (presetId == 1) {
+      final selectedFoodStyle = await SettingsHelper.getSelectedFoodStyle();
+      final selectedFoodStyleLabel =
+          await SettingsHelper.getSelectedFoodStyleLabel();
+      final menuCountHint = await SettingsHelper.getSelectedMenuNumber();
+      final isFullMenuRequested = menuCountHint.trim().toLowerCase() == 'all';
+      final safeContext = _resolvePromptContext(promptContext);
+      
+
+      final scanPreset = isMultiScan
+         ? ScanPromptPreset.multiImageMerge
+         : (maxOutputTokens > 3000
+            ? ScanPromptPreset.premiumDetailed
+            : ScanPromptPreset.defaultFoodScan);
+
+      final detailLevel = isFullMenuRequested
+         ? 'premium'
+         : (maxOutputTokens > 3000 ? 'compactPremium' : 'basic');
+
+
+      return ScanPromptBuilder(
+        scanPreset: scanPreset,
+        targetLanguage: langCode,
+        isMultiScan: isMultiScan,
+        includeCurrency: true,
+        includeRagContext: safeContext.isNotEmpty,
+        selectedFoodStyle: selectedFoodStyle,
+        selectedFoodStyleLabel: selectedFoodStyleLabel,
+        isPremiumUser: maxOutputTokens > 3000,
+        detailLevel: detailLevel,
+        scanMode: scanMode,
+        menuCountHint: menuCountHint,
+        ragContext: safeContext,
+        sourceImageCount: imageCount,
+      ).build();
+    }
+
+    // Non-menu legacy presets remain on their original prompt path.
+    final question = await SettingsHelper.getQuestionByPreset(presetId);
+
+    final templates =
+        streamMode ? _streamPromptTemplates() : _fullPromptTemplates();
     final template = templates[langCode] ?? templates['en']!;
 
     final mergedPrompt = template
         .replaceAll('{promptContext}', _resolvePromptContext(promptContext))
-        .replaceAll('{question}', question ?? '');
+        .replaceAll('{question}', question);
 
-    return '$outputProtocol\n$mergedPrompt';
-  }
-
-  static Future<String> analyzeImage(
-      File imageFile, {
-        String? promptContext,
-        int maxOutputTokens = 3000,
-      }) async {
-    try {
-      final bytes = await imageFile.readAsBytes();
-      final kb = bytes.length / 1024;
-      print('🗜️ [Vision] bytes=${kb.toStringAsFixed(1)}KB file=${imageFile.path}');
-
-      final tEncode0 = DateTime.now();
-      final base64Image = base64Encode(bytes);
-      print('⏱️ [Vision] base64Encode ${DateTime.now().difference(tEncode0).inMilliseconds}ms');
-
-      const outputProtocol = '''[OUTPUT PROTOCOL]
+    return '''[OUTPUT PROTOCOL]
 Output exactly ONE JSON object.
-- No RECOMMEND line
 - No markdown
 - No code fences
 - No extra text
-- Keep the JSON key order as: isMenu, outputLanguage, place, recommended, fullMenu
-''';
+
+$mergedPrompt''';
+  }
+
+  static Future<String> analyzeImage(
+    File imageFile, {
+    String? promptContext,
+    int maxOutputTokens = 3000,
+    int imageCount = 1,
+  }) async {
+    try {
+      final bytes = await imageFile.readAsBytes();
+      final kb = bytes.length / 1024;
+      print(
+          '🗜️ [Vision] bytes=${kb.toStringAsFixed(1)}KB file=${imageFile.path}');
+
+      final tEncode0 = DateTime.now();
+      final base64Image = base64Encode(bytes);
+      print(
+          '⏱️ [Vision] base64Encode ${DateTime.now().difference(tEncode0).inMilliseconds}ms');
 
       final mergedPromptWithProtocol = await _buildPrompt(
-        outputProtocol: outputProtocol,
         promptContext: promptContext,
         streamMode: false,
+        maxOutputTokens: maxOutputTokens,
+        imageCount: imageCount,
       );
 
-      final scanMode = _resolveScanMode(maxOutputTokens);
+      final scanMode = _resolveScanMode(
+        maxOutputTokens: maxOutputTokens,
+        imageCount: imageCount,
+      );
       final tReq0 = DateTime.now();
 
       print(
         '🚀 [Vision] functions request start ${tReq0.toIso8601String()} '
-            'maxTokens=$maxOutputTokens model=gpt-5-mini scanMode=$scanMode rag=$_useRag',
+        'maxTokens=$maxOutputTokens model=gpt-5-mini scanMode=$scanMode rag=$_useRag',
       );
 
       final text = await _callAnalyzeVision(
@@ -376,38 +452,35 @@ Output exactly ONE JSON object.
     }
   }
 
-  /// 기존 LoadingScreen 구조 유지를 위해 Stream<String> 형태는 유지합니다.
+  /// 기존 LoadingScreen 구조 유지를 위해 `Stream<String>` 형태는 유지합니다.
   /// 단, Firebase callable은 SSE streaming이 아니므로 최종 결과를 한 번 받아 yield 합니다.
   static Stream<String> analyzeImageStream(
-      File imageFile, {
-        String? promptContext,
-        int maxOutputTokens = 3000,
-      }) async* {
+    File imageFile, {
+    String? promptContext,
+    int maxOutputTokens = 3000,
+    int imageCount = 1,
+  }) async* {
     try {
       final bytes = await imageFile.readAsBytes();
       final base64Image = base64Encode(bytes);
 
-      const outputProtocol = '''[OUTPUT PROTOCOL]
-Output exactly ONE JSON object using the existing app schema.
-- No RECOMMEND line
-- No markdown
-- No code fences
-- No extra text
-- Keep the JSON key order as: isMenu, outputLanguage, place, recommended, fullMenu
-''';
-
       final mergedPromptWithProtocol = await _buildPrompt(
-        outputProtocol: outputProtocol,
         promptContext: promptContext,
         streamMode: true,
+        maxOutputTokens: maxOutputTokens,
+        imageCount: imageCount,
       );
 
-      final scanMode = _resolveScanMode(maxOutputTokens);
+      final scanMode = _resolveScanMode(
+        maxOutputTokens: maxOutputTokens,
+        imageCount: imageCount,
+      );
       final tReq0 = DateTime.now();
 
       print(
         '🚀 [VisionStream] functions request start ${tReq0.toIso8601String()} '
-            'maxTokens=$maxOutputTokens model=gpt-5.4-mini scanMode=$scanMode rag=$_useRag',
+        'maxTokens=$maxOutputTokens model=gpt-5.4-mini '
+        'scanMode=$scanMode responseMode=normal rag=$_useRag',
       );
 
       final text = await _callAnalyzeVision(
@@ -415,12 +488,13 @@ Output exactly ONE JSON object using the existing app schema.
         prompt: mergedPromptWithProtocol,
         maxOutputTokens: maxOutputTokens,
         scanMode: scanMode,
-        responseMode: 'stream',
+        responseMode: 'normal',
       );
 
       final reqMs = DateTime.now().difference(tReq0).inMilliseconds;
       print('⏱️ [VisionStream] functions response in ${reqMs}ms');
       print('🧾 [VisionStream] contentLen=${text.trim().length}');
+      debugPrint('[VisionStream] yield contentLen=${text.trim().length}');
 
       yield text;
     } catch (e) {

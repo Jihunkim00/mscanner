@@ -138,6 +138,7 @@ unlinked_spec.ds
 
 # Coverage
 coverage/
+test/prompt_regression/outputs/*.json
 
 # Symbols
 app.*.symbols
