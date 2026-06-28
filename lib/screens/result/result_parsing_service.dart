@@ -15,7 +15,10 @@ class ResultParsingService {
     final s = text.toLowerCase();
 
     if (s.contains('krw') || s.contains('₩') || s.contains('원')) return 'KRW';
-    if (s.contains('jpy') || s.contains('¥') || s.contains('엔화') || s.contains('엔')) return 'JPY';
+    if (s.contains('jpy') ||
+        s.contains('¥') ||
+        s.contains('엔화') ||
+        s.contains('엔')) return 'JPY';
     if (s.contains('usd') || s.contains(r'$') || s.contains('달러')) return 'USD';
     if (s.contains('eur') || s.contains('€') || s.contains('유로')) return 'EUR';
     if (s.contains('cny') || s.contains('元') || s.contains('위안')) return 'CNY';
@@ -84,7 +87,7 @@ class ResultParsingService {
         }
       } catch (e) {
         aiJsonError =
-        'jsonDecode failed: $e\nrawHead=${raw.substring(0, raw.length > 120 ? 120 : raw.length)}';
+            'jsonDecode failed: $e\nrawHead=${raw.substring(0, raw.length > 120 ? 120 : raw.length)}';
       }
     }
 
@@ -96,6 +99,10 @@ class ResultParsingService {
 
     if (!isMulti) {
       final normalized = Map<String, dynamic>.from(firstJson);
+      final fallbackRecommended = _recommendedItemsFromJson(normalized);
+      if (fallbackRecommended.isNotEmpty) {
+        normalized['recommended'] = fallbackRecommended;
+      }
       normalized['result_type'] =
           (normalized['result_type'] ?? 'menu').toString().trim().toLowerCase();
       normalized['user_message'] =
@@ -115,12 +122,7 @@ class ResultParsingService {
     };
 
     for (final j in jsonList) {
-      final rec = j['recommended'];
-      if (rec is List) {
-        for (final e in rec) {
-          if (e is Map) recommendedAll.add(Map<String, dynamic>.from(e));
-        }
-      }
+      recommendedAll.addAll(_recommendedItemsFromJson(j));
 
       final fm = j['fullMenu'] ?? j['full_menu'] ?? j['menu'] ?? j['menus'];
       if (fm is Map) {
@@ -141,12 +143,15 @@ class ResultParsingService {
 
     merged['recommended'] = _dedupList(recommendedAll);
     merged['fullMenu'] = {
-      'items': {for (final k in fullMenuAll.keys) k: _dedupList(fullMenuAll[k]!)},
+      'items': {
+        for (final k in fullMenuAll.keys) k: _dedupList(fullMenuAll[k]!)
+      },
       'summary': (firstJson['fullMenu'] is Map)
           ? ((firstJson['fullMenu']['summary'] ?? '').toString())
           : '',
-      'truncated':
-      (firstJson['fullMenu'] is Map) ? (firstJson['fullMenu']['truncated'] == true) : false,
+      'truncated': (firstJson['fullMenu'] is Map)
+          ? (firstJson['fullMenu']['truncated'] == true)
+          : false,
     };
 
     merged['result_type'] =
@@ -156,16 +161,10 @@ class ResultParsingService {
     return ResultParsingOutput(aiJson: merged, aiJsonError: null);
   }
 
-  static List<Map<String, dynamic>> getRecommendedItems(Map<String, dynamic>? aiJson) {
+  static List<Map<String, dynamic>> getRecommendedItems(
+      Map<String, dynamic>? aiJson) {
     if (aiJson == null) return const [];
-    final rec = aiJson['recommended'];
-    if (rec is List) {
-      return rec
-          .whereType<Map>()
-          .map((e) => Map<String, dynamic>.from(e))
-          .toList();
-    }
-    return const [];
+    return _recommendedItemsFromJson(aiJson);
   }
 
   static String aiResultType(Map<String, dynamic>? aiJson) {
@@ -214,7 +213,8 @@ class ResultParsingService {
     return geohash.substring(0, geohash.length < len ? geohash.length : len);
   }
 
-  static List<Map<String, dynamic>> _dedupList(List<Map<String, dynamic>> items) {
+  static List<Map<String, dynamic>> _dedupList(
+      List<Map<String, dynamic>> items) {
     final seen = <String>{};
     final out = <Map<String, dynamic>>[];
     for (final it in items) {
@@ -225,5 +225,57 @@ class ResultParsingService {
       if (seen.add(dedupKey)) out.add(it);
     }
     return out;
+  }
+
+  static List<Map<String, dynamic>> _recommendedItemsFromJson(
+    Map<String, dynamic> aiJson,
+  ) {
+    final recItems = _mapList(aiJson['recommended']);
+    if (recItems.isNotEmpty) return _dedupList(recItems);
+
+    final directItems = _mapList(aiJson['items']);
+    if (directItems.isNotEmpty) return _dedupList(directItems);
+
+    final rawFm = aiJson['fullMenu'] ??
+        aiJson['full_menu'] ??
+        aiJson['menu'] ??
+        aiJson['menus'];
+    if (rawFm is! Map) return const [];
+
+    final fm = Map<String, dynamic>.from(rawFm);
+    final nestedItems = fm['items'];
+    final fromNestedList = _mapList(nestedItems);
+    if (fromNestedList.isNotEmpty) return _dedupList(fromNestedList);
+
+    if (nestedItems is Map) {
+      return _dedupList(
+          _categoryMapItems(Map<String, dynamic>.from(nestedItems)));
+    }
+
+    return _dedupList(_categoryMapItems(fm));
+  }
+
+  static List<Map<String, dynamic>> _categoryMapItems(
+      Map<String, dynamic> source) {
+    final out = <Map<String, dynamic>>[];
+    for (final k in const [
+      'main',
+      'side',
+      'meal',
+      'drink',
+      'beverage',
+      'unknown'
+    ]) {
+      out.addAll(_mapList(source[k]));
+    }
+    return out;
+  }
+
+  static List<Map<String, dynamic>> _mapList(dynamic source) {
+    if (source is! List) return const [];
+    return source
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
   }
 }

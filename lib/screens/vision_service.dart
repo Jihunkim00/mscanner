@@ -9,7 +9,7 @@ class VisionService {
   static const bool _useRag = false;
 
   static final FirebaseFunctions _functions =
-  FirebaseFunctions.instanceFor(region: 'asia-northeast3');
+      FirebaseFunctions.instanceFor(region: 'asia-northeast3');
 
   static String _resolvePromptContext(String? promptContext) {
     if (!_useRag) return '';
@@ -36,10 +36,9 @@ class VisionService {
 
       print(
         '🚀 [Functions] analyzeVision call '
-            'scanMode=$scanMode responseMode=$responseMode '
-            'maxTokens=$maxOutputTokens imageBase64Len=${imageBase64.length}',
+        'scanMode=$scanMode responseMode=$responseMode '
+        'maxTokens=$maxOutputTokens imageBase64Len=${imageBase64.length}',
       );
-
 
       final callable = _functions.httpsCallable(
         'analyzeVision',
@@ -61,10 +60,10 @@ class VisionService {
 
       print(
         '✅ [Functions] analyzeVision success '
-            'model=${data['model']} scanMode=${data['scanMode']} '
-            'responseMode=${data['responseMode']} '
-            'maxOutputTokens=${data['maxOutputTokens']} '
-            'textLen=${text.trim().length}',
+        'model=${data['model']} scanMode=${data['scanMode']} '
+        'responseMode=${data['responseMode']} '
+        'maxOutputTokens=${data['maxOutputTokens']} '
+        'textLen=${text.trim().length}',
       );
 
       if (text.trim().isEmpty) {
@@ -75,7 +74,7 @@ class VisionService {
     } on FirebaseFunctionsException catch (e) {
       print(
         '❌ [Functions] analyzeVision failed '
-            'code=${e.code} message=${e.message} details=${e.details}',
+        'code=${e.code} message=${e.message} details=${e.details}',
       );
       rethrow;
     } catch (e) {
@@ -311,7 +310,8 @@ If it doesn’t seem food-related, just say so.
     final question = await SettingsHelper.getQuestionByPreset(presetId);
     final langCode = await SettingsHelper.getLanguageCode();
 
-    final templates = streamMode ? _streamPromptTemplates() : _fullPromptTemplates();
+    final templates =
+        streamMode ? _streamPromptTemplates() : _fullPromptTemplates();
     final template = templates[langCode] ?? templates['en']!;
 
     final mergedPrompt = template
@@ -322,18 +322,20 @@ If it doesn’t seem food-related, just say so.
   }
 
   static Future<String> analyzeImage(
-      File imageFile, {
-        String? promptContext,
-        int maxOutputTokens = 3000,
-      }) async {
+    File imageFile, {
+    String? promptContext,
+    int maxOutputTokens = 3000,
+  }) async {
     try {
       final bytes = await imageFile.readAsBytes();
       final kb = bytes.length / 1024;
-      print('🗜️ [Vision] bytes=${kb.toStringAsFixed(1)}KB file=${imageFile.path}');
+      print(
+          '🗜️ [Vision] bytes=${kb.toStringAsFixed(1)}KB file=${imageFile.path}');
 
       final tEncode0 = DateTime.now();
       final base64Image = base64Encode(bytes);
-      print('⏱️ [Vision] base64Encode ${DateTime.now().difference(tEncode0).inMilliseconds}ms');
+      print(
+          '⏱️ [Vision] base64Encode ${DateTime.now().difference(tEncode0).inMilliseconds}ms');
 
       const outputProtocol = '''[OUTPUT PROTOCOL]
 Output exactly ONE JSON object.
@@ -341,7 +343,7 @@ Output exactly ONE JSON object.
 - No markdown
 - No code fences
 - No extra text
-- Keep the JSON key order as: isMenu, outputLanguage, place, recommended, fullMenu
+- Keep the JSON key order as: isMenu, userMessage, outputLanguage, selectedFoodStyle, selectedFoodStyleLabel, foodStyleApplied, foodStyleSummary, place, recommended, optional fullMenu
 ''';
 
       final mergedPromptWithProtocol = await _buildPrompt(
@@ -355,7 +357,7 @@ Output exactly ONE JSON object.
 
       print(
         '🚀 [Vision] functions request start ${tReq0.toIso8601String()} '
-            'maxTokens=$maxOutputTokens model=gpt-5-mini scanMode=$scanMode rag=$_useRag',
+        'maxTokens=$maxOutputTokens model=gpt-5-mini scanMode=$scanMode rag=$_useRag',
       );
 
       final text = await _callAnalyzeVision(
@@ -379,10 +381,10 @@ Output exactly ONE JSON object.
   /// 기존 LoadingScreen 구조 유지를 위해 Stream<String> 형태는 유지합니다.
   /// 단, Firebase callable은 SSE streaming이 아니므로 최종 결과를 한 번 받아 yield 합니다.
   static Stream<String> analyzeImageStream(
-      File imageFile, {
-        String? promptContext,
-        int maxOutputTokens = 3000,
-      }) async* {
+    File imageFile, {
+    String? promptContext,
+    int maxOutputTokens = 3000,
+  }) async* {
     try {
       final bytes = await imageFile.readAsBytes();
       final base64Image = base64Encode(bytes);
@@ -393,7 +395,7 @@ Output exactly ONE JSON object using the existing app schema.
 - No markdown
 - No code fences
 - No extra text
-- Keep the JSON key order as: isMenu, outputLanguage, place, recommended, fullMenu
+- Keep the JSON key order as: isMenu, userMessage, outputLanguage, selectedFoodStyle, selectedFoodStyleLabel, foodStyleApplied, foodStyleSummary, place, recommended, optional fullMenu
 ''';
 
       final mergedPromptWithProtocol = await _buildPrompt(
@@ -407,7 +409,7 @@ Output exactly ONE JSON object using the existing app schema.
 
       print(
         '🚀 [VisionStream] functions request start ${tReq0.toIso8601String()} '
-            'maxTokens=$maxOutputTokens model=gpt-5.4-mini scanMode=$scanMode rag=$_useRag',
+        'maxTokens=$maxOutputTokens model=gpt-5.4-mini scanMode=$scanMode rag=$_useRag',
       );
 
       final text = await _callAnalyzeVision(

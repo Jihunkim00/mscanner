@@ -24,8 +24,7 @@ class AiResultCopyFormatter {
     List<String> fallbackResponses = const [],
     String fallbackStreamText = '',
     String? Function(Map<String, dynamic> item)? priceLabelBuilder,
-    AiResultCopyFormatterLabels labels =
-    const AiResultCopyFormatterLabels(),
+    AiResultCopyFormatterLabels labels = const AiResultCopyFormatterLabels(),
   }) {
     final rec = _getRecommendedItems(aiJson);
 
@@ -99,26 +98,42 @@ class AiResultCopyFormatter {
   }
 
   static List<Map<String, dynamic>> _getRecommendedItems(
-      Map<String, dynamic>? aiJson,
-      ) {
+    Map<String, dynamic>? aiJson,
+  ) {
     if (aiJson == null) return const [];
 
-    final rec = aiJson['recommended'];
-    if (rec is! List) return const [];
+    final rec = _mapList(aiJson['recommended']);
+    if (rec.isNotEmpty) return _dedupList(rec);
 
-    return rec
-        .whereType<Map>()
-        .map((e) => Map<String, dynamic>.from(e))
-        .toList();
+    final directItems = _mapList(aiJson['items']);
+    if (directItems.isNotEmpty) return _dedupList(directItems);
+
+    final rawFm = aiJson['fullMenu'] ??
+        aiJson['full_menu'] ??
+        aiJson['menu'] ??
+        aiJson['menus'];
+    if (rawFm is! Map) return const [];
+
+    final fm = Map<String, dynamic>.from(rawFm);
+    final nestedItems = fm['items'];
+    final fromNestedList = _mapList(nestedItems);
+    if (fromNestedList.isNotEmpty) return _dedupList(fromNestedList);
+
+    if (nestedItems is Map) {
+      return _dedupList(
+          _categoryMapItems(Map<String, dynamic>.from(nestedItems)));
+    }
+
+    return _dedupList(_categoryMapItems(fm));
   }
 
   static String _menuDisplayName(Map<String, dynamic> item) {
-    final o = (item['nameOriginal'] ?? item['original'] ?? '')
-        .toString()
-        .trim();
-    final t = (item['name'] ?? item['nameTranslated'] ?? item['translated'] ?? '')
-        .toString()
-        .trim();
+    final o =
+        (item['nameOriginal'] ?? item['original'] ?? '').toString().trim();
+    final t =
+        (item['name'] ?? item['nameTranslated'] ?? item['translated'] ?? '')
+            .toString()
+            .trim();
 
     if (o.isNotEmpty && t.isNotEmpty && o.toLowerCase() != t.toLowerCase()) {
       return '$o ($t)';
@@ -139,8 +154,10 @@ class AiResultCopyFormatter {
   static String _extractSummary(Map<String, dynamic>? aiJson) {
     if (aiJson == null) return '';
 
-    final rawFm =
-        aiJson['fullMenu'] ?? aiJson['full_menu'] ?? aiJson['menu'] ?? aiJson['menus'];
+    final rawFm = aiJson['fullMenu'] ??
+        aiJson['full_menu'] ??
+        aiJson['menu'] ??
+        aiJson['menus'];
 
     if (rawFm is Map) {
       return (rawFm['summary'] ?? '').toString().trim();
@@ -160,5 +177,43 @@ class AiResultCopyFormatter {
 
     if (joined.isNotEmpty) return joined;
     return fallbackStreamText.trim();
+  }
+
+  static List<Map<String, dynamic>> _categoryMapItems(
+      Map<String, dynamic> source) {
+    final out = <Map<String, dynamic>>[];
+    for (final k in const [
+      'main',
+      'side',
+      'meal',
+      'drink',
+      'beverage',
+      'unknown'
+    ]) {
+      out.addAll(_mapList(source[k]));
+    }
+    return out;
+  }
+
+  static List<Map<String, dynamic>> _mapList(dynamic source) {
+    if (source is! List) return const [];
+    return source
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
+  }
+
+  static List<Map<String, dynamic>> _dedupList(
+      List<Map<String, dynamic>> items) {
+    final seen = <String>{};
+    final out = <Map<String, dynamic>>[];
+    for (final it in items) {
+      final no = (it['nameOriginal'] ?? '').toString().trim().toLowerCase();
+      final nt = (it['name'] ?? '').toString().trim().toLowerCase();
+      final key = (no.isNotEmpty ? no : nt).trim();
+      final dedupKey = key.isNotEmpty ? key : it.toString();
+      if (seen.add(dedupKey)) out.add(it);
+    }
+    return out;
   }
 }

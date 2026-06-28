@@ -1,4 +1,3 @@
-import 'dart:ui' as ui;
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +9,6 @@ import 'package:mscanner/screens/TutorialCamera_Screen.dart';
 import '/screens/log_service.dart';
 import '/analytics_service.dart';
 
-
 // 언어 정보를 담는 클래스
 class Language {
   final String code;
@@ -19,20 +17,26 @@ class Language {
   Language({required this.code, required this.name});
 }
 
+class _FoodStyleOption {
+  final String id;
+  final String label;
+
+  const _FoodStyleOption({required this.id, required this.label});
+}
+
 class PresetSelectionScreen extends StatefulWidget {
   final bool isFirstLogin;
 
-  const PresetSelectionScreen({Key? key, this.isFirstLogin = false}) : super(key: key);
+  const PresetSelectionScreen({Key? key, this.isFirstLogin = false})
+      : super(key: key);
 
   @override
   _PresetSelectionScreenState createState() => _PresetSelectionScreenState();
 }
 
-
-
 class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
   String _selectedLanguageCode = 'en'; // 기본값을 'en' (English)으로 설정
-  String _selectedFoodStyle = 'AI recommend';
+  String _selectedFoodStyle = SettingsHelper.foodStyleAiRecommend;
   String _selectedMenuNumber = '1-5';
   List<Language> languages = [];
 
@@ -55,7 +59,6 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
       _startInactivityTimer(); // 사용자 반응이 있으면 타이머 리셋
     }
   }
-
 
   // 언어 목록을 Language 객체 리스트로 관리
   List<Language> getLanguages(AppLocalizations localizations) {
@@ -87,16 +90,85 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
     return langs;
   }
 
-  List<String> getFoodStyles(AppLocalizations localizations) {
+  List<_FoodStyleOption> getFoodStyles(AppLocalizations localizations) {
     return [
-      localizations.foodStyleAIRecommend,
-      localizations.foodStyleLowFat,
-      localizations.foodStyleLowSalt,
-      localizations.foodStyleNutFree,
-      localizations.foodStyleSeafood,
-      localizations.foodStyleMeat,
-      localizations.foodStyleMuslim,
+      _FoodStyleOption(
+        id: SettingsHelper.foodStyleAiRecommend,
+        label: localizations.foodStyleAIRecommend,
+      ),
+      _FoodStyleOption(
+        id: SettingsHelper.foodStyleLowFat,
+        label: localizations.foodStyleLowFat,
+      ),
+      _FoodStyleOption(
+        id: SettingsHelper.foodStyleLowSalt,
+        label: localizations.foodStyleLowSalt,
+      ),
+      _FoodStyleOption(
+        id: SettingsHelper.foodStyleNutFree,
+        label: localizations.foodStyleNutFree,
+      ),
+      _FoodStyleOption(
+        id: SettingsHelper.foodStyleSeafood,
+        label: localizations.foodStyleSeafood,
+      ),
+      _FoodStyleOption(
+        id: SettingsHelper.foodStyleMeat,
+        label: localizations.foodStyleMeat,
+      ),
+      _FoodStyleOption(
+        id: SettingsHelper.foodStyleMuslimFriendly,
+        label: localizations.foodStyleMuslim,
+      ),
     ];
+  }
+
+  Map<String, String> _localizedFoodStyleIds(AppLocalizations localizations) {
+    return {
+      localizations.foodStyleAIRecommend.trim():
+          SettingsHelper.foodStyleAiRecommend,
+      localizations.foodStyleLowFat.trim(): SettingsHelper.foodStyleLowFat,
+      localizations.foodStyleLowSalt.trim(): SettingsHelper.foodStyleLowSalt,
+      localizations.foodStyleNutFree.trim(): SettingsHelper.foodStyleNutFree,
+      localizations.foodStyleSeafood.trim(): SettingsHelper.foodStyleSeafood,
+      localizations.foodStyleMeat.trim(): SettingsHelper.foodStyleMeat,
+      localizations.foodStyleMuslim.trim():
+          SettingsHelper.foodStyleMuslimFriendly,
+    };
+  }
+
+  String _normalizeFoodStyleForUi(
+    AppLocalizations localizations,
+    String raw,
+  ) {
+    final trimmed = raw.trim();
+    final localized = _localizedFoodStyleIds(localizations)[trimmed];
+    if (localized != null) return localized;
+    return SettingsHelper.tryNormalizeFoodStyleId(trimmed) ??
+        SettingsHelper.foodStyleAiRecommend;
+  }
+
+  String _foodStyleLabelForId(
+    AppLocalizations localizations,
+    String styleId,
+  ) {
+    switch (SettingsHelper.normalizeFoodStyleId(styleId)) {
+      case SettingsHelper.foodStyleLowFat:
+        return localizations.foodStyleLowFat;
+      case SettingsHelper.foodStyleLowSalt:
+        return localizations.foodStyleLowSalt;
+      case SettingsHelper.foodStyleNutFree:
+        return localizations.foodStyleNutFree;
+      case SettingsHelper.foodStyleSeafood:
+        return localizations.foodStyleSeafood;
+      case SettingsHelper.foodStyleMeat:
+        return localizations.foodStyleMeat;
+      case SettingsHelper.foodStyleMuslimFriendly:
+        return localizations.foodStyleMuslim;
+      case SettingsHelper.foodStyleAiRecommend:
+      default:
+        return localizations.foodStyleAIRecommend;
+    }
   }
 
   List<String> getMenuNumbers(AppLocalizations localizations) {
@@ -107,7 +179,6 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
       localizations.menuNumberAll,
     ];
   }
-
 
   String _normalizeMenuCountHint(AppLocalizations localizations, String raw) {
     final value = raw.trim();
@@ -139,13 +210,13 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
     }
   }
 
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       AnalyticsService.instance.setCurrentScreen('preset_selection_screen');
-      AnalyticsService.instance.logOnboardingStart(source: widget.isFirstLogin ? 'first_login' : 'settings');
+      AnalyticsService.instance.logOnboardingStart(
+          source: widget.isFirstLogin ? 'first_login' : 'settings');
     });
     // 첫 로그인 시 자동 저장 타이머만 설정
     if (widget.isFirstLogin) _startInactivityTimer();
@@ -165,33 +236,37 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
 
 // ... build() 에서도 안전하게 languages 사용 가능
 
-
+  @override
   void dispose() {
     _inactivityTimer?.cancel();
     super.dispose();
   }
 
-
   Future<void> _loadSettings(String systemLocaleCode) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final localizations = AppLocalizations.of(context)!;
     final storedMenuNumber = prefs.getString('selectedMenuNumber') ?? '1-5';
+    final storedFoodStyle =
+        prefs.getString(SettingsHelper.selectedFoodStyleKey) ??
+            SettingsHelper.foodStyleAiRecommend;
 
     setState(() {
-      _selectedLanguageCode = prefs.getString(SettingsHelper.selectedLanguageCodeKey) ??
-          (languages.any((lang) => lang.code == systemLocaleCode)
-              ? systemLocaleCode
-              : 'en');
-      _selectedFoodStyle = prefs.getString(SettingsHelper.selectedFoodStyleKey) ?? 'AI recommend';
-      _selectedMenuNumber = prefs.getString(SettingsHelper.selectedMenuNumberKey) ?? '1-5';
+      _selectedLanguageCode =
+          prefs.getString(SettingsHelper.selectedLanguageCodeKey) ??
+              (languages.any((lang) => lang.code == systemLocaleCode)
+                  ? systemLocaleCode
+                  : 'en');
+      _selectedFoodStyle =
+          _normalizeFoodStyleForUi(localizations, storedFoodStyle);
+      _selectedMenuNumber =
+          _menuCountLabelFromStored(localizations, storedMenuNumber);
     });
   }
+
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
-    final brightness = AdaptiveTheme
-        .of(context)
-        .brightness;
+    final brightness = AdaptiveTheme.of(context).brightness;
 
     final foodStyles = getFoodStyles(localizations);
     final menuNumbers = getMenuNumbers(localizations);
@@ -200,20 +275,19 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
     if (!languages.any((lang) => lang.code == _selectedLanguageCode)) {
       _selectedLanguageCode = languages.isNotEmpty ? languages[0].code : 'en';
     }
-    if (!foodStyles.contains(_selectedFoodStyle)) {
-      _selectedFoodStyle =
-      foodStyles.isNotEmpty ? foodStyles[0] : 'AI recommend';
+    if (!foodStyles.any((style) => style.id == _selectedFoodStyle)) {
+      _selectedFoodStyle = foodStyles.isNotEmpty
+          ? foodStyles[0].id
+          : SettingsHelper.foodStyleAiRecommend;
     }
     if (!menuNumbers.contains(_selectedMenuNumber)) {
       _selectedMenuNumber = menuNumbers.isNotEmpty ? menuNumbers[0] : '1-5';
     }
 
-    final Color backgroundColor = brightness == Brightness.dark
-        ? Colors.black
-        : Color(0xFFEFEFF4);
-    final Color textColor = brightness == Brightness.dark
-        ? Colors.white
-        : Colors.black;
+    final Color backgroundColor =
+        brightness == Brightness.dark ? Colors.black : Color(0xFFEFEFF4);
+    final Color textColor =
+        brightness == Brightness.dark ? Colors.white : Colors.black;
     final TextStyle headingStyle = TextStyle(
       fontSize: 14,
       fontWeight: FontWeight.normal,
@@ -229,8 +303,9 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
     final TextStyle descriptionStyle = TextStyle(
       fontFamily: 'SFProText',
       fontSize: 12,
-      color: brightness == Brightness.dark ? Colors.white24 : Colors
-          .black45, // 다크 모드와 라이트 모드에 따라 다른 색상 적용
+      color: brightness == Brightness.dark
+          ? Colors.white24
+          : Colors.black45, // 다크 모드와 라이트 모드에 따라 다른 색상 적용
     );
 
     return GestureDetector(
@@ -240,22 +315,20 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
         child: Scaffold(
           backgroundColor: backgroundColor,
           appBar: AppBar(
-            backgroundColor: AdaptiveTheme
-                .of(context)
-                .brightness == Brightness.dark
-                ? Colors.black // 다크 모드일 때 검은색
-                : Color(0xFFEFEFF4), // 라이트 모드일 때 기존 본문 배경색
+            backgroundColor:
+                AdaptiveTheme.of(context).brightness == Brightness.dark
+                    ? Colors.black // 다크 모드일 때 검은색
+                    : Color(0xFFEFEFF4), // 라이트 모드일 때 기존 본문 배경색
             elevation: 0, // 그림자 없애기
             leading: CupertinoNavigationBarBackButton(
-              color: AdaptiveTheme
-                  .of(context)
-                  .brightness == Brightness.dark ? Colors.white : Colors.black,
+              color: AdaptiveTheme.of(context).brightness == Brightness.dark
+                  ? Colors.white
+                  : Colors.black,
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
           ),
-
           body: SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(20.0),
@@ -267,8 +340,7 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
                       localizations.targetLanguage,
                       languages,
                       _selectedLanguageCode,
-                          (value) =>
-                          setState(() => _selectedLanguageCode = value),
+                      (value) => setState(() => _selectedLanguageCode = value),
                       itemStyle,
                       headingStyle,
                     ),
@@ -277,8 +349,7 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
                       padding: const EdgeInsets.symmetric(
                           vertical: 10, horizontal: 10.0), // 좌우 패딩 설정
                       child: Text(
-                        localizations?.languagesdescprition ??
-                            'Take a photo of a food item or menu, and select the language for the output',
+                        localizations.languagesdescprition,
                         style: descriptionStyle,
                       ),
                     ),
@@ -287,7 +358,7 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
                       localizations.foodStyle,
                       foodStyles,
                       _selectedFoodStyle,
-                          (value) => setState(() => _selectedFoodStyle = value),
+                      (value) => setState(() => _selectedFoodStyle = value),
                       itemStyle,
                       headingStyle,
                     ),
@@ -296,8 +367,7 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
                       padding: const EdgeInsets.symmetric(
                           vertical: 10, horizontal: 10.0), // 좌우 패딩 설정
                       child: Text(
-                        localizations?.fooddescprition ??
-                            'Please select a diet or meal plan. The AI will provide recommendations and explanations based on your selection',
+                        localizations.fooddescprition,
                         style: descriptionStyle,
                       ),
                     ),
@@ -306,8 +376,7 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
                       localizations.foodMenuMaxNumber,
                       menuNumbers,
                       _selectedMenuNumber,
-                          (value) =>
-                          setState(() => _selectedMenuNumber = value),
+                      (value) => setState(() => _selectedMenuNumber = value),
                       itemStyle,
                       headingStyle,
                     ),
@@ -316,8 +385,7 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
                       padding: const EdgeInsets.symmetric(
                           vertical: 10, horizontal: 10.0), // 좌우 패딩 설정
                       child: Text(
-                        localizations?.menudescribe ??
-                            '화면에 표시될 음식 메뉴의 개수를 선택해 주세요. 선택한 숫자가 적을수록 설명이 자세해집니다',
+                        localizations.menudescribe,
                         // 설명 텍스트, 원하는 내용으로 수정하세요
                         style: descriptionStyle,
                       ),
@@ -326,16 +394,14 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
                     Center(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          foregroundColor: Theme
-                              .of(context)
-                              .brightness == Brightness.dark
-                              ? Colors.grey
-                              : Colors.white,
-                          backgroundColor: Theme
-                              .of(context)
-                              .brightness == Brightness.dark
-                              ? Colors.grey[800]
-                              : Colors.grey,
+                          foregroundColor:
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey
+                                  : Colors.white,
+                          backgroundColor:
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey[800]
+                                  : Colors.grey,
                           minimumSize: Size(40, 40),
                           textStyle: TextStyle(
                             fontFamily: 'SFPro',
@@ -344,8 +410,6 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
                         ),
                         child: Text(localizations.saveAndContinue),
                         onPressed: _isSaving ? null : _savePresetAndNavigate,
-
-
                       ),
                     ),
                   ],
@@ -356,9 +420,12 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
         ));
   }
 
-  Widget _buildDropdown(String title, List<dynamic> options,
+  Widget _buildDropdown(
+      String title,
+      List<dynamic> options,
       String selectedValue,
-      ValueChanged<String> onChanged, TextStyle itemStyle,
+      ValueChanged<String> onChanged,
+      TextStyle itemStyle,
       TextStyle headingStyle) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -369,10 +436,9 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
           height: 60, // 드롭다운 높이를 조절하여 스크롤 가능하게 설정
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8.0),
-            color: AdaptiveTheme
-                .of(context)
-                .brightness == Brightness.dark ? Colors.grey[900] : Colors
-                .white,
+            color: AdaptiveTheme.of(context).brightness == Brightness.dark
+                ? Colors.grey[900]
+                : Colors.white,
           ),
           child: Material(
             type: MaterialType.transparency,
@@ -389,6 +455,11 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
                     value: option.code,
                     child: Text(option.name, style: itemStyle),
                   );
+                } else if (option is _FoodStyleOption) {
+                  return DropdownMenuItem<String>(
+                    value: option.id,
+                    child: Text(option.label, style: itemStyle),
+                  );
                 } else if (option is String) {
                   return DropdownMenuItem<String>(
                     value: option,
@@ -403,19 +474,19 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
               }).toList(),
               decoration: InputDecoration(
                 filled: true,
-                fillColor: AdaptiveTheme
-                    .of(context)
-                    .brightness == Brightness.dark ? Colors.grey[900] : Colors
-                    .white,
+                fillColor:
+                    AdaptiveTheme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[900]
+                        : Colors.white,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
                   borderSide: BorderSide.none,
                 ),
               ),
-              dropdownColor: AdaptiveTheme
-                  .of(context)
-                  .brightness == Brightness.dark ? Colors.grey[900] : Colors
-                  .white,
+              dropdownColor:
+                  AdaptiveTheme.of(context).brightness == Brightness.dark
+                      ? Colors.grey[900]
+                      : Colors.white,
               iconEnabledColor: itemStyle.color,
             ),
           ),
@@ -433,11 +504,14 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
     final prefs = await SharedPreferences.getInstance();
     final localizations = AppLocalizations.of(context)!;
     final normalizedMenuCount =
-    _normalizeMenuCountHint(localizations, _selectedMenuNumber);
+        _normalizeMenuCountHint(localizations, _selectedMenuNumber);
 
-    await prefs.setString(SettingsHelper.selectedLanguageCodeKey, _selectedLanguageCode);
-    await prefs.setString(SettingsHelper.selectedFoodStyleKey, _selectedFoodStyle);
-    await prefs.setString(SettingsHelper.selectedMenuNumberKey, normalizedMenuCount);
+    await prefs.setString(
+        SettingsHelper.selectedLanguageCodeKey, _selectedLanguageCode);
+    await prefs.setString(
+        SettingsHelper.selectedFoodStyleKey, _selectedFoodStyle);
+    await prefs.setString(
+        SettingsHelper.selectedMenuNumberKey, normalizedMenuCount);
 
     print('Saved Language Code: $_selectedLanguageCode');
     print('Saved Food Style: $_selectedFoodStyle');
@@ -454,9 +528,7 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
           _selectedLanguageCode,
           _selectedFoodStyle,
           _selectedMenuNumber,
-        ]
-            .where((e) => e.isNotEmpty)
-            .length;
+        ].where((e) => e.isNotEmpty).length;
 
         await LogService().logPresetSave(
           fieldsCount: count, // 예: 3
@@ -467,7 +539,9 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
       }
     }
 
-    final preset = _createPresetDescription();
+    final preset = _createPresetDescription(
+      selectedMenuNumber: normalizedMenuCount,
+    );
     await SettingsHelper.saveCustomPresetDescription(preset);
     _isPresetSaved = true;
 
@@ -511,12 +585,14 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
     }
   }
 
-
-  String _createPresetDescription() {
+  String _createPresetDescription({String? selectedMenuNumber}) {
+    final localizations = AppLocalizations.of(context)!;
     return SettingsHelper.buildPresetDescription(
       selectedLanguageCode: _selectedLanguageCode,
       selectedFoodStyle: _selectedFoodStyle,
-      selectedMenuNumber: _selectedMenuNumber,
+      selectedMenuNumber: selectedMenuNumber ?? _selectedMenuNumber,
+      selectedFoodStyleLabel:
+          _foodStyleLabelForId(localizations, _selectedFoodStyle),
     );
   }
 }
