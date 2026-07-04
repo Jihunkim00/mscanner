@@ -6,6 +6,8 @@ class SettingsHelper {
   static const String _presetKey = 'preset';
   static const String _engineKey = 'selected_engine';
   static const String _customPresetDescriptionKey = 'custom_preset_description';
+  static const String presetKey = _presetKey;
+  static const String customPresetDescriptionKey = _customPresetDescriptionKey;
   static const String selectedLanguageCodeKey = 'selectedLanguageCode';
   static const String selectedFoodStyleKey = 'selectedFoodStyle';
   static const String selectedMenuNumberKey = 'selectedMenuNumber';
@@ -161,6 +163,55 @@ class SettingsHelper {
       default:
         return '1-5';
     }
+  }
+
+  static bool hasSavedPresetSettings(SharedPreferences prefs) {
+    return prefs.containsKey(_presetKey) ||
+        prefs.containsKey(_customPresetDescriptionKey) ||
+        prefs.containsKey(selectedLanguageCodeKey) ||
+        prefs.containsKey(selectedFoodStyleKey) ||
+        prefs.containsKey(selectedMenuNumberKey);
+  }
+
+  static String resolveSupportedLanguageCode({
+    required String systemLocaleCode,
+    required Iterable<String> supportedLanguageCodes,
+    String? storedLanguageCode,
+    String fallbackLanguageCode = 'en',
+  }) {
+    final supported = supportedLanguageCodes.toSet();
+
+    String normalize(String code) => code.trim().replaceAll('_', '-');
+
+    String? matchSupported(String? raw) {
+      if (raw == null) return null;
+
+      final normalized = normalize(raw);
+      if (normalized.isEmpty) return null;
+      if (supported.contains(normalized)) return normalized;
+
+      final lowerNormalized = normalized.toLowerCase();
+      for (final code in supported) {
+        if (code.toLowerCase() == lowerNormalized) return code;
+      }
+
+      final languageOnly = normalized.split('-').first;
+      if (languageOnly.isEmpty) return null;
+
+      for (final code in supported) {
+        if (code.toLowerCase() == languageOnly.toLowerCase()) return code;
+      }
+
+      return null;
+    }
+
+    return matchSupported(storedLanguageCode) ??
+        matchSupported(systemLocaleCode) ??
+        (supported.contains(fallbackLanguageCode)
+            ? fallbackLanguageCode
+            : supported.isNotEmpty
+                ? supported.first
+                : fallbackLanguageCode);
   }
 
   static String _resolveFoodStyleLabel({

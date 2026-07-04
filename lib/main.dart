@@ -29,9 +29,8 @@ import '/screens/log_service.dart';
 import 'package:provider/provider.dart';
 import 'ad_remove_provider.dart';
 import 'analytics_service.dart';
-import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';  // 이 줄 추가 map
-import 'package:package_info_plus/package_info_plus.dart';
-import 'helpers/settings_helper.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart'; // 이 줄 추가 map
+import 'helpers/preset_update_review_service.dart';
 
 enum GuestWelcomeAction {
   continueGuest,
@@ -43,15 +42,11 @@ InterstitialAd? globalInterstitialAd;
 
 // 전면 광고 사용 여부 설정
 bool enableInterstitialAds = false; // true로 바꾸면 다시 사용됨
-bool _hasScheduledPresetRefreshForSession = false;
-const String _lastProcessedPresetVersionKey = 'last_processed_preset_app_version';
-
 
 // 광고 로드 함수 정의
 Future<void> loadInterstitialAd({bool nonPersonalized = false}) async {
-  AdRequest request = nonPersonalized
-      ? AdRequest(extras: {'npa': '1'})
-      : AdRequest();
+  AdRequest request =
+      nonPersonalized ? AdRequest(extras: {'npa': '1'}) : AdRequest();
 
   // 플랫폼에 따른 광고 유닛 ID 설정
   String adUnitId;
@@ -70,19 +65,19 @@ Future<void> loadInterstitialAd({bool nonPersonalized = false}) async {
         globalInterstitialAd = ad;
         globalInterstitialAd?.fullScreenContentCallback =
             FullScreenContentCallback(
-              onAdDismissedFullScreenContent: (ad) {
-                print("전면 광고 닫힘");
-                ad.dispose();
-                globalInterstitialAd = null;
-                loadInterstitialAd(nonPersonalized: nonPersonalized);
-              },
-              onAdFailedToShowFullScreenContent: (ad, err) {
-                print("전면 광고 표시 실패: $err");
-                ad.dispose();
-                globalInterstitialAd = null;
-                loadInterstitialAd(nonPersonalized: nonPersonalized);
-              },
-            );
+          onAdDismissedFullScreenContent: (ad) {
+            print("전면 광고 닫힘");
+            ad.dispose();
+            globalInterstitialAd = null;
+            loadInterstitialAd(nonPersonalized: nonPersonalized);
+          },
+          onAdFailedToShowFullScreenContent: (ad, err) {
+            print("전면 광고 표시 실패: $err");
+            ad.dispose();
+            globalInterstitialAd = null;
+            loadInterstitialAd(nonPersonalized: nonPersonalized);
+          },
+        );
       },
       onAdFailedToLoad: (err) {
         print("전면 광고 로드 실패: $err");
@@ -94,8 +89,6 @@ Future<void> loadInterstitialAd({bool nonPersonalized = false}) async {
     ),
   );
 }
-
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -125,7 +118,6 @@ void main() async {
 
 Future<void> _initializeAfterLaunch() async {
   try {
-    _schedulePresetRefreshIfNeeded();
     await AnalyticsService.instance.init();
     debugPrint('[Analytics] init success');
     await AnalyticsService.instance.logAppOpen();
@@ -143,7 +135,7 @@ Future<void> _initializeAfterLaunch() async {
     bool nonPersonalized = false;
     if (Platform.isIOS) {
       final status =
-      await AppTrackingTransparency.requestTrackingAuthorization();
+          await AppTrackingTransparency.requestTrackingAuthorization();
       if (status != TrackingStatus.authorized) {
         nonPersonalized = true;
       }
@@ -167,51 +159,10 @@ Future<void> _initializeAfterLaunch() async {
         }
       }
     });
-
   } catch (e) {
     debugPrint("초기화 중 오류 발생: $e");
   }
 }
-
-void _schedulePresetRefreshIfNeeded() {
-  if (_hasScheduledPresetRefreshForSession) {
-    debugPrint('[PresetBootstrap] Skipping duplicate schedule in this session.');
-    return;
-  }
-
-  _hasScheduledPresetRefreshForSession = true;
-  unawaited(_refreshPresetAfterAppUpdate());
-}
-
-Future<void> _refreshPresetAfterAppUpdate() async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final packageInfo = await PackageInfo.fromPlatform();
-    final currentVersion = packageInfo.version;
-    final lastProcessedVersion = prefs.getString(_lastProcessedPresetVersionKey);
-
-    if (lastProcessedVersion == currentVersion) {
-      debugPrint('[PresetBootstrap] Presets already refreshed for version $currentVersion.');
-      return;
-    }
-
-    debugPrint(
-      '[PresetBootstrap] App update detected. Refreshing presets for version '
-          '$currentVersion (last: ${lastProcessedVersion ?? 'none'}).',
-    );
-
-    await SettingsHelper.refreshCustomPresetDescriptionFromSavedSettings();
-    await prefs.setString(_lastProcessedPresetVersionKey, currentVersion);
-
-    debugPrint('[PresetBootstrap] Presets refreshed successfully for version $currentVersion.');
-  } catch (e) {
-    debugPrint('[PresetBootstrap] Failed to refresh presets after update: $e');
-  }
-}
-
-
-
-
 
 class MyApp extends StatelessWidget {
   final AdaptiveThemeMode savedThemeMode;
@@ -252,7 +203,7 @@ class MyApp extends StatelessWidget {
                 builder: (context) {
                   return ResultScreen(
                     image: args.image,
-                    images: args.images,            // if you stored it in your args
+                    images: args.images, // if you stored it in your args
                     responses: args.responses,
                     position: args.position,
                     captureTime: args.captureTime,
@@ -268,7 +219,8 @@ class MyApp extends StatelessWidget {
               return MaterialPageRoute(
                 builder: (context) => Scaffold(
                   appBar: AppBar(title: Text('Error')),
-                  body: Center(child: Text('Invalid arguments for ResultScreen')),
+                  body:
+                      Center(child: Text('Invalid arguments for ResultScreen')),
                 ),
               );
             }
@@ -278,7 +230,6 @@ class MyApp extends StatelessWidget {
         routes: {
           '/login': (context) => LoginScreen(),
           '/home': (context) => HomeScreen(),
-
         },
       ),
     );
@@ -288,10 +239,55 @@ class MyApp extends StatelessWidget {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       unawaited(AnalyticsService.instance.setUserId(user.uid));
-      return HomeScreen();
+      return _PresetUpdateReviewGate(child: HomeScreen());
     } else {
       return IntroductionScreenPage();
     }
+  }
+}
+
+class _PresetUpdateReviewGate extends StatefulWidget {
+  final Widget child;
+
+  const _PresetUpdateReviewGate({required this.child});
+
+  @override
+  State<_PresetUpdateReviewGate> createState() =>
+      _PresetUpdateReviewGateState();
+}
+
+class _PresetUpdateReviewGateState extends State<_PresetUpdateReviewGate> {
+  late final Future<PresetUpdateReviewDecision> _decisionFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _decisionFuture = PresetUpdateReviewService.evaluateLaunch();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<PresetUpdateReviewDecision>(
+      future: _decisionFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Scaffold(body: SizedBox.shrink());
+        }
+
+        if (snapshot.hasError) {
+          debugPrint(
+              '[PresetUpdateReview] launch check failed: ${snapshot.error}');
+          return widget.child;
+        }
+
+        final decision = snapshot.data;
+        if (decision?.shouldShowReview == true) {
+          return PresetSelectionScreen(isUpdateReview: true);
+        }
+
+        return widget.child;
+      },
+    );
   }
 }
 
@@ -383,7 +379,6 @@ class _IntroductionScreenPageState extends State<IntroductionScreenPage> {
                       ),
                     ),
                     const SizedBox(height: 22),
-
                     SizedBox(
                       width: double.infinity,
                       height: 200,
@@ -402,9 +397,7 @@ class _IntroductionScreenPageState extends State<IntroductionScreenPage> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 20),
-
                     Text(
                       localizations?.guestLoginTitle ?? 'Welcome, Explorer!',
                       textAlign: TextAlign.center,
@@ -415,9 +408,7 @@ class _IntroductionScreenPageState extends State<IntroductionScreenPage> {
                         color: Colors.black,
                       ),
                     ),
-
                     const SizedBox(height: 14),
-
                     Text(
                       localizations?.guestLoginContent ??
                           'In Guest Mode, you can scan food menus to get personalized recommendations, but you won’t be able to save your favorites or view history across devices.',
@@ -429,9 +420,7 @@ class _IntroductionScreenPageState extends State<IntroductionScreenPage> {
                         color: Color(0xFF222222),
                       ),
                     ),
-
                     const SizedBox(height: 28),
-
                     SizedBox(
                       width: double.infinity,
                       height: 56,
@@ -478,9 +467,7 @@ class _IntroductionScreenPageState extends State<IntroductionScreenPage> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 14),
-
                     TextButton(
                       onPressed: () {
                         Navigator.pop(
@@ -509,8 +496,8 @@ class _IntroductionScreenPageState extends State<IntroductionScreenPage> {
   }
 
   void _navigateAfterSignIn(User user) {
-    bool isFirstLogin = user.metadata.creationTime ==
-        user.metadata.lastSignInTime;
+    bool isFirstLogin =
+        user.metadata.creationTime == user.metadata.lastSignInTime;
 
     if (isFirstLogin) {
       Navigator.pushReplacement(
@@ -526,16 +513,11 @@ class _IntroductionScreenPageState extends State<IntroductionScreenPage> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
-    final mediaQuery = MediaQuery
-        .of(context)
-        .size;
+    final mediaQuery = MediaQuery.of(context).size;
     final localizations = AppLocalizations.of(context);
-    final isDarkMode = AdaptiveTheme
-        .of(context)
-        .mode == AdaptiveThemeMode.dark;
+    final isDarkMode = AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark;
 
     return Scaffold(
       body: Stack(
@@ -565,9 +547,8 @@ class _IntroductionScreenPageState extends State<IntroductionScreenPage> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Semantics(
-                  label: '${localizations?.introductionTitle1 ??
-                      'Introduction'} ${localizations?.languagesdescprition1 ??
-                      ''}',
+                  label:
+                      '${localizations?.introductionTitle1 ?? 'Introduction'} ${localizations?.languagesdescprition1 ?? ''}',
                   child: RichText(
                     textAlign: TextAlign.center,
                     text: TextSpan(

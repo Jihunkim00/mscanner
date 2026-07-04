@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '/screens/Home_Screen.dart';
+import '/screens/PresetSelectionScreen.dart';
 import '/screens/SignUp_Screen.dart';
 import '/screens/ChangePassword_Screen.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
@@ -16,6 +17,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:crypto/crypto.dart';
 import '/analytics_service.dart';
+import '../helpers/preset_update_review_service.dart';
 
 enum GuestWelcomeAction {
   continueGuest,
@@ -47,14 +49,13 @@ class _LoginScreenState extends State<LoginScreen> {
     await _googleSignIn.initialize(
       // ✅ Android에서는 반드시 Web Client ID 지정해야 함
       serverClientId:
-      '522189466074-ijitmvohfhromjc32kkjs6khbprasp8e.apps.googleusercontent.com',
+          '522189466074-ijitmvohfhromjc32kkjs6khbprasp8e.apps.googleusercontent.com',
       // ✅ iOS에서는 clientId 지정 (Firebase Console iOS OAuth ID)
       clientId: Platform.isIOS
           ? '522189466074-qjculmgnptdeorlv86rh9e0uulp934rs.apps.googleusercontent.com'
           : null,
     );
   }
-
 
   Future<User?> _signInWithGoogle() async {
     await LogService().logLoginAttempt(method: 'google');
@@ -68,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final credential = GoogleAuthProvider.credential(idToken: idToken);
       final userCredential =
-      await FirebaseAuth.instance.signInWithCredential(credential);
+          await FirebaseAuth.instance.signInWithCredential(credential);
 
       await LogService().logLoginSuccess(method: 'google');
       await AnalyticsService.instance.setUserId(userCredential.user?.uid);
@@ -123,7 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       final userCredential =
-      await FirebaseAuth.instance.signInWithCredential(oauth);
+          await FirebaseAuth.instance.signInWithCredential(oauth);
       await LogService().logLoginSuccess(method: 'apple');
       await AnalyticsService.instance.setUserId(userCredential.user?.uid);
       return userCredential.user;
@@ -241,7 +242,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 22),
-
                     SizedBox(
                       width: double.infinity,
                       height: 200,
@@ -260,9 +260,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 20),
-
                     Text(
                       localizations?.guestLoginTitle ?? 'Welcome, Explorer!',
                       textAlign: TextAlign.center,
@@ -273,9 +271,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         color: Colors.black,
                       ),
                     ),
-
                     const SizedBox(height: 14),
-
                     Text(
                       localizations?.guestLoginContent ??
                           'In Guest Mode, you can scan food menus to get personalized recommendations, but you won’t be able to save your favorites or view history across devices.',
@@ -287,9 +283,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         color: Color(0xFF222222),
                       ),
                     ),
-
                     const SizedBox(height: 28),
-
                     SizedBox(
                       width: double.infinity,
                       height: 56,
@@ -336,9 +330,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 14),
-
                     TextButton(
                       onPressed: () {
                         Navigator.pop(
@@ -369,9 +361,17 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _navigateAfterSignIn(User? user) async {
     if (user == null) return;
 
+    final presetReviewDecision =
+        await PresetUpdateReviewService.evaluateLaunch();
+    if (!mounted) return;
+
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => HomeScreen()),
+      MaterialPageRoute(
+        builder: (context) => presetReviewDecision.shouldShowReview
+            ? PresetSelectionScreen(isUpdateReview: true)
+            : HomeScreen(),
+      ),
     );
   }
 
@@ -382,9 +382,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
     // UI theme tokens (스크린샷 스타일)
     const primaryOrange = Color(0xFFD8753B);
-    final bgColor = isDarkMode ? const Color(0xFF0B0B0B) : const Color(0xFFEFEFF4);
+    final bgColor =
+        isDarkMode ? const Color(0xFF0B0B0B) : const Color(0xFFEFEFF4);
     final cardColor = isDarkMode ? const Color(0xFF141414) : Colors.white;
-    final fieldFill = isDarkMode ? const Color(0xFF1F1F1F) : const Color(0xFFF2F4F7);
+    final fieldFill =
+        isDarkMode ? const Color(0xFF1F1F1F) : const Color(0xFFF2F4F7);
     final dividerColor = isDarkMode ? Colors.white24 : Colors.black12;
     final double appleScale = isDarkMode ? 1.18 : 1.10;
     final googleIconAsset = isDarkMode
@@ -411,9 +413,11 @@ class _LoginScreenState extends State<LoginScreen> {
           borderSide: BorderSide.none,
           borderRadius: BorderRadius.circular(14),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
       );
     }
+
     Widget _authIcon(String asset, {double box = 22, double scale = 1.0}) {
       return SizedBox(
         width: box,
@@ -470,6 +474,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     }
+
     return Scaffold(
       backgroundColor: bgColor,
       body: SafeArea(
@@ -487,7 +492,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(26),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(isDarkMode ? 0.45 : 0.18),
+                          color: Colors.black
+                              .withOpacity(isDarkMode ? 0.45 : 0.18),
                           blurRadius: 24,
                           offset: const Offset(0, 12),
                         ),
@@ -529,7 +535,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   color: Colors.black.withOpacity(0.25),
                                   shape: const CircleBorder(),
                                   child: IconButton(
-                                    icon: const Icon(Icons.close, color: Colors.white),
+                                    icon: const Icon(Icons.close,
+                                        color: Colors.white),
                                     onPressed: () {
                                       if (Navigator.of(context).canPop()) {
                                         Navigator.of(context).pop();
@@ -546,7 +553,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 Text(
-                                  localizations?.login_welcomeBack ?? 'Welcome back',
+                                  localizations?.login_welcomeBack ??
+                                      'Welcome back',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontFamily: 'SFPro',
@@ -559,7 +567,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 const SizedBox(height: 10),
                                 Text(
-                                  localizations?.login_subtitle ?? 'Discover the world through its flavors with AI intelligence. Your culinary journey continues here.',
+                                  localizations?.login_subtitle ??
+                                      'Discover the world through its flavors with AI intelligence. Your culinary journey continues here.',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontFamily: 'SFPro',
@@ -580,12 +589,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                   textInputAction: TextInputAction.next,
                                   style: TextStyle(
                                     fontFamily: 'SFPro',
-                                    color: isDarkMode ? Colors.white : Colors.black,
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : Colors.black,
                                   ),
                                   decoration: _fieldDecoration(
-                                    label: localizations?.login_emailLabel ?? 'Email Address',
+                                    label: localizations?.login_emailLabel ??
+                                        'Email Address',
                                     icon: Icons.mail_outline,
-                                    hint: localizations?.login_emailHint ?? 'name@example.com',
+                                    hint: localizations?.login_emailHint ??
+                                        'name@example.com',
                                   ),
                                 ),
                                 const SizedBox(height: 12),
@@ -597,10 +610,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                   textInputAction: TextInputAction.done,
                                   style: TextStyle(
                                     fontFamily: 'SFPro',
-                                    color: isDarkMode ? Colors.white : Colors.black,
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : Colors.black,
                                   ),
                                   decoration: _fieldDecoration(
-                                    label: localizations?.password ?? 'Password',
+                                    label:
+                                        localizations?.password ?? 'Password',
                                     icon: Icons.lock_outline,
                                   ),
                                 ),
@@ -633,7 +649,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
                                 if (_errorMessage != null)
                                   Padding(
-                                    padding: const EdgeInsets.only(bottom: 10.0),
+                                    padding:
+                                        const EdgeInsets.only(bottom: 10.0),
                                     child: Text(
                                       _errorMessage!,
                                       textAlign: TextAlign.center,
@@ -674,10 +691,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                         child: Divider(
                                             color: dividerColor, height: 1)),
                                     Padding(
-                                      padding:
-                                      const EdgeInsets.symmetric(horizontal: 10),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10),
                                       child: Text(
-                                        localizations?.login_orContinueWith ?? 'OR CONTINUE WITH',
+                                        localizations?.login_orContinueWith ??
+                                            'OR CONTINUE WITH',
                                         style: TextStyle(
                                           fontFamily: 'SFPro',
                                           fontSize: 12,
@@ -702,10 +720,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                     Expanded(
                                       child: _socialLoginButton(
                                         onPressed: () async {
-                                          User? user = await _signInWithGoogle();
-                                          if (user != null) _navigateAfterSignIn(user);
+                                          User? user =
+                                              await _signInWithGoogle();
+                                          if (user != null)
+                                            _navigateAfterSignIn(user);
                                         },
-                                        label: localizations?.login_google ?? 'Google Sign In',
+                                        label: localizations?.login_google ??
+                                            'Google Sign In',
                                         iconAsset: googleIconAsset,
                                         iconScale: 1.0,
                                         isDarkMode: isDarkMode,
@@ -717,11 +738,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                       child: _socialLoginButton(
                                         onPressed: Platform.isIOS
                                             ? () async {
-                                          User? user = await _signInWithApple();
-                                          if (user != null) _navigateAfterSignIn(user);
-                                        }
+                                                User? user =
+                                                    await _signInWithApple();
+                                                if (user != null)
+                                                  _navigateAfterSignIn(user);
+                                              }
                                             : null,
-                                        label: localizations?.login_apple ?? 'Apple Sign In',
+                                        label: localizations?.login_apple ??
+                                            'Apple Sign In',
                                         iconAsset: appleIconAsset,
                                         iconScale: appleScale,
                                         isDarkMode: isDarkMode,
@@ -757,16 +781,18 @@ class _LoginScreenState extends State<LoginScreen> {
                                 Column(
                                   children: [
                                     CustomLinkLauncher(
-                                      url: 'https://mscanner.net/privacy-policy/',
+                                      url:
+                                          'https://mscanner.net/privacy-policy/',
                                       title: localizations?.privacyPolicy ??
                                           'Privacy Policy',
                                       centerAlign: true,
                                     ),
                                     CustomLinkLauncher(
                                       url:
-                                      'https://mscanner.net/terms-conditions/',
-                                      title: localizations?.termsAndConditions ??
-                                          'Terms & Conditions',
+                                          'https://mscanner.net/terms-conditions/',
+                                      title:
+                                          localizations?.termsAndConditions ??
+                                              'Terms & Conditions',
                                       centerAlign: true,
                                     ),
                                   ],
@@ -786,7 +812,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        localizations?.login_noAccount ?? "Don't have an account?",
+                        localizations?.login_noAccount ??
+                            "Don't have an account?",
                         style: TextStyle(
                           fontFamily: 'SFPro',
                           color: isDarkMode

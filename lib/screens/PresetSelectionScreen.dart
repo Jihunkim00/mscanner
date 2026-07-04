@@ -8,6 +8,7 @@ import 'package:adaptive_theme/adaptive_theme.dart'; // Import for adaptive them
 import 'package:mscanner/screens/TutorialCamera_Screen.dart';
 import '/screens/log_service.dart';
 import '/analytics_service.dart';
+import '../helpers/preset_update_review_service.dart';
 
 // 언어 정보를 담는 클래스
 class Language {
@@ -26,9 +27,13 @@ class _FoodStyleOption {
 
 class PresetSelectionScreen extends StatefulWidget {
   final bool isFirstLogin;
+  final bool isUpdateReview;
 
-  const PresetSelectionScreen({Key? key, this.isFirstLogin = false})
-      : super(key: key);
+  const PresetSelectionScreen({
+    super.key,
+    this.isFirstLogin = false,
+    this.isUpdateReview = false,
+  });
 
   @override
   _PresetSelectionScreenState createState() => _PresetSelectionScreenState();
@@ -216,7 +221,11 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       AnalyticsService.instance.setCurrentScreen('preset_selection_screen');
       AnalyticsService.instance.logOnboardingStart(
-          source: widget.isFirstLogin ? 'first_login' : 'settings');
+          source: widget.isFirstLogin
+              ? 'first_login'
+              : widget.isUpdateReview
+                  ? 'update_review'
+                  : 'settings');
     });
     // 첫 로그인 시 자동 저장 타이머만 설정
     if (widget.isFirstLogin) _startInactivityTimer();
@@ -243,19 +252,23 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
   }
 
   Future<void> _loadSettings(String systemLocaleCode) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
     final localizations = AppLocalizations.of(context)!;
+    final supportedLanguageCodes = languages.map((lang) => lang.code);
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     final storedMenuNumber = prefs.getString('selectedMenuNumber') ?? '1-5';
     final storedFoodStyle =
         prefs.getString(SettingsHelper.selectedFoodStyleKey) ??
             SettingsHelper.foodStyleAiRecommend;
+    final storedLanguage =
+        prefs.getString(SettingsHelper.selectedLanguageCodeKey);
 
+    if (!mounted) return;
     setState(() {
-      _selectedLanguageCode =
-          prefs.getString(SettingsHelper.selectedLanguageCodeKey) ??
-              (languages.any((lang) => lang.code == systemLocaleCode)
-                  ? systemLocaleCode
-                  : 'en');
+      _selectedLanguageCode = SettingsHelper.resolveSupportedLanguageCode(
+        storedLanguageCode: storedLanguage,
+        systemLocaleCode: systemLocaleCode,
+        supportedLanguageCodes: supportedLanguageCodes,
+      );
       _selectedFoodStyle =
           _normalizeFoodStyleForUi(localizations, storedFoodStyle);
       _selectedMenuNumber =
@@ -325,7 +338,11 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
                   ? Colors.white
                   : Colors.black,
               onPressed: () {
-                Navigator.of(context).pop();
+                if (widget.isUpdateReview) {
+                  Navigator.pushReplacementNamed(context, '/home');
+                } else {
+                  Navigator.of(context).pop();
+                }
               },
             ),
           ),
@@ -519,7 +536,11 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
 
     // ✅ 첫 로그인(튜토리얼) 아닐 때만 로그
     await AnalyticsService.instance.logOnboardingComplete(
-      path: widget.isFirstLogin ? 'first_login' : 'settings',
+      path: widget.isFirstLogin
+          ? 'first_login'
+          : widget.isUpdateReview
+              ? 'update_review'
+              : 'settings',
     );
 
     if (!widget.isFirstLogin) {
@@ -543,6 +564,9 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
       selectedMenuNumber: normalizedMenuCount,
     );
     await SettingsHelper.saveCustomPresetDescription(preset);
+    if (widget.isUpdateReview) {
+      await PresetUpdateReviewService.markReviewComplete(prefs: prefs);
+    }
     _isPresetSaved = true;
 
     // 확인을 위해 바로 값을 가져와서 출력
