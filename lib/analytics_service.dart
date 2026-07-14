@@ -16,7 +16,7 @@ class AnalyticsService {
   bool _initialized = false;
   String _appVersion = 'unknown';
   String _buildNumber = 'unknown';
-  String _platform = Platform.isIOS ? 'ios' : 'android';
+  final String _platform = Platform.isIOS ? 'ios' : 'android';
   String _premiumStatus = 'free';
 
   Future<void> init() async {
@@ -50,7 +50,8 @@ class AnalyticsService {
     final merged = <String, Object?>{..._baseParams(), ...params}
       ..removeWhere((key, value) => value == null);
 
-    final normalized = merged.map((key, value) => MapEntry(key, value as Object));
+    final normalized =
+        merged.map((key, value) => MapEntry(key, value as Object));
 
     assert(() {
       if (name.length > 40) {
@@ -70,7 +71,8 @@ class AnalyticsService {
     await analytics.logEvent(name: name, parameters: normalized);
 
     if (alsoRecordCrashlyticsBreadcrumb) {
-      FirebaseCrashlytics.instance.log('analytics:$name:${normalized.toString()}');
+      FirebaseCrashlytics.instance
+          .log('analytics:$name:${normalized.toString()}');
     }
   }
 
@@ -80,7 +82,8 @@ class AnalyticsService {
   }
 
   Future<void> setCurrentScreen(String screenName) async {
-    await analytics.logScreenView(screenName: screenName, screenClass: screenName);
+    await analytics.logScreenView(
+        screenName: screenName, screenClass: screenName);
   }
 
   Future<void> setPremiumStatus(String status) async {
@@ -173,8 +176,10 @@ class AnalyticsService {
         'error_msg': errorMsg,
       });
 
-  Future<void> logPurchaseRestoreStarted() => logEvent('purchase_restore_started');
-  Future<void> logPurchaseRestoreSuccess() => logEvent('purchase_restore_success');
+  Future<void> logPurchaseRestoreStarted() =>
+      logEvent('purchase_restore_started');
+  Future<void> logPurchaseRestoreSuccess() =>
+      logEvent('purchase_restore_success');
   Future<void> logPurchaseRestoreEmpty() => logEvent('purchase_restore_empty');
 
   Future<void> logExchangeRateViewed({String source = 'result'}) =>

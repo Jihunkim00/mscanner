@@ -9,12 +9,12 @@ class NutritionChart extends StatelessWidget {
   final double fat;
 
   const NutritionChart({
-    Key? key,
+    super.key,
     this.calories,
     this.protein = 0,
     this.carbs = 0,
     this.fat = 0,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

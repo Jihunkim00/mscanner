@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
-import 'package:mscanner/screens/Result_Screen.dart';
+import 'package:mscanner/screens/result_screen.dart';
 import '../main.dart';
 import 'vision_service.dart';
 import 'package:mscanner/widgets/tutorial_indicator.dart';
@@ -14,12 +14,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mscanner/screens/geohash_service.dart';
 import '/screens/log_service.dart';
 import '/analytics_service.dart';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import '/screens/image_merge_service.dart';
 import 'package:mscanner/utils/async_request_gate.dart';
-
 
 /// ✅ LoadingScreen에서도 멀티 스캔 이미지를 1장으로 병합/압축해서 전송
 Future<Uint8List> mergeImages(List<Uint8List> bytesList) async {
@@ -32,31 +30,27 @@ class _PreparedVisionInput {
   _PreparedVisionInput(this.visionFile, this.promptContext);
 }
 
-
 class LoadingScreen extends StatefulWidget {
   final File? image;
-  final List<File>? images;     // 새로 추가한 멀티 이미지 리스트
+  final List<File>? images; // 새로 추가한 멀티 이미지 리스트
   final DateTime captureTime;
   final Position? position;
   final bool isTutorial;
   final int maxOutputTokens; // ✅ 이미지 1장당 최대 출력 토큰
 
-
-
-  LoadingScreen({
-    Key? key,
+  const LoadingScreen({
+    super.key,
     this.image,
     this.images,
     required this.captureTime,
     this.position,
     this.isTutorial = false,
     this.maxOutputTokens = 3000,
-  })  : assert(image != null || images != null,
-  'image 또는 images 중 하나는 반드시 제공되어야 합니다.'),
-        super(key: key);
+  }) : assert(image != null || images != null,
+            'image 또는 images 중 하나는 반드시 제공되어야 합니다.');
 
   @override
-  _LoadingScreenState createState() => _LoadingScreenState();
+  State<LoadingScreen> createState() => _LoadingScreenState();
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
@@ -72,7 +66,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
   late Future<_PreparedVisionInput> _preparedFuture;
 
   static const Duration _prepareInputTimeout = Duration(seconds: 90);
-  static const Duration _streamPreviewTimeout = Duration(seconds: 15);
   static const Duration _loadingStreamInactivityTimeout = Duration(seconds: 75);
   static const Duration _fallbackAnalyzeTimeout = Duration(seconds: 90);
 
@@ -87,44 +80,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
     });
     _showAdThenHandleGpt();
   }
-
-  /// geohash로 장소 메모를 DB에서 불러와 promptContext에 삽입한 뒤 GPT 호출
-  Future<String> _prepareAndAnalyze() async {
-    String promptContext = '';
-    if (widget.position != null) {
-      final geohash = GeohashService().generateGeohash(
-        widget.position!.latitude,
-        widget.position!.longitude,
-      );
-      final firestoreFuture = FirebaseFirestore.instance
-          .collection('rag_data')
-          .where('geohashes', arrayContains: geohash)
-          .limit(1)
-          .get();
-
-      final prefsFuture = SharedPreferences.getInstance();
-
-      final results = await Future.wait([firestoreFuture, prefsFuture]);
-
-      final snapshot = results[0] as QuerySnapshot;
-      final prefs = results[1] as SharedPreferences;
-
-      if (snapshot.docs.isNotEmpty) {
-        final data = snapshot.docs.first.data() as Map<String, dynamic>;
-        String lang = prefs.getString('selectedLanguageCode') ?? Platform.localeName.split('_').first;
-        lang = lang.replaceAll('-', '_');
-        promptContext = data['detail_$lang'] ?? '';
-      }
-
-    }
-    print('▶️ [RAG Context] promptContext: $promptContext');
-    final files = widget.images ?? [widget.image!];
-    return VisionService.analyzeImage(
-      files.first,
-      promptContext: promptContext,
-    );
-  }
-
 
   @override
   void didChangeDependencies() {
@@ -158,19 +113,19 @@ class _LoadingScreenState extends State<LoadingScreen> {
     if (enableInterstitialAds && globalInterstitialAd != null) {
       globalInterstitialAd!.fullScreenContentCallback =
           FullScreenContentCallback(
-            onAdDismissedFullScreenContent: (ad) {
-              ad.dispose();
-              globalInterstitialAd = null;
-              loadInterstitialAd();
-              _handleGptResult();
-            },
-            onAdFailedToShowFullScreenContent: (ad, err) {
-              ad.dispose();
-              globalInterstitialAd = null;
-              loadInterstitialAd();
-              _handleGptResult();
-            },
-          );
+        onAdDismissedFullScreenContent: (ad) {
+          ad.dispose();
+          globalInterstitialAd = null;
+          loadInterstitialAd();
+          _handleGptResult();
+        },
+        onAdFailedToShowFullScreenContent: (ad, err) {
+          ad.dispose();
+          globalInterstitialAd = null;
+          loadInterstitialAd();
+          _handleGptResult();
+        },
+      );
       globalInterstitialAd!.show();
     } else {
       _handleGptResult();
@@ -192,9 +147,9 @@ class _LoadingScreenState extends State<LoadingScreen> {
           .get();
       final prefs = await SharedPreferences.getInstance();
       if (snapshot.docs.isNotEmpty) {
-        final data = snapshot.docs.first.data() as Map<String, dynamic>;
-        String lang = prefs.getString('selectedLanguageCode')
-            ?? Platform.localeName.split('_').first;
+        final data = snapshot.docs.first.data();
+        String lang = prefs.getString('selectedLanguageCode') ??
+            Platform.localeName.split('_').first;
         lang = lang.replaceAll('-', '_');
         promptContext = data['detail_$lang'] ?? '';
       }
@@ -214,65 +169,27 @@ class _LoadingScreenState extends State<LoadingScreen> {
     if (files.length > 1) {
       final bytesList = await Future.wait(files.map((f) => f.readAsBytes()));
       final mergedBytes = await compute(mergeImages, bytesList);
-      visionFile = File('${tempDir.path}/vision_merged_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      visionFile = File(
+          '${tempDir.path}/vision_merged_${DateTime.now().millisecondsSinceEpoch}.jpg');
       await visionFile.writeAsBytes(mergedBytes, flush: true);
     } else {
       final bytes = await files.first.readAsBytes();
       final compressedBytes = await compute(mergeImages, [bytes]);
-      visionFile = File('${tempDir.path}/vision_single_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      visionFile = File(
+          '${tempDir.path}/vision_single_${DateTime.now().millisecondsSinceEpoch}.jpg');
       await visionFile.writeAsBytes(compressedBytes, flush: true);
     }
 
     // 🔎 디버그: 전송 파일 크기 확인
     try {
       final sz = await visionFile.length();
-      print('🗜️ [Vision] send file size = ${(sz / 1024).toStringAsFixed(1)} KB');
+      debugPrint(
+          '🗜️ [Vision] send file size = ${(sz / 1024).toStringAsFixed(1)} KB');
     } catch (_) {}
 
     return _PreparedVisionInput(visionFile, promptContext);
   }
 
-  Future<List<String>> _waitFirstRecommendFromStream(
-      Stream<String> stream, {
-        Duration timeout = _streamPreviewTimeout,
-      }) async {
-    final buffer = StringBuffer();
-    final completer = Completer<List<String>>();
-    StreamSubscription<String>? sub;
-
-    sub = stream.listen((delta) {
-      buffer.write(delta);
-      final s = buffer.toString();
-      final m = RegExp(r'RECOMMEND:\s*(.+)').firstMatch(s);
-      if (m != null) {
-        final oneLine = m.group(1)!.split('\n').first.trim();
-        final items = oneLine
-            .split('|')
-            .map((e) => e.trim())
-            .where((e) => e.isNotEmpty)
-            .toList();
-
-        if (!completer.isCompleted && items.isNotEmpty) {
-          completer.complete(items);
-          sub?.cancel();
-        }
-      }
-    }, onError: (e) {
-      if (!completer.isCompleted) completer.complete(<String>[]);
-    }, onDone: () {
-      if (!completer.isCompleted) completer.complete(<String>[]);
-    });
-
-    // 타임아웃 처리
-    Future.delayed(timeout, () {
-      if (!completer.isCompleted) {
-        completer.complete(<String>[]);
-        sub?.cancel();
-      }
-    });
-
-    return completer.future;
-  }
   /// 넉넉한 타임아웃 + 스트리밍 우선 + 단일 요청 fallback
   Future<void> _handleGptResult() async {
     await _gptRequestGate.run(() async {
@@ -281,9 +198,9 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
         // ✅ 미리보기용 첫 이미지 (ResultScreen에 보여줄 썸네일)
         final File firstImage =
-        (widget.images != null && widget.images!.isNotEmpty)
-            ? widget.images!.first
-            : widget.image!;
+            (widget.images != null && widget.images!.isNotEmpty)
+                ? widget.images!.first
+                : widget.image!;
 
         final rawStream = VisionService.analyzeImageStream(
           prepared.visionFile,
@@ -301,9 +218,11 @@ class _LoadingScreenState extends State<LoadingScreen> {
           await AnalyticsService.instance.logScanSuccess(
             scanMode: ((widget.images?.length ?? 0) > 1) ? 'multi' : 'single',
             imageCount: widget.images?.length ?? 1,
-            latencyMs: DateTime.now().difference(widget.captureTime).inMilliseconds,
+            latencyMs:
+                DateTime.now().difference(widget.captureTime).inMilliseconds,
           );
 
+          if (!mounted) return;
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (_) => ResultScreen(
@@ -335,7 +254,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
             await AnalyticsService.instance.logScanSuccess(
               scanMode: ((widget.images?.length ?? 0) > 1) ? 'multi' : 'single',
               imageCount: widget.images?.length ?? 1,
-              latencyMs: DateTime.now().difference(widget.captureTime).inMilliseconds,
+              latencyMs:
+                  DateTime.now().difference(widget.captureTime).inMilliseconds,
             );
             _navigateToResultScreen([resp], previewImage: prepared.visionFile);
           }
@@ -345,8 +265,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
       }
     });
   }
-
-
 
   /// 에러 UI 표시 후 5초 대기 -> 홈 복귀
   void _showErrorUI() {
@@ -358,38 +276,11 @@ class _LoadingScreenState extends State<LoadingScreen> {
     if (!mounted || _hasNavigated) return;
     setState(() => _isLoadingError = true);
     Future.delayed(Duration(seconds: 5), () {
-      if (!_hasNavigated) {
+      if (mounted && !_hasNavigated) {
         _hasNavigated = true;
         Navigator.of(context).pushReplacementNamed('/home');
       }
     });
-  }
-
-
-
-  void _navigateToResultScreenStream(Stream<String> stream, {required File previewImage}) {
-    if (_hasNavigated) return;
-    _hasNavigated = true;
-
-    // ✅ Result 화면 프리뷰 이미지는 "보여주기용"으로 원본 첫 장을 쓰되,
-    // 분석에는 previewImage(병합/압축본)를 사용했습니다.
-    final File firstImage = (widget.images != null && widget.images!.isNotEmpty)
-        ? widget.images!.first
-        : widget.image!;
-
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => ResultScreen(
-          image: firstImage,
-          images: widget.images,
-          responses: <String>[],            // 스트림이니까 비움
-          responseStream: stream,           // ✅ 반드시 넣기!
-          position: widget.position,
-          captureTime: widget.captureTime,
-          isTutorial: widget.isTutorial,
-        ),
-      ),
-    );
   }
 
   void _navigateToResultScreen(List<String> responses, {File? previewImage}) {
@@ -403,7 +294,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
       MaterialPageRoute(
         builder: (_) => ResultScreen(
           image: firstImage,
-          images: widget.images,     // ✅ 멀티 이미지 리스트 전달
+          images: widget.images, // ✅ 멀티 이미지 리스트 전달
           responses: responses,
           position: widget.position,
           captureTime: widget.captureTime,
@@ -422,9 +313,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    final isDark = Theme
-        .of(context)
-        .brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final mediaQuery = MediaQuery.of(context); // 🔥 build 메서드 초반에!
 
     return CupertinoPageScaffold(
@@ -435,60 +324,64 @@ class _LoadingScreenState extends State<LoadingScreen> {
           Center(
             child: _isLoadingError
                 ? Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  CupertinoIcons.exclamationmark_triangle,
-                  color: Colors.red,
-                  size: 40,
-                ),
-                SizedBox(height: 20),
-                Text(
-                  loc.gptErrorMessage.replaceAll(r'\n', '\n'),
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: isDark ? Colors.white70 : CupertinoColors.systemGrey,
-                    decoration: TextDecoration.none,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            )
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        CupertinoIcons.exclamationmark_triangle,
+                        color: Colors.red,
+                        size: 40,
+                      ),
+                      SizedBox(height: 20),
+                      Text(
+                        loc.gptErrorMessage.replaceAll(r'\n', '\n'),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: isDark
+                              ? Colors.white70
+                              : CupertinoColors.systemGrey,
+                          decoration: TextDecoration.none,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  )
                 : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CupertinoActivityIndicator(radius: 15),
-                SizedBox(height: 20),
-                AnimatedSwitcher(
-                  duration: Duration(milliseconds: 500),
-                  child: Text(
-                    _currentMessage,
-                    key: ValueKey(_currentMessage),
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isDark ? Colors.white70 : CupertinoColors
-                          .systemGrey,
-                      decoration: TextDecoration.none,
-                    ),
-                    textAlign: TextAlign.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CupertinoActivityIndicator(radius: 15),
+                      SizedBox(height: 20),
+                      AnimatedSwitcher(
+                        duration: Duration(milliseconds: 500),
+                        child: Text(
+                          _currentMessage,
+                          key: ValueKey(_currentMessage),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isDark
+                                ? Colors.white70
+                                : CupertinoColors.systemGrey,
+                            decoration: TextDecoration.none,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          loc.aiLoadingMessage,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark
+                                ? Colors.white60
+                                : CupertinoColors.systemGrey2,
+                            decoration: TextDecoration.none,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Text(
-                    loc.aiLoadingMessage,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark ? Colors.white60 : CupertinoColors
-                          .systemGrey2,
-                      decoration: TextDecoration.none,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
-            ),
           ),
           // ✅ 튜토리얼 모드 표시 (Visibility 로 감싸서 경고 제거)
           Visibility(
@@ -503,7 +396,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
                 child: TutorialIndicator(), // 이미 fontSize:14
               ),
             ),
-          )],
+          )
+        ],
       ),
     );
   }

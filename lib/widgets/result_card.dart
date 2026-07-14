@@ -6,7 +6,7 @@ class ResultCard extends StatelessWidget {
   final File image;
   final String resultText;
 
-  ResultCard({required this.image, required this.resultText});
+  const ResultCard({super.key, required this.image, required this.resultText});
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +14,7 @@ class ResultCard extends StatelessWidget {
     return Column(
       children: [
         Image.file(image, fit: BoxFit.cover, width: double.infinity),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: Text(

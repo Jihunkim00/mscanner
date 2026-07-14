@@ -14,13 +14,15 @@ import '/screens/log_service.dart';
 import 'package:mscanner/widgets/mscanner_search_ui.dart';
 
 class FavoriteListScreen extends StatefulWidget {
+  const FavoriteListScreen({super.key});
+
   @override
-  _FavoriteListScreenState createState() => _FavoriteListScreenState();
+  State<FavoriteListScreen> createState() => _FavoriteListScreenState();
 }
 
 class _FavoriteListScreenState extends State<FavoriteListScreen> {
   List<DocumentSnapshot> _favoriteResults = [];
-  Set<String> _selectedIds = {}; // ← 추가
+  final Set<String> _selectedIds = {}; // ← 추가
   // ✅ 이미지 토글: true면 menu(촬영본), false면 food(대표 음식 사진)
   final Set<String> _showMenuPhotoIds = {};
   bool _isDarkMode = false;
@@ -33,6 +35,7 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
     _searchController.dispose();
     super.dispose();
   }
+
   // ✅ 상단 필터(예: All / Recent / Top Rated)
   String _activeFilter = 'all';
 
@@ -98,7 +101,10 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
 
   // 대표 메뉴명: 1) 필드 우선 2) responses JSON recommended[0] 3) 텍스트에서 1번 추출 4) restaurantName fallback
   String _primaryMenuName(Map<String, dynamic> data) {
-    final direct = (data['primary_menu'] ?? data['menu_name'] ?? data['menuName'])?.toString().trim();
+    final direct =
+        (data['primary_menu'] ?? data['menu_name'] ?? data['menuName'])
+            ?.toString()
+            .trim();
     if (direct != null && direct.isNotEmpty) return direct;
 
     // responses: List<String> 또는 response: String (구버전)
@@ -120,8 +126,8 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
           if (rec is List && rec.isNotEmpty && rec.first is Map) {
             final m = Map<String, dynamic>.from(rec.first as Map);
 
-            final translated = (m['name'] ?? '').toString().trim();        // ✅ 번역명
-            final original = (m['nameOriginal'] ?? '').toString().trim();  // 원문명
+            final translated = (m['name'] ?? '').toString().trim(); // ✅ 번역명
+            final original = (m['nameOriginal'] ?? '').toString().trim(); // 원문명
 
             if (translated.isNotEmpty) return translated;
             if (original.isNotEmpty) return original;
@@ -152,17 +158,22 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
       }
     }
 
-    final fallback = (data['restaurantName'] ?? data['title'] ?? 'No Title').toString();
+    final fallback =
+        (data['restaurantName'] ?? data['title'] ?? 'No Title').toString();
     return fallback;
   }
 
   String _restaurantName(Map<String, dynamic> data) {
-    return (data['restaurantName'] ?? data['title'] ?? 'No Restaurant Name').toString();
+    return (data['restaurantName'] ?? data['title'] ?? 'No Restaurant Name')
+        .toString();
   }
 
   // 대표 음식 사진(새 필드) -> 없으면 기존 촬영본(image_url)
   String _foodImageUrl(Map<String, dynamic> data) {
-    final u = (data['food_image_url'] ?? data['foodImageUrl'] ?? data['dish_image_url'] ?? data['dishImageUrl'])
+    final u = (data['food_image_url'] ??
+            data['foodImageUrl'] ??
+            data['dish_image_url'] ??
+            data['dishImageUrl'])
         ?.toString()
         .trim();
     if (u != null && u.isNotEmpty) return u;
@@ -183,10 +194,14 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
   List<DocumentSnapshot> _applyFilter(List<DocumentSnapshot> docs) {
     if (_activeFilter == 'all') return docs;
     if (_activeFilter == 'recent') {
-      return docs.where((d) => _isRecent(d.data() as Map<String, dynamic>, days: 7)).toList();
+      return docs
+          .where((d) => _isRecent(d.data() as Map<String, dynamic>, days: 7))
+          .toList();
     }
     if (_activeFilter == 'top') {
-      return docs.where((d) => _parseRating(d.data() as Map<String, dynamic>) >= 4.5).toList();
+      return docs
+          .where((d) => _parseRating(d.data() as Map<String, dynamic>) >= 4.5)
+          .toList();
     }
     return docs;
   }
@@ -210,7 +225,8 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
   }
 
   // ---------- NEW: 섹션 그룹(이번 주 / 월별) ----------
-  Map<String, List<DocumentSnapshot>> _groupBySection(List<DocumentSnapshot> docs) {
+  Map<String, List<DocumentSnapshot>> _groupBySection(
+      List<DocumentSnapshot> docs) {
     final Map<String, List<DocumentSnapshot>> groups = {};
     for (final doc in docs) {
       final data = doc.data() as Map<String, dynamic>;
@@ -231,7 +247,9 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
           child: MScannerSearchField(
             controller: _searchController,
-            placeholder: AppLocalizations.of(context)?.favoriteList_searchHistory ?? 'Search History',
+            placeholder:
+                AppLocalizations.of(context)?.favoriteList_searchHistory ??
+                    'Search History',
             onChanged: (v) => setState(() => _searchText = v),
           ),
         ),
@@ -249,13 +267,15 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
                 onTap: () => setState(() => _activeFilter = 'all'),
               ),
               MScannerPillChip(
-                label: AppLocalizations.of(context)?.favoriteList_recent ?? 'Recent',
+                label: AppLocalizations.of(context)?.favoriteList_recent ??
+                    'Recent',
                 selected: _activeFilter == 'recent',
                 scheme: MScannerAccent.orange,
                 onTap: () => setState(() => _activeFilter = 'recent'),
               ),
               MScannerPillChip(
-                label: AppLocalizations.of(context)?.favoriteList_topRated ?? 'Top Rated',
+                label: AppLocalizations.of(context)?.favoriteList_topRated ??
+                    'Top Rated',
                 selected: _activeFilter == 'top',
                 scheme: MScannerAccent.orange,
                 onTap: () => setState(() => _activeFilter = 'top'),
@@ -265,7 +285,8 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
 
               // ---- Sorting (map_screen처럼 chip로 통일) ----
               MScannerPillChip(
-                label: AppLocalizations.of(context)?.favoriteList_date ?? 'Date',
+                label:
+                    AppLocalizations.of(context)?.favoriteList_date ?? 'Date',
                 selected: _currentSort == 'latest',
                 scheme: MScannerAccent.orange,
                 onTap: () {
@@ -275,7 +296,8 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
                 },
               ),
               MScannerPillChip(
-                label: AppLocalizations.of(context)?.favoriteList_country ?? 'Country',
+                label: AppLocalizations.of(context)?.favoriteList_country ??
+                    'Country',
                 selected: _currentSort == 'country',
                 scheme: MScannerAccent.orange,
                 onTap: () {
@@ -301,7 +323,9 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
     final restaurant = _restaurantName(data);
     final rating = _parseRating(data);
     final dt = _parseTimestamp(data);
-    final dateText = dt != null ? DateFormat('MMM d, h:mm a').format(dt) : AppLocalizations.of(context)?.favoriteList_noDate ?? 'No date';
+    final dateText = dt != null
+        ? DateFormat('MMM d, h:mm a').format(dt)
+        : AppLocalizations.of(context)?.favoriteList_noDate ?? 'No date';
 
     final showMenu = _showMenuPhotoIds.contains(doc.id);
     final img = showMenu ? _menuImageUrl(data) : _foodImageUrl(data);
@@ -314,7 +338,7 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withValues(alpha: 0.06),
               offset: const Offset(0, 6),
               blurRadius: 18,
             ),
@@ -325,10 +349,12 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
           onTap: () {
             final ageDays = _calcItemAgeDays(data);
             final itemType = _inferItemType(data);
-            LogService().logHistoryDetailView(itemAgeDays: ageDays, itemType: itemType);
+            LogService()
+                .logHistoryDetailView(itemAgeDays: ageDays, itemType: itemType);
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => FavoriteScreen(documentId: doc.id)),
+              MaterialPageRoute(
+                  builder: (_) => FavoriteScreen(documentId: doc.id)),
             );
           },
           child: Padding(
@@ -353,8 +379,10 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
                       height: 56,
                       child: CachedNetworkImage(
                         imageUrl: img,
-                        placeholder: (_, __) => const CupertinoActivityIndicator(),
-                        errorWidget: (_, __, ___) => const Icon(Icons.image_not_supported),
+                        placeholder: (_, __) =>
+                            const CupertinoActivityIndicator(),
+                        errorWidget: (_, __, ___) =>
+                            const Icon(Icons.image_not_supported),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -384,7 +412,10 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
                           ),
                           const SizedBox(width: 8),
                           if (rating > 0) ...[
-                            const Icon(Icons.star, size: 14, ),
+                            const Icon(
+                              Icons.star,
+                              size: 14,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               rating.toStringAsFixed(1),
@@ -404,20 +435,23 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
                         style: TextStyle(
                           color: MScannerSearchUi.accentOrange(context),
                           fontWeight: FontWeight.w600,
-
                         ),
                       ),
                       const SizedBox(height: 6),
                       Row(
                         children: [
-                          Icon(CupertinoIcons.calendar, size: 12, color: textColor.withOpacity(0.6)),
+                          Icon(CupertinoIcons.calendar,
+                              size: 12,
+                              color: textColor.withValues(alpha: 0.6)),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
                               dateText,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(color: textColor.withOpacity(0.7), fontSize: 11),
+                              style: TextStyle(
+                                  color: textColor.withValues(alpha: 0.7),
+                                  fontSize: 11),
                             ),
                           ),
                         ],
@@ -448,7 +482,6 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
       ),
     );
   }
-
 
   @override
   void initState() {
@@ -495,62 +528,6 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
     });
   }
 
-  void _showSortingOptions() {
-    final textColor = _isDarkMode ? Colors.white : Colors.black;
-    final localizations = AppLocalizations.of(context);
-    showCupertinoModalPopup(
-      context: context,
-      builder: (context) =>
-          CupertinoActionSheet(
-            actions: [
-              CupertinoActionSheetAction(
-                isDefaultAction: false,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(CupertinoIcons.clock, color: textColor),
-                    SizedBox(width: 8),
-                    Text(localizations?.viewbylatest ?? 'View by latest',
-                        style: TextStyle(color: textColor)),
-
-                  ],
-                ),
-                onPressed: () {
-                  Navigator.pop(context);
-                  setState(() {
-                    _currentSort = 'latest';
-                    _loadFavoriteResults();
-                  });
-                },
-              ),
-              CupertinoActionSheetAction(
-                isDefaultAction: false,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(CupertinoIcons.globe, color: textColor),
-                    SizedBox(width: 8),
-                    Text(localizations?.viewbycountry ?? 'View by country',
-                        style: TextStyle(color: textColor)),
-                  ],
-                ),
-                onPressed: () {
-                  Navigator.pop(context);
-                  setState(() {
-                    _currentSort = 'country';
-                    _loadFavoriteResults();
-                  });
-                },
-              ),
-            ],
-            cancelButton: CupertinoActionSheetAction(
-              child: Text('Cancel', style: TextStyle(color: textColor)),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-    );
-  }
-
   Future<void> _deleteFavoriteResult(int index) async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -586,16 +563,12 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = _isDarkMode ? Colors.black : const Color(
-        0xFFEFEFF4);
+    final backgroundColor =
+        _isDarkMode ? Colors.black : const Color(0xFFEFEFF4);
     final textColor = _isDarkMode ? Colors.white : Colors.black;
 
-    final locale = Localizations.localeOf(context);
-    final rtlLanguageCodes = ['ar', 'ur'];
-    final isRTL = rtlLanguageCodes.contains(locale.languageCode.toLowerCase());
     final loc = AppLocalizations.of(context)!; // ← 추가
 
     return Scaffold(
@@ -610,91 +583,111 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
                 Expanded(
                   child: _favoriteResults.isEmpty
                       ? Center(
-                    child: Text(AppLocalizations.of(context)?.favoriteList_noHistoryFound ?? 'No History Found', style: TextStyle(color: textColor)),
-                  )
+                          child: Text(
+                              AppLocalizations.of(context)
+                                      ?.favoriteList_noHistoryFound ??
+                                  'No History Found',
+                              style: TextStyle(color: textColor)),
+                        )
                       : Builder(builder: (_) {
-                    final filtered = _applySearch(_applyFilter(_favoriteResults));
-                    final grouped = _groupBySection(filtered);
+                          final filtered =
+                              _applySearch(_applyFilter(_favoriteResults));
+                          final grouped = _groupBySection(filtered);
 
-                    // 섹션 순서: This Week -> 나머지
-                    final keys = grouped.keys.toList();
-                    keys.sort((a, b) {
-                      if (a == 'THIS_WEEK') return -1;
-                      if (b == 'THIS_WEEK') return 1;
-                      return a.compareTo(b);
-                    });
+                          // 섹션 순서: This Week -> 나머지
+                          final keys = grouped.keys.toList();
+                          keys.sort((a, b) {
+                            if (a == 'THIS_WEEK') return -1;
+                            if (b == 'THIS_WEEK') return 1;
+                            return a.compareTo(b);
+                          });
 
-                    return ListView.builder(
-                      padding: const EdgeInsets.only(bottom: 120),
-                      itemCount: keys.length,
-                      itemBuilder: (context, sectionIdx) {
-                        final key = keys[sectionIdx];
-                        final items = grouped[key] ?? const <DocumentSnapshot>[];
-                        final title = key == 'THIS_WEEK' ? (AppLocalizations.of(context)?.favoriteList_thisWeek ?? 'This Week') : key;
+                          return ListView.builder(
+                            padding: const EdgeInsets.only(bottom: 120),
+                            itemCount: keys.length,
+                            itemBuilder: (context, sectionIdx) {
+                              final key = keys[sectionIdx];
+                              final items =
+                                  grouped[key] ?? const <DocumentSnapshot>[];
+                              final title = key == 'THIS_WEEK'
+                                  ? (AppLocalizations.of(context)
+                                          ?.favoriteList_thisWeek ??
+                                      'This Week')
+                                  : key;
 
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 12, 16, 2),
-                              child: Row(
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Expanded(
-                                    child: Text(
-                                      title,
-                                      style: TextStyle(
-                                        color: textColor,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w800,
-                                      ),
+                                  Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                        16, 12, 16, 2),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            title,
+                                            style: TextStyle(
+                                              color: textColor,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                          ),
+                                        ),
+                                        Text(
+                                          AppLocalizations.of(context)!
+                                              .favoriteList_entries(
+                                                  items.length)
+                                              .toUpperCase(),
+                                          style: TextStyle(
+                                            color: textColor.withValues(
+                                                alpha: 0.45),
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  Text(
-                                    AppLocalizations.of(context)!.favoriteList_entries(items.length).toUpperCase(),
-                                    style: TextStyle(
-                                      color: textColor.withOpacity(0.45),
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            ...items.map((doc) {
-                              final data = doc.data() as Map<String, dynamic>;
-                              final isSelected = _selectedIds.contains(doc.id);
-                              final idx = _favoriteResults.indexWhere((d) => d.id == doc.id);
+                                  ...items.map((doc) {
+                                    final data =
+                                        doc.data() as Map<String, dynamic>;
+                                    final isSelected =
+                                        _selectedIds.contains(doc.id);
+                                    final idx = _favoriteResults
+                                        .indexWhere((d) => d.id == doc.id);
 
-                              return Dismissible(
-                                key: Key(doc.id),
-                                direction: DismissDirection.endToStart,
-                                background: Container(
-                                  color: Colors.redAccent,
-                                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                                  alignment: Alignment.centerRight,
-                                  child: const Icon(CupertinoIcons.delete, color: Colors.white, size: 30),
-                                ),
-                                onDismissed: (_) {
-                                  if (idx >= 0) _deleteFavoriteResult(idx);
-                                },
-                                child: _historyCard(
-                                  doc: doc,
-                                  data: data,
-                                  textColor: textColor,
-                                  isSelected: isSelected,
-                                ),
+                                    return Dismissible(
+                                      key: Key(doc.id),
+                                      direction: DismissDirection.endToStart,
+                                      background: Container(
+                                        color: Colors.redAccent,
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 20),
+                                        alignment: Alignment.centerRight,
+                                        child: const Icon(CupertinoIcons.delete,
+                                            color: Colors.white, size: 30),
+                                      ),
+                                      onDismissed: (_) {
+                                        if (idx >= 0) {
+                                          _deleteFavoriteResult(idx);
+                                        }
+                                      },
+                                      child: _historyCard(
+                                        doc: doc,
+                                        data: data,
+                                        textColor: textColor,
+                                        isSelected: isSelected,
+                                      ),
+                                    );
+                                  }),
+                                ],
                               );
-                            }).toList(),
-                          ],
-                        );
-                      },
-                    );
-                  }),
+                            },
+                          );
+                        }),
                 ),
               ],
             ),
-
-
 
             // 선택된 항목이 있을 때만 노출되는 "지도에서 보기" 버튼
             if (_selectedIds.isNotEmpty)
@@ -702,10 +695,11 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
                 bottom: 20,
                 left: 20,
                 right: 20,
-                child: FilledButton.tonalIcon(   // ← 통일감 있는 M3 톤 다운 버튼
+                child: FilledButton.tonalIcon(
+                  // ← 통일감 있는 M3 톤 다운 버튼
                   onPressed: _goToAnimatedMap,
                   icon: const Icon(Icons.map),
-                  label: Text(loc.viewOnMap),     // ← l10n 적용
+                  label: Text(loc.viewOnMap), // ← l10n 적용
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
@@ -714,7 +708,6 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
                   ),
                 ),
               ),
-
           ],
         ),
       ),

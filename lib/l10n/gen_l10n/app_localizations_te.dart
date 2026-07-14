@@ -21,7 +21,8 @@ class AppLocalizationsTe extends AppLocalizations {
   String get alreadyHaveAccount => 'ఇప్పటికే ఖాతా ఉందా?';
 
   @override
-  String get areYouSureDeleteAccount => 'మీ ఖాతాను తొలగించాలనుకుంటున్నారా? ఈ చర్యను తిరిగి చేయలేరు.';
+  String get areYouSureDeleteAccount =>
+      'మీ ఖాతాను తొలగించాలనుకుంటున్నారా? ఈ చర్యను తిరిగి చేయలేరు.';
 
   @override
   String get camera => 'కెమెరా';
@@ -72,7 +73,8 @@ class AppLocalizationsTe extends AppLocalizations {
   String get engine => 'ఎంజిన్';
 
   @override
-  String get enterYourEmailtoResetPassword => 'మీ పాస్‌వర్డ్‌ను రీసెట్ చేయడానికి మీ ఇమెయిల్‌ను నమోదు చేయండి';
+  String get enterYourEmailtoResetPassword =>
+      'మీ పాస్‌వర్డ్‌ను రీసెట్ చేయడానికి మీ ఇమెయిల్‌ను నమోదు చేయండి';
 
   @override
   String get failedChangePassword => 'పాస్‌వర్డ్ మార్చడంలో విఫలమైంది';
@@ -216,7 +218,8 @@ class AppLocalizationsTe extends AppLocalizations {
   String get passwordChangedSuccess => 'పాస్‌వర్డ్ విజయవంతంగా మార్చబడింది.';
 
   @override
-  String get passwordResetEmailSent => 'పాస్‌వర్డ్ రీసెట్ ఇమెయిల్ పంపబడింది. దయచేసి మీ ఇన్‌బాక్స్‌ను తనిఖీ చేయండి';
+  String get passwordResetEmailSent =>
+      'పాస్‌వర్డ్ రీసెట్ ఇమెయిల్ పంపబడింది. దయచేసి మీ ఇన్‌బాక్స్‌ను తనిఖీ చేయండి';
 
   @override
   String get passwordsDoNotMatch => 'పాస్‌వర్డ్‌లు సరిపోలడం లేదు';
@@ -236,7 +239,8 @@ class AppLocalizationsTe extends AppLocalizations {
   String get privacyPolicy => 'ప్రైవసీ పాలసీ';
 
   @override
-  String get requiresRecentLogin => 'దయచేసి మళ్లీ లాగిన్ చేసి ఖాతా తొలగించడానికి ప్రయత్నించండి.';
+  String get requiresRecentLogin =>
+      'దయచేసి మళ్లీ లాగిన్ చేసి ఖాతా తొలగించడానికి ప్రయత్నించండి.';
 
   @override
   String get resetPassword => 'పాస్‌వర్డ్ రీసెట్ చేయండి';
@@ -278,7 +282,8 @@ class AppLocalizationsTe extends AppLocalizations {
   String get yourFoodMenu => 'మీ ఆహార మెనూ';
 
   @override
-  String get passwordResetError => 'పాస్‌వర్డ్ రీసెట్ ఇమెయిల్ పంపడంలో పొరపాటు జరిగింది.';
+  String get passwordResetError =>
+      'పాస్‌వర్డ్ రీసెట్ ఇమెయిల్ పంపడంలో పొరపాటు జరిగింది.';
 
   @override
   String get save => 'సేవ్ చేయండి';
@@ -308,7 +313,8 @@ class AppLocalizationsTe extends AppLocalizations {
   String get enterRestaurantName => 'రెస్టారెంట్ పేరు నమోదు చేయండి';
 
   @override
-  String get pleaseEnterRestaurantAndRating => 'దయచేసి రెస్టారెంట్ పేరు మరియు రేటింగ్ నమోదు చేయండి';
+  String get pleaseEnterRestaurantAndRating =>
+      'దయచేసి రెస్టారెంట్ పేరు మరియు రేటింగ్ నమోదు చేయండి';
 
   @override
   String get all => 'అన్ని';
@@ -323,7 +329,8 @@ class AppLocalizationsTe extends AppLocalizations {
   String get aiScanning => 'AI స్కానింగ్...';
 
   @override
-  String get aiLoadingMessage => 'AI తప్పులు చేయవచ్చు. లోడింగ్ సమయం సాధారణంగా 5-10 సెకన్ల వరకు ఉంటుంది, కానీ ఇది మీ ఇంటర్నెట్ కనెక్షన్ మరియు స్మార్ట్‌ఫోన్ పరికరం ఆధారంగా మారవచ్చు.';
+  String get aiLoadingMessage =>
+      'AI తప్పులు చేయవచ్చు. లోడింగ్ సమయం సాధారణంగా 5-10 సెకన్ల వరకు ఉంటుంది, కానీ ఇది మీ ఇంటర్నెట్ కనెక్షన్ మరియు స్మార్ట్‌ఫోన్ పరికరం ఆధారంగా మారవచ్చు.';
 
   @override
   String get introductionTitle1 => 'ఎంస్క్యానర్';
@@ -332,19 +339,23 @@ class AppLocalizationsTe extends AppLocalizations {
   String get introductionSubtitle1 => 'THJ ద్వారా';
 
   @override
-  String get introductionBody1 => 'ప్రపంచంలోని రెస్టారెంట్లలో ఆహారాన్ని ఎంచుకోవడంలో సౌకర్యంగా ఉండండి';
+  String get introductionBody1 =>
+      'ప్రపంచంలోని రెస్టారెంట్లలో ఆహారాన్ని ఎంచుకోవడంలో సౌకర్యంగా ఉండండి';
 
   @override
   String get introductionTitle2 => 'మీరు మెనూను ఎలా స్కాన్ చేయాలనుకుంటున్నారు?';
 
   @override
-  String get introductionBody2_1 => '1. మీ భాషను ఎంచుకోండి (ఆంగ్లం లేదా స్థానిక భాష)';
+  String get introductionBody2_1 =>
+      '1. మీ భాషను ఎంచుకోండి (ఆంగ్లం లేదా స్థానిక భాష)';
 
   @override
-  String get introductionBody2_2 => '2. మీ ఆహార శైలిని ఎంచుకోండి (డైట్, మాంసాహార ప్రియుడు, మొదలైనవి)';
+  String get introductionBody2_2 =>
+      '2. మీ ఆహార శైలిని ఎంచుకోండి (డైట్, మాంసాహార ప్రియుడు, మొదలైనవి)';
 
   @override
-  String get introductionBody2_3 => '3. మీరు స్కాన్ చేయాలనుకుంటున్న మెనూల సంఖ్యను సెట్ చేయండి (అధిక మెనూలు, తక్కువ వివరాలు)';
+  String get introductionBody2_3 =>
+      '3. మీరు స్కాన్ చేయాలనుకుంటున్న మెనూల సంఖ్యను సెట్ చేయండి (అధిక మెనూలు, తక్కువ వివరాలు)';
 
   @override
   String get introductionTitle3 => 'మీ సెట్టింగ్‌లను ఆప్టిమైజ్ చేయండి';
@@ -356,10 +367,12 @@ class AppLocalizationsTe extends AppLocalizations {
   String get introductionBody3_2 => '2. మీ ఖాతా పాస్‌వర్డ్‌ను మార్చండి';
 
   @override
-  String get introductionBody3_3 => '3. మీ మెనూ స్కాన్ సెట్టింగ్‌లను రీసెట్ చేయండి';
+  String get introductionBody3_3 =>
+      '3. మీ మెనూ స్కాన్ సెట్టింగ్‌లను రీసెట్ చేయండి';
 
   @override
-  String get introductionBody3_4 => '4. మరిన్ని ఫీచర్లను సక్రియం చేయడానికి మీ డేటాను ఆన్‌లైన్‌లో సేవ్ చేయండి';
+  String get introductionBody3_4 =>
+      '4. మరిన్ని ఫీచర్లను సక్రియం చేయడానికి మీ డేటాను ఆన్‌లైన్‌లో సేవ్ చేయండి';
 
   @override
   String get introductionTitle4 => 'మీ ఫలితాన్ని పంచుకోండి';
@@ -368,7 +381,8 @@ class AppLocalizationsTe extends AppLocalizations {
   String get introductionBody4_1 => '1. ప్రతి ఫలితంపై ఒక నోట్ వదలండి';
 
   @override
-  String get introductionBody4_2 => '2. ఫలితాలను మీ స్మార్ట్‌ఫోన్‌లో సేవ్ చేయండి';
+  String get introductionBody4_2 =>
+      '2. ఫలితాలను మీ స్మార్ట్‌ఫోన్‌లో సేవ్ చేయండి';
 
   @override
   String get introductionBody4_3 => '3. ఫేవరెట్ బటన్ మరియు ఫలితం కాపీ చేయండి';
@@ -377,16 +391,19 @@ class AppLocalizationsTe extends AppLocalizations {
   String get introductionTitle5 => 'మీ అనుభవాలను సేవ్ చేయండి';
 
   @override
-  String get introductionBody5_1 => '1. యాక్టివ్ పాయింట్లు (Mscannerలో మీ కార్యకలాపాలను చూపిస్తుంది)';
+  String get introductionBody5_1 =>
+      '1. యాక్టివ్ పాయింట్లు (Mscannerలో మీ కార్యకలాపాలను చూపిస్తుంది)';
 
   @override
-  String get introductionBody5_2 => '2. మీరు సందర్శించిన రెస్టారెంట్ పేరు నమోదు చేయండి';
+  String get introductionBody5_2 =>
+      '2. మీరు సందర్శించిన రెస్టారెంట్ పేరు నమోదు చేయండి';
 
   @override
   String get introductionBody5_3 => '3. రెస్టారెంట్‌ను రేట్ చేయండి';
 
   @override
-  String get introductionBody5_4 => '4. మీరు సందర్శించిన ప్రదేశాలను మ్యాప్‌లో చూడండి';
+  String get introductionBody5_4 =>
+      '4. మీరు సందర్శించిన ప్రదేశాలను మ్యాప్‌లో చూడండి';
 
   @override
   String get skip => 'దాటవేయి';
@@ -419,31 +436,39 @@ class AppLocalizationsTe extends AppLocalizations {
   String get cloudsavingError => 'క్లౌడ్ సేవ్ లోపం';
 
   @override
-  String get languagesdescprition => 'ఆహార పదార్థం లేదా మెనూ యొక్క ఫోటో తీయండి మరియు ఫలితానికి భాషను ఎంచుకోండి';
+  String get languagesdescprition =>
+      'ఆహార పదార్థం లేదా మెనూ యొక్క ఫోటో తీయండి మరియు ఫలితానికి భాషను ఎంచుకోండి';
 
   @override
-  String get fooddescprition => 'దయచేసి ఒక ఆహారపు విధానం లేదా భోజన ప్రణాళికను ఎంచుకోండి. మీ ఎంపిక ఆధారంగా AI సిఫారసులు మరియు వివరణలు అందిస్తుంది';
+  String get fooddescprition =>
+      'దయచేసి ఒక ఆహారపు విధానం లేదా భోజన ప్రణాళికను ఎంచుకోండి. మీ ఎంపిక ఆధారంగా AI సిఫారసులు మరియు వివరణలు అందిస్తుంది';
 
   @override
-  String get menudescribe => 'ప్రదర్శించడానికి ఆహారపు మెనూ అంశాల సంఖ్యను ఎంచుకోండి. మీరు ఎన్నుకుంటున్న అంశాలు తక్కువగా ఉంటే, వివరణలు మరింత వివరంగా ఉంటాయి';
+  String get menudescribe =>
+      'ప్రదర్శించడానికి ఆహారపు మెనూ అంశాల సంఖ్యను ఎంచుకోండి. మీరు ఎన్నుకుంటున్న అంశాలు తక్కువగా ఉంటే, వివరణలు మరింత వివరంగా ఉంటాయి';
 
   @override
-  String get darkdescp => 'ఇక ముందునుంచి చూడడానికి మరింత సౌకర్యవంతమైన అనుభవం కోసం డార్క్ మోడ్ ను ప్రారంభించండి';
+  String get darkdescp =>
+      'ఇక ముందునుంచి చూడడానికి మరింత సౌకర్యవంతమైన అనుభవం కోసం డార్క్ మోడ్ ను ప్రారంభించండి';
 
   @override
-  String get changepassdescp => 'భద్రత కోసం, తరచుగా మీ పాస్‌వర్డ్‌ని మార్చండి మరియు గుర్తుంచుకోవడానికి సులభంగా ఉన్న పటిష్టమైన పాస్‌వర్డ్‌ని ఉపయోగించండి';
+  String get changepassdescp =>
+      'భద్రత కోసం, తరచుగా మీ పాస్‌వర్డ్‌ని మార్చండి మరియు గుర్తుంచుకోవడానికి సులభంగా ఉన్న పటిష్టమైన పాస్‌వర్డ్‌ని ఉపయోగించండి';
 
   @override
   String get aIresetdescp => 'మీరు AI స్కాన్ సెట్టింగ్‌లను రీసెట్ చేయవచ్చు';
 
   @override
-  String get savedescp => 'ఫలితాల డేటాను సర్వర్‌లో సేవ్ చేయండి. అదనపు ఫీచర్లను ప్రారంభించడానికి సేవ్ చేయడం అవసరం';
+  String get savedescp =>
+      'ఫలితాల డేటాను సర్వర్‌లో సేవ్ చేయండి. అదనపు ఫీచర్లను ప్రారంభించడానికి సేవ్ చేయడం అవసరం';
 
   @override
-  String get scanFoodPhotoDescription => 'ఆహార పదార్థం లేదా మెనూ యొక్క ఫోటో తీయండి మరియు అది ఏమిటో తెలుసుకోండి! ఇప్పుడే ప్రయత్నించండి';
+  String get scanFoodPhotoDescription =>
+      'ఆహార పదార్థం లేదా మెనూ యొక్క ఫోటో తీయండి మరియు అది ఏమిటో తెలుసుకోండి! ఇప్పుడే ప్రయత్నించండి';
 
   @override
-  String get activepoint => 'పాయింట్లు యూజర్ యాక్టివిటీ సూచికను చూపిస్తాయి, మరియు భవిష్యత్తులో వివిధ బహుమతులు ఇవ్వబడతాయి.';
+  String get activepoint =>
+      'పాయింట్లు యూజర్ యాక్టివిటీ సూచికను చూపిస్తాయి, మరియు భవిష్యత్తులో వివిధ బహుమతులు ఇవ్వబడతాయి.';
 
   @override
   String get todayrecommand => 'ఈరోజు సిఫార్సు';
@@ -464,19 +489,22 @@ class AppLocalizationsTe extends AppLocalizations {
   String get locationPermissionNeeded => 'స్థానం అనుమతి అవసరం';
 
   @override
-  String get locationPermissionContent => 'ఈ యాప్ సక్రమంగా పనిచేయడానికి స్థలం అనుమతులు అవసరం. దయచేసి యాప్ సెటింగ్‌లలో స్థల అనుమతి అనుమతించండి.';
+  String get locationPermissionContent =>
+      'ఈ యాప్ సక్రమంగా పనిచేయడానికి స్థలం అనుమతులు అవసరం. దయచేసి యాప్ సెటింగ్‌లలో స్థల అనుమతి అనుమతించండి.';
 
   @override
   String get locationServiceDisabled => 'స్థానం సేవలు అర్థార్థం చేయబడ్డాయి';
 
   @override
-  String get locationServiceDisabledContent => 'స్థాన సేవలు ఉంచబడలేదు. దయచేసి సెట్టింగ్స్‌లో స్థాన సేవలను కార్యరూపమిచ్చండి.';
+  String get locationServiceDisabledContent =>
+      'స్థాన సేవలు ఉంచబడలేదు. దయచేసి సెట్టింగ్స్‌లో స్థాన సేవలను కార్యరూపమిచ్చండి.';
 
   @override
   String get openSettings => 'సెట్టింగ్స్‌ను తెరువు';
 
   @override
-  String get languagesdescprition1 => 'ఒక స్కాన్‌తో వంటకాల అద్భుతాల ప్రపంచాన్ని ప్రారంభించండి.';
+  String get languagesdescprition1 =>
+      'ఒక స్కాన్‌తో వంటకాల అద్భుతాల ప్రపంచాన్ని ప్రారంభించండి.';
 
   @override
   String get continueAsGuest => 'అతిథి గా కొనసాగించండి';
@@ -485,25 +513,29 @@ class AppLocalizationsTe extends AppLocalizations {
   String get guestLoginTitle => 'అతిథి లాగిన్';
 
   @override
-  String get guestLoginContent => 'మీరు అతిథిగా లాగిన్ అయ్యారు. లాగ్ఔట్ అయితే అన్ని సమాచారం తొలగించబడుతుంది.';
+  String get guestLoginContent =>
+      'మీరు అతిథిగా లాగిన్ అయ్యారు. లాగ్ఔట్ అయితే అన్ని సమాచారం తొలగించబడుతుంది.';
 
   @override
   String get confirm => 'మానవత్వాన్ని నిర్దారించండి.';
 
   @override
-  String get guestLoginFailed => 'అతిథి లాగిన్ విఫలం అయ్యింది. దయచేసి మళ్లీ ప్రయత్నించండి.';
+  String get guestLoginFailed =>
+      'అతిథి లాగిన్ విఫలం అయ్యింది. దయచేసి మళ్లీ ప్రయత్నించండి.';
 
   @override
   String get logoutConfirmationTitle => 'లాగ్ అవుట్ నిర్ధారణ';
 
   @override
-  String get logoutConfirmationContent => 'అతిథిగా లాగౌట్ చేయడం మీ అన్ని డేటా మరిగిస్తుంది. మీరు కొనసాగాలనుకుంటున్నారా?';
+  String get logoutConfirmationContent =>
+      'అతిథిగా లాగౌట్ చేయడం మీ అన్ని డేటా మరిగిస్తుంది. మీరు కొనసాగాలనుకుంటున్నారా?';
 
   @override
   String get convertAccount => 'అకౌంట్ మార్చు';
 
   @override
-  String get accountConversionDescription => 'మీ గెస్టు ఖాతాను మీ డేటాను సురక్షితంగా ఉంచడానికి శాశ్వత ఖాతా గా మార్చండి.';
+  String get accountConversionDescription =>
+      'మీ గెస్టు ఖాతాను మీ డేటాను సురక్షితంగా ఉంచడానికి శాశ్వత ఖాతా గా మార్చండి.';
 
   @override
   String get accountConversionSuccess => 'ఖాతా విజయవంతமாக మార్చబడింది.';
@@ -539,7 +571,8 @@ class AppLocalizationsTe extends AppLocalizations {
   String get loadingAnalyzing => 'ఆహార జాబితాను AI తో విశ్లేషణ చేస్తోంది...';
 
   @override
-  String get loadingAlmostDone => 'మీ ఫలితాన్ని సిద్ధం చేయడం దాదాపు పూర్తైంది...';
+  String get loadingAlmostDone =>
+      'మీ ఫలితాన్ని సిద్ధం చేయడం దాదాపు పూర్తైంది...';
 
   @override
   String get loadingFinalizing => 'వివరాలను పూర్తి చేయడం...';
@@ -557,7 +590,8 @@ class AppLocalizationsTe extends AppLocalizations {
   String get dismissToday => 'ఈరోజు మళ్లీ చూపవద్దు';
 
   @override
-  String get gptErrorMessage => 'క్షమించండి.\\nAI సర్వర్‌తో కమ్యూనికేషన్‌లో లోపం జరిగింది.\\nదయచేసి తర్వాత మళ్లీ ప్రయత్నించండి.';
+  String get gptErrorMessage =>
+      'క్షమించండి.\\nAI సర్వర్‌తో కమ్యూనికేషన్‌లో లోపం జరిగింది.\\nదయచేసి తర్వాత మళ్లీ ప్రయత్నించండి.';
 
   @override
   String get restaurantName => 'రెస్టారెంట్ పేరు';
@@ -569,7 +603,8 @@ class AppLocalizationsTe extends AppLocalizations {
   String get reviewTitle => 'వ్యాఖ్య';
 
   @override
-  String get reviewHint => 'దయచేసి రెస్టారెంట్ గురించి సంక్షిప్త సమీక్షను నమోదు చేయండి.';
+  String get reviewHint =>
+      'దయచేసి రెస్టారెంట్ గురించి సంక్షిప్త సమీక్షను నమోదు చేయండి.';
 
   @override
   String get commentSection_title => '🗨 సమీప వినియోగదారుల సమీక్షలు';
@@ -640,7 +675,8 @@ class AppLocalizationsTe extends AppLocalizations {
   String get restorePurchases => 'కొనుగోళ్లు పునరుద్ధరించండి';
 
   @override
-  String get mergeInProgress => 'చిత్రాలను విలీనం చేస్తోంది…\nదయచేసి వేచి ఉండండి.';
+  String get mergeInProgress =>
+      'చిత్రాలను విలీనం చేస్తోంది…\nదయచేసి వేచి ఉండండి.';
 
   @override
   String get fx_title => 'కరెన్సీ కన్వర్టర్';
@@ -673,22 +709,27 @@ class AppLocalizationsTe extends AppLocalizations {
   }
 
   @override
-  String get fx_error_no_rate => 'ఈ కరెన్సీకి మార్పిడి రేటు డేటా అందుబాటులో లేదు.';
+  String get fx_error_no_rate =>
+      'ఈ కరెన్సీకి మార్పిడి రేటు డేటా అందుబాటులో లేదు.';
 
   @override
-  String get fx_search_currency_hint => 'కరెన్సీ కోడ్‌ను వెతకండి (ఉదా: USD, JPY)';
+  String get fx_search_currency_hint =>
+      'కరెన్సీ కోడ్‌ను వెతకండి (ఉదా: USD, JPY)';
 
   @override
   String get sub_disclaimer_title => 'చందా సమాచారం';
 
   @override
-  String get sub_trial_free => 'మొదటి సారి సబ్‌స్క్రైబర్లు ట్రయల్ కాలంలో చార్జ్ చేయబడరు.';
+  String get sub_trial_free =>
+      'మొదటి సారి సబ్‌స్క్రైబర్లు ట్రయల్ కాలంలో చార్జ్ చేయబడరు.';
 
   @override
-  String get sub_auto_renew => 'ట్రయల్ ముగిసిన తర్వాత, ప్రస్తుత కాలం ముగియడానికి కనీసం 24 గంటల ముందు రద్దు చేయకపోతే సబ్‌స్క్రిప్షన్ ఆటోమేటిక్‌గా రీన్యూ అవుతుంది.';
+  String get sub_auto_renew =>
+      'ట్రయల్ ముగిసిన తర్వాత, ప్రస్తుత కాలం ముగియడానికి కనీసం 24 గంటల ముందు రద్దు చేయకపోతే సబ్‌స్క్రిప్షన్ ఆటోమేటిక్‌గా రీన్యూ అవుతుంది.';
 
   @override
-  String get sub_renew_charge => 'పునరుద్ధరణ రుసుములు ప్రస్తుత కాలం ముగియడానికి 24 గంటల లోపు చెల్లించబడవచ్చు.';
+  String get sub_renew_charge =>
+      'పునరుద్ధరణ రుసుములు ప్రస్తుత కాలం ముగియడానికి 24 గంటల లోపు చెల్లించబడవచ్చు.';
 
   @override
   String sub_period_price(Object period, Object price) {
@@ -696,7 +737,8 @@ class AppLocalizationsTe extends AppLocalizations {
   }
 
   @override
-  String get sub_restore => 'మునుపటి కొనుగోళ్లు \"కొనుగోళ్లను పునరుద్ధరించు\" ద్వారా పునరుద్ధరించవచ్చు.';
+  String get sub_restore =>
+      'మునుపటి కొనుగోళ్లు \"కొనుగోళ్లను పునరుద్ధరించు\" ద్వారా పునరుద్ధరించవచ్చు.';
 
   @override
   String get terms => 'సేవా నిబంధనలు';
@@ -705,13 +747,16 @@ class AppLocalizationsTe extends AppLocalizations {
   String get privacy => 'గోప్యతా విధానం';
 
   @override
-  String get sub_manage_ios => 'చెల్లింపులు మీ Apple ID కు చార్జ్ చేయబడతాయి మరియు సెట్టింగులు > [మీ పేరు] > సబ్‌స్క్రిప్షన్లు లో నిర్వహించవచ్చు/రద్దు చేయవచ్చు.';
+  String get sub_manage_ios =>
+      'చెల్లింపులు మీ Apple ID కు చార్జ్ చేయబడతాయి మరియు సెట్టింగులు > [మీ పేరు] > సబ్‌స్క్రిప్షన్లు లో నిర్వహించవచ్చు/రద్దు చేయవచ్చు.';
 
   @override
-  String get sub_manage_android => 'చెల్లింపులు మీ Google ఖాతాకు చార్జ్ చేయబడతాయి మరియు Play Store యాప్ > ప్రొఫైల్ ఐకాన్ > చెల్లింపులు & సబ్‌స్క్రిప్షన్లు > సబ్‌స్క్రిప్షన్లు లో నిర్వహించవచ్చు/రద్దు చేయవచ్చు.';
+  String get sub_manage_android =>
+      'చెల్లింపులు మీ Google ఖాతాకు చార్జ్ చేయబడతాయి మరియు Play Store యాప్ > ప్రొఫైల్ ఐకాన్ > చెల్లింపులు & సబ్‌స్క్రిప్షన్లు > సబ్‌స్క్రిప్షన్లు లో నిర్వహించవచ్చు/రద్దు చేయవచ్చు.';
 
   @override
-  String get sub_badge_trial_1m => '🎁 మొదటిసారి సభ్యత్వం పొందే వారికి ఒక నెల ఉచితం';
+  String get sub_badge_trial_1m =>
+      '🎁 మొదటిసారి సభ్యత్వం పొందే వారికి ఒక నెల ఉచితం';
 
   @override
   String get iapRestoreError => 'పునరుద్ధరణ సమయంలో ఒక లోపం ఏర్పడింది.';
@@ -723,7 +768,8 @@ class AppLocalizationsTe extends AppLocalizations {
   String get iapRestoreEmpty => 'పునరుద్ధరించడానికి ఎలాంటి కొనుగోలు లేవు.';
 
   @override
-  String get iapRestoreTrying => 'కొనుగోళ్లను పునరుద్ధరించడానికి ప్రయత్నిస్తున్నాం...';
+  String get iapRestoreTrying =>
+      'కొనుగోళ్లను పునరుద్ధరించడానికి ప్రయత్నిస్తున్నాం...';
 
   @override
   String get viewOnMap => 'మ్యాప్‌లో చూడండి';
@@ -732,7 +778,8 @@ class AppLocalizationsTe extends AppLocalizations {
   String get login_welcomeBack => 'మళ్లీ స్వాగతం';
 
   @override
-  String get login_subtitle => 'AIతో మరింత సులభంగా రుచికరమైన ఆహారాన్ని అన్వేషించండి—ఇప్పుడే ప్రారంభించండి.';
+  String get login_subtitle =>
+      'AIతో మరింత సులభంగా రుచికరమైన ఆహారాన్ని అన్వేషించండి—ఇప్పుడే ప్రారంభించండి.';
 
   @override
   String get login_emailLabel => 'ఇమెయిల్ చిరునామా';
@@ -756,7 +803,8 @@ class AppLocalizationsTe extends AppLocalizations {
   String get login_signUpFree => 'ఉచితంగా నమోదు చేసుకోండి';
 
   @override
-  String get signup_subtitle => 'ఖాతా సృష్టించి స్కాన్‌లను సేవ్ చేయండి, ప్రీసెట్‌లను నిర్వహించండి, ప్రీమియమ్ ఫీచర్లను ఉపయోగించండి.';
+  String get signup_subtitle =>
+      'ఖాతా సృష్టించి స్కాన్‌లను సేవ్ చేయండి, ప్రీసెట్‌లను నిర్వహించండి, ప్రీమియమ్ ఫీచర్లను ఉపయోగించండి.';
 
   @override
   String get signup_emailLabel => 'ఇమెయిల్ చిరునామా';
@@ -920,7 +968,8 @@ class AppLocalizationsTe extends AppLocalizations {
   String get favorite_restaurantNameHint => 'రెస్టారెంట్ పేరు';
 
   @override
-  String get result_fxRateLoadFailed => 'ఎక్స్చేంజ్ రేట్ డేటా లోడ్ కాలేదు. నెట్‌వర్క్‌ను తనిఖీ చేయండి.';
+  String get result_fxRateLoadFailed =>
+      'ఎక్స్చేంజ్ రేట్ డేటా లోడ్ కాలేదు. నెట్‌వర్క్‌ను తనిఖీ చేయండి.';
 
   @override
   String get result_fxConvertFailed => 'ఈ మొత్తాన్ని మార్చలేకపోయాం.';
@@ -943,10 +992,12 @@ class AppLocalizationsTe extends AppLocalizations {
   String get result_preparingMenu => 'వివరమైన మెనూను సిద్ధం చేస్తున్నాం…';
 
   @override
-  String get result_failedLoadSettings => 'సెట్టింగ్‌లు లోడ్ కాలేదు. క్లౌడ్ సేవ్ డిఫాల్ట్‌గా ఆన్‌లో ఉంటుంది.';
+  String get result_failedLoadSettings =>
+      'సెట్టింగ్‌లు లోడ్ కాలేదు. క్లౌడ్ సేవ్ డిఫాల్ట్‌గా ఆన్‌లో ఉంటుంది.';
 
   @override
-  String get result_imageUploadFailed => 'చిత్రం అప్లోడ్ విఫలమైంది. మళ్లీ ప్రయత్నించండి.';
+  String get result_imageUploadFailed =>
+      'చిత్రం అప్లోడ్ విఫలమైంది. మళ్లీ ప్రయత్నించండి.';
 
   @override
   String get result_analyzing => 'ఆహార సమాచారం విశ్లేషణలో ఉంది';
@@ -961,7 +1012,8 @@ class AppLocalizationsTe extends AppLocalizations {
   String get guestLoginTitle2 => 'స్వాగతం, అన్వేషకా!';
 
   @override
-  String get guestLoginContent2 => 'గెస్ట్ మోడ్‌లో మీరు ఆహార మెన్యూలను స్కాన్ చేసి వ్యక్తిగత సిఫార్సులు పొందవచ్చు, కానీ మీ ఇష్టమైనవలను సేవ్ చేయలేరు లేదా పరికరాల మధ్య చరిత్రను చూడలేరు.';
+  String get guestLoginContent2 =>
+      'గెస్ట్ మోడ్‌లో మీరు ఆహార మెన్యూలను స్కాన్ చేసి వ్యక్తిగత సిఫార్సులు పొందవచ్చు, కానీ మీ ఇష్టమైనవలను సేవ్ చేయలేరు లేదా పరికరాల మధ్య చరిత్రను చూడలేరు.';
 
   @override
   String get confirm2 => 'అతిథిగా కొనసాగండి';
@@ -979,28 +1031,36 @@ class AppLocalizationsTe extends AppLocalizations {
   String get result_noMenuItemsFound => 'మెనూ అంశాలు ఏవీ కనబడలేదు.';
 
   @override
-  String get result_notMenuMessage => 'ఈ చిత్రం ఆహార మెనూను చూపుతున్నట్లు కనిపించదు. దయచేసి మళ్లీ ఫోటో తీయండి, తద్వారా మెనూ పేర్లు లేదా ఆహార పేర్లు స్పష్టంగా కనిపించేలా ఉండాలి.';
+  String get result_notMenuMessage =>
+      'ఈ చిత్రం ఆహార మెనూను చూపుతున్నట్లు కనిపించదు. దయచేసి మళ్లీ ఫోటో తీయండి, తద్వారా మెనూ పేర్లు లేదా ఆహార పేర్లు స్పష్టంగా కనిపించేలా ఉండాలి.';
 
   @override
-  String get result_uncertainMenuMessage => 'ఇది ఆహార మెనూ కాకపోవచ్చని అనిపిస్తోంది. దయచేసి మెనూ పేర్లు మరియు ధరలు స్పష్టంగా కనిపించేలా ఫోటోను మళ్లీ తీసుకోండి.';
+  String get result_uncertainMenuMessage =>
+      'ఇది ఆహార మెనూ కాకపోవచ్చని అనిపిస్తోంది. దయచేసి మెనూ పేర్లు మరియు ధరలు స్పష్టంగా కనిపించేలా ఫోటోను మళ్లీ తీసుకోండి.';
 
   @override
-  String get result_aiTimeoutMoreResponse => 'మరింత AI ప్రతిస్పందన కోసం వేచి ఉండగా సమయం ముగిసింది.';
+  String get result_aiTimeoutMoreResponse =>
+      'మరింత AI ప్రతిస్పందన కోసం వేచి ఉండగా సమయం ముగిసింది.';
 
   @override
-  String get result_aiTimeoutFirstChunk => 'మొదటి AI భాగం రాకముందే టైమ్ అవుట్ అయింది.';
+  String get result_aiTimeoutFirstChunk =>
+      'మొదటి AI భాగం రాకముందే టైమ్ అవుట్ అయింది.';
 
   @override
-  String get result_aiTimeoutFullMenu => 'పూర్తి మెనూను కోసం ఎదురు చూస్తున్నప్పుడు సమయం ముగిసింది.';
+  String get result_aiTimeoutFullMenu =>
+      'పూర్తి మెనూను కోసం ఎదురు చూస్తున్నప్పుడు సమయం ముగిసింది.';
 
   @override
-  String get result_aiTimeoutFullMenuStream => 'పూర్తి మెను స్ట్రీమ్ కోసం వేచి ఉండగా సమయం ముగిసింది.';
+  String get result_aiTimeoutFullMenuStream =>
+      'పూర్తి మెను స్ట్రీమ్ కోసం వేచి ఉండగా సమయం ముగిసింది.';
 
   @override
-  String get result_aiReceiveFailedFullMenuStream => 'మొత్తం మెనూ స్ట్రీమ్‌ను స్వీకరిస్తుండగా విఫలమైంది.';
+  String get result_aiReceiveFailedFullMenuStream =>
+      'మొత్తం మెనూ స్ట్రీమ్‌ను స్వీకరిస్తుండగా విఫలమైంది.';
 
   @override
-  String get result_aiEmptyStreamResponse => 'AI ద్వారా ఖాళీ స్ట్రీమ్ ప్రతిస్పందన వచ్చింది.';
+  String get result_aiEmptyStreamResponse =>
+      'AI ద్వారా ఖాళీ స్ట్రీమ్ ప్రతిస్పందన వచ్చింది.';
 
   @override
   String get tts_orderPhraseTitle => 'ఆర్డరింగ్ కోసం పదబంధం సృష్టించండి';
@@ -1018,7 +1078,8 @@ class AppLocalizationsTe extends AppLocalizations {
   String get tts_generatePhraseButton => 'పదబంధాన్ని సృష్టించండి';
 
   @override
-  String get tts_generationFailed => 'పదబంధాన్ని సృష్టించడంలో విఫలమైంది. దయచేసి కొద్దిసేపటి తర్వాత మళ్లీ ప్రయత్నించండి.';
+  String get tts_generationFailed =>
+      'పదబంధాన్ని సృష్టించడంలో విఫలమైంది. దయచేసి కొద్దిసేపటి తర్వాత మళ్లీ ప్రయత్నించండి.';
 
   @override
   String get tts_resultSectionTitle => 'సృష్టించబడిన పదబంధం';
@@ -1072,7 +1133,8 @@ class AppLocalizationsTe extends AppLocalizations {
   String get premiumLoginRequiredTitle => 'Sign in to start Premium';
 
   @override
-  String get premiumLoginRequiredMessage => 'Sign in to restore purchases, keep your subscription, and access Premium across devices.';
+  String get premiumLoginRequiredMessage =>
+      'Sign in to restore purchases, keep your subscription, and access Premium across devices.';
 
   @override
   String get premiumLoginRequiredAction => 'Sign in to continue';
@@ -1084,10 +1146,12 @@ class AppLocalizationsTe extends AppLocalizations {
   String get premiumStartCta => 'Start Premium';
 
   @override
-  String get premiumGuestSectionTitle => 'Connect your account before purchasing Premium in guest mode';
+  String get premiumGuestSectionTitle =>
+      'Connect your account before purchasing Premium in guest mode';
 
   @override
-  String get premiumGuestSectionMessage => 'Premium subscriptions are linked to your account so purchases can be restored and used across devices.';
+  String get premiumGuestSectionMessage =>
+      'Premium subscriptions are linked to your account so purchases can be restored and used across devices.';
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';

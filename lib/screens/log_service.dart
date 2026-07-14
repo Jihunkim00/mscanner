@@ -13,15 +13,15 @@ const bool _legacyEnabled = false;
 
 // ✅ DB 저장을 막을 "중복" div (BASE div 기준) — 필요 시 여기에만 추가/삭제
 const Set<int> _disabledBaseDivs = {
-  10,   // scan_result_received_success (요약) → 202(success)로 대체
-  200,  // camera_open → 201(multi_scan_submit)로 대체
-  500,  // history_open → 501(history_detail_view)로 대체
+  10, // scan_result_received_success (요약) → 202(success)로 대체
+  200, // camera_open → 201(multi_scan_submit)로 대체
+  500, // history_open → 501(history_detail_view)로 대체
 };
 
 /// LogDiv 전략: result로 구분 vs 상태별로 code 분할
 enum LogDivStrategy {
-  singleWithResult,   // 하나의 log_div + result 필드(기본)
-  splitByResult,      // result 별로 log_div를 분리(예: 2021/2022/2023)
+  singleWithResult, // 하나의 log_div + result 필드(기본)
+  splitByResult, // result 별로 log_div를 분리(예: 2021/2022/2023)
 }
 
 class LogService {
@@ -52,12 +52,12 @@ class LogService {
 
     if (Platform.isIOS) {
       final iosInfo = await _deviceInfoPlugin.iosInfo;
-      deviceModel = iosInfo.utsname.machine ?? '';
-      osVersion = iosInfo.systemVersion ?? '';
+      deviceModel = iosInfo.utsname.machine;
+      osVersion = iosInfo.systemVersion;
     } else if (Platform.isAndroid) {
       final androidInfo = await _deviceInfoPlugin.androidInfo;
-      deviceModel = androidInfo.model ?? '';
-      osVersion = androidInfo.version.release ?? '';
+      deviceModel = androidInfo.model;
+      osVersion = androidInfo.version.release;
     }
 
     final locale = WidgetsBinding.instance.platformDispatcher.locale;
@@ -149,7 +149,6 @@ class LogService {
     Map<String, dynamic>? params,
     String result = 'success', // attempt|success|fail
   }) async {
-
     if (!_shouldStore(baseDiv: logDiv, eventName: eventName, result: result)) {
       return;
     }
@@ -176,7 +175,6 @@ class LogService {
 
   // ───────────────────────── 레거시 유지 ─────────────────────────
   Future<void> sendLog(int logDiv) async {
-
     if (!_legacyEnabled) return;
     final uuid = await getUuid();
     final deviceInfo = await _getDeviceInfo();
@@ -245,69 +243,141 @@ class LogService {
     return r < rate;
   }
 
-
   // ───────────────────────── 신규 이벤트 ─────────────────────────
   // A. 로그인
-  Future<void> logLoginAttempt({String method = 'google'}) async =>
-      _log(logDiv: 100, eventName: 'login_attempt', result: 'attempt', params: {'method': method});
+  Future<void> logLoginAttempt({String method = 'google'}) async => _log(
+      logDiv: 100,
+      eventName: 'login_attempt',
+      result: 'attempt',
+      params: {'method': method});
 
-  Future<void> logLoginFail({String method = 'google', String? errorCode, String? errorMsg}) async =>
-      _log(logDiv: 101, eventName: 'login_fail', result: 'fail', params: {'method': method, 'error_code': errorCode, 'error_msg': errorMsg});
+  Future<void> logLoginFail(
+          {String method = 'google',
+          String? errorCode,
+          String? errorMsg}) async =>
+      _log(logDiv: 101, eventName: 'login_fail', result: 'fail', params: {
+        'method': method,
+        'error_code': errorCode,
+        'error_msg': errorMsg
+      });
 
-  Future<void> logPremiumLoginDetected({required bool isPremium, String? entitlement}) async =>
-      _log(logDiv: 110, eventName: 'premium_login_detected', params: {'is_premium': isPremium, 'entitlement': entitlement});
+  Future<void> logPremiumLoginDetected(
+          {required bool isPremium, String? entitlement}) async =>
+      _log(
+          logDiv: 110,
+          eventName: 'premium_login_detected',
+          params: {'is_premium': isPremium, 'entitlement': entitlement});
 
   // B. 스캔 퍼널
-  Future<void> logCameraOpen({String reason = 'quick'}) async =>
-      _log(logDiv: 200, eventName: 'camera_open', result: 'attempt', params: {'reason': reason});
+  Future<void> logCameraOpen({String reason = 'quick'}) async => _log(
+      logDiv: 200,
+      eventName: 'camera_open',
+      result: 'attempt',
+      params: {'reason': reason});
 
-  Future<void> logMultiScanSubmit({required int imageCount, String source = 'gallery'}) async =>
-      _log(logDiv: 201, eventName: 'multi_scan_submit', result: 'attempt', params: {'image_count': imageCount, 'source': source});
+  Future<void> logMultiScanSubmit(
+          {required int imageCount, String source = 'gallery'}) async =>
+      _log(
+          logDiv: 201,
+          eventName: 'multi_scan_submit',
+          result: 'attempt',
+          params: {'image_count': imageCount, 'source': source});
 
-  Future<void> logScanResultAttempt({String modelVer = 'vX'}) async =>
-      _log(logDiv: 202, eventName: 'scan_result_received', result: 'attempt', params: {'model_ver': modelVer});
+  Future<void> logScanResultAttempt({String modelVer = 'vX'}) async => _log(
+      logDiv: 202,
+      eventName: 'scan_result_received',
+      result: 'attempt',
+      params: {'model_ver': modelVer});
 
-  Future<void> logScanResultSuccess({required int latencyMs, required String modelVer, String? topLabel, bool? isMenuLike}) async =>
-      _log(logDiv: 202, eventName: 'scan_result_received', result: 'success', params: {
-        'latency_ms': latencyMs,
-        'model_ver': modelVer,
-        'top_label': topLabel,
-        'is_menu_like': isMenuLike,
-      });
+  Future<void> logScanResultSuccess(
+          {required int latencyMs,
+          required String modelVer,
+          String? topLabel,
+          bool? isMenuLike}) async =>
+      _log(
+          logDiv: 202,
+          eventName: 'scan_result_received',
+          result: 'success',
+          params: {
+            'latency_ms': latencyMs,
+            'model_ver': modelVer,
+            'top_label': topLabel,
+            'is_menu_like': isMenuLike,
+          });
 
-  Future<void> logScanResultFail({required String modelVer, String? errorCode, String? errorMsg}) async =>
-      _log(logDiv: 202, eventName: 'scan_result_received', result: 'fail', params: {
-        'model_ver': modelVer,
-        'error_code': errorCode,
-        'error_msg': errorMsg,
-      });
+  Future<void> logScanResultFail(
+          {required String modelVer,
+          String? errorCode,
+          String? errorMsg}) async =>
+      _log(
+          logDiv: 202,
+          eventName: 'scan_result_received',
+          result: 'fail',
+          params: {
+            'model_ver': modelVer,
+            'error_code': errorCode,
+            'error_msg': errorMsg,
+          });
 
   // C. 환율
-  Future<void> logCurrencyCalcOpen({required String from, required String to, String context = 'manual'}) async =>
-      _log(logDiv: 400, eventName: 'currency_calc_open', result: 'attempt', params: {'from_currency': from, 'to_currency': to, 'context': context});
+  Future<void> logCurrencyCalcOpen(
+          {required String from,
+          required String to,
+          String context = 'manual'}) async =>
+      _log(
+          logDiv: 400,
+          eventName: 'currency_calc_open',
+          result: 'attempt',
+          params: {
+            'from_currency': from,
+            'to_currency': to,
+            'context': context
+          });
 
   // D. 결과 화면 액션
-  Future<void> logShareClick({required String dest, String context = 'result'}) async =>
-      _log(logDiv: 600, eventName: 'share_click', params: {'dest': dest, 'context': context});
+  Future<void> logShareClick(
+          {required String dest, String context = 'result'}) async =>
+      _log(
+          logDiv: 600,
+          eventName: 'share_click',
+          params: {'dest': dest, 'context': context});
 
   Future<void> logCopyClick({required String field}) async =>
       _log(logDiv: 601, eventName: 'copy_click', params: {'field': field});
 
-  Future<void> logSaveClick({required bool hasComment, int contentLength = 0, String context = 'result'}) async =>
-      _log(logDiv: 602, eventName: 'save_click', params: {'has_comment': hasComment, 'content_length': contentLength, 'context': context});
+  Future<void> logSaveClick(
+          {required bool hasComment,
+          int contentLength = 0,
+          String context = 'result'}) async =>
+      _log(logDiv: 602, eventName: 'save_click', params: {
+        'has_comment': hasComment,
+        'content_length': contentLength,
+        'context': context
+      });
 
   Future<void> logRatingPrompt({required String action, int? stars}) async =>
-      _log(logDiv: 603, eventName: 'rating_prompt', params: {'action': action, 'stars': stars});
+      _log(
+          logDiv: 603,
+          eventName: 'rating_prompt',
+          params: {'action': action, 'stars': stars});
 
   // E. 이력/지도
   Future<void> logHistoryOpen() async =>
       _log(logDiv: 500, eventName: 'history_open');
 
-  Future<void> logHistoryDetailView({required int itemAgeDays, required String itemType}) async =>
-      _log(logDiv: 501, eventName: 'history_detail_view', params: {'item_age_days': itemAgeDays, 'item_type': itemType});
+  Future<void> logHistoryDetailView(
+          {required int itemAgeDays, required String itemType}) async =>
+      _log(
+          logDiv: 501,
+          eventName: 'history_detail_view',
+          params: {'item_age_days': itemAgeDays, 'item_type': itemType});
 
-  Future<void> logMapOpen({String provider = 'map', required String from}) async =>
-      _log(logDiv: 502, eventName: 'map_open', params: {'provider': provider, 'from': from});
+  Future<void> logMapOpen(
+          {String provider = 'map', required String from}) async =>
+      _log(
+          logDiv: 502,
+          eventName: 'map_open',
+          params: {'provider': provider, 'from': from});
 
   Future<void> logContentImpression({
     required String contentType,
@@ -318,24 +388,38 @@ class LogService {
     bool debug = false, // ← 임시 디버그
   }) async {
     if (count <= 0) {
-      if (debug) print('[logContentImpression] skip: count<=0');
+      if (debug) {
+        debugPrint('[logContentImpression] skip: count<=0');
+      }
       return;
     }
-    if (contentType.isEmpty || contentType == 'none' || contentType == 'placeholder') {
-      if (debug) print('[logContentImpression] skip: invalid contentType=$contentType');
+    if (contentType.isEmpty ||
+        contentType == 'none' ||
+        contentType == 'placeholder') {
+      if (debug) {
+        debugPrint(
+            '[logContentImpression] skip: invalid contentType=$contentType');
+      }
       return;
     }
     if (!_sample(sampleRate)) {
-      if (debug) print('[logContentImpression] skip: sampled out (rate=$sampleRate)');
+      if (debug) {
+        debugPrint(
+            '[logContentImpression] skip: sampled out (rate=$sampleRate)');
+      }
       return;
     }
     final key = 'imp_$contentType';
     if (oncePerSession && !_oncePerSession(key)) {
-      if (debug) print('[logContentImpression] skip: oncePerSession gate ($key)');
+      if (debug) {
+        debugPrint('[logContentImpression] skip: oncePerSession gate ($key)');
+      }
       return;
     }
     if (oncePerDay && !await _oncePerDay(key)) {
-      if (debug) print('[logContentImpression] skip: oncePerDay gate ($key)');
+      if (debug) {
+        debugPrint('[logContentImpression] skip: oncePerDay gate ($key)');
+      }
       return;
     }
 
@@ -349,30 +433,61 @@ class LogService {
       },
       result: 'success',
     );
-    if (debug) print('[logContentImpression] stored: type=$contentType, count=$count');
+    if (debug) {
+      debugPrint(
+          '[logContentImpression] stored: type=$contentType, count=$count');
+    }
   }
 
-
   // G. 매뉴얼/설정/프리셋
-  Future<void> logManualOpen({required String entryPoint}) async =>
-      _log(logDiv: 700, eventName: 'manual_open', params: {'entry_point': entryPoint});
+  Future<void> logManualOpen({required String entryPoint}) async => _log(
+      logDiv: 700,
+      eventName: 'manual_open',
+      params: {'entry_point': entryPoint});
 
   Future<void> logSettingsOpen() async =>
       _log(logDiv: 701, eventName: 'settings_open');
 
-  Future<void> logPresetSave({required String presetType, required int fieldsCount}) async =>
-      _log(logDiv: 702, eventName: 'preset_save', params: {'preset_type': presetType, 'fields_count': fieldsCount});
+  Future<void> logPresetSave(
+          {required String presetType, required int fieldsCount}) async =>
+      _log(
+          logDiv: 702,
+          eventName: 'preset_save',
+          params: {'preset_type': presetType, 'fields_count': fieldsCount});
 
   // H. 프리미엄/결제
-  Future<void> logPremiumCtaClick({required String placement, required String plan}) async =>
-      _log(logDiv: 800, eventName: 'premium_cta_click', params: {'placement': placement, 'plan': plan});
+  Future<void> logPremiumCtaClick(
+          {required String placement, required String plan}) async =>
+      _log(
+          logDiv: 800,
+          eventName: 'premium_cta_click',
+          params: {'placement': placement, 'plan': plan});
 
-  Future<void> logPurchaseStarted({required String productId}) async =>
-      _log(logDiv: 801, eventName: 'purchase_flow_started', result: 'attempt', params: {'product_id': productId});
+  Future<void> logPurchaseStarted({required String productId}) async => _log(
+      logDiv: 801,
+      eventName: 'purchase_flow_started',
+      result: 'attempt',
+      params: {'product_id': productId});
 
-  Future<void> logPurchaseAcknowledged({required String productId, String? orderId}) async =>
-      _log(logDiv: 802, eventName: 'purchase_flow_acknowledged', result: 'success', params: {'product_id': productId, 'order_id': orderId});
+  Future<void> logPurchaseAcknowledged(
+          {required String productId, String? orderId}) async =>
+      _log(
+          logDiv: 802,
+          eventName: 'purchase_flow_acknowledged',
+          result: 'success',
+          params: {'product_id': productId, 'order_id': orderId});
 
-  Future<void> logPurchaseFailed({required String productId, String? errorCode, String? errorMsg}) async =>
-      _log(logDiv: 802, eventName: 'purchase_flow_acknowledged', result: 'fail', params: {'product_id': productId, 'error_code': errorCode, 'error_msg': errorMsg});
+  Future<void> logPurchaseFailed(
+          {required String productId,
+          String? errorCode,
+          String? errorMsg}) async =>
+      _log(
+          logDiv: 802,
+          eventName: 'purchase_flow_acknowledged',
+          result: 'fail',
+          params: {
+            'product_id': productId,
+            'error_code': errorCode,
+            'error_msg': errorMsg
+          });
 }

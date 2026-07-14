@@ -10,10 +10,10 @@ class DetailScreen extends StatefulWidget {
   final int initialIndex;
 
   const DetailScreen({
-    Key? key,
+    super.key,
     required this.items,
     required this.initialIndex,
-  }) : super(key: key);
+  });
 
   @override
   State<DetailScreen> createState() => _DetailScreenState();
@@ -29,14 +29,14 @@ class _DetailScreenState extends State<DetailScreen> {
     _pageController = PageController(initialPage: widget.initialIndex);
   }
 
-
   bool _isSearchedMenuCard(Map<String, String> data) {
     return (data['card_type'] ?? '') == 'searched_menu';
   }
 
   List<String> _parseMenuTags(Map<String, String> data) {
     final raw =
-    (data['menu_tags_csv'] ?? data['recommended_chip_labels_csv'] ?? '').trim();
+        (data['menu_tags_csv'] ?? data['recommended_chip_labels_csv'] ?? '')
+            .trim();
     if (raw.isEmpty) return const [];
     return raw
         .split('||')
@@ -49,7 +49,7 @@ class _DetailScreenState extends State<DetailScreen> {
   Widget build(BuildContext context) {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final backgroundColor =
-    isDarkMode ? CupertinoColors.black : Color(0xFFEFEFF4);
+        isDarkMode ? CupertinoColors.black : Color(0xFFEFEFF4);
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -67,10 +67,10 @@ class _DetailScreenState extends State<DetailScreen> {
 
   /// 개별 페이지(상세 정보) 빌드
   Widget _buildDetailItem(
-      BuildContext context,
-      Map<String, String> data,
-      int pageIndex,
-      ) {
+    BuildContext context,
+    Map<String, String> data,
+    int pageIndex,
+  ) {
     if (_isSearchedMenuCard(data)) {
       return _buildSearchedMenuDetailItem(context, data);
     }
@@ -78,11 +78,12 @@ class _DetailScreenState extends State<DetailScreen> {
   }
 
   Widget _buildVerifiedDetailItem(
-      BuildContext context,
-      Map<String, String> data,
-      ) {
+    BuildContext context,
+    Map<String, String> data,
+  ) {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDarkMode ? CupertinoColors.white : CupertinoColors.black;
+    final textColor =
+        isDarkMode ? CupertinoColors.white : CupertinoColors.black;
 
     final String imageUrl = data['image_url'] ?? '';
     final String title = data['title'] ?? 'No Title';
@@ -101,9 +102,8 @@ class _DetailScreenState extends State<DetailScreen> {
       if (imageUrl5 != null && imageUrl5.isNotEmpty) imageUrl5,
     ];
 
-    final String trimmedDetail = (detail.length > 200)
-        ? detail.substring(0, 200) + '...'
-        : detail;
+    final String trimmedDetail =
+        (detail.length > 200) ? '${detail.substring(0, 200)}...' : detail;
 
     return Stack(
       children: [
@@ -122,7 +122,7 @@ class _DetailScreenState extends State<DetailScreen> {
                 ),
                 boxFit: BoxFit.cover,
                 colorFilter: ColorFilter.mode(
-                  Colors.black.withOpacity(0.3),
+                  Colors.black.withValues(alpha: 0.3),
                   BlendMode.darken,
                 ),
                 child: Padding(
@@ -212,7 +212,7 @@ class _DetailScreenState extends State<DetailScreen> {
                             style: TextStyle(
                               fontFamily: 'SFProText',
                               fontSize: 14,
-                              color: textColor.withOpacity(0.6),
+                              color: textColor.withValues(alpha: 0.6),
                             ),
                           ),
                         ),
@@ -242,20 +242,19 @@ class _DetailScreenState extends State<DetailScreen> {
   }
 
   Widget _buildSearchedMenuDetailItem(
-      BuildContext context,
-      Map<String, String> data,
-      ) {
+    BuildContext context,
+    Map<String, String> data,
+  ) {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDarkMode ? CupertinoColors.white : CupertinoColors.black;
+    final textColor =
+        isDarkMode ? CupertinoColors.white : CupertinoColors.black;
     final backgroundColor =
-    isDarkMode ? CupertinoColors.black : const Color(0xFFEFEFF4);
+        isDarkMode ? CupertinoColors.black : const Color(0xFFEFEFF4);
 
     final imageUrl = (data['image_full_url'] ?? data['image_url'] ?? '').trim();
     final title = data['title'] ?? 'Menu';
     final shortDesc = (data['short_desc'] ?? '').trim();
     final tags = _parseMenuTags(data);
-    final localizations = AppLocalizations.of(context);
-
     return Stack(
       children: [
         Column(
@@ -273,27 +272,27 @@ class _DetailScreenState extends State<DetailScreen> {
                   color: Colors.black,
                   child: imageUrl.isNotEmpty
                       ? Image.network(
-                    imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: backgroundColor,
-                      alignment: Alignment.center,
-                      child: const Icon(
-                        Icons.restaurant,
-                        size: 56,
-                        color: Colors.white70,
-                      ),
-                    ),
-                  )
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: backgroundColor,
+                            alignment: Alignment.center,
+                            child: const Icon(
+                              Icons.restaurant,
+                              size: 56,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        )
                       : Container(
-                    color: backgroundColor,
-                    alignment: Alignment.center,
-                    child: Icon(
-                      Icons.restaurant,
-                      size: 56,
-                      color: textColor.withOpacity(0.7),
-                    ),
-                  ),
+                          color: backgroundColor,
+                          alignment: Alignment.center,
+                          child: Icon(
+                            Icons.restaurant,
+                            size: 56,
+                            color: textColor.withValues(alpha: 0.7),
+                          ),
+                        ),
                 ),
               ),
             ),
@@ -307,7 +306,7 @@ class _DetailScreenState extends State<DetailScreen> {
                     Text(
                       AppLocalizations.of(context)!.home_trendingNearYou,
                       style: TextStyle(
-                        color: textColor.withOpacity(0.78),
+                        color: textColor.withValues(alpha: 0.78),
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                         fontFamily: 'SFProDisplay',
@@ -331,26 +330,26 @@ class _DetailScreenState extends State<DetailScreen> {
                             .take(8)
                             .map(
                               (tag) => Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isDarkMode
-                                  ? Colors.white10
-                                  : Colors.black.withOpacity(0.05),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Text(
-                              tag,
-                              style: TextStyle(
-                                color: textColor,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isDarkMode
+                                      ? Colors.white10
+                                      : Colors.black.withValues(alpha: 0.05),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Text(
+                                  tag,
+                                  style: TextStyle(
+                                    color: textColor,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        )
+                            )
                             .toList(),
                       ),
                     ],
@@ -359,7 +358,7 @@ class _DetailScreenState extends State<DetailScreen> {
                       Text(
                         shortDesc,
                         style: TextStyle(
-                          color: textColor.withOpacity(0.88),
+                          color: textColor.withValues(alpha: 0.88),
                           fontSize: 14,
                           height: 1.45,
                         ),
@@ -388,8 +387,7 @@ class _DetailScreenState extends State<DetailScreen> {
   }
 
   /// [하단 썸네일] 이미지 리스트
-  Widget _buildImageCarousel(
-      BuildContext context, List<String> imageUrls) {
+  Widget _buildImageCarousel(BuildContext context, List<String> imageUrls) {
     return SizedBox(
       height: MediaQuery.of(context).size.height * 0.15,
       child: ListView.builder(
@@ -410,20 +408,20 @@ class _DetailScreenState extends State<DetailScreen> {
                   imageUrls[index],
                   fit: BoxFit.cover,
                   loadingBuilder: (
-                      BuildContext context,
-                      Widget child,
-                      ImageChunkEvent? loadingProgress,
-                      ) {
+                    BuildContext context,
+                    Widget child,
+                    ImageChunkEvent? loadingProgress,
+                  ) {
                     if (loadingProgress == null) return child;
                     return const Center(
                       child: CircularProgressIndicator(),
                     );
                   },
                   errorBuilder: (
-                      BuildContext context,
-                      Object exception,
-                      StackTrace? stackTrace,
-                      ) {
+                    BuildContext context,
+                    Object exception,
+                    StackTrace? stackTrace,
+                  ) {
                     // 에러 시 대체 이미지
                     return Image.asset('assets/images/default_image.png',
                         fit: BoxFit.cover);

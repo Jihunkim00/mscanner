@@ -12,13 +12,13 @@ class PremiumAdOverlay extends StatelessWidget {
   final double rightPanelWidthRatio;
   final double minPanelWidth;
 
-  final BoxFit imageFit;                // 이미지 채우기 방식 (cover / contain …)
-  final Alignment imageAlignment;       // 이미지 앵커 위치
-  final double panelOffsetY;            // 패널을 위/아래로 미세 이동 (음수=위로)
+  final BoxFit imageFit; // 이미지 채우기 방식 (cover / contain …)
+  final Alignment imageAlignment; // 이미지 앵커 위치
+  final double panelOffsetY; // 패널을 위/아래로 미세 이동 (음수=위로)
   final bool isGuest;
 
   const PremiumAdOverlay({
-    Key? key,
+    super.key,
     required this.image,
     required this.locale,
     required this.adFreePrice,
@@ -32,11 +32,12 @@ class PremiumAdOverlay extends StatelessWidget {
     this.imageFit = BoxFit.contain,
     this.imageAlignment = Alignment.topLeft,
     this.panelOffsetY = -50,
-    this.isGuest = false,// 기본은 이동 없음
-  }) : super(key: key);
+    this.isGuest = false, // 기본은 이동 없음
+  });
 
   static const _rtlLangs = {'ar', 'ur'};
-  static bool _isRTL(Locale l) => _rtlLangs.contains(l.languageCode.toLowerCase());
+  static bool _isRTL(Locale l) =>
+      _rtlLangs.contains(l.languageCode.toLowerCase());
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +50,8 @@ class PremiumAdOverlay extends StatelessWidget {
           final isNarrow = constraints.maxWidth < 560;
           final panelWidth = isNarrow
               ? constraints.maxWidth
-              : (constraints.maxWidth * rightPanelWidthRatio).clamp(minPanelWidth, constraints.maxWidth * 0.6);
+              : (constraints.maxWidth * rightPanelWidthRatio)
+                  .clamp(minPanelWidth, constraints.maxWidth * 0.6);
 
           return ClipRRect(
             borderRadius: BorderRadius.circular(16),
@@ -58,8 +60,8 @@ class PremiumAdOverlay extends StatelessWidget {
                 Positioned.fill(
                   child: Image(
                     image: image,
-                    fit: imageFit,              // ✅ 전달받은 옵션 적용
-                    alignment: imageAlignment,  // ✅ 전달받은 옵션 적용
+                    fit: imageFit, // ✅ 전달받은 옵션 적용
+                    alignment: imageAlignment, // ✅ 전달받은 옵션 적용
                   ),
                 ),
                 Positioned.fill(
@@ -68,22 +70,24 @@ class PremiumAdOverlay extends StatelessWidget {
                       decoration: BoxDecoration(
                         gradient: isNarrow
                             ? const LinearGradient(
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                          colors: [Color(0xCC000000), Color(0x00000000)],
-                        )
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [Color(0xCC000000), Color(0x00000000)],
+                              )
                             : const LinearGradient(
-                          begin: Alignment.centerRight,
-                          end: Alignment.centerLeft,
-                          colors: [Color(0xCC000000), Color(0x00000000)],
-                        ),
+                                begin: Alignment.centerRight,
+                                end: Alignment.centerLeft,
+                                colors: [Color(0xCC000000), Color(0x00000000)],
+                              ),
                       ),
                     ),
                   ),
                 ),
                 Align(
-                  alignment: isNarrow ? Alignment.bottomCenter : Alignment.centerRight,
-                  child: Transform.translate(        // ✅ 패널 위치 조정
+                  alignment:
+                      isNarrow ? Alignment.bottomCenter : Alignment.centerRight,
+                  child: Transform.translate(
+                    // ✅ 패널 위치 조정
                     offset: Offset(0, panelOffsetY), // 음수면 위로
                     child: ConstrainedBox(
                       constraints: BoxConstraints(maxWidth: panelWidth),
@@ -141,69 +145,71 @@ class _Panel extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final ctaText = isGuest ? l10n.premiumGuestCta : l10n.premiumStartCta;
     final titleStyle = Theme.of(context).textTheme.headlineSmall?.copyWith(
-      fontFamily: 'SFPro',
-      fontSize: 20,   // 👈 원하는 크기로 고정
-      color: Colors.white70,
-      fontWeight: FontWeight.w800,
-      height: 1.15,
-    );
+          fontFamily: 'SFPro',
+          fontSize: 20, // 👈 원하는 크기로 고정
+          color: Colors.white70,
+          fontWeight: FontWeight.w800,
+          height: 1.15,
+        );
 
     return DefaultTextStyle.merge(
-        style: const TextStyle(
-          decoration: TextDecoration.none, // ✅ 밑줄 제거
-          decorationColor: Colors.transparent, // ✅ 혹시 모를 데코 색도 무시
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-        // 브랜드 텍스트 (불필요하다면 제거 가능)
-        // Text("Mscanner", style: TextStyle(fontFamily: 'SFPro', color: Colors.white70, fontSize: 13, letterSpacing: 0.5)),
-        SizedBox(height: isNarrow ? 6 : 10),
-        Text(strings.title, style: titleStyle, maxLines: 2),
-        SizedBox(height: isNarrow ? 8 : 12),
-        _PriceRow(icon: Icons.block, label: strings.adFree, price: adFreePrice),
-        const SizedBox(height: 6),
-            _PriceRow(
-              icon: Icons.star_rounded,
-              label: strings.premiumMonthly,
-              price: premiumMonthlyPrice,
-              trailing: strings.freeTrial,
-            ),
-        SizedBox(height: isNarrow ? 10 : 14),
-        SizedBox(
-          height: 44,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white70,
-              foregroundColor: Colors.black87,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              elevation: 0,
-            ),
-            onPressed: onPrimaryTap,
-            child: Text(
-              ctaText,
-              style: const TextStyle(
-                fontFamily: 'SFPro',
-                fontSize: 18,
-                decoration: TextDecoration.none,
-                fontWeight: FontWeight.w600,
+      style: const TextStyle(
+        decoration: TextDecoration.none, // ✅ 밑줄 제거
+        decorationColor: Colors.transparent, // ✅ 혹시 모를 데코 색도 무시
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 브랜드 텍스트 (불필요하다면 제거 가능)
+          // Text("Mscanner", style: TextStyle(fontFamily: 'SFPro', color: Colors.white70, fontSize: 13, letterSpacing: 0.5)),
+          SizedBox(height: isNarrow ? 6 : 10),
+          Text(strings.title, style: titleStyle, maxLines: 2),
+          SizedBox(height: isNarrow ? 8 : 12),
+          _PriceRow(
+              icon: Icons.block, label: strings.adFree, price: adFreePrice),
+          const SizedBox(height: 6),
+          _PriceRow(
+            icon: Icons.star_rounded,
+            label: strings.premiumMonthly,
+            price: premiumMonthlyPrice,
+            trailing: strings.freeTrial,
+          ),
+          SizedBox(height: isNarrow ? 10 : 14),
+          SizedBox(
+            height: 44,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white70,
+                foregroundColor: Colors.black87,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
+              ),
+              onPressed: onPrimaryTap,
+              child: Text(
+                ctaText,
+                style: const TextStyle(
+                  fontFamily: 'SFPro',
+                  fontSize: 18,
+                  decoration: TextDecoration.none,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(height: 6),
-            Text(
-              strings.disclaimer,
-              style: const TextStyle(
-                fontFamily: 'SFPro',
-                color: Colors.white30,
-                fontSize: 15,
-                decoration: TextDecoration.none, // ✅ 안전장치
-              ),
+          const SizedBox(height: 6),
+          Text(
+            strings.disclaimer,
+            style: const TextStyle(
+              fontFamily: 'SFPro',
+              color: Colors.white30,
+              fontSize: 15,
+              decoration: TextDecoration.none, // ✅ 안전장치
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -227,17 +233,30 @@ class _PriceRow extends StatelessWidget {
       children: [
         Icon(icon, color: Colors.white, size: 24),
         const SizedBox(width: 8),
-        Expanded(child: Text(label, style: const TextStyle(fontFamily: 'SFPro',fontSize: 18, decoration: TextDecoration.none,    color: Colors.white70))),
+        Expanded(
+            child: Text(label,
+                style: const TextStyle(
+                    fontFamily: 'SFPro',
+                    fontSize: 18,
+                    decoration: TextDecoration.none,
+                    color: Colors.white70))),
         const SizedBox(width: 8),
         Text(price,
-            style: const TextStyle(fontFamily: 'SFPro', fontSize: 16, decoration: TextDecoration.none,    color: Colors.white70, fontWeight: FontWeight.w700)),
+            style: const TextStyle(
+                fontFamily: 'SFPro',
+                fontSize: 16,
+                decoration: TextDecoration.none,
+                color: Colors.white70,
+                fontWeight: FontWeight.w700)),
         if (trailing != null) ...[
           const SizedBox(width: 6),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(color: Colors.white12, borderRadius: BorderRadius.circular(8)),
+            decoration: BoxDecoration(
+                color: Colors.white12, borderRadius: BorderRadius.circular(8)),
             child: Text(trailing!,
-                style: const TextStyle(fontFamily: 'SFPro', color: Colors.white70, fontSize: 15)),
+                style: const TextStyle(
+                    fontFamily: 'SFPro', color: Colors.white70, fontSize: 15)),
           ),
         ],
       ],
@@ -252,7 +271,7 @@ class _CloseButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      behavior: HitTestBehavior.opaque,  // 투명 영역까지 탭 감지
+      behavior: HitTestBehavior.opaque, // 투명 영역까지 탭 감지
       onTap: onClose,
       child: Container(
         padding: const EdgeInsets.all(8),
@@ -269,8 +288,6 @@ class _CloseButton extends StatelessWidget {
     );
   }
 }
-
-
 
 /// -------------------------
 /// Strings & Localizations
@@ -411,7 +428,8 @@ class _Strings {
           premiumMonthly: 'Premium (ежемесячно)',
           freeTrial: '1-й месяц бесплатно',
           cta: 'Перейти на Premium',
-          disclaimer: 'Цена может отличаться в зависимости от региона/магазина.',
+          disclaimer:
+              'Цена может отличаться в зависимости от региона/магазина.',
         );
       case 'pt':
       case 'pt-br':
@@ -506,7 +524,27 @@ String simpleLocalizedPrice(Locale locale) {
   if (lang == 'ko') return '₩900';
 
   const euLangs = {
-    'de','fr','es','it','pt','nl','pl','sv','da','fi','el','cs','hu','ro','sk','sl','hr','bg','et','lv','lt'
+    'de',
+    'fr',
+    'es',
+    'it',
+    'pt',
+    'nl',
+    'pl',
+    'sv',
+    'da',
+    'fi',
+    'el',
+    'cs',
+    'hu',
+    'ro',
+    'sk',
+    'sl',
+    'hr',
+    'bg',
+    'et',
+    'lv',
+    'lt'
   };
   if (euLangs.contains(lang)) return '€0.69';
 

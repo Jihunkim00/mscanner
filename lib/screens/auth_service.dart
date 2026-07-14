@@ -25,7 +25,7 @@ class AuthService {
   Future<void> _ensureGoogleInitialized() async {
     if (_googleInitialized) return;
     await _googleSignIn.initialize(
-      clientId: iosClientId,          // iOS일 때 필요하면 지정
+      clientId: iosClientId, // iOS일 때 필요하면 지정
       serverClientId: serverClientId, // Android에서 종종 필요(웹 클라이언트 ID)
     );
     _googleInitialized = true;
@@ -39,8 +39,7 @@ class AuthService {
       await _ensureGoogleInitialized();
 
       // v7: UI 흐름 시작은 authenticate()
-      final GoogleSignInAccount account =
-      await _googleSignIn.authenticate();
+      final GoogleSignInAccount account = await _googleSignIn.authenticate();
 
       // v7: authentication에는 idToken만 제공
       final String? idToken = account.authentication.idToken;
@@ -52,16 +51,16 @@ class AuthService {
       }
 
       final OAuthCredential credential =
-      GoogleAuthProvider.credential(idToken: idToken);
+          GoogleAuthProvider.credential(idToken: idToken);
 
       final UserCredential userCredential =
-      await _auth.signInWithCredential(credential);
+          await _auth.signInWithCredential(credential);
 
       return userCredential.user;
     } catch (e) {
       // 필요한 경우 GoogleSignInException 처리 분기 가능
       // (e is GoogleSignInException && e.code == GoogleSignInExceptionCode.canceled 등)
-      // print('Google sign-in error: $e');
+      // debugPrint('Google sign-in error: $e');
       return null;
     }
   }
@@ -103,11 +102,11 @@ class AuthService {
       );
 
       final UserCredential userCredential =
-      await _auth.signInWithCredential(oauth);
+          await _auth.signInWithCredential(oauth);
 
       return userCredential.user;
     } catch (e) {
-      // print('Apple sign-in error: $e');
+      // debugPrint('Apple sign-in error: $e');
       return null;
     }
   }
@@ -115,11 +114,11 @@ class AuthService {
   // 이메일/비밀번호 로그인
   Future<User?> signInWithEmailPassword(String email, String password) async {
     try {
-      final UserCredential userCredential =
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
+      final UserCredential userCredential = await _auth
+          .signInWithEmailAndPassword(email: email, password: password);
       return userCredential.user;
     } catch (e) {
-      // print('Email/Password sign-in error: $e');
+      // debugPrint('Email/Password sign-in error: $e');
       return null;
     }
   }
@@ -130,7 +129,7 @@ class AuthService {
       final UserCredential userCredential = await _auth.signInAnonymously();
       return userCredential.user;
     } catch (e) {
-      // print('Guest sign-in error: $e');
+      // debugPrint('Guest sign-in error: $e');
       return null;
     }
   }

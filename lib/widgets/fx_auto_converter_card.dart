@@ -1,4 +1,3 @@
-
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -6,70 +5,138 @@ import 'package:intl/intl.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import '/screens/log_service.dart';
 import '/analytics_service.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
-
 
 /// ===== 상위 통화 & 국가→통화 매핑(요약) =====
 const Set<String> kTopCurrencies = {
-  'USD','EUR','JPY','GBP','AUD','CAD','CHF','CNY','HKD','SGD',
-  'INR','KRW','TWD','THB','MYR','IDR','VND','PHP','NZD','SEK',
-  'NOK','DKK','PLN','CZK','HUF','TRY','SAR','AED','QAR','KWD',
-  'BHD','OMR','RUB','ZAR','BRL','MXN','ARS','CLP','COP','PEN',
-  'BOB','UYU','ILS','EGP','NGN','KES','MAD','TND','RON','BGN',
-  'RSD','UAH'
+  'USD',
+  'EUR',
+  'JPY',
+  'GBP',
+  'AUD',
+  'CAD',
+  'CHF',
+  'CNY',
+  'HKD',
+  'SGD',
+  'INR',
+  'KRW',
+  'TWD',
+  'THB',
+  'MYR',
+  'IDR',
+  'VND',
+  'PHP',
+  'NZD',
+  'SEK',
+  'NOK',
+  'DKK',
+  'PLN',
+  'CZK',
+  'HUF',
+  'TRY',
+  'SAR',
+  'AED',
+  'QAR',
+  'KWD',
+  'BHD',
+  'OMR',
+  'RUB',
+  'ZAR',
+  'BRL',
+  'MXN',
+  'ARS',
+  'CLP',
+  'COP',
+  'PEN',
+  'BOB',
+  'UYU',
+  'ILS',
+  'EGP',
+  'NGN',
+  'KES',
+  'MAD',
+  'TND',
+  'RON',
+  'BGN',
+  'RSD',
+  'UAH'
 };
 
 const Map<String, String> kCountryToCurrency = {
   // 북미
-  'US':'USD','CA':'CAD','MX':'MXN',
+  'US': 'USD', 'CA': 'CAD', 'MX': 'MXN',
   // 유럽(유로권)
-  'AT':'EUR','BE':'EUR','CY':'EUR','EE':'EUR','FI':'EUR','FR':'EUR','DE':'EUR','GR':'EUR','IE':'EUR',
-  'IT':'EUR','LV':'EUR','LT':'EUR','LU':'EUR','MT':'EUR','NL':'EUR','PT':'EUR','SK':'EUR','SI':'EUR','ES':'EUR',
+  'AT': 'EUR', 'BE': 'EUR', 'CY': 'EUR', 'EE': 'EUR', 'FI': 'EUR', 'FR': 'EUR',
+  'DE': 'EUR', 'GR': 'EUR', 'IE': 'EUR',
+  'IT': 'EUR', 'LV': 'EUR', 'LT': 'EUR', 'LU': 'EUR', 'MT': 'EUR', 'NL': 'EUR',
+  'PT': 'EUR', 'SK': 'EUR', 'SI': 'EUR', 'ES': 'EUR',
   // 유럽(비유로)
-  'GB':'GBP','CH':'CHF','NO':'NOK','SE':'SEK','DK':'DKK','PL':'PLN','CZ':'CZK','HU':'HUF',
+  'GB': 'GBP', 'CH': 'CHF', 'NO': 'NOK', 'SE': 'SEK', 'DK': 'DKK', 'PL': 'PLN',
+  'CZ': 'CZK', 'HU': 'HUF',
   // 중동
-  'TR':'TRY','AE':'AED','SA':'SAR','QA':'QAR','KW':'KWD','BH':'BHD','OM':'OMR','IL':'ILS','EG':'EGP',
+  'TR': 'TRY', 'AE': 'AED', 'SA': 'SAR', 'QA': 'QAR', 'KW': 'KWD', 'BH': 'BHD',
+  'OM': 'OMR', 'IL': 'ILS', 'EG': 'EGP',
   // 아프리카(대표)
-  'ZA':'ZAR','MA':'MAD','TN':'TND','DZ':'DZD','NG':'NGN','KE':'KES',
+  'ZA': 'ZAR', 'MA': 'MAD', 'TN': 'TND', 'DZ': 'DZD', 'NG': 'NGN', 'KE': 'KES',
   // 아시아
-  'KR':'KRW','JP':'JPY','CN':'CNY','TW':'TWD','HK':'HKD','MO':'MOP',
-  'SG':'SGD','MY':'MYR','TH':'THB','ID':'IDR','VN':'VND','PH':'PHP',
-  'IN':'INR',
+  'KR': 'KRW', 'JP': 'JPY', 'CN': 'CNY', 'TW': 'TWD', 'HK': 'HKD', 'MO': 'MOP',
+  'SG': 'SGD', 'MY': 'MYR', 'TH': 'THB', 'ID': 'IDR', 'VN': 'VND', 'PH': 'PHP',
+  'IN': 'INR',
   // 오세아니아
-  'AU':'AUD','NZ':'NZD',
+  'AU': 'AUD', 'NZ': 'NZD',
 };
 
 String currencySymbol(String code) {
   switch (code.toUpperCase()) {
-    case 'USD': return '\$';
-    case 'EUR': return '€';
-    case 'JPY': return '¥';
-    case 'KRW': return '₩';
-    case 'GBP': return '£';
-    case 'CNY': return '元';
-    case 'VND': return '₫';
-    case 'PHP': return '₱';
-    case 'THB': return '฿';
-    case 'INR': return '₹';
-    default: return '';
+    case 'USD':
+      return '\$';
+    case 'EUR':
+      return '€';
+    case 'JPY':
+      return '¥';
+    case 'KRW':
+      return '₩';
+    case 'GBP':
+      return '£';
+    case 'CNY':
+      return '元';
+    case 'VND':
+      return '₫';
+    case 'PHP':
+      return '₱';
+    case 'THB':
+      return '฿';
+    case 'INR':
+      return '₹';
+    default:
+      return '';
   }
 }
 
 String? _guessFromSymbol(String? s) {
   if (s == null || s.isEmpty) return null;
   switch (s) {
-    case '₩': return 'KRW';
-    case '€': return 'EUR';
-    case '£': return 'GBP';
-    case '₫': return 'VND';
-    case '₱': return 'PHP';
-    case '฿': return 'THB';
-    case '₹': return 'INR';
-    default: return null; // '$','¥' 모호 → 다른 정보로 보정
+    case '₩':
+      return 'KRW';
+    case '€':
+      return 'EUR';
+    case '£':
+      return 'GBP';
+    case '₫':
+      return 'VND';
+    case '₱':
+      return 'PHP';
+    case '฿':
+      return 'THB';
+    case '₹':
+      return 'INR';
+    default:
+      return null; // '$','¥' 모호 → 다른 정보로 보정
   }
 }
 
-String pickLocalCurrency({String? detectedCountryCode, String? currencySymbolHint}) {
+String pickLocalCurrency(
+    {String? detectedCountryCode, String? currencySymbolHint}) {
   final bySym = _guessFromSymbol(currencySymbolHint);
   if (bySym != null) return bySym;
   if (detectedCountryCode != null) {
@@ -94,7 +161,7 @@ class FxDoc {
     if (data == null) return null;
     final base = (data['base'] as String).toUpperCase();
     final rawRates = (data['rates'] as Map).map(
-          (k, v) => MapEntry(k.toString().toUpperCase(), (v as num).toDouble()),
+      (k, v) => MapEntry(k.toString().toUpperCase(), (v as num).toDouble()),
     );
     DateTime? updated;
     final u = data['updatedAt'];
@@ -108,8 +175,11 @@ class FxRepository {
   final FirebaseFirestore _db;
   FxRepository(this._db);
 
-  Stream<FxDoc?> streamFxCore(String base) =>
-      _db.collection('fx_core').doc(base.toUpperCase()).snapshots().map(FxDoc.fromSnap);
+  Stream<FxDoc?> streamFxCore(String base) => _db
+      .collection('fx_core')
+      .doc(base.toUpperCase())
+      .snapshots()
+      .map(FxDoc.fromSnap);
 
   Stream<Map<String, FxDoc>> streamFxCores(Iterable<String> bases) {
     final ids = bases.map((e) => e.toUpperCase()).toList();
@@ -142,7 +212,7 @@ double? convertViaBase({
   if (rFrom == null || rFrom == 0) return null;
   final inBase = amount / rFrom; // A -> base
   if (t == baseDoc.base) return inBase;
-  final rTo = baseDoc.rates[t];  // base -> B
+  final rTo = baseDoc.rates[t]; // base -> B
   if (rTo == null) return null;
   return inBase * rTo;
 }
@@ -189,11 +259,16 @@ enum TargetCurrency { usd, eur, krw, jpy, cny }
 
 String _targetCodeOf(TargetCurrency t) {
   switch (t) {
-    case TargetCurrency.usd: return 'USD';
-    case TargetCurrency.eur: return 'EUR';
-    case TargetCurrency.krw: return 'KRW';
-    case TargetCurrency.jpy: return 'JPY';
-    case TargetCurrency.cny: return 'CNY';
+    case TargetCurrency.usd:
+      return 'USD';
+    case TargetCurrency.eur:
+      return 'EUR';
+    case TargetCurrency.krw:
+      return 'KRW';
+    case TargetCurrency.jpy:
+      return 'JPY';
+    case TargetCurrency.cny:
+      return 'CNY';
   }
 }
 
@@ -215,43 +290,11 @@ class FxQuickFxButton extends StatelessWidget {
   final String? currencySymbolHint;
   final TargetCurrency initialTarget;
 
-
   final double iconSize;
   final EdgeInsets padding;
   final IconData? iconData;
   // [ADD]
   final List<double> parsedAmounts;
-
-  TargetCurrency _defaultTargetCurrencyFromSystemLanguage() {
-    final code = ui.PlatformDispatcher.instance.locale.languageCode.toLowerCase();
-    switch (code) {
-      case 'ko':
-        return TargetCurrency.krw;
-      case 'ja':
-        return TargetCurrency.jpy;
-      case 'zh':
-        return TargetCurrency.cny;
-      case 'fr':
-      case 'de':
-      case 'es':
-      case 'it':
-      case 'pt':
-      case 'nl':
-      case 'pl':
-      case 'sv':
-      case 'no':
-      case 'da':
-      case 'fi':
-      case 'cs':
-      case 'hu':
-      case 'ro':
-      case 'el':
-      case 'tr':
-        return TargetCurrency.eur;
-      default:
-        return TargetCurrency.usd;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -276,7 +319,9 @@ class FxQuickFxButton extends StatelessWidget {
             to: to,
             context: 'scan', // 필요하면 'manual' 등으로 바꿔도 됨
           );
-          await AnalyticsService.instance.logExchangeRateViewed(source: 'fx_quick_button');
+          await AnalyticsService.instance
+              .logExchangeRateViewed(source: 'fx_quick_button');
+          if (!context.mounted) return;
           showModalBottomSheet(
             context: context,
             useSafeArea: true,
@@ -357,9 +402,11 @@ class _AmountChipsBar extends StatelessWidget {
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
             onSelected: (_) => onTapChip(i),
-            backgroundColor: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFF7F7F7),
+            backgroundColor:
+                isDark ? const Color(0xFF2C2C2E) : const Color(0xFFF7F7F7),
             selectedColor: isDark ? const Color(0xFF3A3A3C) : Colors.white,
-            side: BorderSide(color: isDark ? Colors.white24 : Colors.grey.shade400),
+            side: BorderSide(
+                color: isDark ? Colors.white24 : Colors.grey.shade400),
           ),
         ),
       if (extra > 0)
@@ -370,7 +417,8 @@ class _AmountChipsBar extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: isDark ? Colors.white24 : Colors.grey.shade400),
+              border: Border.all(
+                  color: isDark ? Colors.white24 : Colors.grey.shade400),
             ),
             child: const Icon(Icons.add, size: 14),
           ),
@@ -386,7 +434,6 @@ class _AmountChipsBar extends StatelessWidget {
     );
   }
 }
-
 
 class _FxConverterSheetState extends State<FxConverterSheet> {
   late final FxRepository _repo;
@@ -483,11 +530,6 @@ class _FxConverterSheetState extends State<FxConverterSheet> {
   }
 
   // [ADD] 수식 문자열 (예: "1,000 + 500 + 600")
-  String get _exprFormula {
-    if (_exprTerms.isEmpty) return '';
-    return _exprTerms.map(_fmtAmount).join(' + ');
-  }
-
   String _fmtAmount(double v) {
     // 천단위 콤마, 소수 0~2자리 자동
     final hasFraction = v.truncateToDouble() != v;
@@ -502,9 +544,6 @@ class _FxConverterSheetState extends State<FxConverterSheet> {
     if (tail > 0) parts.add(_fmtAmount(tail));
     return parts.join(' + ');
   }
-
-
-
 
   Widget _targetChip(String label, TargetCurrency value) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -529,8 +568,8 @@ class _FxConverterSheetState extends State<FxConverterSheet> {
         onSelected: (_) => setState(() => _target = value),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         visualDensity: const VisualDensity(horizontal: -3, vertical: -3),
-        backgroundColor: bg,           // 비선택
-        selectedColor: selectedBg,     // 선택
+        backgroundColor: bg, // 비선택
+        selectedColor: selectedBg, // 선택
         side: BorderSide(color: sideColor),
       ),
     );
@@ -559,14 +598,21 @@ class _FxConverterSheetState extends State<FxConverterSheet> {
   void _openCurrencyPicker({required FxDoc? eur, required FxDoc? usd}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final sheetBg = isDark ? const Color(0xFF1C1C1E) : const Color(0xFFEFEFF4);
-    final cardBg  = isDark ? const Color(0xFF2C2C2E) : Colors.white;
+    final cardBg = isDark ? const Color(0xFF2C2C2E) : Colors.white;
     final divider = isDark ? Colors.white10 : Colors.black12;
     final sideColor = isDark ? Colors.white24 : Colors.black12;
 
     final supported = <String>{};
-    if (eur != null) supported.addAll(eur.rates.keys.map((e) => e.toUpperCase()));
-    if (usd != null) supported.addAll(usd.rates.keys.map((e) => e.toUpperCase()));
-    final all = (supported.isEmpty ? kTopCurrencies.toList() : supported.toList())..sort();
+    if (eur != null) {
+      supported.addAll(eur.rates.keys.map((e) => e.toUpperCase()));
+    }
+    if (usd != null) {
+      supported.addAll(usd.rates.keys.map((e) => e.toUpperCase()));
+    }
+    final all = (supported.isEmpty
+        ? kTopCurrencies.toList()
+        : supported.toList())
+      ..sort();
 
     showModalBottomSheet(
       context: context,
@@ -578,7 +624,9 @@ class _FxConverterSheetState extends State<FxConverterSheet> {
         return Material(
           color: sheetBg,
           child: StatefulBuilder(builder: (ctx, setM) {
-            final filtered = all.where((c) => q.isEmpty ? true : c.contains(q.toUpperCase())).toList();
+            final filtered = all
+                .where((c) => q.isEmpty ? true : c.contains(q.toUpperCase()))
+                .toList();
             return SafeArea(
               child: Column(
                 children: [
@@ -590,13 +638,17 @@ class _FxConverterSheetState extends State<FxConverterSheet> {
                       decoration: InputDecoration(
                         isDense: true,
                         prefixIcon: const Icon(Icons.search),
-                        hintText: AppLocalizations.of(context)?.fx_search_currency_hint,
+                        hintText: AppLocalizations.of(context)
+                            ?.fx_search_currency_hint,
                         filled: true,
                         fillColor: cardBg,
-                        border: OutlineInputBorder(borderSide: BorderSide(color: sideColor)),
-                        enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: sideColor)),
+                        border: OutlineInputBorder(
+                            borderSide: BorderSide(color: sideColor)),
+                        enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: sideColor)),
                         focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+                          borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.primary),
                         ),
                       ),
                     ),
@@ -605,7 +657,8 @@ class _FxConverterSheetState extends State<FxConverterSheet> {
                   Expanded(
                     child: ListView.separated(
                       itemCount: filtered.length,
-                      separatorBuilder: (_, __) => Divider(color: divider, height: 1),
+                      separatorBuilder: (_, __) =>
+                          Divider(color: divider, height: 1),
                       itemBuilder: (_, i) {
                         final code = filtered[i];
                         final sym = currencySymbol(code);
@@ -616,10 +669,14 @@ class _FxConverterSheetState extends State<FxConverterSheet> {
                             dense: true,
                             title: Text(
                               sym.isEmpty ? code : '$code  ($sym)',
-                              style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                              style: TextStyle(
+                                  color:
+                                      isDark ? Colors.white : Colors.black87),
                             ),
                             trailing: isSelected
-                                ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+                                ? Icon(Icons.check,
+                                    color:
+                                        Theme.of(context).colorScheme.primary)
                                 : null,
                             onTap: () {
                               setState(() => _localCurrency = code);
@@ -643,9 +700,9 @@ class _FxConverterSheetState extends State<FxConverterSheet> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     // iOS systemGroupedBackground 계열과 유사한 팔레트
-    final sheetBg  = isDark ? const Color(0xFF1C1C1E) : const Color(0xFFEFEFF4);
-    final cardBg   = isDark ? const Color(0xFF2C2C2E) : Colors.white;
-    final border   = isDark ? Colors.white24 : Colors.grey.shade400;
+    final sheetBg = isDark ? const Color(0xFF1C1C1E) : const Color(0xFFEFEFF4);
+    final cardBg = isDark ? const Color(0xFF2C2C2E) : Colors.white;
+    final border = isDark ? Colors.white24 : Colors.grey.shade400;
     final subtleTx = isDark ? Colors.white70 : Colors.black54;
 
     // 5개 베이스 문서를 한 번에 스트림
@@ -702,14 +759,15 @@ class _FxConverterSheetState extends State<FxConverterSheet> {
                   // ✅ String 으로 만들어서 l10n 함수에 그대로 전달
                   final updatedText = (usedUpdatedAt ?? fallbackUpdated) != null
                       ? DateFormat('yyyy-MM-dd').format(
-                    (usedUpdatedAt ?? fallbackUpdated)!.toLocal(),
-                  )
+                          (usedUpdatedAt ?? fallbackUpdated)!.toLocal(),
+                        )
                       : (AppLocalizations.of(context)?.fx_unknown ?? 'Unknown');
 
                   return ListView(
                     controller: controller,
                     padding: const EdgeInsets.only(bottom: 12),
-                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
                     children: [
                       // 헤더 (작게)
                       Row(
@@ -717,7 +775,8 @@ class _FxConverterSheetState extends State<FxConverterSheet> {
                           const Icon(Icons.currency_exchange, size: 18),
                           const SizedBox(width: 6),
                           Text(AppLocalizations.of(context)!.fx_title,
-                              style: const TextStyle(fontWeight: FontWeight.w600)),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w600)),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Align(
@@ -761,11 +820,13 @@ class _FxConverterSheetState extends State<FxConverterSheet> {
                               visualDensity: VisualDensity.compact,
                               backgroundColor: cardBg, // 버튼 배경도 카드 톤
                               side: BorderSide(color: border),
-                              foregroundColor: isDark ? Colors.white : Colors.black87,
+                              foregroundColor:
+                                  isDark ? Colors.white : Colors.black87,
                             ),
                             icon: const Icon(Icons.flag, size: 16),
                             label: Text(
-                              AppLocalizations.of(context)!.fx_currency_btn(_localCurrency),
+                              AppLocalizations.of(context)!
+                                  .fx_currency_btn(_localCurrency),
                             ),
                             onPressed: () {
                               _openCurrencyPicker(
@@ -776,8 +837,12 @@ class _FxConverterSheetState extends State<FxConverterSheet> {
                           ),
                           const Spacer(),
                           Text(
-                            AppLocalizations.of(context)!.fx_base_date(updatedText),
-                            style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: subtleTx),
+                            AppLocalizations.of(context)!
+                                .fx_base_date(updatedText),
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontStyle: FontStyle.italic,
+                                color: subtleTx),
                           ),
                         ],
                       ),
@@ -789,22 +854,31 @@ class _FxConverterSheetState extends State<FxConverterSheet> {
                         children: [
                           TextField(
                             controller: _amountCtrl,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
                             textInputAction: TextInputAction.done,
-                            onSubmitted: (_) => FocusScope.of(context).unfocus(),
+                            onSubmitted: (_) =>
+                                FocusScope.of(context).unfocus(),
                             decoration: InputDecoration(
                               isDense: true,
-                              labelText: AppLocalizations.of(context)?.fx_amount_label,
-                              hintText: AppLocalizations.of(context)?.fx_amount_hint,
+                              labelText:
+                                  AppLocalizations.of(context)?.fx_amount_label,
+                              hintText:
+                                  AppLocalizations.of(context)?.fx_amount_hint,
                               filled: true,
                               fillColor: cardBg,
-                              border: OutlineInputBorder(borderSide: BorderSide(color: border)),
-                              enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: border)),
+                              border: OutlineInputBorder(
+                                  borderSide: BorderSide(color: border)),
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: border)),
                               focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+                                borderSide: BorderSide(
+                                    color:
+                                        Theme.of(context).colorScheme.primary),
                               ),
                               // [ADD] 우상단 + 버튼 공간 확보
-                              contentPadding: const EdgeInsets.fromLTRB(12, 12, 40, 12),
+                              contentPadding:
+                                  const EdgeInsets.fromLTRB(12, 12, 40, 12),
                             ),
                             onChanged: (_) => setState(() {}),
                           ),
@@ -819,12 +893,13 @@ class _FxConverterSheetState extends State<FxConverterSheet> {
                                 width: 20,
                                 height: 20,
                                 decoration: BoxDecoration(
-                                  color: cardBg,                // 모노톤 배경
+                                  color: cardBg, // 모노톤 배경
                                   shape: BoxShape.circle,
                                   border: Border.all(color: border), // 모노톤 테두리
                                 ),
                                 alignment: Alignment.center,
-                                child: Icon(Icons.add, size: 14, color: subtleTx), // 모노톤 아이콘
+                                child: Icon(Icons.add,
+                                    size: 14, color: subtleTx), // 모노톤 아이콘
                               ),
                             ),
                           ),
@@ -847,11 +922,11 @@ class _FxConverterSheetState extends State<FxConverterSheet> {
                       ),
                       const SizedBox(height: 10),
 
-
                       // 결과
                       if (amount <= 0)
                         Text(
-                            AppLocalizations.of(context)!.fx_enter_amount_to_convert(targetCode),
+                            AppLocalizations.of(context)!
+                                .fx_enter_amount_to_convert(targetCode),
                             style: TextStyle(fontSize: 13, color: subtleTx))
                       else if (result == null)
                         Text(
@@ -869,12 +944,17 @@ class _FxConverterSheetState extends State<FxConverterSheet> {
                                 symbol: currencySymbol(targetCode),
                                 decimalDigits: 2,
                               ).format(result).trim(),
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.w600),
                             ),
                             const SizedBox(width: 8),
-                            Text(targetCode, style: TextStyle(fontSize: 14, color: subtleTx)),
+                            Text(targetCode,
+                                style:
+                                    TextStyle(fontSize: 14, color: subtleTx)),
                             // [ADD] 오른쪽 수식(예: "1,000 + 500 + 600")을 작게/흐리게
-                            if ((_exprTerms.length + (_parseField() > 0 ? 1 : 0)) >= 2) ...[
+                            if ((_exprTerms.length +
+                                    (_parseField() > 0 ? 1 : 0)) >=
+                                2) ...[
                               const Spacer(),
                               Flexible(
                                 child: Align(
@@ -885,7 +965,7 @@ class _FxConverterSheetState extends State<FxConverterSheet> {
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: subtleTx.withOpacity(0.7),
+                                      color: subtleTx.withValues(alpha: 0.7),
                                       fontStyle: FontStyle.italic,
                                     ),
                                   ),

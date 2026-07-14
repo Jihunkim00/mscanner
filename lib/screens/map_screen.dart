@@ -14,11 +14,13 @@ import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import 'package:mscanner/widgets/mscanner_search_ui.dart';
 
 class MapScreen extends StatefulWidget {
+  const MapScreen({super.key});
+
   @override
-  _MapScreenState createState() => _MapScreenState();
+  State<MapScreen> createState() => _MapScreenState();
 }
 
-enum _FilterType { recent, topRated, cuisine, date, location }
+enum _FilterType { recent, topRated }
 
 class _MapScreenState extends State<MapScreen> {
   GoogleMapController? _mapController;
@@ -34,6 +36,7 @@ class _MapScreenState extends State<MapScreen> {
   Set<Marker> _markers = {};
 
   bool _isDarkMode = false;
+  String? _darkMapStyle;
   String _searchText = '';
 
   String? _selectedId;
@@ -51,8 +54,18 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
+    _loadDarkMapStyle();
     _getUserLocation();
     _loadMarkersFromFirestore();
+  }
+
+  Future<void> _loadDarkMapStyle() async {
+    final style =
+        await rootBundle.loadString('assets/map_styles/dark_mode.json');
+    if (!mounted) return;
+    setState(() {
+      _darkMapStyle = style;
+    });
   }
 
   // ---------- location ----------
@@ -68,8 +81,11 @@ class _MapScreenState extends State<MapScreen> {
     if (permission == LocationPermission.deniedForever) return;
 
     try {
-      final position =
-      await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
       if (!mounted) return;
       setState(() {
         _initialPosition = LatLng(position.latitude, position.longitude);
@@ -97,7 +113,7 @@ class _MapScreenState extends State<MapScreen> {
       _idToData.clear();
 
       for (final doc in querySnapshot.docs) {
-        final data = doc.data() as Map<String, dynamic>;
+        final data = doc.data();
         final merged = {...data, 'id': doc.id};
 
 // ✅ 여기 추가: 카드/검색에서 쓸 “메뉴 타이틀” 미리 계산
@@ -151,22 +167,15 @@ class _MapScreenState extends State<MapScreen> {
     final geoPoint = data['gps'] as GeoPoint?;
     if (geoPoint == null) return;
 
-    final url = 'https://maps.google.com/?q=${geoPoint.latitude},${geoPoint.longitude}';
+    final url =
+        'https://maps.google.com/?q=${geoPoint.latitude},${geoPoint.longitude}';
     final message = '${data['restaurantName'] ?? ''}\n\n$url';
     Share.share(message);
   }
 
-  void _onMapCreated(GoogleMapController controller) async {
+  void _onMapCreated(GoogleMapController controller) {
     _mapController = controller;
     _isDarkMode = AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark;
-
-    if (_isDarkMode) {
-      final darkMapStyle =
-      await rootBundle.loadString('assets/map_styles/dark_mode.json');
-      controller.setMapStyle(darkMapStyle);
-    } else {
-      controller.setMapStyle(null);
-    }
   }
 
   // ---------- filter core ----------
@@ -229,8 +238,9 @@ class _MapScreenState extends State<MapScreen> {
           if (rec is List && rec.isNotEmpty && rec.first is Map) {
             final m = Map<String, dynamic>.from(rec.first as Map);
 
-            final translated = (m['name'] ?? '').toString().trim();        // ✅ 번역명 우선
-            final original = (m['nameOriginal'] ?? '').toString().trim();  // fallback
+            final translated = (m['name'] ?? '').toString().trim(); // ✅ 번역명 우선
+            final original =
+                (m['nameOriginal'] ?? '').toString().trim(); // fallback
 
             if (translated.isNotEmpty) return translated;
             if (original.isNotEmpty) return original;
@@ -278,7 +288,8 @@ class _MapScreenState extends State<MapScreen> {
     if (fromJson != null && fromJson.isNotEmpty) return fromJson;
 
     // 2) 이미 저장된 대표 메뉴 필드가 있다면 사용
-    final direct = _norm(item['primary_menu'] ?? item['menu_name'] ?? item['menuName']);
+    final direct =
+        _norm(item['primary_menu'] ?? item['menu_name'] ?? item['menuName']);
     if (direct.isNotEmpty) return direct;
 
     // 3) 구버전 텍스트에서 1번 메뉴 추출
@@ -287,7 +298,9 @@ class _MapScreenState extends State<MapScreen> {
 
     // 4) 최후 fallback: restaurant
     final restaurant = _norm(item['restaurantName']);
-    return restaurant.isNotEmpty ? restaurant : (AppLocalizations.of(context)?.map_unknown ?? 'Unknown');
+    return restaurant.isNotEmpty
+        ? restaurant
+        : (AppLocalizations.of(context)?.map_unknown ?? 'Unknown');
   }
 
   void _applyAllFiltersAndRebuild() {
@@ -309,7 +322,8 @@ class _MapScreenState extends State<MapScreen> {
 
     // 2) bottom sheet filters: cuisine/location/date
     if (_selectedCuisine != null && _selectedCuisine!.isNotEmpty) {
-      list = list.where((e) => _norm(e['cuisine']) == _selectedCuisine).toList();
+      list =
+          list.where((e) => _norm(e['cuisine']) == _selectedCuisine).toList();
     }
 
     if (_selectedLocation != null && _selectedLocation!.isNotEmpty) {
@@ -350,16 +364,20 @@ class _MapScreenState extends State<MapScreen> {
         final ra = (a['rate'] as num?)?.toDouble() ?? 0.0;
         final rb = (b['rate'] as num?)?.toDouble() ?? 0.0;
         // 평점 같으면 최신순
-        final tA = _parseTs(a['timestamp']) ?? DateTime.fromMillisecondsSinceEpoch(0);
-        final tB = _parseTs(b['timestamp']) ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final tA =
+            _parseTs(a['timestamp']) ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final tB =
+            _parseTs(b['timestamp']) ?? DateTime.fromMillisecondsSinceEpoch(0);
         final c = rb.compareTo(ra);
         return c != 0 ? c : tB.compareTo(tA);
       });
     } else {
       // recent default
       list.sort((a, b) {
-        final tA = _parseTs(a['timestamp']) ?? DateTime.fromMillisecondsSinceEpoch(0);
-        final tB = _parseTs(b['timestamp']) ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final tA =
+            _parseTs(a['timestamp']) ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final tB =
+            _parseTs(b['timestamp']) ?? DateTime.fromMillisecondsSinceEpoch(0);
         return tB.compareTo(tA);
       });
     }
@@ -382,7 +400,8 @@ class _MapScreenState extends State<MapScreen> {
             title: _norm(item['restaurantName']).isEmpty
                 ? AppLocalizations.of(context)?.map_noTitle ?? 'No Title'
                 : _norm(item['restaurantName']),
-            snippet: AppLocalizations.of(context)?.shareLocation ?? 'Share location',
+            snippet:
+                AppLocalizations.of(context)?.shareLocation ?? 'Share location',
             onTap: () => _shareLocation(item),
           ),
         ),
@@ -394,48 +413,14 @@ class _MapScreenState extends State<MapScreen> {
       _markers = markers;
 
       // 선택된 아이디가 필터로 사라졌으면 해제
-      if (_selectedId != null && !_filteredItems.any((e) => _norm(e['id']) == _selectedId)) {
+      if (_selectedId != null &&
+          !_filteredItems.any((e) => _norm(e['id']) == _selectedId)) {
         _selectedId = null;
       }
     });
   }
 
   // ---------- bottom sheets ----------
-  List<String> _getDistinctValues(String key) {
-    final set = <String>{};
-    for (final e in _historyItems) {
-      final v = _norm(e[key]);
-      if (v.isNotEmpty) set.add(v);
-    }
-    final list = set.toList()..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
-    return list;
-  }
-
-  Future<void> _openCuisineSheet() async {
-    final options = _getDistinctValues('cuisine');
-    if (options.isEmpty) return;
-
-    final picked = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => _OptionSheet(
-        title: AppLocalizations.of(context)?.map_cuisine ?? 'Cuisine',
-        current: _selectedCuisine,
-        options: options,
-      ),
-    );
-
-    if (!mounted) return;
-    if (picked != null) {
-      setState(() => _selectedCuisine = picked.isEmpty ? null : picked);
-      _applyAllFiltersAndRebuild();
-      if (_filteredItems.isNotEmpty) {
-        final id = _norm(_filteredItems.first['id']);
-        if (id.isNotEmpty) _focusToItem(id);
-      }
-    }
-  }
-
   Future<void> _openLocationSheet() async {
     // country + city 둘 다 합치기
     final set = <String>{};
@@ -445,7 +430,8 @@ class _MapScreenState extends State<MapScreen> {
       if (c.isNotEmpty) set.add(c);
       if (city.isNotEmpty) set.add(city);
     }
-    final options = set.toList()..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    final options = set.toList()
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
     if (options.isEmpty) return;
 
     final picked = await showModalBottomSheet<String>(
@@ -501,12 +487,13 @@ class _MapScreenState extends State<MapScreen> {
         final bgColor = isDark ? const Color(0xFF1C1C1E) : Colors.white;
         final titleColor = isDark ? Colors.white : const Color(0xFF111827);
         final subColor = isDark ? Colors.white70 : const Color(0xFF6B7280);
-        final lineColor =
-        isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE5E7EB);
+        final lineColor = isDark
+            ? Colors.white.withValues(alpha: 0.08)
+            : const Color(0xFFE5E7EB);
         final cardColor =
-        isDark ? const Color(0xFF2A2A2E) : const Color(0xFFF6F7F9);
+            isDark ? const Color(0xFF2A2A2E) : const Color(0xFFF6F7F9);
         final selectedCardColor =
-        isDark ? const Color(0xFF34343A) : const Color(0xFFFFF4EC);
+            isDark ? const Color(0xFF34343A) : const Color(0xFFFFF4EC);
 
         return StatefulBuilder(
           builder: (context, setModalState) {
@@ -533,7 +520,7 @@ class _MapScreenState extends State<MapScreen> {
                         width: 42,
                         height: 5,
                         decoration: BoxDecoration(
-                          color: subColor.withOpacity(0.25),
+                          color: subColor.withValues(alpha: 0.25),
                           borderRadius: BorderRadius.circular(999),
                         ),
                       ),
@@ -543,7 +530,7 @@ class _MapScreenState extends State<MapScreen> {
                           children: [
                             CupertinoButton(
                               padding: EdgeInsets.zero,
-                              minSize: 30,
+                              minimumSize: const Size.square(30),
                               onPressed: () => Navigator.pop(popupContext),
                               child: Text(
                                 AppLocalizations.of(context)?.cancel ?? '취소',
@@ -569,7 +556,7 @@ class _MapScreenState extends State<MapScreen> {
                             ),
                             CupertinoButton(
                               padding: EdgeInsets.zero,
-                              minSize: 30,
+                              minimumSize: const Size.square(30),
                               onPressed: () {
                                 if (tempEnd.isBefore(tempStart)) {
                                   tempEnd = tempStart;
@@ -605,7 +592,6 @@ class _MapScreenState extends State<MapScreen> {
                         ),
                       ),
                       Divider(height: 1, color: lineColor),
-
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
                         child: Row(
@@ -647,7 +633,8 @@ class _MapScreenState extends State<MapScreen> {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        DateFormat('yyyy.MM.dd').format(tempStart),
+                                        DateFormat('yyyy.MM.dd')
+                                            .format(tempStart),
                                         style: TextStyle(
                                           fontFamily: 'SFPro',
                                           fontSize: 16,
@@ -699,7 +686,8 @@ class _MapScreenState extends State<MapScreen> {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        DateFormat('yyyy.MM.dd').format(tempEnd),
+                                        DateFormat('yyyy.MM.dd')
+                                            .format(tempEnd),
                                         style: TextStyle(
                                           fontFamily: 'SFPro',
                                           fontSize: 16,
@@ -716,11 +704,11 @@ class _MapScreenState extends State<MapScreen> {
                           ],
                         ),
                       ),
-
                       Expanded(
                         child: CupertinoTheme(
                           data: CupertinoThemeData(
-                            brightness: isDark ? Brightness.dark : Brightness.light,
+                            brightness:
+                                isDark ? Brightness.dark : Brightness.light,
                           ),
                           child: CupertinoDatePicker(
                             key: ValueKey(
@@ -729,9 +717,8 @@ class _MapScreenState extends State<MapScreen> {
                             mode: CupertinoDatePickerMode.date,
                             itemExtent: 30,
                             initialDateTime: currentDate,
-                            minimumDate: editingStart
-                                ? DateTime(2018, 1, 1)
-                                : tempStart,
+                            minimumDate:
+                                editingStart ? DateTime(2018, 1, 1) : tempStart,
                             maximumDate: DateTime(now.year + 1, 12, 31),
                             onDateTimeChanged: (date) {
                               setModalState(() {
@@ -757,7 +744,6 @@ class _MapScreenState extends State<MapScreen> {
                           ),
                         ),
                       ),
-
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                         child: SizedBox(
@@ -811,21 +797,10 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  void _clearAllFilters() {
-    setState(() {
-      _selectedCuisine = null;
-      _selectedLocation = null;
-      _selectedDateRange = null;
-      _activeFilter = _FilterType.recent;
-    });
-    _applyAllFiltersAndRebuild();
-  }
-
   // ---------- UI ----------
   @override
   Widget build(BuildContext context) {
     _isDarkMode = AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark;
-    final bg = _isDarkMode ? CupertinoColors.black : const Color(0xFFF6F7FB);
     final pageBg = _isDarkMode
         ? CupertinoColors.black
         : const Color(0xFFEFEFF4); // ✅ 여기로 통일
@@ -833,8 +808,6 @@ class _MapScreenState extends State<MapScreen> {
     // layout constants
     const double topControlsHeight = 120;
     const double bottomCardsHeight = 210;
-
-
 
     return CupertinoPageScaffold(
       backgroundColor: pageBg,
@@ -846,15 +819,18 @@ class _MapScreenState extends State<MapScreen> {
             bottom: bottomCardsHeight - 30,
             child: _locationLoaded
                 ? ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-              child: GoogleMap(
-                initialCameraPosition: CameraPosition(target: _initialPosition, zoom: 14),
-                markers: _markers,
-                onMapCreated: _onMapCreated,
-                myLocationEnabled: true,
-                myLocationButtonEnabled: false,
-              ),
-            )
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(18)),
+                    child: GoogleMap(
+                      initialCameraPosition:
+                          CameraPosition(target: _initialPosition, zoom: 14),
+                      markers: _markers,
+                      onMapCreated: _onMapCreated,
+                      style: _isDarkMode ? _darkMapStyle : null,
+                      myLocationEnabled: true,
+                      myLocationButtonEnabled: false,
+                    ),
+                  )
                 : const Center(child: CupertinoActivityIndicator()),
           ),
 
@@ -867,14 +843,15 @@ class _MapScreenState extends State<MapScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   MScannerSearchField(
-                    placeholder: AppLocalizations.of(context)?.map_searchHistory ?? 'Search History',
+                    placeholder:
+                        AppLocalizations.of(context)?.map_searchHistory ??
+                            'Search History',
                     onChanged: (v) {
                       setState(() => _searchText = v);
                       _applyAllFiltersAndRebuild();
                     },
                   ),
                   const SizedBox(height: 10),
-
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -883,11 +860,13 @@ class _MapScreenState extends State<MapScreen> {
                         child: Row(
                           children: [
                             MScannerPillChip(
-                              label: AppLocalizations.of(context)?.map_recent ?? 'Recent',
+                              label: AppLocalizations.of(context)?.map_recent ??
+                                  'Recent',
                               selected: _activeFilter == _FilterType.recent,
                               scheme: MScannerAccent.orange,
                               onTap: () {
-                                setState(() => _activeFilter = _FilterType.recent);
+                                setState(
+                                    () => _activeFilter = _FilterType.recent);
                                 _applyAllFiltersAndRebuild();
                                 if (_filteredItems.isNotEmpty) {
                                   final id = _norm(_filteredItems.first['id']);
@@ -896,11 +875,14 @@ class _MapScreenState extends State<MapScreen> {
                               },
                             ),
                             MScannerPillChip(
-                              label: AppLocalizations.of(context)?.map_topRated ?? 'Top Rated',
+                              label:
+                                  AppLocalizations.of(context)?.map_topRated ??
+                                      'Top Rated',
                               selected: _activeFilter == _FilterType.topRated,
                               scheme: MScannerAccent.orange,
                               onTap: () {
-                                setState(() => _activeFilter = _FilterType.topRated);
+                                setState(
+                                    () => _activeFilter = _FilterType.topRated);
                                 _applyAllFiltersAndRebuild();
                                 if (_filteredItems.isNotEmpty) {
                                   final id = _norm(_filteredItems.first['id']);
@@ -909,13 +891,16 @@ class _MapScreenState extends State<MapScreen> {
                               },
                             ),
                             MScannerPillChip(
-                              label: AppLocalizations.of(context)?.map_date ?? 'Date',
+                              label: AppLocalizations.of(context)?.map_date ??
+                                  'Date',
                               selected: _selectedDateRange != null,
                               scheme: MScannerAccent.orange,
                               onTap: _openDatePicker,
                             ),
                             MScannerPillChip(
-                              label: AppLocalizations.of(context)?.map_location ?? 'Location',
+                              label:
+                                  AppLocalizations.of(context)?.map_location ??
+                                      'Location',
                               selected: _selectedLocation != null,
                               scheme: MScannerAccent.orange,
                               onTap: _openLocationSheet,
@@ -923,7 +908,6 @@ class _MapScreenState extends State<MapScreen> {
                           ],
                         ),
                       ),
-
                     ],
                   )
                 ],
@@ -939,34 +923,35 @@ class _MapScreenState extends State<MapScreen> {
             height: bottomCardsHeight,
             child: _filteredItems.isEmpty
                 ? Center(
-              child: Text(
-                AppLocalizations.of(context)?.map_noResults ?? 'No results',
-                style: TextStyle(
-                  color: _isDarkMode ? Colors.white70 : Colors.black45,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            )
+                    child: Text(
+                      AppLocalizations.of(context)?.map_noResults ??
+                          'No results',
+                      style: TextStyle(
+                        color: _isDarkMode ? Colors.white70 : Colors.black45,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  )
                 : ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              scrollDirection: Axis.horizontal,
-              itemCount: _filteredItems.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
-              itemBuilder: (context, index) {
-                final item = _filteredItems[index];
-                final id = _norm(item['id']);
-                final selected = id.isNotEmpty && id == _selectedId;
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _filteredItems.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 12),
+                    itemBuilder: (context, index) {
+                      final item = _filteredItems[index];
+                      final id = _norm(item['id']);
+                      final selected = id.isNotEmpty && id == _selectedId;
 
-                return _HistoryCard(
-                  data: item,
-                  selected: selected,
-                  onTap: () {
-                    if (id.isNotEmpty) _focusToItem(id);
-                  },
-                );
-              },
-            ),
+                      return _HistoryCard(
+                        data: item,
+                        selected: selected,
+                        onTap: () {
+                          if (id.isNotEmpty) _focusToItem(id);
+                        },
+                      );
+                    },
+                  ),
           ),
         ],
       ),
@@ -996,7 +981,8 @@ class _OptionSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark;
     final bg = isDark ? const Color(0xFF111113) : Colors.white;
-    final accent = MScannerSearchUi.accent(context, scheme: MScannerAccent.orange);
+    final accent =
+        MScannerSearchUi.accent(context, scheme: MScannerAccent.orange);
 
     return SafeArea(
       child: Container(
@@ -1026,8 +1012,10 @@ class _OptionSheet extends StatelessWidget {
                 ),
                 const Spacer(),
                 TextButton(
-                  onPressed: () => Navigator.pop(context, ''), // clear this filter
-                  child: Text(AppLocalizations.of(context)?.map_clear ?? 'Clear'),
+                  onPressed: () =>
+                      Navigator.pop(context, ''), // clear this filter
+                  child:
+                      Text(AppLocalizations.of(context)?.map_clear ?? 'Clear'),
                 ),
               ],
             ),
@@ -1050,7 +1038,8 @@ class _OptionSheet extends StatelessWidget {
                       v,
                       style: TextStyle(
                         color: isDark ? Colors.white : Colors.black,
-                        fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                        fontWeight:
+                            selected ? FontWeight.w800 : FontWeight.w600,
                       ),
                     ),
                     trailing: selected
@@ -1062,58 +1051,6 @@ class _OptionSheet extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-// ---------- chip ----------
-class _FilterChip extends StatelessWidget {
-  const _FilterChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark;
-
-    final bg = selected
-        ? const Color(0xFF2D6CDF)
-        : (isDark ? CupertinoColors.systemGrey.withOpacity(0.22) : const Color(0xFFE9F0FA));
-
-    final fg = selected ? Colors.white : (isDark ? Colors.white : const Color(0xFF2D4B6A));
-
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: selected
-                  ? Colors.white.withOpacity(0.12)
-                  : (isDark ? CupertinoColors.white.withOpacity(0.10) : Colors.black.withOpacity(0.06)),
-              width: 1,
-            ),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: fg,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
         ),
       ),
     );
@@ -1135,7 +1072,12 @@ class _HistoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final imageUrl = (data['image_url'] ?? '').toString();
-    final title = (data['__menuTitle'] ?? data['menuName'] ?? data['primary_menu'] ?? data['restaurantName'] ?? 'Unknown').toString();
+    final title = (data['__menuTitle'] ??
+            data['menuName'] ??
+            data['primary_menu'] ??
+            data['restaurantName'] ??
+            'Unknown')
+        .toString();
     final restaurant = (data['restaurantName'] ?? '').toString();
     final dateText = _formatDate(data['timestamp']);
     final rating = (data['rate'] as num?)?.toDouble() ?? 4.0;
@@ -1160,15 +1102,19 @@ class _HistoryCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(22),
           boxShadow: [
             BoxShadow(
-              color: isDark ? Colors.black.withOpacity(0.45) : const Color(0x14000000),
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.45)
+                  : const Color(0x14000000),
               blurRadius: 16,
               offset: const Offset(0, 6),
             ),
           ],
           border: Border.all(
             color: selected
-                ? const Color(0xFF2D6CDF).withOpacity(isDark ? 0.9 : 0.8)
-                : (isDark ? Colors.white.withOpacity(0.06) : Colors.transparent),
+                ? const Color(0xFF2D6CDF).withValues(alpha: isDark ? 0.9 : 0.8)
+                : (isDark
+                    ? Colors.white.withValues(alpha: 0.06)
+                    : Colors.transparent),
             width: selected ? 1.6 : 1.0,
           ),
         ),
@@ -1181,20 +1127,26 @@ class _HistoryCard extends StatelessWidget {
                 aspectRatio: 16 / 9,
                 child: imageUrl.startsWith('http')
                     ? CachedNetworkImage(
-                  imageUrl: imageUrl,
-                  fit: BoxFit.cover,
-                  placeholder: (_, __) => Container(
-                    color: isDark ? Colors.white.withOpacity(0.06) : CupertinoColors.systemGrey5,
-                  ),
-                  errorWidget: (_, __, ___) => Container(
-                    color: isDark ? Colors.white.withOpacity(0.06) : CupertinoColors.systemGrey5,
-                    child: Icon(CupertinoIcons.photo, color: metaColor),
-                  ),
-                )
+                        imageUrl: imageUrl,
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) => Container(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.06)
+                              : CupertinoColors.systemGrey5,
+                        ),
+                        errorWidget: (_, __, ___) => Container(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.06)
+                              : CupertinoColors.systemGrey5,
+                          child: Icon(CupertinoIcons.photo, color: metaColor),
+                        ),
+                      )
                     : Container(
-                  color: isDark ? Colors.white.withOpacity(0.06) : CupertinoColors.systemGrey5,
-                  child: Icon(CupertinoIcons.photo, color: metaColor),
-                ),
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.06)
+                            : CupertinoColors.systemGrey5,
+                        child: Icon(CupertinoIcons.photo, color: metaColor),
+                      ),
               ),
             ),
             const SizedBox(height: 10),

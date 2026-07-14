@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 
@@ -19,11 +20,16 @@ class LocationService {
     if (permission == LocationPermission.deniedForever) return 'Unknown';
 
     try {
-      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-      List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+      Position position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+      List<Placemark> placemarks =
+          await placemarkFromCoordinates(position.latitude, position.longitude);
       return placemarks[0].isoCountryCode;
     } catch (e) {
-      print('Error getting country code from GPS: $e');
+      debugPrint('Error getting country code from GPS: $e');
       return 'Unknown';
     }
   }

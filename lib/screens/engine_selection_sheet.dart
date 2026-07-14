@@ -53,36 +53,50 @@ class EngineSelectionSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    Future<void> handleSelect(String engineId) async {
+      final option = _engines.firstWhere((engine) => engine.id == engineId);
+      if (option.premiumOnly && !isPremium) return;
+      if (currentEngineId == engineId) return;
+      await onSelect(engineId);
+      if (context.mounted) Navigator.of(context).pop();
+    }
+
     return SafeArea(
       top: false,
       child: Padding(
         padding: const EdgeInsets.only(bottom: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
-              child: Text(
-                '엔진 선택',
-                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+        child: RadioGroup<String>(
+          groupValue: currentEngineId,
+          onChanged: (engineId) {
+            if (engineId != null) {
+              handleSelect(engineId);
+            }
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                child: Text(
+                  '엔진 선택',
+                  style: theme.textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w700),
+                ),
               ),
-            ),
-            ..._engines.map((e) => _EngineTile(
-              option: e,
-              selected: currentEngineId == e.id,
-              isPremium: isPremium,
-              onTap: () async {
-                if (e.premiumOnly && !isPremium) return; // 비프리미엄은 차단
-                if (currentEngineId == e.id) return; // 동일 선택 방지
-                await onSelect(e.id);
-                // 닫기
-                if (context.mounted) Navigator.of(context).pop();
-              },
-            )),
-            const SizedBox(height: 4),
-            const _HintRow(),
-          ],
+              ..._engines.map((e) => _EngineTile(
+                    option: e,
+                    selected: currentEngineId == e.id,
+                    isPremium: isPremium,
+                    onTap: () {
+                      handleSelect(e.id);
+                    },
+                  )),
+              const SizedBox(height: 4),
+              const _HintRow(),
+            ],
+          ),
         ),
       ),
     );
@@ -112,7 +126,9 @@ class _EngineTile extends StatelessWidget {
       color: disabled ? theme.disabledColor : null,
     );
     final subtitleStyle = theme.textTheme.bodySmall?.copyWith(
-      color: disabled ? theme.disabledColor : theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+      color: disabled
+          ? theme.disabledColor
+          : theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
     );
 
     return InkWell(
@@ -123,12 +139,7 @@ class _EngineTile extends StatelessWidget {
           children: [
             Radio<String>(
               value: option.id,
-              groupValue: selected ? option.id : null,
-              onChanged: disabled
-                  ? null
-                  : (_) {
-                onTap();
-              },
+              enabled: !disabled,
             ),
             const SizedBox(width: 4),
             Expanded(
@@ -153,7 +164,10 @@ class _EngineTile extends StatelessWidget {
               ),
             ),
             if (selected)
-              Icon(Icons.check, color: disabled ? Theme.of(context).disabledColor : Theme.of(context).colorScheme.primary),
+              Icon(Icons.check,
+                  color: disabled
+                      ? Theme.of(context).disabledColor
+                      : Theme.of(context).colorScheme.primary),
           ],
         ),
       ),
@@ -167,21 +181,25 @@ class _PremiumBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bg = disabled ? theme.disabledColor.withOpacity(0.12) : theme.colorScheme.primary.withOpacity(0.12);
+    final bg = disabled
+        ? theme.disabledColor.withValues(alpha: 0.12)
+        : theme.colorScheme.primary.withValues(alpha: 0.12);
     final fg = disabled ? theme.disabledColor : theme.colorScheme.primary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
         color: bg,
-        border: Border.all(color: fg.withOpacity(0.24)),
+        border: Border.all(color: fg.withValues(alpha: 0.24)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.lock, size: 14, color: fg),
           const SizedBox(width: 4),
-          Text('Premium', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: fg)),
+          Text('Premium',
+              style: TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w600, color: fg)),
         ],
       ),
     );
@@ -197,7 +215,9 @@ class _HintRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: Row(
         children: [
-          Icon(Icons.info_outline, size: 16, color: theme.textTheme.bodySmall?.color?.withOpacity(0.6)),
+          Icon(Icons.info_outline,
+              size: 16,
+              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6)),
           const SizedBox(width: 6),
           Expanded(
             child: Text(
@@ -239,9 +259,12 @@ abstract class VisionService {
 }
 
 /// 실제 프로젝트에선 DI/Provider를 통해 VisionService를 주입하세요.
-Future<void> onChangeEngine(String engineId, {required VisionService service, Future<void> Function(String id)? persist}) async {
+Future<void> onChangeEngine(String engineId,
+    {required VisionService service,
+    Future<void> Function(String id)? persist}) async {
   await service.setEngine(engineId);
   if (persist != null) {
-    await persist(engineId); // 예: SharedPreferences('engineId') 저장 또는 Firestore 사용자 설정 문서 업데이트
+    await persist(
+        engineId); // 예: SharedPreferences('engineId') 저장 또는 Firestore 사용자 설정 문서 업데이트
   }
 }

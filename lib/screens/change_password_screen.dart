@@ -1,12 +1,13 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
+  const ChangePasswordScreen({super.key});
+
   @override
-  _ChangePasswordScreenState createState() => _ChangePasswordScreenState();
+  State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
 }
 
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
@@ -22,8 +23,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     try {
       await _auth.sendPasswordResetEmail(email: _emailController.text);
       setState(() {
-        _successMessage = AppLocalizations.of(context)?.passwordResetEmailSent ??
-            'Password reset email sent. Please check your inbox.';
+        _successMessage =
+            AppLocalizations.of(context)?.passwordResetEmailSent ??
+                'Password reset email sent. Please check your inbox.';
         _errorMessage = null;
       });
     } catch (e) {
@@ -41,11 +43,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     final isDarkMode = AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark;
 
     const primaryOrange = Color(0xFFD8753B);
-    final bgColor = isDarkMode ? const Color(0xFF0B0B0B) : const Color(0xFFEFEFF4);
+    final bgColor =
+        isDarkMode ? const Color(0xFF0B0B0B) : const Color(0xFFEFEFF4);
     final cardColor = isDarkMode ? const Color(0xFF141414) : Colors.white;
-    final fieldFill = isDarkMode ? const Color(0xFF1F1F1F) : const Color(0xFFF2F4F7);
+    final fieldFill =
+        isDarkMode ? const Color(0xFF1F1F1F) : const Color(0xFFF2F4F7);
 
-    InputDecoration _fieldDecoration({
+    InputDecoration fieldDecoration({
       required String label,
       required IconData icon,
       String? hint,
@@ -61,7 +65,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           borderSide: BorderSide.none,
           borderRadius: BorderRadius.circular(14),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
       );
     }
 
@@ -79,7 +84,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   borderRadius: BorderRadius.circular(26),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(isDarkMode ? 0.45 : 0.18),
+                      color: Colors.black
+                          .withValues(alpha: isDarkMode ? 0.45 : 0.18),
                       blurRadius: 24,
                       offset: const Offset(0, 12),
                     ),
@@ -99,17 +105,19 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                             child: Image.asset(
                               'assets/images/login_header.jpg',
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(color: fieldFill),
+                              errorBuilder: (_, __, ___) =>
+                                  Container(color: fieldFill),
                             ),
                           ),
                           Positioned(
                             left: 10,
                             top: 10,
                             child: Material(
-                              color: Colors.black.withOpacity(0.25),
+                              color: Colors.black.withValues(alpha: 0.25),
                               shape: const CircleBorder(),
                               child: IconButton(
-                                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                                icon: const Icon(Icons.arrow_back,
+                                    color: Colors.white),
                                 onPressed: () => Navigator.of(context).pop(),
                               ),
                             ),
@@ -118,10 +126,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                             right: 10,
                             top: 10,
                             child: Material(
-                              color: Colors.black.withOpacity(0.25),
+                              color: Colors.black.withValues(alpha: 0.25),
                               shape: const CircleBorder(),
                               child: IconButton(
-                                icon: const Icon(Icons.close, color: Colors.white),
+                                icon: const Icon(Icons.close,
+                                    color: Colors.white),
                                 onPressed: () => Navigator.of(context).pop(),
                               ),
                             ),
@@ -141,7 +150,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                 fontFamily: 'SFPro',
                                 fontSize: 24,
                                 fontWeight: FontWeight.w800,
-                                color: isDarkMode ? Colors.white : const Color(0xFF111827),
+                                color: isDarkMode
+                                    ? Colors.white
+                                    : const Color(0xFF111827),
                                 decoration: TextDecoration.none,
                               ),
                             ),
@@ -154,13 +165,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                 fontFamily: 'SFPro',
                                 height: 1.35,
                                 fontSize: 14,
-                                color: isDarkMode ? Colors.white70 : const Color(0xFF6B7280),
+                                color: isDarkMode
+                                    ? Colors.white70
+                                    : const Color(0xFF6B7280),
                                 decoration: TextDecoration.none,
                               ),
                             ),
-
                             SizedBox(height: spacingBetweenTextAndInput),
-
                             TextField(
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
@@ -169,14 +180,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                 fontFamily: 'SFPro',
                                 color: isDarkMode ? Colors.white : Colors.black,
                               ),
-                              decoration: _fieldDecoration(
+                              decoration: fieldDecoration(
                                 label: 'Email Address',
                                 icon: Icons.mail_outline,
                                 hint: 'name@example.com',
                               ),
                             ),
                             const SizedBox(height: 14),
-
                             if (_errorMessage != null)
                               Padding(
                                 padding: const EdgeInsets.only(bottom: 10.0),
@@ -206,7 +216,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                   ),
                                 ),
                               ),
-
                             SizedBox(
                               height: 54,
                               child: ElevatedButton(
@@ -220,7 +229,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                   elevation: 0,
                                 ),
                                 child: Text(
-                                  localizations?.sendResetLink ?? 'Send Reset Link',
+                                  localizations?.sendResetLink ??
+                                      'Send Reset Link',
                                   style: const TextStyle(
                                     fontFamily: 'SFPro',
                                     fontSize: 16,

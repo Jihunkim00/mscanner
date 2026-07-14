@@ -11,7 +11,7 @@ class CustomLinkLauncher extends StatelessWidget {
   final bool centerAlign; // ✅ 추가
 
   const CustomLinkLauncher({
-    Key? key,
+    super.key,
     required this.url,
     required this.title,
     this.subtitle,
@@ -19,7 +19,7 @@ class CustomLinkLauncher extends StatelessWidget {
     this.titleStyle,
     this.subtitleStyle,
     this.centerAlign = false, // ✅ 기본값 false로 왼쪽정렬
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +31,8 @@ class CustomLinkLauncher extends StatelessWidget {
         }
       },
       child: Column(
-        crossAxisAlignment: centerAlign ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+        crossAxisAlignment:
+            centerAlign ? CrossAxisAlignment.center : CrossAxisAlignment.start,
         children: [
           if (iconPath != null)
             Image.asset(

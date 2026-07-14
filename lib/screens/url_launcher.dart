@@ -10,14 +10,14 @@ class CustomLinkLauncher extends StatelessWidget {
   final TextStyle? subtitleStyle;
 
   const CustomLinkLauncher({
-    Key? key,
+    super.key,
     required this.url,
     required this.title,
     this.subtitle,
     this.iconPath,
     this.titleStyle,
     this.subtitleStyle,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

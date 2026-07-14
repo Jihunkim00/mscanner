@@ -15,8 +15,7 @@ class ResultDecisionSkeletonCard extends StatefulWidget {
       _ResultDecisionSkeletonCardState();
 }
 
-class _ResultDecisionSkeletonCardState
-    extends State<ResultDecisionSkeletonCard>
+class _ResultDecisionSkeletonCardState extends State<ResultDecisionSkeletonCard>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 
@@ -40,18 +39,18 @@ class _ResultDecisionSkeletonCardState
     final reduceMotion = MediaQuery.of(context).disableAnimations;
 
     final borderColor = widget.isDarkMode
-        ? Colors.white.withOpacity(0.08)
+        ? Colors.white.withValues(alpha: 0.08)
         : const Color(0xFFE5E7EB);
 
     final cardColor =
-    widget.isDarkMode ? const Color(0xFF1F1F22) : Colors.white;
+        widget.isDarkMode ? const Color(0xFF1F1F22) : Colors.white;
 
     final baseColor = widget.isDarkMode
-        ? Colors.white.withOpacity(0.08)
+        ? Colors.white.withValues(alpha: 0.08)
         : const Color(0xFFE8EBF0);
 
     final highlightColor = widget.isDarkMode
-        ? Colors.white.withOpacity(0.16)
+        ? Colors.white.withValues(alpha: 0.16)
         : const Color(0xFFF5F7FA);
 
     Widget line(double width, {double height = 12}) {
@@ -117,11 +116,12 @@ class _ResultDecisionSkeletonCardState
           const SizedBox(height: 16),
           ...List.generate(
             2,
-                (index) => Padding(
+            (index) => Padding(
               padding: EdgeInsets.only(bottom: index == 1 ? 0 : 10),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 11, vertical: 10),
                 decoration: BoxDecoration(
                   color: widget.isDarkMode
                       ? const Color(0xFF252529)

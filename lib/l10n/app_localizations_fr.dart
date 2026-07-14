@@ -21,7 +21,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get alreadyHaveAccount => 'Vous avez déjà un compte ?';
 
   @override
-  String get areYouSureDeleteAccount => 'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.';
+  String get areYouSureDeleteAccount =>
+      'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.';
 
   @override
   String get camera => 'Caméra';
@@ -72,7 +73,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get engine => 'Moteur';
 
   @override
-  String get enterYourEmailtoResetPassword => 'Entrez votre e-mail pour réinitialiser votre mot de passe';
+  String get enterYourEmailtoResetPassword =>
+      'Entrez votre e-mail pour réinitialiser votre mot de passe';
 
   @override
   String get failedChangePassword => 'Échec du changement de mot de passe';
@@ -216,7 +218,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get passwordChangedSuccess => 'Mot de passe modifié avec succès.';
 
   @override
-  String get passwordResetEmailSent => 'E-mail de réinitialisation du mot de passe envoyé. Veuillez vérifier votre boîte de réception';
+  String get passwordResetEmailSent =>
+      'E-mail de réinitialisation du mot de passe envoyé. Veuillez vérifier votre boîte de réception';
 
   @override
   String get passwordsDoNotMatch => 'Les mots de passe ne correspondent pas';
@@ -236,7 +239,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get privacyPolicy => 'Politique de confidentialité';
 
   @override
-  String get requiresRecentLogin => 'Veuillez vous reconnecter et réessayer de supprimer le compte.';
+  String get requiresRecentLogin =>
+      'Veuillez vous reconnecter et réessayer de supprimer le compte.';
 
   @override
   String get resetPassword => 'Réinitialiser le mot de passe';
@@ -278,7 +282,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get yourFoodMenu => 'Votre menu alimentaire';
 
   @override
-  String get passwordResetError => 'Une erreur s\'est produite lors de l\'envoi de l\'e-mail de réinitialisation du mot de passe.';
+  String get passwordResetError =>
+      'Une erreur s\'est produite lors de l\'envoi de l\'e-mail de réinitialisation du mot de passe.';
 
   @override
   String get save => 'Enregistrer';
@@ -308,7 +313,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enterRestaurantName => 'Entrez le nom du restaurant';
 
   @override
-  String get pleaseEnterRestaurantAndRating => 'Veuillez entrer le nom et la note du restaurant';
+  String get pleaseEnterRestaurantAndRating =>
+      'Veuillez entrer le nom et la note du restaurant';
 
   @override
   String get all => 'Tout';
@@ -323,7 +329,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get aiScanning => 'Analyse de l\'IA...';
 
   @override
-  String get aiLoadingMessage => 'L\'IA peut faire des erreurs. Le temps de chargement prend généralement entre 5 et 10 secondes, mais peut varier en fonction de votre connexion Internet et de votre appareil mobile.';
+  String get aiLoadingMessage =>
+      'L\'IA peut faire des erreurs. Le temps de chargement prend généralement entre 5 et 10 secondes, mais peut varier en fonction de votre connexion Internet et de votre appareil mobile.';
 
   @override
   String get introductionTitle1 => 'Mscanner';
@@ -332,19 +339,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get introductionSubtitle1 => 'par THJ';
 
   @override
-  String get introductionBody1 => 'Sentez-vous à l\'aise pour choisir des plats dans des restaurants du monde entier';
+  String get introductionBody1 =>
+      'Sentez-vous à l\'aise pour choisir des plats dans des restaurants du monde entier';
 
   @override
   String get introductionTitle2 => 'Comment souhaitez-vous scanner le menu?';
 
   @override
-  String get introductionBody2_1 => '1. Sélectionnez votre langue (anglais ou langue natale)';
+  String get introductionBody2_1 =>
+      '1. Sélectionnez votre langue (anglais ou langue natale)';
 
   @override
-  String get introductionBody2_2 => '2. Choisissez votre style alimentaire (régime, amateur de viande, etc.)';
+  String get introductionBody2_2 =>
+      '2. Choisissez votre style alimentaire (régime, amateur de viande, etc.)';
 
   @override
-  String get introductionBody2_3 => '3. Définissez le nombre de menus que vous souhaitez scanner (plus de menus, moins de détails)';
+  String get introductionBody2_3 =>
+      '3. Définissez le nombre de menus que vous souhaitez scanner (plus de menus, moins de détails)';
 
   @override
   String get introductionTitle3 => 'Optimisez vos paramètres';
@@ -353,13 +364,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get introductionBody3_1 => '1. Activez le mode sombre';
 
   @override
-  String get introductionBody3_2 => '2. Changez le mot de passe de votre compte';
+  String get introductionBody3_2 =>
+      '2. Changez le mot de passe de votre compte';
 
   @override
-  String get introductionBody3_3 => '3. Réinitialisez les paramètres de scan du menu';
+  String get introductionBody3_3 =>
+      '3. Réinitialisez les paramètres de scan du menu';
 
   @override
-  String get introductionBody3_4 => '4. Enregistrez vos données en ligne pour activer plus de fonctionnalités';
+  String get introductionBody3_4 =>
+      '4. Enregistrez vos données en ligne pour activer plus de fonctionnalités';
 
   @override
   String get introductionTitle4 => 'Partagez vos résultats';
@@ -368,7 +382,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get introductionBody4_1 => '1. Laissez une note sur chaque résultat';
 
   @override
-  String get introductionBody4_2 => '2. Enregistrez les résultats sur votre smartphone';
+  String get introductionBody4_2 =>
+      '2. Enregistrez les résultats sur votre smartphone';
 
   @override
   String get introductionBody4_3 => '3. Bouton favoris et copier le résultat';
@@ -377,16 +392,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get introductionTitle5 => 'Enregistrez vos expériences';
 
   @override
-  String get introductionBody5_1 => '1. Points actifs (montre votre activité dans Mscanner)';
+  String get introductionBody5_1 =>
+      '1. Points actifs (montre votre activité dans Mscanner)';
 
   @override
-  String get introductionBody5_2 => '2. Entrez le nom du restaurant que vous avez visité';
+  String get introductionBody5_2 =>
+      '2. Entrez le nom du restaurant que vous avez visité';
 
   @override
   String get introductionBody5_3 => '3. Évaluez le restaurant';
 
   @override
-  String get introductionBody5_4 => '4. Voir les endroits que vous avez visités sur une carte';
+  String get introductionBody5_4 =>
+      '4. Voir les endroits que vous avez visités sur une carte';
 
   @override
   String get skip => 'Passer';
@@ -419,31 +437,40 @@ class AppLocalizationsFr extends AppLocalizations {
   String get cloudsavingError => 'Erreur de sauvegarde dans le cloud';
 
   @override
-  String get languagesdescprition => 'Prenez une photo d\'un aliment ou d\'un menu et sélectionnez la langue de sortie';
+  String get languagesdescprition =>
+      'Prenez une photo d\'un aliment ou d\'un menu et sélectionnez la langue de sortie';
 
   @override
-  String get fooddescprition => 'Veuillez sélectionner un régime ou un plan de repas. L\'IA fournira des recommandations et des explications basées sur votre sélection';
+  String get fooddescprition =>
+      'Veuillez sélectionner un régime ou un plan de repas. L\'IA fournira des recommandations et des explications basées sur votre sélection';
 
   @override
-  String get menudescribe => 'Veuillez sélectionner le nombre d\'éléments de menu alimentaire à afficher. Moins vous sélectionnez d\'éléments, plus les descriptions seront détaillées';
+  String get menudescribe =>
+      'Veuillez sélectionner le nombre d\'éléments de menu alimentaire à afficher. Moins vous sélectionnez d\'éléments, plus les descriptions seront détaillées';
 
   @override
-  String get darkdescp => 'Activez le mode sombre pour une expérience de visionnage plus confortable';
+  String get darkdescp =>
+      'Activez le mode sombre pour une expérience de visionnage plus confortable';
 
   @override
-  String get changepassdescp => 'Pour plus de sécurité, changez régulièrement votre mot de passe et utilisez un mot de passe fort facile à retenir';
+  String get changepassdescp =>
+      'Pour plus de sécurité, changez régulièrement votre mot de passe et utilisez un mot de passe fort facile à retenir';
 
   @override
-  String get aIresetdescp => 'Vous pouvez réinitialiser les paramètres de scan de l\'IA';
+  String get aIresetdescp =>
+      'Vous pouvez réinitialiser les paramètres de scan de l\'IA';
 
   @override
-  String get savedescp => 'Enregistrez les données de sortie sur le serveur. L\'enregistrement est nécessaire pour activer des fonctionnalités supplémentaires';
+  String get savedescp =>
+      'Enregistrez les données de sortie sur le serveur. L\'enregistrement est nécessaire pour activer des fonctionnalités supplémentaires';
 
   @override
-  String get scanFoodPhotoDescription => 'Prenez une photo d\'un aliment ou d\'un menu et découvrez ce que c\'est ! Essayez-le maintenant';
+  String get scanFoodPhotoDescription =>
+      'Prenez une photo d\'un aliment ou d\'un menu et découvrez ce que c\'est ! Essayez-le maintenant';
 
   @override
-  String get activepoint => 'Les points affichent l\'indice d\'activité de l\'utilisateur, et diverses récompenses seront fournies à l\'avenir.';
+  String get activepoint =>
+      'Les points affichent l\'indice d\'activité de l\'utilisateur, et diverses récompenses seront fournies à l\'avenir.';
 
   @override
   String get todayrecommand => 'Recommandation du jour';
@@ -464,19 +491,22 @@ class AppLocalizationsFr extends AppLocalizations {
   String get locationPermissionNeeded => 'Autorisation de localisation requise';
 
   @override
-  String get locationPermissionContent => 'Cette application nécessite des autorisations de localisation pour fonctionner correctement. Veuillez autoriser l\'accès à la localisation dans les paramètres de l\'application.';
+  String get locationPermissionContent =>
+      'Cette application nécessite des autorisations de localisation pour fonctionner correctement. Veuillez autoriser l\'accès à la localisation dans les paramètres de l\'application.';
 
   @override
   String get locationServiceDisabled => 'Services de localisation désactivés';
 
   @override
-  String get locationServiceDisabledContent => 'Les services de localisation sont désactivés. Veuillez activer les services de localisation dans les paramètres.';
+  String get locationServiceDisabledContent =>
+      'Les services de localisation sont désactivés. Veuillez activer les services de localisation dans les paramètres.';
 
   @override
   String get openSettings => 'Ouvrir les paramètres';
 
   @override
-  String get languagesdescprition1 => 'Déverrouillez un monde de délices culinaires avec un seul scan.';
+  String get languagesdescprition1 =>
+      'Déverrouillez un monde de délices culinaires avec un seul scan.';
 
   @override
   String get continueAsGuest => 'Continuer en tant qu\'invité';
@@ -485,25 +515,29 @@ class AppLocalizationsFr extends AppLocalizations {
   String get guestLoginTitle => 'Connexion invité';
 
   @override
-  String get guestLoginContent => 'Vous êtes connecté en tant qu\'invité. Toutes les données seront supprimées lors de la déconnexion.';
+  String get guestLoginContent =>
+      'Vous êtes connecté en tant qu\'invité. Toutes les données seront supprimées lors de la déconnexion.';
 
   @override
   String get confirm => 'Confirmer';
 
   @override
-  String get guestLoginFailed => 'Échec de la connexion invité. Veuillez essayer à nouveau.';
+  String get guestLoginFailed =>
+      'Échec de la connexion invité. Veuillez essayer à nouveau.';
 
   @override
   String get logoutConfirmationTitle => 'Confirmation de déconnexion';
 
   @override
-  String get logoutConfirmationContent => 'Se déconnecter en tant qu\'invité supprimera toutes vos données. Voulez-vous continuer ?';
+  String get logoutConfirmationContent =>
+      'Se déconnecter en tant qu\'invité supprimera toutes vos données. Voulez-vous continuer ?';
 
   @override
   String get convertAccount => 'Convertir le compte';
 
   @override
-  String get accountConversionDescription => 'Convertissez votre compte invité en compte permanent pour sauvegarder vos données.';
+  String get accountConversionDescription =>
+      'Convertissez votre compte invité en compte permanent pour sauvegarder vos données.';
 
   @override
   String get accountConversionSuccess => 'Compte converti avec succès.';
@@ -524,7 +558,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get viewbycountry => 'Voir par pays';
 
   @override
-  String get cameraHint => 'Tapez sur la caméra pour scanner le menu des aliments.';
+  String get cameraHint =>
+      'Tapez sur la caméra pour scanner le menu des aliments.';
 
   @override
   String get manualTitle => 'Guide d\'utilisation';
@@ -539,13 +574,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get loadingAnalyzing => 'Analyse du menu avec l\'IA...';
 
   @override
-  String get loadingAlmostDone => 'Presque terminé de préparer votre résultat...';
+  String get loadingAlmostDone =>
+      'Presque terminé de préparer votre résultat...';
 
   @override
   String get loadingFinalizing => 'Finaliser les détails...';
 
   @override
-  String get loadingWaiting => 'Juste un peu plus... Merci pour votre patience !';
+  String get loadingWaiting =>
+      'Juste un peu plus... Merci pour votre patience !';
 
   @override
   String get emergencyTitle => 'Avis d\'urgence';
@@ -557,7 +594,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get dismissToday => 'Ne plus afficher aujourd\'hui';
 
   @override
-  String get gptErrorMessage => 'Désolé.\\nUne erreur de communication avec le serveur IA s\'est produite.\\nVeuillez réessayer plus tard.';
+  String get gptErrorMessage =>
+      'Désolé.\\nUne erreur de communication avec le serveur IA s\'est produite.\\nVeuillez réessayer plus tard.';
 
   @override
   String get restaurantName => 'Nom du restaurant';
@@ -623,7 +661,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get buy => 'Acheter';
 
   @override
-  String get guestPurchaseMessage => 'Les utilisateurs invités ne peuvent pas effectuer d\'achats.';
+  String get guestPurchaseMessage =>
+      'Les utilisateurs invités ne peuvent pas effectuer d\'achats.';
 
   @override
   String get premiumFunctionMessage => 'Service premium uniquement';
@@ -676,19 +715,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get fx_error_no_rate => 'Aucune donnée de taux de change disponible.';
 
   @override
-  String get fx_search_currency_hint => 'Rechercher un code de devise (ex. : EUR, JPY)';
+  String get fx_search_currency_hint =>
+      'Rechercher un code de devise (ex. : EUR, JPY)';
 
   @override
   String get sub_disclaimer_title => 'Informations sur l’abonnement';
 
   @override
-  String get sub_trial_free => 'Les nouveaux abonnés ne sont pas facturés pendant la période d’essai.';
+  String get sub_trial_free =>
+      'Les nouveaux abonnés ne sont pas facturés pendant la période d’essai.';
 
   @override
-  String get sub_auto_renew => 'À la fin de l’essai, l’abonnement se renouvelle automatiquement sauf annulation au moins 24 heures avant la fin de la période en cours.';
+  String get sub_auto_renew =>
+      'À la fin de l’essai, l’abonnement se renouvelle automatiquement sauf annulation au moins 24 heures avant la fin de la période en cours.';
 
   @override
-  String get sub_renew_charge => 'Les frais de renouvellement peuvent être facturés dans les 24 heures précédant la fin de la période en cours.';
+  String get sub_renew_charge =>
+      'Les frais de renouvellement peuvent être facturés dans les 24 heures précédant la fin de la période en cours.';
 
   @override
   String sub_period_price(Object period, Object price) {
@@ -696,7 +739,8 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get sub_restore => 'Les achats précédents peuvent être restaurés via \"Restaurer les achats\".';
+  String get sub_restore =>
+      'Les achats précédents peuvent être restaurés via \"Restaurer les achats\".';
 
   @override
   String get terms => 'Conditions d’utilisation';
@@ -705,16 +749,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get privacy => 'Politique de confidentialité';
 
   @override
-  String get sub_manage_ios => 'Les paiements sont facturés sur votre identifiant Apple et les abonnements peuvent être gérés ou annulés dans Réglages > [votre nom] > Abonnements.';
+  String get sub_manage_ios =>
+      'Les paiements sont facturés sur votre identifiant Apple et les abonnements peuvent être gérés ou annulés dans Réglages > [votre nom] > Abonnements.';
 
   @override
-  String get sub_manage_android => 'Les paiements sont facturés sur votre compte Google et les abonnements peuvent être gérés ou annulés dans l’application Play Store > Icône de profil > Paiements et abonnements > Abonnements.';
+  String get sub_manage_android =>
+      'Les paiements sont facturés sur votre compte Google et les abonnements peuvent être gérés ou annulés dans l’application Play Store > Icône de profil > Paiements et abonnements > Abonnements.';
 
   @override
   String get sub_badge_trial_1m => '🎁 1 mois offert pour les nouveaux abonnés';
 
   @override
-  String get iapRestoreError => 'Une erreur s\'est produite lors de la restauration.';
+  String get iapRestoreError =>
+      'Une erreur s\'est produite lors de la restauration.';
 
   @override
   String get iapRestoreDone => 'Les achats ont été restaurés.';
@@ -732,7 +779,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get login_welcomeBack => 'Bon retour';
 
   @override
-  String get login_subtitle => 'Explorez la gastronomie plus facilement avec l’IA. C’est parti !';
+  String get login_subtitle =>
+      'Explorez la gastronomie plus facilement avec l’IA. C’est parti !';
 
   @override
   String get login_emailLabel => 'Adresse e-mail';
@@ -756,7 +804,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get login_signUpFree => 'S’inscrire gratuitement';
 
   @override
-  String get signup_subtitle => 'Créez un compte pour enregistrer vos scans, gérer les préréglages et débloquer les fonctionnalités premium.';
+  String get signup_subtitle =>
+      'Créez un compte pour enregistrer vos scans, gérer les préréglages et débloquer les fonctionnalités premium.';
 
   @override
   String get signup_emailLabel => 'Adresse e-mail';
@@ -819,7 +868,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get howto_desc3 => 'Recevez des\nrecommandations adaptées';
 
   @override
-  String get home_searchAiFoodImage => 'Rechercher une image de plat avec l’IA...';
+  String get home_searchAiFoodImage =>
+      'Rechercher une image de plat avec l’IA...';
 
   @override
   String get home_adLabel => 'PUB';
@@ -911,7 +961,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get favorite_unknownRestaurant => 'Restaurant inconnu';
 
   @override
-  String get favorite_failedSaveChanges => 'Impossible d’enregistrer les modifications';
+  String get favorite_failedSaveChanges =>
+      'Impossible d’enregistrer les modifications';
 
   @override
   String get favorite_renderNotReady => 'Erreur : l’écran n’est pas prêt.';
@@ -920,7 +971,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get favorite_restaurantNameHint => 'Nom du restaurant';
 
   @override
-  String get result_fxRateLoadFailed => 'Impossible de charger les taux de change. Vérifiez votre connexion.';
+  String get result_fxRateLoadFailed =>
+      'Impossible de charger les taux de change. Vérifiez votre connexion.';
 
   @override
   String get result_fxConvertFailed => 'Impossible de convertir le montant.';
@@ -943,10 +995,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get result_preparingMenu => 'Préparation du menu détaillé…';
 
   @override
-  String get result_failedLoadSettings => 'Impossible de charger les réglages. La sauvegarde cloud est activée par défaut.';
+  String get result_failedLoadSettings =>
+      'Impossible de charger les réglages. La sauvegarde cloud est activée par défaut.';
 
   @override
-  String get result_imageUploadFailed => 'Échec de l’envoi de l’image. Réessayez.';
+  String get result_imageUploadFailed =>
+      'Échec de l’envoi de l’image. Réessayez.';
 
   @override
   String get result_analyzing => 'Analyse des informations du plat';
@@ -961,7 +1015,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get guestLoginTitle2 => 'Bienvenue, explorateur !';
 
   @override
-  String get guestLoginContent2 => 'En mode invité, vous pouvez scanner les menus pour obtenir des recommandations personnalisées, mais vous ne pourrez pas enregistrer vos favoris ni consulter l\'historique sur plusieurs appareils.';
+  String get guestLoginContent2 =>
+      'En mode invité, vous pouvez scanner les menus pour obtenir des recommandations personnalisées, mais vous ne pourrez pas enregistrer vos favoris ni consulter l\'historique sur plusieurs appareils.';
 
   @override
   String get confirm2 => 'Continuer en tant qu’invité';
@@ -973,34 +1028,43 @@ class AppLocalizationsFr extends AppLocalizations {
   String get result_orderButton => 'Commande';
 
   @override
-  String get result_fullMenuUnavailable => 'Le menu complet n\'est pas encore disponible.';
+  String get result_fullMenuUnavailable =>
+      'Le menu complet n\'est pas encore disponible.';
 
   @override
   String get result_noMenuItemsFound => 'Aucun élément de menu trouvé.';
 
   @override
-  String get result_notMenuMessage => 'Cette image ne semble pas être un menu. Veuillez reprendre la photo afin que les intitulés du menu ou les noms des plats soient clairement visibles.';
+  String get result_notMenuMessage =>
+      'Cette image ne semble pas être un menu. Veuillez reprendre la photo afin que les intitulés du menu ou les noms des plats soient clairement visibles.';
 
   @override
-  String get result_uncertainMenuMessage => 'Il n\'est pas certain qu\'il s\'agisse d\'un menu alimentaire. Veuillez reprendre la photo afin que les noms des plats et les prix soient clairement lisibles.';
+  String get result_uncertainMenuMessage =>
+      'Il n\'est pas certain qu\'il s\'agisse d\'un menu alimentaire. Veuillez reprendre la photo afin que les noms des plats et les prix soient clairement lisibles.';
 
   @override
-  String get result_aiTimeoutMoreResponse => 'Délai d\'attente dépassé en attendant une réponse supplémentaire de l\'IA.';
+  String get result_aiTimeoutMoreResponse =>
+      'Délai d\'attente dépassé en attendant une réponse supplémentaire de l\'IA.';
 
   @override
-  String get result_aiTimeoutFirstChunk => 'Délai d\'attente dépassé avant la réception du premier fragment de l\'IA.';
+  String get result_aiTimeoutFirstChunk =>
+      'Délai d\'attente dépassé avant la réception du premier fragment de l\'IA.';
 
   @override
-  String get result_aiTimeoutFullMenu => 'Délai d\'attente dépassé en attendant le menu complet.';
+  String get result_aiTimeoutFullMenu =>
+      'Délai d\'attente dépassé en attendant le menu complet.';
 
   @override
-  String get result_aiTimeoutFullMenuStream => 'Délai d\'attente dépassé en attendant le flux complet du menu.';
+  String get result_aiTimeoutFullMenuStream =>
+      'Délai d\'attente dépassé en attendant le flux complet du menu.';
 
   @override
-  String get result_aiReceiveFailedFullMenuStream => 'Échec lors de la réception du flux complet du menu.';
+  String get result_aiReceiveFailedFullMenuStream =>
+      'Échec lors de la réception du flux complet du menu.';
 
   @override
-  String get result_aiEmptyStreamResponse => 'L\'IA a renvoyé une réponse en streaming vide.';
+  String get result_aiEmptyStreamResponse =>
+      'L\'IA a renvoyé une réponse en streaming vide.';
 
   @override
   String get tts_orderPhraseTitle => 'Créer une phrase de commande';
@@ -1018,7 +1082,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tts_generatePhraseButton => 'Générer une phrase';
 
   @override
-  String get tts_generationFailed => 'Impossible de générer la phrase. Veuillez réessayer dans un instant.';
+  String get tts_generationFailed =>
+      'Impossible de générer la phrase. Veuillez réessayer dans un instant.';
 
   @override
   String get tts_resultSectionTitle => 'Phrase générée';
@@ -1072,7 +1137,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get premiumLoginRequiredTitle => 'Sign in to start Premium';
 
   @override
-  String get premiumLoginRequiredMessage => 'Sign in to restore purchases, keep your subscription, and access Premium across devices.';
+  String get premiumLoginRequiredMessage =>
+      'Sign in to restore purchases, keep your subscription, and access Premium across devices.';
 
   @override
   String get premiumLoginRequiredAction => 'Sign in to continue';
@@ -1084,10 +1150,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get premiumStartCta => 'Start Premium';
 
   @override
-  String get premiumGuestSectionTitle => 'Connect your account before purchasing Premium in guest mode';
+  String get premiumGuestSectionTitle =>
+      'Connect your account before purchasing Premium in guest mode';
 
   @override
-  String get premiumGuestSectionMessage => 'Premium subscriptions are linked to your account so purchases can be restored and used across devices.';
+  String get premiumGuestSectionMessage =>
+      'Premium subscriptions are linked to your account so purchases can be restored and used across devices.';
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';

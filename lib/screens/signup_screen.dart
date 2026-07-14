@@ -1,13 +1,14 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '/screens/PresetSelectionScreen.dart';
+import '/screens/preset_selection_screen.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 
 class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
+
   @override
-  _SignUpScreenState createState() => _SignUpScreenState();
+  State<SignUpScreen> createState() => _SignUpScreenState();
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
@@ -15,7 +16,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   String? _errorMessage;
 
@@ -35,6 +37,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           password: _passwordController.text,
         );
 
+        if (!mounted) return;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => PresetSelectionScreen()),
@@ -74,11 +77,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     // UI tokens (Login/ChangePassword와 통일)
     const primaryOrange = Color(0xFFD8753B);
-    final bgColor = isDarkMode ? const Color(0xFF0B0B0B) : const Color(0xFFEFEFF4);
+    final bgColor =
+        isDarkMode ? const Color(0xFF0B0B0B) : const Color(0xFFEFEFF4);
     final cardColor = isDarkMode ? const Color(0xFF141414) : Colors.white;
-    final fieldFill = isDarkMode ? const Color(0xFF1F1F1F) : const Color(0xFFF2F4F7);
+    final fieldFill =
+        isDarkMode ? const Color(0xFF1F1F1F) : const Color(0xFFF2F4F7);
 
-    InputDecoration _fieldDecoration({
+    InputDecoration fieldDecoration({
       required String label,
       required IconData icon,
       String? hint,
@@ -107,7 +112,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
           borderSide: BorderSide.none,
           borderRadius: BorderRadius.circular(14),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
       );
     }
 
@@ -127,7 +133,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     borderRadius: BorderRadius.circular(26),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(isDarkMode ? 0.45 : 0.18),
+                        color: Colors.black
+                            .withValues(alpha: isDarkMode ? 0.45 : 0.18),
                         blurRadius: 24,
                         offset: const Offset(0, 12),
                       ),
@@ -147,17 +154,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               child: Image.asset(
                                 'assets/images/login_header.jpg',
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(color: fieldFill),
+                                errorBuilder: (_, __, ___) =>
+                                    Container(color: fieldFill),
                               ),
                             ),
                             Positioned(
                               left: 10,
                               top: 10,
                               child: Material(
-                                color: Colors.black.withOpacity(0.25),
+                                color: Colors.black.withValues(alpha: 0.25),
                                 shape: const CircleBorder(),
                                 child: IconButton(
-                                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                                  icon: const Icon(Icons.arrow_back,
+                                      color: Colors.white),
                                   onPressed: () => Navigator.of(context).pop(),
                                 ),
                               ),
@@ -166,10 +175,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               right: 10,
                               top: 10,
                               child: Material(
-                                color: Colors.black.withOpacity(0.25),
+                                color: Colors.black.withValues(alpha: 0.25),
                                 shape: const CircleBorder(),
                                 child: IconButton(
-                                  icon: const Icon(Icons.close, color: Colors.white),
+                                  icon: const Icon(Icons.close,
+                                      color: Colors.white),
                                   onPressed: () => Navigator.of(context).pop(),
                                 ),
                               ),
@@ -183,7 +193,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Text(
-                                localizations?.createAccount ?? 'Create Account',
+                                localizations?.createAccount ??
+                                    'Create Account',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontFamily: 'SFPro',
@@ -196,7 +207,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               ),
                               const SizedBox(height: 10),
                               Text(
-                                localizations?.signup_subtitle ?? 'Create an account to save scans, manage presets, and access premium features.',
+                                localizations?.signup_subtitle ??
+                                    'Create an account to save scans, manage presets, and access premium features.',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontFamily: 'SFPro',
@@ -227,19 +239,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 textInputAction: TextInputAction.next,
                                 style: TextStyle(
                                   fontFamily: 'SFPro',
-                                  color: isDarkMode ? Colors.white : Colors.black,
+                                  color:
+                                      isDarkMode ? Colors.white : Colors.black,
                                 ),
-                                decoration: _fieldDecoration(
-                                  label: localizations?.signup_emailLabel ?? 'Email Address',
+                                decoration: fieldDecoration(
+                                  label: localizations?.signup_emailLabel ??
+                                      'Email Address',
                                   icon: Icons.mail_outline,
-                                  hint: localizations?.signup_emailHint ?? 'name@example.com',
-
+                                  hint: localizations?.signup_emailHint ??
+                                      'name@example.com',
                                 ),
                                 onChanged: _validateEmail,
                                 validator: (v) {
                                   final value = (v ?? '').trim();
                                   if (value.isEmpty) {
-                                    return localizations?.pleaseEnterValidEmail ??
+                                    return localizations
+                                            ?.pleaseEnterValidEmail ??
                                         'Please enter a valid email';
                                   }
                                   return null;
@@ -266,9 +281,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 textInputAction: TextInputAction.next,
                                 style: TextStyle(
                                   fontFamily: 'SFPro',
-                                  color: isDarkMode ? Colors.white : Colors.black,
+                                  color:
+                                      isDarkMode ? Colors.white : Colors.black,
                                 ),
-                                decoration: _fieldDecoration(
+                                decoration: fieldDecoration(
                                   label: localizations?.password ?? 'Password',
                                   icon: Icons.lock_outline,
                                 ),
@@ -303,10 +319,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 textInputAction: TextInputAction.done,
                                 style: TextStyle(
                                   fontFamily: 'SFPro',
-                                  color: isDarkMode ? Colors.white : Colors.black,
+                                  color:
+                                      isDarkMode ? Colors.white : Colors.black,
                                 ),
-                                decoration: _fieldDecoration(
-                                  label: localizations?.confirmPassword ?? 'Confirm Password',
+                                decoration: fieldDecoration(
+                                  label: localizations?.confirmPassword ??
+                                      'Confirm Password',
                                   icon: Icons.lock_reset_outlined,
                                 ),
                                 onChanged: _validateConfirmPassword,
@@ -380,7 +398,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                       ),
                                       children: [
                                         TextSpan(
-                                          text: localizations?.signup_logIn ?? 'Log in',
+                                          text: localizations?.signup_logIn ??
+                                              'Log in',
                                           style: TextStyle(
                                             fontFamily: 'SFPro',
                                             fontWeight: FontWeight.w800,

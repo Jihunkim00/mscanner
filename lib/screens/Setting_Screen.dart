@@ -1,14 +1,11 @@
-import 'dart:io'; // 플랫폼을 감지하기 위해 dart:io 패키지 추가
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
-import '/helpers/settings_helper.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'Home_Screen.dart';
-import 'PresetSelectionScreen.dart'; // PresetSelectionScreen import 추가
+import 'preset_selection_screen.dart'; // PresetSelectionScreen import 추가
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
-import '/screens/Login_Screen.dart';
+import '/screens/login_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:package_info_plus/package_info_plus.dart'; // 패키지 추가
 import '/widgets/test_purchase_widget.dart'; // 추가된 위젯 import
@@ -18,35 +15,35 @@ import '/screens/log_service.dart';
 import '/analytics_service.dart';
 import '/helpers/account_upgrade_helper.dart';
 
-
-
 class SettingScreen extends StatefulWidget {
+  const SettingScreen({super.key});
+
   @override
-  _SettingScreenState createState() => _SettingScreenState();
+  State<SettingScreen> createState() => _SettingScreenState();
 }
 
 class _SettingScreenState extends State<SettingScreen> {
-  TextEditingController _currentPasswordController = TextEditingController();
-  TextEditingController _newPasswordController = TextEditingController();
+  final TextEditingController _currentPasswordController =
+      TextEditingController();
+  final TextEditingController _newPasswordController = TextEditingController();
   bool _isDarkMode = false;
   bool _isPasswordChangeVisible = false;
   bool _isCloudSaveEnabled = true; // 클라우드 저장 기본 활성화
-  String _selectedEngine = 'GPT-4.1-mini';
   String _appVersion = '1.0.0'; // 기본 버전
   User? user;
-  int _userPoints = 0;
 
-    // ✅ 추가: photoURL 유무 확인 + 이니셜 추출
-    bool _hasPhoto(User? u) => u?.photoURL != null && u!.photoURL!.isNotEmpty;
-    String _initialsFrom(String? nameOrEmail) {
-        final s = (nameOrEmail ?? '').trim();
-        if (s.isEmpty) return '👤';
-        final parts = s.split(RegExp(r'\s+'));
-        if (parts.length >= 2) {
-          return (parts[0].substring(0, 1) + parts[1].substring(0, 1)).toUpperCase();
-        }
-        return s.substring(0, 1).toUpperCase();
-      }
+  // ✅ 추가: photoURL 유무 확인 + 이니셜 추출
+  bool _hasPhoto(User? u) => u?.photoURL != null && u!.photoURL!.isNotEmpty;
+  String _initialsFrom(String? nameOrEmail) {
+    final s = (nameOrEmail ?? '').trim();
+    if (s.isEmpty) return '👤';
+    final parts = s.split(RegExp(r'\s+'));
+    if (parts.length >= 2) {
+      return (parts[0].substring(0, 1) + parts[1].substring(0, 1))
+          .toUpperCase();
+    }
+    return s.substring(0, 1).toUpperCase();
+  }
 
   @override
   void initState() {
@@ -78,14 +75,10 @@ class _SettingScreenState extends State<SettingScreen> {
     final savedThemeMode = await AdaptiveTheme.getThemeMode();
     bool isDarkMode = savedThemeMode == AdaptiveThemeMode.dark;
 
-    // 엔진 설정 로드
-    String selectedEngine = await SettingsHelper.getSelectedEngine() ?? 'GPT-4.1-mini';
-
     // 상태 업데이트
     setState(() {
       _isCloudSaveEnabled = cloudSaveEnabled;
       _isDarkMode = isDarkMode;
-      _selectedEngine = selectedEngine;
     });
 
     // 클라우드 저장 상태가 로드된 후에 바로 활성화
@@ -98,24 +91,17 @@ class _SettingScreenState extends State<SettingScreen> {
     user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    final docRef = FirebaseFirestore.instance
-        .collection('user_points')
-        .doc(user!.uid);
+    final docRef =
+        FirebaseFirestore.instance.collection('user_points').doc(user!.uid);
 
     final snap = await docRef.get();
 
-    int points = 0;
-
     if (snap.exists) {
-      final data = snap.data() as Map<String, dynamic>?;
+      final data = snap.data();
 
       // points 필드가 없거나 null인 경우 대비
       final raw = data != null ? data['points'] : null;
-      if (raw is int) {
-        points = raw;
-      } else if (raw is double) {
-        points = raw.toInt();
-      } else {
+      if (raw is! int && raw is! double) {
         // 스키마 보정: 필드가 없으면 기본값으로 채움
         await docRef.set({'points': 0}, SetOptions(merge: true));
       }
@@ -124,12 +110,8 @@ class _SettingScreenState extends State<SettingScreen> {
       await docRef.set({'points': 0});
     }
 
-    if (!mounted) return;
-    setState(() {
-      _userPoints = points;
-    });
+    if (mounted) setState(() {});
   }
-
 
   Future<void> _toggleCloudSave(bool value, {bool initialLoad = false}) async {
     setState(() {
@@ -159,12 +141,19 @@ class _SettingScreenState extends State<SettingScreen> {
       await user.reauthenticateWithCredential(credential);
       await user.updatePassword(_newPasswordController.text);
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)?.passwordChangedSuccess ?? 'Password changed successfully.')),
+        SnackBar(
+            content: Text(
+                AppLocalizations.of(context)?.passwordChangedSuccess ??
+                    'Password changed successfully.')),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)?.failedChangePassword ?? 'Failed to change password: $e')),
+        SnackBar(
+            content: Text(AppLocalizations.of(context)?.failedChangePassword ??
+                'Failed to change password: $e')),
       );
     }
   }
@@ -172,26 +161,28 @@ class _SettingScreenState extends State<SettingScreen> {
   Future<void> _confirmDeleteAccount() async {
     final localizations = AppLocalizations.of(context);
 
-    showCupertinoDialog( // 변경: showDialog -> showCupertinoDialog
+    showCupertinoDialog(
+      // 변경: showDialog -> showCupertinoDialog
       context: context,
       builder: (BuildContext context) {
         return CupertinoAlertDialog(
           title: Text(localizations?.confirmDelete ?? 'Confirm Delete'),
-          content: Text(localizations?.areYouSureDeleteAccount ?? 'Are you sure you want to delete your account? This action cannot be undone.'),
+          content: Text(localizations?.areYouSureDeleteAccount ??
+              'Are you sure you want to delete your account? This action cannot be undone.'),
           actions: <Widget>[
             CupertinoDialogAction(
-              child: Text(localizations?.cancel ?? 'Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
+              child: Text(localizations?.cancel ?? 'Cancel'),
             ),
             CupertinoDialogAction(
-              child: Text(localizations?.deleteAccount ?? 'Delete'),
               isDestructiveAction: true,
               onPressed: () async {
                 Navigator.of(context).pop();
                 await _deleteAccount();
               },
+              child: Text(localizations?.deleteAccount ?? 'Delete'),
             ),
           ],
         );
@@ -204,17 +195,23 @@ class _SettingScreenState extends State<SettingScreen> {
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         await user.delete();
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)?.accountDeleted ?? 'Account deleted successfully.')),
+          SnackBar(
+              content: Text(AppLocalizations.of(context)?.accountDeleted ??
+                  'Account deleted successfully.')),
         );
         await FirebaseAuth.instance.signOut(); // 계정 삭제 후 로그아웃 수행
+        if (!mounted) return;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => LoginScreen()),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)?.failedDeleteAccount ?? 'No user signed in or user already deleted.')),
+          SnackBar(
+              content: Text(AppLocalizations.of(context)?.failedDeleteAccount ??
+                  'No user signed in or user already deleted.')),
         );
         Navigator.pushReplacement(
           context,
@@ -222,13 +219,18 @@ class _SettingScreenState extends State<SettingScreen> {
         );
       }
     } catch (e) {
+      if (!mounted) return;
       if (e is FirebaseAuthException && e.code == 'requires-recent-login') {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)?.requiresRecentLogin ?? 'Please log in again and try deleting the account.')),
+          SnackBar(
+              content: Text(AppLocalizations.of(context)?.requiresRecentLogin ??
+                  'Please log in again and try deleting the account.')),
         );
       } else if (FirebaseAuth.instance.currentUser == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)?.accountDeleted ?? 'Account deleted successfully.')),
+          SnackBar(
+              content: Text(AppLocalizations.of(context)?.accountDeleted ??
+                  'Account deleted successfully.')),
         );
         Navigator.pushReplacement(
           context,
@@ -236,7 +238,9 @@ class _SettingScreenState extends State<SettingScreen> {
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)?.failedDeleteAccount ?? 'Failed to delete account: $e')),
+          SnackBar(
+              content: Text(AppLocalizations.of(context)?.failedDeleteAccount ??
+                  'Failed to delete account: $e')),
         );
       }
     }
@@ -247,11 +251,14 @@ class _SettingScreenState extends State<SettingScreen> {
       // 게스트 사용자일 경우 Cupertino 스타일 다이얼로그로 변경
       final localizations = AppLocalizations.of(context);
 
-      bool? confirmLogout = await showCupertinoDialog<bool>( // 변경: showDialog -> showCupertinoDialog
+      bool? confirmLogout = await showCupertinoDialog<bool>(
+        // 변경: showDialog -> showCupertinoDialog
         context: context,
         builder: (context) => CupertinoAlertDialog(
-          title: Text(localizations?.logoutConfirmationTitle ?? 'Logout Confirmation'),
-          content: Text(localizations?.logoutConfirmationContent ?? 'Logging out as a guest will delete all your data. Do you want to proceed?'),
+          title: Text(
+              localizations?.logoutConfirmationTitle ?? 'Logout Confirmation'),
+          content: Text(localizations?.logoutConfirmationContent ??
+              'Logging out as a guest will delete all your data. Do you want to proceed?'),
           actions: [
             CupertinoDialogAction(
               onPressed: () => Navigator.of(context).pop(false),
@@ -259,15 +266,17 @@ class _SettingScreenState extends State<SettingScreen> {
             ),
             CupertinoDialogAction(
               onPressed: () => Navigator.of(context).pop(true),
-              child: Text(localizations?.logout ?? 'Logout'),
               isDestructiveAction: true,
+              child: Text(localizations?.logout ?? 'Logout'),
             ),
           ],
         ),
       );
 
+      if (!mounted) return;
       if (confirmLogout != null && confirmLogout) {
         await FirebaseAuth.instance.signOut();
+        if (!mounted) return;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => LoginScreen()),
@@ -276,6 +285,7 @@ class _SettingScreenState extends State<SettingScreen> {
     } else {
       // 일반 사용자일 경우 기존 로그아웃 동작 유지
       await FirebaseAuth.instance.signOut();
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => LoginScreen()),
@@ -293,13 +303,6 @@ class _SettingScreenState extends State<SettingScreen> {
     } else {
       AdaptiveTheme.of(context).setLight();
     }
-  }
-
-  void _onEngineSelected(String? value) {
-    setState(() {
-      _selectedEngine = value!;
-    });
-    SettingsHelper.saveSelectedEngine(_selectedEngine);
   }
 
   void _resetPreset() {
@@ -342,17 +345,17 @@ class _SettingScreenState extends State<SettingScreen> {
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
-    final Color backgroundColor = _isDarkMode ? CupertinoColors.black : Color(0xFFEFEFF4);
-    final Color textColor = _isDarkMode ? CupertinoColors.white : CupertinoColors.black;
-    final Color dropdownColor = _isDarkMode ? Colors.grey[900]! : Colors.white;
-    final isAdRemoved  = context.watch<AdRemoveProvider>().isAdRemoved;
+    final Color backgroundColor =
+        _isDarkMode ? CupertinoColors.black : Color(0xFFEFEFF4);
+    final Color textColor =
+        _isDarkMode ? CupertinoColors.white : CupertinoColors.black;
     final isSubscribed = context.watch<AdRemoveProvider>().isSubscribed;
 
     bool isGuest = user != null && user!.isAnonymous;
-
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
@@ -377,7 +380,8 @@ class _SettingScreenState extends State<SettingScreen> {
             backgroundColor: backgroundColor,
             header: Text(
               localizations?.account ?? 'Account', // 계정 섹션 제목
-              style: TextStyle(fontFamily: 'SFProText', fontSize: 14, color: textColor),
+              style: TextStyle(
+                  fontFamily: 'SFProText', fontSize: 14, color: textColor),
             ),
             children: [
               CupertinoFormRow(
@@ -390,28 +394,31 @@ class _SettingScreenState extends State<SettingScreen> {
                       CircleAvatar(
                         radius: 18,
                         backgroundColor: isGuest ? Colors.blue[300] : null,
-                      // ✅ 변경: photoURL 있을 때만 네트워크 이미지 사용
-                                              backgroundImage: (!isGuest && _hasPhoto(user))
-                                    ? NetworkImage(user!.photoURL!)
-                                : null,
-                            // ✅ 변경: 게스트는 "GUEST", 그 외 photo 없으면 이니셜 표시
-                            child: isGuest
+                        // ✅ 변경: photoURL 있을 때만 네트워크 이미지 사용
+                        backgroundImage: (!isGuest && _hasPhoto(user))
+                            ? NetworkImage(user!.photoURL!)
+                            : null,
+                        // ✅ 변경: 게스트는 "GUEST", 그 외 photo 없으면 이니셜 표시
+                        child: isGuest
+                            ? Text(
+                                'GUEST',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  color: _isDarkMode
+                                      ? CupertinoColors.white
+                                      : CupertinoColors.black,
+                                ),
+                              )
+                            : (!_hasPhoto(user))
                                 ? Text(
-                                    'GUEST',
-                                    style: TextStyle(
-                                      fontSize: 9,
-                                      color: _isDarkMode ? CupertinoColors.white : CupertinoColors.black,
+                                    _initialsFrom(
+                                        user?.displayName ?? user?.email),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   )
-                                : (!_hasPhoto(user))
-                                    ? Text(
-                                        _initialsFrom(user?.displayName ?? user?.email),
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      )
-                                    : null,
+                                : null,
                       ),
 
                       // PRO 배지 (구독자일 때만 표시)
@@ -420,16 +427,22 @@ class _SettingScreenState extends State<SettingScreen> {
                           right: -2,
                           bottom: -2,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 4, vertical: 1),
                             decoration: BoxDecoration(
                               color: CupertinoColors.activeBlue,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: _isDarkMode ? CupertinoColors.black : CupertinoColors.white,
+                                color: _isDarkMode
+                                    ? CupertinoColors.black
+                                    : CupertinoColors.white,
                                 width: 1.0,
                               ),
                               boxShadow: const [
-                                BoxShadow(blurRadius: 1, offset: Offset(0, 1), color: Colors.black26),
+                                BoxShadow(
+                                    blurRadius: 1,
+                                    offset: Offset(0, 1),
+                                    color: Colors.black26),
                               ],
                             ),
                             child: const Text(
@@ -446,23 +459,20 @@ class _SettingScreenState extends State<SettingScreen> {
                     ],
                   ),
                 ),
-
-
-
                 child: Row(
                   children: [
                     SizedBox(width: 8), // 프로필 사진과 텍스트 사이에 약간의 간격 추가
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                       // Text(
-                       //   localizations?.hello ?? 'Hello, ${user?.displayName ?? 'User'}',
-                       //   style: TextStyle(
-                       //     color: textColor,
-                       //     fontWeight: FontWeight.bold,
-                       //     fontSize: 14,
-                       //   ),
-                       // ),
+                        // Text(
+                        //   localizations?.hello ?? 'Hello, ${user?.displayName ?? 'User'}',
+                        //   style: TextStyle(
+                        //     color: textColor,
+                        //     fontWeight: FontWeight.bold,
+                        //     fontSize: 14,
+                        //   ),
+                        // ),
                         //Text( //(포인트 기능 출시 위한 미구현)
                         // '${_userPoints} points',
                         //style: TextStyle(
@@ -478,7 +488,9 @@ class _SettingScreenState extends State<SettingScreen> {
                         IconButton(
                           icon: Icon(
                             CupertinoIcons.square_arrow_right,
-                            color: _isDarkMode ? CupertinoColors.white : CupertinoColors.black,
+                            color: _isDarkMode
+                                ? CupertinoColors.white
+                                : CupertinoColors.black,
                             size: 24,
                           ),
                           onPressed: _logout,
@@ -486,7 +498,8 @@ class _SettingScreenState extends State<SettingScreen> {
                         Text(
                           localizations?.logout ?? 'Logout',
                           style: TextStyle(
-                            color: _isDarkMode ? Colors.white70 : Colors.black54,
+                            color:
+                                _isDarkMode ? Colors.white70 : Colors.black54,
                             fontWeight: FontWeight.bold,
                             fontSize: 10, // 텍스트 크기 작게 설정
                           ),
@@ -511,7 +524,9 @@ class _SettingScreenState extends State<SettingScreen> {
           // ),
           CupertinoFormSection.insetGrouped(
             backgroundColor: backgroundColor,
-            header: Text(localizations?.display ?? 'Display', style: TextStyle(fontFamily: 'SFProText', fontSize: 14, color: textColor)),
+            header: Text(localizations?.display ?? 'Display',
+                style: TextStyle(
+                    fontFamily: 'SFProText', fontSize: 14, color: textColor)),
             children: [
               CupertinoFormRow(
                 prefix: Padding(
@@ -527,7 +542,10 @@ class _SettingScreenState extends State<SettingScreen> {
                   children: [
                     Text(
                       localizations?.darkMode ?? 'Dark Mode',
-                      style: TextStyle(fontFamily: 'SFProText', fontSize: 14, color: textColor),
+                      style: TextStyle(
+                          fontFamily: 'SFProText',
+                          fontSize: 14,
+                          color: textColor),
                     ),
                     CupertinoSwitch(
                       value: _isDarkMode,
@@ -541,7 +559,8 @@ class _SettingScreenState extends State<SettingScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 30.0), // 좌우 패딩 설정
             child: Text(
-              localizations?.darkdescp ?? 'Enable dark mode for a more comfortable viewing experience', // 설명 텍스트, 원하는 내용으로 수정하세요
+              localizations?.darkdescp ??
+                  'Enable dark mode for a more comfortable viewing experience', // 설명 텍스트, 원하는 내용으로 수정하세요
               style: TextStyle(
                 fontFamily: 'SFProText',
                 fontSize: 12,
@@ -554,7 +573,9 @@ class _SettingScreenState extends State<SettingScreen> {
           if (!isGuest)
             CupertinoFormSection.insetGrouped(
               backgroundColor: backgroundColor,
-              header: Text(localizations?.security ?? 'Security', style: TextStyle(fontFamily: 'SFProText', fontSize: 14, color: textColor)),
+              header: Text(localizations?.security ?? 'Security',
+                  style: TextStyle(
+                      fontFamily: 'SFProText', fontSize: 14, color: textColor)),
               children: [
                 CupertinoFormRow(
                   prefix: Padding(
@@ -570,7 +591,10 @@ class _SettingScreenState extends State<SettingScreen> {
                     children: [
                       Text(
                         localizations?.changePassword ?? 'Change Password',
-                        style: TextStyle(fontFamily: 'SFProText', fontSize: 14, color: textColor),
+                        style: TextStyle(
+                            fontFamily: 'SFProText',
+                            fontSize: 14,
+                            color: textColor),
                       ),
                       CupertinoSwitch(
                         value: _isPasswordChangeVisible,
@@ -590,37 +614,55 @@ class _SettingScreenState extends State<SettingScreen> {
                       children: [
                         CupertinoTextField(
                           controller: _currentPasswordController,
-                          placeholder: localizations?.password ?? 'Current Password',
+                          placeholder:
+                              localizations?.password ?? 'Current Password',
                           obscureText: true,
-                          style: TextStyle(fontFamily: 'SFProText', fontSize: 14, color: textColor),
-                          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                          style: TextStyle(
+                              fontFamily: 'SFProText',
+                              fontSize: 14,
+                              color: textColor),
+                          padding: EdgeInsets.symmetric(
+                              vertical: 12, horizontal: 16),
                           decoration: BoxDecoration(
-                            color: _isDarkMode ? CupertinoColors.darkBackgroundGray : CupertinoColors.lightBackgroundGray,
+                            color: _isDarkMode
+                                ? CupertinoColors.darkBackgroundGray
+                                : CupertinoColors.lightBackgroundGray,
                             borderRadius: BorderRadius.circular(8.0),
                           ),
                         ),
                         SizedBox(height: 16),
                         CupertinoTextField(
                           controller: _newPasswordController,
-                          placeholder: localizations?.newPassword ?? 'New Password',
+                          placeholder:
+                              localizations?.newPassword ?? 'New Password',
                           obscureText: true,
-                          style: TextStyle(fontFamily: 'SFProText', fontSize: 14, color: textColor),
-                          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                          style: TextStyle(
+                              fontFamily: 'SFProText',
+                              fontSize: 14,
+                              color: textColor),
+                          padding: EdgeInsets.symmetric(
+                              vertical: 12, horizontal: 16),
                           decoration: BoxDecoration(
-                            color: _isDarkMode ? CupertinoColors.darkBackgroundGray : CupertinoColors.lightBackgroundGray,
+                            color: _isDarkMode
+                                ? CupertinoColors.darkBackgroundGray
+                                : CupertinoColors.lightBackgroundGray,
                             borderRadius: BorderRadius.circular(8.0),
                           ),
                         ),
                         SizedBox(height: 16),
                         CupertinoButton(
-                          child: Text(
-                            localizations?.changePassword ?? 'Change Password',
-                            style: TextStyle(fontFamily: 'SFProText', fontSize: 14, color: CupertinoColors.white),
-                          ),
                           onPressed: _changePassword,
-                          padding: EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                          padding:
+                              EdgeInsets.symmetric(vertical: 6, horizontal: 8),
                           borderRadius: BorderRadius.circular(8.0),
                           color: Colors.blue, // 원하는 색상으로 변경
+                          child: Text(
+                            localizations?.changePassword ?? 'Change Password',
+                            style: TextStyle(
+                                fontFamily: 'SFProText',
+                                fontSize: 14,
+                                color: CupertinoColors.white),
+                          ),
                         ),
                       ],
                     ),
@@ -631,7 +673,8 @@ class _SettingScreenState extends State<SettingScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30.0), // 좌우 패딩 설정
               child: Text(
-                localizations?.changepassdescp ?? 'For security, regularly change your password and use a strong password that is easy to remember', // 설명 텍스트, 원하는 내용으로 수정하세요
+                localizations?.changepassdescp ??
+                    'For security, regularly change your password and use a strong password that is easy to remember', // 설명 텍스트, 원하는 내용으로 수정하세요
                 style: TextStyle(
                   fontFamily: 'SFProText',
                   fontSize: 12,
@@ -642,7 +685,9 @@ class _SettingScreenState extends State<SettingScreen> {
 
           CupertinoFormSection.insetGrouped(
             backgroundColor: backgroundColor,
-            header: Text(localizations?.aiSetting ?? 'AI Setting', style: TextStyle(fontFamily: 'SFProText', fontSize: 14, color: textColor)),
+            header: Text(localizations?.aiSetting ?? 'AI Setting',
+                style: TextStyle(
+                    fontFamily: 'SFProText', fontSize: 14, color: textColor)),
             children: [
               CupertinoFormRow(
                 prefix: Padding(
@@ -654,9 +699,13 @@ class _SettingScreenState extends State<SettingScreen> {
                   ),
                 ),
                 child: CupertinoButton(
-                  child: Text(localizations?.changepreset ?? 'Change preset', style: TextStyle(fontFamily: 'SFProText', fontSize: 14, color: textColor)),
                   onPressed: _resetPreset,
                   padding: EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                  child: Text(localizations?.changepreset ?? 'Change preset',
+                      style: TextStyle(
+                          fontFamily: 'SFProText',
+                          fontSize: 14,
+                          color: textColor)),
                 ),
               ),
             ],
@@ -665,7 +714,8 @@ class _SettingScreenState extends State<SettingScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 30.0), // 좌우 패딩 설정
             child: Text(
-              localizations?.aIresetdescp ?? 'You can reset the AI scan settings', // 설명 텍스트, 원하는 내용으로 수정하세요
+              localizations?.aIresetdescp ??
+                  'You can reset the AI scan settings', // 설명 텍스트, 원하는 내용으로 수정하세요
               style: TextStyle(
                 fontFamily: 'SFProText',
                 fontSize: 12,
@@ -680,7 +730,8 @@ class _SettingScreenState extends State<SettingScreen> {
               backgroundColor: backgroundColor,
               header: Text(
                 'Premium',
-                style: TextStyle(fontFamily: 'SFProText', fontSize: 14, color: textColor),
+                style: TextStyle(
+                    fontFamily: 'SFProText', fontSize: 14, color: textColor),
               ),
               children: const [
                 TestPurchaseWidget(),
@@ -691,17 +742,20 @@ class _SettingScreenState extends State<SettingScreen> {
               backgroundColor: backgroundColor,
               header: Text(
                 'Premium',
-                style: TextStyle(fontFamily: 'SFProText', fontSize: 14, color: textColor),
+                style: TextStyle(
+                    fontFamily: 'SFProText', fontSize: 14, color: textColor),
               ),
               children: [
                 CupertinoFormRow(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 6),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          AppLocalizations.of(context)!.premiumGuestSectionTitle,
+                          AppLocalizations.of(context)!
+                              .premiumGuestSectionTitle,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -710,17 +764,23 @@ class _SettingScreenState extends State<SettingScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          AppLocalizations.of(context)!.premiumGuestSectionMessage,
-                          style: TextStyle(fontSize: 13, color: textColor.withOpacity(0.85)),
+                          AppLocalizations.of(context)!
+                              .premiumGuestSectionMessage,
+                          style: TextStyle(
+                              fontSize: 13,
+                              color: textColor.withValues(alpha: 0.85)),
                         ),
                         const SizedBox(height: 12),
                         CupertinoButton.filled(
-                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 10, horizontal: 14),
                           onPressed: _convertAccount,
                           borderRadius: BorderRadius.circular(10),
                           child: Text(
-                            AppLocalizations.of(context)!.premiumGuestConvertButton,
-                            style: const TextStyle(fontSize: 14, fontFamily: 'SFProText'),
+                            AppLocalizations.of(context)!
+                                .premiumGuestConvertButton,
+                            style: const TextStyle(
+                                fontSize: 14, fontFamily: 'SFProText'),
                           ),
                         ),
                       ],
@@ -730,10 +790,11 @@ class _SettingScreenState extends State<SettingScreen> {
               ],
             ),
 
-
           CupertinoFormSection.insetGrouped(
             backgroundColor: backgroundColor,
-            header: Text(localizations?.server ?? 'Server', style: TextStyle(fontFamily: 'SFProText', fontSize: 14, color: textColor)),
+            header: Text(localizations?.server ?? 'Server',
+                style: TextStyle(
+                    fontFamily: 'SFProText', fontSize: 14, color: textColor)),
             children: [
               CupertinoFormRow(
                 prefix: Padding(
@@ -749,7 +810,10 @@ class _SettingScreenState extends State<SettingScreen> {
                   children: [
                     Text(
                       localizations?.cloudSave ?? 'Cloud Save',
-                      style: TextStyle(fontFamily: 'SFProText', fontSize: 14, color: textColor),
+                      style: TextStyle(
+                          fontFamily: 'SFProText',
+                          fontSize: 14,
+                          color: textColor),
                     ),
                     CupertinoSwitch(
                       value: _isCloudSaveEnabled,
@@ -764,7 +828,8 @@ class _SettingScreenState extends State<SettingScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 30.0), // 좌우 패딩 설정
             child: Text(
-              localizations?.savedescp ?? 'Save the output data to the server. Saving is required to enable additional features', // 설명 텍스트, 원하는 내용으로 수정하세요
+              localizations?.savedescp ??
+                  'Save the output data to the server. Saving is required to enable additional features', // 설명 텍스트, 원하는 내용으로 수정하세요
               style: TextStyle(
                 fontFamily: 'SFProText',
                 fontSize: 12,
@@ -777,25 +842,31 @@ class _SettingScreenState extends State<SettingScreen> {
             padding: const EdgeInsets.all(16.0),
             child: isGuest
                 ? CupertinoButton(
-              child: Text(
-                localizations?.convertAccount ?? 'Convert Account',
-                style: TextStyle(fontFamily: 'SFProText', fontSize: 14, color: CupertinoColors.white),
-              ),
-              color: CupertinoColors.activeBlue,
-              onPressed: _convertAccount,
-              borderRadius: BorderRadius.circular(8.0),
-              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            )
+                    color: CupertinoColors.activeBlue,
+                    onPressed: _convertAccount,
+                    borderRadius: BorderRadius.circular(8.0),
+                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    child: Text(
+                      localizations?.convertAccount ?? 'Convert Account',
+                      style: TextStyle(
+                          fontFamily: 'SFProText',
+                          fontSize: 14,
+                          color: CupertinoColors.white),
+                    ),
+                  )
                 : CupertinoButton(
-              child: Text(
-                localizations?.deleteAccount ?? 'Delete Account',
-                style: TextStyle(fontFamily: 'SFProText', fontSize: 14, color: CupertinoColors.white),
-              ),
-              color: CupertinoColors.destructiveRed,
-              onPressed: _confirmDeleteAccount,
-              borderRadius: BorderRadius.circular(8.0),
-              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            ),
+                    color: CupertinoColors.destructiveRed,
+                    onPressed: _confirmDeleteAccount,
+                    borderRadius: BorderRadius.circular(8.0),
+                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    child: Text(
+                      localizations?.deleteAccount ?? 'Delete Account',
+                      style: TextStyle(
+                          fontFamily: 'SFProText',
+                          fontSize: 14,
+                          color: CupertinoColors.white),
+                    ),
+                  ),
           ),
         ],
       ),

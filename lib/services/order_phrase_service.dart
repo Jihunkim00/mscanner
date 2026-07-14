@@ -9,12 +9,13 @@ class OrderPhraseService {
   final FirebaseFunctions _functions;
 
   Future<GenerateOrderPhraseResponse> generate(
-      GenerateOrderPhraseRequest request,
-      ) async {
+    GenerateOrderPhraseRequest request,
+  ) async {
     final callable = _functions.httpsCallable('generateOrderPhrase');
-    final response = await callable.call<Map<String, dynamic>>(request.toJson());
-    final data = (response.data as Map?)?.cast<String, dynamic>() ??
-        <String, dynamic>{};
+    final response =
+        await callable.call<Map<String, dynamic>>(request.toJson());
+    final data =
+        (response.data as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
     return GenerateOrderPhraseResponse.fromJson(data);
   }
 }

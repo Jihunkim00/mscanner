@@ -1,7 +1,6 @@
 // /widgets/ai_food_image_button.dart
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -67,7 +66,6 @@ List<String> buildMenuSearchKeywords({
   return out.toList();
 }
 
-
 class AiFoodImageButton extends StatefulWidget {
   final String menuKey;
   final Map<String, dynamic> menu; // {original, translated}
@@ -103,8 +101,10 @@ class _AiFoodImageButtonState extends State<AiFoodImageButton> {
       final callable = functions.httpsCallable('generateMenuImage');
 
       final menuOriginal = (widget.menu['original'] ?? '').toString().trim();
-      final menuTranslated = (widget.menu['translated'] ?? '').toString().trim();
-      final menuDisplay = menuTranslated.isNotEmpty ? menuTranslated : menuOriginal;
+      final menuTranslated =
+          (widget.menu['translated'] ?? '').toString().trim();
+      final menuDisplay =
+          menuTranslated.isNotEmpty ? menuTranslated : menuOriginal;
       final user = FirebaseAuth.instance.currentUser;
 
       final menuDocRef = FirebaseFirestore.instance
@@ -132,7 +132,6 @@ class _AiFoodImageButtonState extends State<AiFoodImageButton> {
           'createdAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
-
       await callable.call({
         'menuKey': widget.menuKey,
         'menu': widget.menu,
@@ -152,8 +151,9 @@ class _AiFoodImageButtonState extends State<AiFoodImageButton> {
 
   @override
   Widget build(BuildContext context) {
-    final docRef =
-    FirebaseFirestore.instance.collection('menu_images').doc(widget.menuKey);
+    final docRef = FirebaseFirestore.instance
+        .collection('menu_images')
+        .doc(widget.menuKey);
 
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
       stream: docRef.snapshots(),

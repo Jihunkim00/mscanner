@@ -323,7 +323,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get aiScanning => 'AI扫描中...';
 
   @override
-  String get aiLoadingMessage => 'AI可能会出错。加载时间通常需要大约5到10秒，但可能因您的互联网连接和智能手机设备而有所不同。';
+  String get aiLoadingMessage =>
+      'AI可能会出错。加载时间通常需要大约5到10秒，但可能因您的互联网连接和智能手机设备而有所不同。';
 
   @override
   String get introductionTitle1 => 'Mscanner';
@@ -708,7 +709,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sub_manage_ios => '费用将通过您的Apple ID收取，可在 设置 > [您的姓名] > 订阅 中管理或取消。';
 
   @override
-  String get sub_manage_android => '费用将通过您的Google账号收取，可在 Play 商店应用 > 个人资料图标 > 付款和订阅 > 订阅 中管理或取消。';
+  String get sub_manage_android =>
+      '费用将通过您的Google账号收取，可在 Play 商店应用 > 个人资料图标 > 付款和订阅 > 订阅 中管理或取消。';
 
   @override
   String get sub_badge_trial_1m => '🎁 首次订阅用户可享1个月免费试用';
@@ -961,7 +963,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get guestLoginTitle2 => '欢迎，探险家！';
 
   @override
-  String get guestLoginContent2 => '在访客模式下，您可以扫描菜单以获取个性化推荐，但您将无法保存收藏或跨设备查看历史记录。';
+  String get guestLoginContent2 =>
+      '在访客模式下，您可以扫描菜单以获取个性化推荐，但您将无法保存收藏或跨设备查看历史记录。';
 
   @override
   String get confirm2 => '以访客身份继续';
@@ -982,7 +985,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get result_notMenuMessage => '这张图片看起来不像是食物菜单。请重新拍摄照片，确保菜单名称或食物名称清晰可见。';
 
   @override
-  String get result_uncertainMenuMessage => '不确定这是不是美食菜单。请重新拍一张照片，确保菜单名称和价格清晰可见。';
+  String get result_uncertainMenuMessage =>
+      '不确定这是不是美食菜单。请重新拍一张照片，确保菜单名称和价格清晰可见。';
 
   @override
   String get result_aiTimeoutMoreResponse => '等待更多 AI 响应时超时。';
@@ -1072,7 +1076,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get premiumLoginRequiredTitle => 'Sign in to start Premium';
 
   @override
-  String get premiumLoginRequiredMessage => 'Sign in to restore purchases, keep your subscription, and access Premium across devices.';
+  String get premiumLoginRequiredMessage =>
+      'Sign in to restore purchases, keep your subscription, and access Premium across devices.';
 
   @override
   String get premiumLoginRequiredAction => 'Sign in to continue';
@@ -1084,10 +1089,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get premiumStartCta => 'Start Premium';
 
   @override
-  String get premiumGuestSectionTitle => 'Connect your account before purchasing Premium in guest mode';
+  String get premiumGuestSectionTitle =>
+      'Connect your account before purchasing Premium in guest mode';
 
   @override
-  String get premiumGuestSectionMessage => 'Premium subscriptions are linked to your account so purchases can be restored and used across devices.';
+  String get premiumGuestSectionMessage =>
+      'Premium subscriptions are linked to your account so purchases can be restored and used across devices.';
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
@@ -1095,7 +1102,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
 class AppLocalizationsZhHans extends AppLocalizationsZh {
-  AppLocalizationsZhHans(): super('zh_Hans');
+  AppLocalizationsZhHans() : super('zh_Hans');
 
   @override
   String get accountDeleted => '账户已成功删除。';
@@ -1412,7 +1419,8 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get aiScanning => 'AI扫描中...';
 
   @override
-  String get aiLoadingMessage => 'AI可能会出错。加载时间通常需要大约5到10秒，但可能因您的互联网连接和智能手机设备而有所不同。';
+  String get aiLoadingMessage =>
+      'AI可能会出错。加载时间通常需要大约5到10秒，但可能因您的互联网连接和智能手机设备而有所不同。';
 
   @override
   String get introductionTitle1 => 'Mscanner';
@@ -1797,7 +1805,8 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get sub_manage_ios => '费用将通过您的Apple ID收取，可在 设置 > [您的姓名] > 订阅 中管理或取消。';
 
   @override
-  String get sub_manage_android => '费用将通过您的Google账号收取，可在 Play 商店应用 > 个人资料图标 > 付款和订阅 > 订阅 中管理或取消。';
+  String get sub_manage_android =>
+      '费用将通过您的Google账号收取，可在 Play 商店应用 > 个人资料图标 > 付款和订阅 > 订阅 中管理或取消。';
 
   @override
   String get sub_badge_trial_1m => '🎁 首次订阅用户可享1个月免费体验';
@@ -2050,7 +2059,8 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get guestLoginTitle2 => '欢迎，探索者！';
 
   @override
-  String get guestLoginContent2 => '在访客模式下，您可以扫描菜单以获得个性化推荐，但无法保存收藏或在多设备间查看历史记录。';
+  String get guestLoginContent2 =>
+      '在访客模式下，您可以扫描菜单以获得个性化推荐，但无法保存收藏或在多设备间查看历史记录。';
 
   @override
   String get confirm2 => '以访客身份继续';
@@ -2071,7 +2081,8 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get result_notMenuMessage => '这张图片看起来不像是食品菜单。请重新拍摄照片，确保菜单名称或食物名称清晰可见。';
 
   @override
-  String get result_uncertainMenuMessage => '不确定这是不是食品菜单。请重新拍一张照片，确保菜单名称和价格清晰可见。';
+  String get result_uncertainMenuMessage =>
+      '不确定这是不是食品菜单。请重新拍一张照片，确保菜单名称和价格清晰可见。';
 
   @override
   String get result_aiTimeoutMoreResponse => '等待更多 AI 回复时超时。';
@@ -2161,7 +2172,8 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get premiumLoginRequiredTitle => 'Sign in to start Premium';
 
   @override
-  String get premiumLoginRequiredMessage => 'Sign in to restore purchases, keep your subscription, and access Premium across devices.';
+  String get premiumLoginRequiredMessage =>
+      'Sign in to restore purchases, keep your subscription, and access Premium across devices.';
 
   @override
   String get premiumLoginRequiredAction => 'Sign in to continue';
@@ -2173,10 +2185,12 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get premiumStartCta => 'Start Premium';
 
   @override
-  String get premiumGuestSectionTitle => 'Connect your account before purchasing Premium in guest mode';
+  String get premiumGuestSectionTitle =>
+      'Connect your account before purchasing Premium in guest mode';
 
   @override
-  String get premiumGuestSectionMessage => 'Premium subscriptions are linked to your account so purchases can be restored and used across devices.';
+  String get premiumGuestSectionMessage =>
+      'Premium subscriptions are linked to your account so purchases can be restored and used across devices.';
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
@@ -2184,7 +2198,7 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
 class AppLocalizationsZhHant extends AppLocalizationsZh {
-  AppLocalizationsZhHant(): super('zh_Hant');
+  AppLocalizationsZhHant() : super('zh_Hant');
 
   @override
   String get accountDeleted => '帳戶已成功刪除。';
@@ -2501,7 +2515,8 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get aiScanning => 'AI掃描中...';
 
   @override
-  String get aiLoadingMessage => 'AI可能會出錯。加載時間通常需要大約5到10秒，但可能因您的互聯網連接和智能手機設備而有所不同。';
+  String get aiLoadingMessage =>
+      'AI可能會出錯。加載時間通常需要大約5到10秒，但可能因您的互聯網連接和智能手機設備而有所不同。';
 
   @override
   String get introductionTitle1 => 'Mscanner';
@@ -2886,7 +2901,8 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get sub_manage_ios => '費用將透過您的Apple ID收取，可在 設定 > [您的姓名] > 訂閱 中管理或取消。';
 
   @override
-  String get sub_manage_android => '費用將透過您的Google帳戶收取，可在 Play 商店應用程式 > 個人資料圖示 > 付款與訂閱 > 訂閱 中管理或取消。';
+  String get sub_manage_android =>
+      '費用將透過您的Google帳戶收取，可在 Play 商店應用程式 > 個人資料圖示 > 付款與訂閱 > 訂閱 中管理或取消。';
 
   @override
   String get sub_badge_trial_1m => '🎁 首次訂閱者享 1 個月免費';
@@ -3139,7 +3155,8 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get guestLoginTitle2 => '歡迎，探索者！';
 
   @override
-  String get guestLoginContent2 => '在訪客模式下，您可以掃描菜單以獲得個人化推薦，但您將無法儲存最愛或在不同裝置間查看歷史紀錄。';
+  String get guestLoginContent2 =>
+      '在訪客模式下，您可以掃描菜單以獲得個人化推薦，但您將無法儲存最愛或在不同裝置間查看歷史紀錄。';
 
   @override
   String get confirm2 => '以訪客身分繼續';
@@ -3250,7 +3267,8 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get premiumLoginRequiredTitle => 'Sign in to start Premium';
 
   @override
-  String get premiumLoginRequiredMessage => 'Sign in to restore purchases, keep your subscription, and access Premium across devices.';
+  String get premiumLoginRequiredMessage =>
+      'Sign in to restore purchases, keep your subscription, and access Premium across devices.';
 
   @override
   String get premiumLoginRequiredAction => 'Sign in to continue';
@@ -3262,10 +3280,12 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get premiumStartCta => 'Start Premium';
 
   @override
-  String get premiumGuestSectionTitle => 'Connect your account before purchasing Premium in guest mode';
+  String get premiumGuestSectionTitle =>
+      'Connect your account before purchasing Premium in guest mode';
 
   @override
-  String get premiumGuestSectionMessage => 'Premium subscriptions are linked to your account so purchases can be restored and used across devices.';
+  String get premiumGuestSectionMessage =>
+      'Premium subscriptions are linked to your account so purchases can be restored and used across devices.';
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';

@@ -7,17 +7,17 @@ import 'map_screen.dart';
 import 'favorite_list_screen.dart';
 import '/screens/log_service.dart';
 
-
 class HistoryScreen extends StatefulWidget {
+  const HistoryScreen({super.key});
+
   @override
-  _HistoryScreenState createState() => _HistoryScreenState();
+  State<HistoryScreen> createState() => _HistoryScreenState();
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
   bool _isDarkMode = false;
   String _currentSegment = 'Saved';
   bool _sentHistoryOpen = false;
-
 
   @override
   void initState() {
@@ -29,7 +29,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
         await LogService().logHistoryOpen(); // ⑨ 이력 화면 진입
       }
     });
-
   }
 
   Future<void> _checkDarkMode() async {
@@ -42,7 +41,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final Color backgroundColor =
-    _isDarkMode ? Colors.black : const Color(0xFFEFEFF4);
+        _isDarkMode ? Colors.black : const Color(0xFFEFEFF4);
     final Color textColor = _isDarkMode ? Colors.white : Colors.black;
 
     return CupertinoPageScaffold(
@@ -85,9 +84,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ),
       ),
 
-      child: _currentSegment == 'Saved'
-          ? FavoriteListScreen()
-          : MapScreen(),
+      child: _currentSegment == 'Saved' ? FavoriteListScreen() : MapScreen(),
     );
   }
 }

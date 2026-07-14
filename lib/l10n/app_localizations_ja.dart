@@ -323,7 +323,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aiScanning => 'AIスキャン中...';
 
   @override
-  String get aiLoadingMessage => 'AIには誤りがある可能性があります。読み込み時間は通常5〜10秒かかりますが、インターネット接続やスマートフォンのデバイスによって異なる場合があります。';
+  String get aiLoadingMessage =>
+      'AIには誤りがある可能性があります。読み込み時間は通常5〜10秒かかりますが、インターネット接続やスマートフォンのデバイスによって異なる場合があります。';
 
   @override
   String get introductionTitle1 => 'Mscanner';
@@ -344,7 +345,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get introductionBody2_2 => '2. 食事スタイルを選択してください（ダイエット、肉好きなど）';
 
   @override
-  String get introductionBody2_3 => '3. スキャンしたいメニューの数を設定します（メニューが多いほど、詳細が少なくなります）';
+  String get introductionBody2_3 =>
+      '3. スキャンしたいメニューの数を設定します（メニューが多いほど、詳細が少なくなります）';
 
   @override
   String get introductionTitle3 => '設定を最適化する';
@@ -422,7 +424,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get languagesdescprition => '食品アイテムやメニューの写真を撮って、出力言語を選択してください';
 
   @override
-  String get fooddescprition => 'ダイエットまたは食事プランを選択してください。AIはあなたの選択に基づいて推奨事項と説明を提供します';
+  String get fooddescprition =>
+      'ダイエットまたは食事プランを選択してください。AIはあなたの選択に基づいて推奨事項と説明を提供します';
 
   @override
   String get menudescribe => '表示するメニュー項目の数を選択してください。選択する項目が少ないほど、説明が詳しくなります';
@@ -431,7 +434,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get darkdescp => 'より快適な表示体験のためにダークモードを有効にします';
 
   @override
-  String get changepassdescp => 'セキュリティのために、定期的にパスワードを変更し、覚えやすい強力なパスワードを使用してください';
+  String get changepassdescp =>
+      'セキュリティのために、定期的にパスワードを変更し、覚えやすい強力なパスワードを使用してください';
 
   @override
   String get aIresetdescp => 'AIスキャン設定をリセットすることができます';
@@ -440,7 +444,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get savedescp => '出力データをサーバーに保存します。追加機能を有効にするには保存が必要です';
 
   @override
-  String get scanFoodPhotoDescription => '食品アイテムやメニューの写真を撮って、それが何かを見つけてみてください！今すぐ試してみましょう';
+  String get scanFoodPhotoDescription =>
+      '食品アイテムやメニューの写真を撮って、それが何かを見つけてみてください！今すぐ試してみましょう';
 
   @override
   String get activepoint => 'ポイントはユーザーの活動指数を表示し、将来的にさまざまな報酬が提供されます。';
@@ -464,13 +469,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get locationPermissionNeeded => '位置情報の許可が必要です。';
 
   @override
-  String get locationPermissionContent => 'このアプリは正常に機能するために位置情報の許可が必要です。アプリの設定で位置情報へのアクセスを許可してください。';
+  String get locationPermissionContent =>
+      'このアプリは正常に機能するために位置情報の許可が必要です。アプリの設定で位置情報へのアクセスを許可してください。';
 
   @override
   String get locationServiceDisabled => '位置情報サービス無効';
 
   @override
-  String get locationServiceDisabledContent => '位置情報サービスが無効になっています。設定で位置情報サービスを有効にしてください。';
+  String get locationServiceDisabledContent =>
+      '位置情報サービスが無効になっています。設定で位置情報サービスを有効にしてください。';
 
   @override
   String get openSettings => '設定を開く';
@@ -497,13 +504,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get logoutConfirmationTitle => 'ログアウト確認';
 
   @override
-  String get logoutConfirmationContent => 'ゲストとしてログアウトすると、すべてのデータが削除されます。続行しますか？';
+  String get logoutConfirmationContent =>
+      'ゲストとしてログアウトすると、すべてのデータが削除されます。続行しますか？';
 
   @override
   String get convertAccount => 'アカウントを変換する';
 
   @override
-  String get accountConversionDescription => 'ゲストアカウントを永久アカウントに変換してデータを保存してください。';
+  String get accountConversionDescription =>
+      'ゲストアカウントを永久アカウントに変換してデータを保存してください。';
 
   @override
   String get accountConversionSuccess => 'アカウントが正常に変換されました。';
@@ -557,7 +566,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get dismissToday => '今日は再表示しない';
 
   @override
-  String get gptErrorMessage => '申し訳ありません。\\nAIサーバーとの通信エラーが発生しました。\\n後でもう一度お試しください。';
+  String get gptErrorMessage =>
+      '申し訳ありません。\\nAIサーバーとの通信エラーが発生しました。\\n後でもう一度お試しください。';
 
   @override
   String get restaurantName => 'レストランの名前';
@@ -685,7 +695,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get sub_trial_free => '初回の加入者は試用期間中に料金が発生しません。';
 
   @override
-  String get sub_auto_renew => '試用期間終了後、自動的に有料に移行し、少なくとも24時間前に解約しない限り次の期間に更新されます。';
+  String get sub_auto_renew =>
+      '試用期間終了後、自動的に有料に移行し、少なくとも24時間前に解約しない限り次の期間に更新されます。';
 
   @override
   String get sub_renew_charge => '更新料金は現在の期間終了の24時間以内に請求される場合があります。';
@@ -705,10 +716,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get privacy => 'プライバシーポリシー';
 
   @override
-  String get sub_manage_ios => '支払いはApple IDに請求され、設定 > [ユーザー名] > サブスクリプションから管理または解約できます。';
+  String get sub_manage_ios =>
+      '支払いはApple IDに請求され、設定 > [ユーザー名] > サブスクリプションから管理または解約できます。';
 
   @override
-  String get sub_manage_android => '支払いはGoogleアカウントに請求され、Play ストアアプリ > プロフィールアイコン > お支払いとサブスクリプション > サブスクリプション から管理または解約できます。';
+  String get sub_manage_android =>
+      '支払いはGoogleアカウントに請求され、Play ストアアプリ > プロフィールアイコン > お支払いとサブスクリプション > サブスクリプション から管理または解約できます。';
 
   @override
   String get sub_badge_trial_1m => '🎁 初回登録者は1か月無料';
@@ -756,7 +769,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get login_signUpFree => '無料で登録';
 
   @override
-  String get signup_subtitle => 'アカウントを作成してスキャンを保存し、プリセットを管理し、プレミアム機能にアクセスできます。';
+  String get signup_subtitle =>
+      'アカウントを作成してスキャンを保存し、プリセットを管理し、プレミアム機能にアクセスできます。';
 
   @override
   String get signup_emailLabel => 'メールアドレス';
@@ -914,7 +928,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get favorite_failedSaveChanges => '変更の保存に失敗しました';
 
   @override
-  String get favorite_renderNotReady => 'エラー: RenderRepaintBoundaryの準備ができていません。';
+  String get favorite_renderNotReady =>
+      'エラー: RenderRepaintBoundaryの準備ができていません。';
 
   @override
   String get favorite_restaurantNameHint => 'レストラン名';
@@ -961,7 +976,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get guestLoginTitle2 => 'ようこそ、探検者さん！';
 
   @override
-  String get guestLoginContent2 => 'ゲストモードでは、メニューをスキャンしてパーソナライズされたおすすめを受け取れますが、お気に入りを保存したりデバイス間で履歴を確認したりすることはできません。';
+  String get guestLoginContent2 =>
+      'ゲストモードでは、メニューをスキャンしてパーソナライズされたおすすめを受け取れますが、お気に入りを保存したりデバイス間で履歴を確認したりすることはできません。';
 
   @override
   String get confirm2 => 'ゲストとして続ける';
@@ -979,10 +995,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get result_noMenuItemsFound => 'メニュー項目が見つかりません。';
 
   @override
-  String get result_notMenuMessage => 'この画像はフードメニューのようには見えません。メニュー名や料理名がはっきり見えるように、写真を撮り直してください。';
+  String get result_notMenuMessage =>
+      'この画像はフードメニューのようには見えません。メニュー名や料理名がはっきり見えるように、写真を撮り直してください。';
 
   @override
-  String get result_uncertainMenuMessage => 'これがフードメニューかどうか分かりません。メニュー名と価格がはっきり見えるように、写真を撮り直してください。';
+  String get result_uncertainMenuMessage =>
+      'これがフードメニューかどうか分かりません。メニュー名と価格がはっきり見えるように、写真を撮り直してください。';
 
   @override
   String get result_aiTimeoutMoreResponse => 'AIの追加応答を待っている間にタイムアウトしました。';
@@ -994,7 +1012,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get result_aiTimeoutFullMenu => 'メニューの全表示を待っている間にタイムアウトしました。';
 
   @override
-  String get result_aiTimeoutFullMenuStream => 'メニューのストリーム全体の受信を待機中にタイムアウトしました。';
+  String get result_aiTimeoutFullMenuStream =>
+      'メニューのストリーム全体の受信を待機中にタイムアウトしました。';
 
   @override
   String get result_aiReceiveFailedFullMenuStream => 'メニューのストリーム全体の受信に失敗しました。';
@@ -1072,7 +1091,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get premiumLoginRequiredTitle => 'Sign in to start Premium';
 
   @override
-  String get premiumLoginRequiredMessage => 'Sign in to restore purchases, keep your subscription, and access Premium across devices.';
+  String get premiumLoginRequiredMessage =>
+      'Sign in to restore purchases, keep your subscription, and access Premium across devices.';
 
   @override
   String get premiumLoginRequiredAction => 'Sign in to continue';
@@ -1084,10 +1104,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get premiumStartCta => 'Start Premium';
 
   @override
-  String get premiumGuestSectionTitle => 'Connect your account before purchasing Premium in guest mode';
+  String get premiumGuestSectionTitle =>
+      'Connect your account before purchasing Premium in guest mode';
 
   @override
-  String get premiumGuestSectionMessage => 'Premium subscriptions are linked to your account so purchases can be restored and used across devices.';
+  String get premiumGuestSectionMessage =>
+      'Premium subscriptions are linked to your account so purchases can be restored and used across devices.';
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';

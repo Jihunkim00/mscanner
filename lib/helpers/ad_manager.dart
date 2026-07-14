@@ -1,6 +1,7 @@
 // lib/helpers/ad_manager.dart
 
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class AdManager {
@@ -28,16 +29,18 @@ class AdManager {
         onAdLoaded: (InterstitialAd ad) {
           _interstitialAd = ad;
           _isInterstitialAdLoaded = true;
-          print('전면 광고 로드 성공');
+          debugPrint('전면 광고 로드 성공');
           _interstitialAd!.setImmersiveMode(true);
           // 광고가 로드되면 다시 로드할 수 있도록 리스너 설정
-          _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+          _interstitialAd!.fullScreenContentCallback =
+              FullScreenContentCallback(
             onAdDismissedFullScreenContent: (InterstitialAd ad) {
               ad.dispose();
               _isInterstitialAdLoaded = false;
               loadInterstitialAd(); // 광고가 닫히면 새로운 광고 로드
             },
-            onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+            onAdFailedToShowFullScreenContent:
+                (InterstitialAd ad, AdError error) {
               ad.dispose();
               _isInterstitialAdLoaded = false;
               loadInterstitialAd(); // 광고 표시 실패 시 새로운 광고 로드
@@ -45,7 +48,7 @@ class AdManager {
           );
         },
         onAdFailedToLoad: (LoadAdError error) {
-          print('전면 광고 로드 실패: $error');
+          debugPrint('전면 광고 로드 실패: $error');
           _isInterstitialAdLoaded = false;
           // 실패 시 일정 시간 후 다시 시도할 수 있음
           Future.delayed(Duration(seconds: 10), () {
@@ -77,7 +80,7 @@ class AdManager {
       _isInterstitialAdLoaded = false;
       _interstitialAd = null;
     } else {
-      print('전면 광고가 로드되지 않았습니다.');
+      debugPrint('전면 광고가 로드되지 않았습니다.');
       onAdClosed(); // 광고가 로드되지 않았을 때 콜백 호출
     }
   }
@@ -93,27 +96,30 @@ class AdManager {
         onAdLoaded: (RewardedInterstitialAd ad) {
           _rewardedInterstitialAd = ad;
           _isRewardedInterstitialAdLoaded = true;
-          print('보상형 전면 광고 로드 성공');
+          debugPrint('보상형 전면 광고 로드 성공');
 
           // 광고 이벤트 리스너 설정
-          _rewardedInterstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+          _rewardedInterstitialAd!.fullScreenContentCallback =
+              FullScreenContentCallback(
             onAdShowedFullScreenContent: (RewardedInterstitialAd ad) =>
-                print('보상형 전면 광고 표시됨'),
+                debugPrint('보상형 전면 광고 표시됨'),
             onAdDismissedFullScreenContent: (RewardedInterstitialAd ad) {
               ad.dispose();
               _isRewardedInterstitialAdLoaded = false;
               loadRewardedInterstitialAd(); // 광고가 닫히면 새로운 광고 로드
             },
-            onAdFailedToShowFullScreenContent: (RewardedInterstitialAd ad, AdError error) {
+            onAdFailedToShowFullScreenContent:
+                (RewardedInterstitialAd ad, AdError error) {
               ad.dispose();
               _isRewardedInterstitialAdLoaded = false;
               loadRewardedInterstitialAd(); // 광고 표시 실패 시 새로운 광고 로드
             },
-            onAdImpression: (RewardedInterstitialAd ad) => print('보상형 전면 광고 인상 발생'),
+            onAdImpression: (RewardedInterstitialAd ad) =>
+                debugPrint('보상형 전면 광고 인상 발생'),
           );
         },
         onAdFailedToLoad: (LoadAdError error) {
-          print('보상형 전면 광고 로드 실패: $error');
+          debugPrint('보상형 전면 광고 로드 실패: $error');
           _isRewardedInterstitialAdLoaded = false;
           // 실패 시 일정 시간 후 다시 시도할 수 있음
           Future.delayed(Duration(seconds: 10), () {
@@ -125,35 +131,41 @@ class AdManager {
   }
 
   // 보상형 전면 광고 표시 함수
-  void showRewardedInterstitialAd(Function onAdClosed, Function(RewardItem) onUserEarnedReward, {required Null Function(LoadAdError error) onAdFailedToLoad}) {
+  void showRewardedInterstitialAd(
+      Function onAdClosed, Function(RewardItem) onUserEarnedReward,
+      {required Null Function(LoadAdError error) onAdFailedToLoad}) {
     if (_isRewardedInterstitialAdLoaded && _rewardedInterstitialAd != null) {
-      _rewardedInterstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+      _rewardedInterstitialAd!.fullScreenContentCallback =
+          FullScreenContentCallback(
         onAdDismissedFullScreenContent: (RewardedInterstitialAd ad) {
           ad.dispose();
           _isRewardedInterstitialAdLoaded = false;
           loadRewardedInterstitialAd(); // 광고가 닫히면 새로운 광고 로드
           onAdClosed(); // 광고 닫힌 후 콜백 호출
         },
-        onAdFailedToShowFullScreenContent: (RewardedInterstitialAd ad, AdError error) {
+        onAdFailedToShowFullScreenContent:
+            (RewardedInterstitialAd ad, AdError error) {
           ad.dispose();
           _isRewardedInterstitialAdLoaded = false;
           loadRewardedInterstitialAd(); // 광고 표시 실패 시 새로운 광고 로드
           onAdClosed(); // 광고 실패 시 콜백 호출
         },
         onAdShowedFullScreenContent: (RewardedInterstitialAd ad) =>
-            print('보상형 전면 광고가 표시됨'),
-        onAdImpression: (RewardedInterstitialAd ad) => print('보상형 전면 광고 인상 발생'),
+            debugPrint('보상형 전면 광고가 표시됨'),
+        onAdImpression: (RewardedInterstitialAd ad) =>
+            debugPrint('보상형 전면 광고 인상 발생'),
       );
 
-      _rewardedInterstitialAd!.show(onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
-        print('사용자가 보상을 받았습니다: ${reward.amount} ${reward.type}');
+      _rewardedInterstitialAd!.show(
+          onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
+        debugPrint('사용자가 보상을 받았습니다: ${reward.amount} ${reward.type}');
         onUserEarnedReward(reward);
       });
 
       _isRewardedInterstitialAdLoaded = false;
       _rewardedInterstitialAd = null;
     } else {
-      print('보상형 전면 광고가 로드되지 않았습니다.');
+      debugPrint('보상형 전면 광고가 로드되지 않았습니다.');
       onAdClosed(); // 광고가 로드되지 않았을 때 콜백 호출
     }
   }

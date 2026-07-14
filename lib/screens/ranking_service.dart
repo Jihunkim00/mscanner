@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 /// 1) 랭킹 모델
 class RankingData {
@@ -41,8 +42,9 @@ class RankingData {
       geohash: data['geohash'] ?? '',
       rating: (data['rating'] as num?)?.toInt() ?? 0,
       restaurantName: data['restaurantName'] ?? '알 수 없음',
-      timestamp:
-      data['timestamp'] is Timestamp ? data['timestamp'] as Timestamp : Timestamp.now(),
+      timestamp: data['timestamp'] is Timestamp
+          ? data['timestamp'] as Timestamp
+          : Timestamp.now(),
     );
   }
 }
@@ -69,7 +71,7 @@ class RankingService {
 
       QuerySnapshot rankingSnapshot = await query.get();
       if (rankingSnapshot.docs.isEmpty) {
-        print("⚠️ 랭킹 데이터가 없습니다. (country=$selectedCountry)");
+        debugPrint("⚠️ 랭킹 데이터가 없습니다. (country=$selectedCountry)");
         return null;
       }
 
@@ -101,7 +103,8 @@ class RankingService {
           return b.rating.compareTo(a.rating);
         }
         // 중복 많은 순
-        if ((geohashCounts[b.geohash] ?? 0) != (geohashCounts[a.geohash] ?? 0)) {
+        if ((geohashCounts[b.geohash] ?? 0) !=
+            (geohashCounts[a.geohash] ?? 0)) {
           return (geohashCounts[b.geohash] ?? 0)
               .compareTo(geohashCounts[a.geohash] ?? 0);
         }
@@ -119,9 +122,8 @@ class RankingService {
         return null;
       }
       return finalRankings.first;
-
     } catch (e) {
-      print("❌ Firestore 데이터 가져오기 오류: $e");
+      debugPrint("❌ Firestore 데이터 가져오기 오류: $e");
       return null;
     }
   }

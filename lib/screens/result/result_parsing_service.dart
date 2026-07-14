@@ -14,11 +14,15 @@ class ResultParsingService {
   static String? extractCurrencyCodeFromText(String text) {
     final s = text.toLowerCase();
 
-    if (s.contains('krw') || s.contains('₩') || s.contains('원')) return 'KRW';
+    if (s.contains('krw') || s.contains('₩') || s.contains('원')) {
+      return 'KRW';
+    }
     if (s.contains('jpy') ||
         s.contains('¥') ||
         s.contains('엔화') ||
-        s.contains('엔')) return 'JPY';
+        s.contains('엔')) {
+      return 'JPY';
+    }
     if (s.contains('usd') || s.contains(r'$') || s.contains('달러')) return 'USD';
     if (s.contains('eur') || s.contains('€') || s.contains('유로')) return 'EUR';
     if (s.contains('cny') || s.contains('元') || s.contains('위안')) return 'CNY';

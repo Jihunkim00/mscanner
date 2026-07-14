@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import '/screens/Home_Screen.dart';
-import '/screens/PresetSelectionScreen.dart';
+import '/screens/home_screen.dart';
+import '/screens/preset_selection_screen.dart';
 import '/screens/SignUp_Screen.dart';
-import '/screens/ChangePassword_Screen.dart';
+import '/screens/change_password_screen.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -25,8 +25,10 @@ enum GuestWelcomeAction {
 }
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
@@ -213,7 +215,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return showCupertinoModalPopup<GuestWelcomeAction>(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.18),
+      barrierColor: Colors.black.withValues(alpha: 0.18),
       filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
       builder: (context) {
         return SafeArea(
@@ -397,7 +399,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ? 'assets/images/apple_dark.png'
         : 'assets/images/apple_light.png';
 
-    InputDecoration _fieldDecoration({
+    InputDecoration fieldDecoration({
       required String label,
       required IconData icon,
       String? hint,
@@ -418,7 +420,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
 
-    Widget _authIcon(String asset, {double box = 22, double scale = 1.0}) {
+    Widget authIcon(String asset, {double box = 22, double scale = 1.0}) {
       return SizedBox(
         width: box,
         height: box,
@@ -429,7 +431,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
 
-    Widget _socialLoginButton({
+    Widget socialLoginButton({
       required VoidCallback? onPressed,
       required String label,
       required String iconAsset,
@@ -452,7 +454,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _authIcon(iconAsset, box: 20, scale: iconScale),
+              authIcon(iconAsset, box: 20, scale: iconScale),
               const SizedBox(width: 6),
               Flexible(
                 child: FittedBox(
@@ -493,7 +495,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black
-                              .withOpacity(isDarkMode ? 0.45 : 0.18),
+                              .withValues(alpha: isDarkMode ? 0.45 : 0.18),
                           blurRadius: 24,
                           offset: const Offset(0, 12),
                         ),
@@ -532,7 +534,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 right: 10,
                                 top: 10,
                                 child: Material(
-                                  color: Colors.black.withOpacity(0.25),
+                                  color: Colors.black.withValues(alpha: 0.25),
                                   shape: const CircleBorder(),
                                   child: IconButton(
                                     icon: const Icon(Icons.close,
@@ -593,7 +595,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         ? Colors.white
                                         : Colors.black,
                                   ),
-                                  decoration: _fieldDecoration(
+                                  decoration: fieldDecoration(
                                     label: localizations?.login_emailLabel ??
                                         'Email Address',
                                     icon: Icons.mail_outline,
@@ -614,7 +616,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         ? Colors.white
                                         : Colors.black,
                                   ),
-                                  decoration: _fieldDecoration(
+                                  decoration: fieldDecoration(
                                     label:
                                         localizations?.password ?? 'Password',
                                     icon: Icons.lock_outline,
@@ -718,12 +720,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                 Row(
                                   children: [
                                     Expanded(
-                                      child: _socialLoginButton(
+                                      child: socialLoginButton(
                                         onPressed: () async {
                                           User? user =
                                               await _signInWithGoogle();
-                                          if (user != null)
+                                          if (user != null) {
                                             _navigateAfterSignIn(user);
+                                          }
                                         },
                                         label: localizations?.login_google ??
                                             'Google Sign In',
@@ -735,13 +738,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
-                                      child: _socialLoginButton(
+                                      child: socialLoginButton(
                                         onPressed: Platform.isIOS
                                             ? () async {
                                                 User? user =
                                                     await _signInWithApple();
-                                                if (user != null)
+                                                if (user != null) {
                                                   _navigateAfterSignIn(user);
+                                                }
                                               }
                                             : null,
                                         label: localizations?.login_apple ??

@@ -7,9 +7,9 @@ import 'package:mscanner/services/account_upgrade_service.dart';
 
 class AccountUpgradeHelper {
   static Future<AccountUpgradeResult?> showUpgradeFlow(
-      BuildContext context, {
-        bool shouldContinueToPurchase = false,
-      }) async {
+    BuildContext context, {
+    bool shouldContinueToPurchase = false,
+  }) async {
     final l10n = AppLocalizations.of(context)!;
 
     final List<_UpgradeAction> orderedActions;
@@ -58,6 +58,7 @@ class AccountUpgradeHelper {
     );
 
     if (action == null) return null;
+    if (!context.mounted) return null;
 
     switch (action) {
       case _UpgradeAction.signInEmail:
@@ -93,10 +94,10 @@ class AccountUpgradeHelper {
   }
 
   static Future<AccountUpgradeResult?> _showEmailDialog(
-      BuildContext context, {
-        required bool createMode,
-        required bool shouldContinueToPurchase,
-      }) async {
+    BuildContext context, {
+    required bool createMode,
+    required bool shouldContinueToPurchase,
+  }) async {
     final data = await Navigator.of(context).push<Map<String, String>>(
       MaterialPageRoute(
         builder: (ctx) => _AccountUpgradeEmailScreen(createMode: createMode),
@@ -107,12 +108,15 @@ class AccountUpgradeHelper {
     final email = data['email'] ?? '';
     final password = data['password'] ?? '';
     if (email.isEmpty || password.isEmpty) {
-      return AccountUpgradeResult.failure('Please enter both email and password.');
+      return AccountUpgradeResult.failure(
+          'Please enter both email and password.');
     }
 
     final result = createMode
-        ? await AccountUpgradeService.createEmailAccountAndUpgrade(email: email, password: password)
-        : await AccountUpgradeService.signInExistingEmailAccount(email: email, password: password);
+        ? await AccountUpgradeService.createEmailAccountAndUpgrade(
+            email: email, password: password)
+        : await AccountUpgradeService.signInExistingEmailAccount(
+            email: email, password: password);
 
     if (!shouldContinueToPurchase || !result.success) return result;
     return AccountUpgradeResult(
@@ -134,10 +138,12 @@ class _AccountUpgradeEmailScreen extends StatefulWidget {
   final bool createMode;
 
   @override
-  State<_AccountUpgradeEmailScreen> createState() => _AccountUpgradeEmailScreenState();
+  State<_AccountUpgradeEmailScreen> createState() =>
+      _AccountUpgradeEmailScreenState();
 }
 
-class _AccountUpgradeEmailScreenState extends State<_AccountUpgradeEmailScreen> {
+class _AccountUpgradeEmailScreenState
+    extends State<_AccountUpgradeEmailScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -167,7 +173,8 @@ class _AccountUpgradeEmailScreenState extends State<_AccountUpgradeEmailScreen> 
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
-    final inputFill = isDark ? const Color(0xFF1F1F1F) : const Color(0xFFF2F4F7);
+    final inputFill =
+        isDark ? const Color(0xFF1F1F1F) : const Color(0xFFF2F4F7);
 
     return Scaffold(
       appBar: AppBar(
@@ -182,8 +189,13 @@ class _AccountUpgradeEmailScreenState extends State<_AccountUpgradeEmailScreen> 
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  widget.createMode ? '${l10n.createAccount} ${l10n.email}' : '${l10n.login} ${l10n.email}',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+                  widget.createMode
+                      ? '${l10n.createAccount} ${l10n.email}'
+                      : '${l10n.login} ${l10n.email}',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 18),
                 TextFormField(
@@ -199,7 +211,9 @@ class _AccountUpgradeEmailScreenState extends State<_AccountUpgradeEmailScreen> 
                       borderSide: BorderSide.none,
                     ),
                   ),
-                  validator: (value) => (value == null || value.trim().isEmpty) ? l10n.pleaseEnterValidEmail : null,
+                  validator: (value) => (value == null || value.trim().isEmpty)
+                      ? l10n.pleaseEnterValidEmail
+                      : null,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -214,7 +228,9 @@ class _AccountUpgradeEmailScreenState extends State<_AccountUpgradeEmailScreen> 
                       borderSide: BorderSide.none,
                     ),
                   ),
-                  validator: (value) => (value == null || value.isEmpty) ? l10n.pleaseEnterPassword : null,
+                  validator: (value) => (value == null || value.isEmpty)
+                      ? l10n.pleaseEnterPassword
+                      : null,
                 ),
                 if (_showValidationError) ...[
                   const SizedBox(height: 10),
@@ -232,7 +248,8 @@ class _AccountUpgradeEmailScreenState extends State<_AccountUpgradeEmailScreen> 
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,
                     ),
-                    child: Text(widget.createMode ? l10n.createAccount : l10n.login),
+                    child: Text(
+                        widget.createMode ? l10n.createAccount : l10n.login),
                   ),
                 ),
               ],

@@ -49,7 +49,8 @@ void main() {
       expectLater(controller.stream.drain(), throwsException);
     });
 
-    test('request gate resets loading state and prevents duplicate race', () async {
+    test('request gate resets loading state and prevents duplicate race',
+        () async {
       final gate = AsyncRequestGate();
       var executions = 0;
 

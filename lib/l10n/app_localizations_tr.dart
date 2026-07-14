@@ -21,7 +21,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get alreadyHaveAccount => 'Zaten hesabınız var mı?';
 
   @override
-  String get areYouSureDeleteAccount => 'Hesabınızı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.';
+  String get areYouSureDeleteAccount =>
+      'Hesabınızı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.';
 
   @override
   String get camera => 'Kamera';
@@ -72,7 +73,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get engine => 'Motor';
 
   @override
-  String get enterYourEmailtoResetPassword => 'Şifrenizi sıfırlamak için e-posta adresinizi girin';
+  String get enterYourEmailtoResetPassword =>
+      'Şifrenizi sıfırlamak için e-posta adresinizi girin';
 
   @override
   String get failedChangePassword => 'Şifre değiştirme başarısız';
@@ -216,7 +218,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get passwordChangedSuccess => 'Şifre başarıyla değiştirildi.';
 
   @override
-  String get passwordResetEmailSent => 'Şifre sıfırlama e-postası gönderildi. Lütfen gelen kutunuzu kontrol edin';
+  String get passwordResetEmailSent =>
+      'Şifre sıfırlama e-postası gönderildi. Lütfen gelen kutunuzu kontrol edin';
 
   @override
   String get passwordsDoNotMatch => 'Şifreler uyuşmuyor';
@@ -236,7 +239,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get privacyPolicy => 'Gizlilik Politikası';
 
   @override
-  String get requiresRecentLogin => 'Lütfen tekrar giriş yapın ve hesabı silmeyi deneyin.';
+  String get requiresRecentLogin =>
+      'Lütfen tekrar giriş yapın ve hesabı silmeyi deneyin.';
 
   @override
   String get resetPassword => 'Şifreyi sıfırla';
@@ -278,7 +282,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get yourFoodMenu => 'Yemek Menünüz';
 
   @override
-  String get passwordResetError => 'Şifre sıfırlama e-postası gönderilirken bir hata oluştu.';
+  String get passwordResetError =>
+      'Şifre sıfırlama e-postası gönderilirken bir hata oluştu.';
 
   @override
   String get save => 'Kaydet';
@@ -308,7 +313,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get enterRestaurantName => 'Restoran adını girin';
 
   @override
-  String get pleaseEnterRestaurantAndRating => 'Lütfen restoran adını ve puanını girin';
+  String get pleaseEnterRestaurantAndRating =>
+      'Lütfen restoran adını ve puanını girin';
 
   @override
   String get all => 'Tümü';
@@ -323,7 +329,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get aiScanning => 'AI Tarama...';
 
   @override
-  String get aiLoadingMessage => 'AI hata yapabilir. Yükleme süresi genellikle 5-10 saniye sürer, ancak internet bağlantınıza ve akıllı telefon cihazınıza bağlı olarak değişebilir.';
+  String get aiLoadingMessage =>
+      'AI hata yapabilir. Yükleme süresi genellikle 5-10 saniye sürer, ancak internet bağlantınıza ve akıllı telefon cihazınıza bağlı olarak değişebilir.';
 
   @override
   String get introductionTitle1 => 'Mscanner';
@@ -332,19 +339,23 @@ class AppLocalizationsTr extends AppLocalizations {
   String get introductionSubtitle1 => 'THJ tarafından';
 
   @override
-  String get introductionBody1 => 'Dünya çapındaki restoranlarda yemek seçerken rahat hissedin';
+  String get introductionBody1 =>
+      'Dünya çapındaki restoranlarda yemek seçerken rahat hissedin';
 
   @override
   String get introductionTitle2 => 'Menüyü nasıl taramak istersiniz?';
 
   @override
-  String get introductionBody2_1 => '1. Dilinizi seçin (İngilizce veya yerel dil)';
+  String get introductionBody2_1 =>
+      '1. Dilinizi seçin (İngilizce veya yerel dil)';
 
   @override
-  String get introductionBody2_2 => '2. Yemek stilinizi seçin (diyet, et sever, vb.)';
+  String get introductionBody2_2 =>
+      '2. Yemek stilinizi seçin (diyet, et sever, vb.)';
 
   @override
-  String get introductionBody2_3 => '3. Taratmak istediğiniz menü sayısını ayarlayın (daha fazla menü, daha az ayrıntı)';
+  String get introductionBody2_3 =>
+      '3. Taratmak istediğiniz menü sayısını ayarlayın (daha fazla menü, daha az ayrıntı)';
 
   @override
   String get introductionTitle3 => 'Ayarlarınızı optimize edin';
@@ -359,7 +370,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get introductionBody3_3 => '3. Menü tarama ayarlarını sıfırlayın';
 
   @override
-  String get introductionBody3_4 => '4. Daha fazla özelliği etkinleştirmek için verilerinizi çevrimiçi kaydedin';
+  String get introductionBody3_4 =>
+      '4. Daha fazla özelliği etkinleştirmek için verilerinizi çevrimiçi kaydedin';
 
   @override
   String get introductionTitle4 => 'Sonucunuzu paylaşın';
@@ -377,16 +389,19 @@ class AppLocalizationsTr extends AppLocalizations {
   String get introductionTitle5 => 'Deneyimlerinizi kaydedin';
 
   @override
-  String get introductionBody5_1 => '1. Aktif puanlar (Mscanner\'daki etkinliğinizi gösterir)';
+  String get introductionBody5_1 =>
+      '1. Aktif puanlar (Mscanner\'daki etkinliğinizi gösterir)';
 
   @override
-  String get introductionBody5_2 => '2. Ziyaret ettiğiniz restoranın adını girin';
+  String get introductionBody5_2 =>
+      '2. Ziyaret ettiğiniz restoranın adını girin';
 
   @override
   String get introductionBody5_3 => '3. Restoranı değerlendirin';
 
   @override
-  String get introductionBody5_4 => '4. Ziyaret ettiğiniz yerleri haritada görün';
+  String get introductionBody5_4 =>
+      '4. Ziyaret ettiğiniz yerleri haritada görün';
 
   @override
   String get skip => 'Atla';
@@ -419,31 +434,39 @@ class AppLocalizationsTr extends AppLocalizations {
   String get cloudsavingError => 'Bulut Kaydetme Hatası';
 
   @override
-  String get languagesdescprition => 'Bir yiyecek veya menünün fotoğrafını çekin ve çıktı dili için bir dil seçin';
+  String get languagesdescprition =>
+      'Bir yiyecek veya menünün fotoğrafını çekin ve çıktı dili için bir dil seçin';
 
   @override
-  String get fooddescprition => 'Lütfen bir diyet veya yemek planı seçin. Yapay zeka, seçiminize göre öneriler ve açıklamalar sunacaktır';
+  String get fooddescprition =>
+      'Lütfen bir diyet veya yemek planı seçin. Yapay zeka, seçiminize göre öneriler ve açıklamalar sunacaktır';
 
   @override
-  String get menudescribe => 'Lütfen gösterilecek yiyecek menü öğelerinin sayısını seçin. Daha az öğe seçerseniz, açıklamalar daha ayrıntılı olacaktır';
+  String get menudescribe =>
+      'Lütfen gösterilecek yiyecek menü öğelerinin sayısını seçin. Daha az öğe seçerseniz, açıklamalar daha ayrıntılı olacaktır';
 
   @override
-  String get darkdescp => 'Daha konforlu bir görüntüleme deneyimi için karanlık modu etkinleştirin';
+  String get darkdescp =>
+      'Daha konforlu bir görüntüleme deneyimi için karanlık modu etkinleştirin';
 
   @override
-  String get changepassdescp => 'Güvenlik için, şifrenizi düzenli olarak değiştirin ve hatırlanması kolay güçlü bir şifre kullanın';
+  String get changepassdescp =>
+      'Güvenlik için, şifrenizi düzenli olarak değiştirin ve hatırlanması kolay güçlü bir şifre kullanın';
 
   @override
   String get aIresetdescp => 'Yapay zeka tarama ayarlarını sıfırlayabilirsiniz';
 
   @override
-  String get savedescp => 'Çıktı verilerini sunucuya kaydedin. Ek özellikleri etkinleştirmek için kaydetme gereklidir';
+  String get savedescp =>
+      'Çıktı verilerini sunucuya kaydedin. Ek özellikleri etkinleştirmek için kaydetme gereklidir';
 
   @override
-  String get scanFoodPhotoDescription => 'Bir yiyecek veya menünün fotoğrafını çekin ve ne olduğunu öğrenin! Şimdi deneyin';
+  String get scanFoodPhotoDescription =>
+      'Bir yiyecek veya menünün fotoğrafını çekin ve ne olduğunu öğrenin! Şimdi deneyin';
 
   @override
-  String get activepoint => 'Puanlar, kullanıcı etkinlik indeksini gösterir ve gelecekte çeşitli ödüller sağlanacaktır.';
+  String get activepoint =>
+      'Puanlar, kullanıcı etkinlik indeksini gösterir ve gelecekte çeşitli ödüller sağlanacaktır.';
 
   @override
   String get todayrecommand => 'Bugünün Tavsiyesi';
@@ -464,19 +487,22 @@ class AppLocalizationsTr extends AppLocalizations {
   String get locationPermissionNeeded => 'Konum İzni Gerekiyor';
 
   @override
-  String get locationPermissionContent => 'Bu uygulamanın düzgün çalışabilmesi için konum izinleri gereklidir. Lütfen uygulama ayarlarından konum erişimine izin verin.';
+  String get locationPermissionContent =>
+      'Bu uygulamanın düzgün çalışabilmesi için konum izinleri gereklidir. Lütfen uygulama ayarlarından konum erişimine izin verin.';
 
   @override
   String get locationServiceDisabled => 'Konum Servisleri Devre Dışı';
 
   @override
-  String get locationServiceDisabledContent => 'Konum hizmetleri devre dışı. Lütfen ayarlarda konum hizmetlerini etkinleştirin.';
+  String get locationServiceDisabledContent =>
+      'Konum hizmetleri devre dışı. Lütfen ayarlarda konum hizmetlerini etkinleştirin.';
 
   @override
   String get openSettings => 'Ayarları Aç';
 
   @override
-  String get languagesdescprition1 => 'Bir tarama ile mutfak lezzetleri dünyasını açın.';
+  String get languagesdescprition1 =>
+      'Bir tarama ile mutfak lezzetleri dünyasını açın.';
 
   @override
   String get continueAsGuest => 'Misafir Olarak Devam Et';
@@ -485,25 +511,29 @@ class AppLocalizationsTr extends AppLocalizations {
   String get guestLoginTitle => 'Misafir girişi';
 
   @override
-  String get guestLoginContent => 'Misafir olarak giriş yaptınız. Çıkış yaptığınızda tüm veriler silinecektir.';
+  String get guestLoginContent =>
+      'Misafir olarak giriş yaptınız. Çıkış yaptığınızda tüm veriler silinecektir.';
 
   @override
   String get confirm => 'Onayla';
 
   @override
-  String get guestLoginFailed => 'Ziyaretçi girişi başarısız oldu. Lütfen tekrar deneyin.';
+  String get guestLoginFailed =>
+      'Ziyaretçi girişi başarısız oldu. Lütfen tekrar deneyin.';
 
   @override
   String get logoutConfirmationTitle => 'Çıkış Onayı';
 
   @override
-  String get logoutConfirmationContent => 'Misafir olarak çıkış yapmanız tüm verilerinizi silecektir. Devam etmek istiyor musunuz?';
+  String get logoutConfirmationContent =>
+      'Misafir olarak çıkış yapmanız tüm verilerinizi silecektir. Devam etmek istiyor musunuz?';
 
   @override
   String get convertAccount => 'Hesabı Dönüştür';
 
   @override
-  String get accountConversionDescription => 'Misafir hesabınızı kalıcı bir hesaba dönüştürerek verilerinizi kaydedin.';
+  String get accountConversionDescription =>
+      'Misafir hesabınızı kalıcı bir hesaba dönüştürerek verilerinizi kaydedin.';
 
   @override
   String get accountConversionSuccess => 'Hesap başarıyla dönüştürüldü.';
@@ -539,7 +569,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get loadingAnalyzing => 'Yapay zeka ile menüyü analiz etmek...';
 
   @override
-  String get loadingAlmostDone => 'Sonuçlarınızı hazırlamayı neredeyse bitirdim...';
+  String get loadingAlmostDone =>
+      'Sonuçlarınızı hazırlamayı neredeyse bitirdim...';
 
   @override
   String get loadingFinalizing => 'Detayları tamamlamak...';
@@ -557,7 +588,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get dismissToday => 'Bugün tekrar gösterme';
 
   @override
-  String get gptErrorMessage => 'Üzgünüz.\\nYapay Zeka sunucusuyla iletişim hatası oluştu.\\nLütfen daha sonra tekrar deneyin.';
+  String get gptErrorMessage =>
+      'Üzgünüz.\\nYapay Zeka sunucusuyla iletişim hatası oluştu.\\nLütfen daha sonra tekrar deneyin.';
 
   @override
   String get restaurantName => 'Restoran ismi';
@@ -569,7 +601,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get reviewTitle => 'Yorum';
 
   @override
-  String get reviewHint => 'Lütfen restoran hakkında kısa bir değerlendirme girin.';
+  String get reviewHint =>
+      'Lütfen restoran hakkında kısa bir değerlendirme girin.';
 
   @override
   String get commentSection_title => '🗨 Yakındaki Kullanıcı Yorumları';
@@ -682,13 +715,16 @@ class AppLocalizationsTr extends AppLocalizations {
   String get sub_disclaimer_title => 'Abonelik Bilgileri';
 
   @override
-  String get sub_trial_free => 'İlk kez abone olanlardan deneme süresinde ücret alınmaz.';
+  String get sub_trial_free =>
+      'İlk kez abone olanlardan deneme süresinde ücret alınmaz.';
 
   @override
-  String get sub_auto_renew => 'Deneme süresi bittikten sonra, mevcut dönem bitiminden en az 24 saat önce iptal edilmezse abonelik otomatik olarak yenilenir.';
+  String get sub_auto_renew =>
+      'Deneme süresi bittikten sonra, mevcut dönem bitiminden en az 24 saat önce iptal edilmezse abonelik otomatik olarak yenilenir.';
 
   @override
-  String get sub_renew_charge => 'Yenileme ücretleri mevcut dönem bitiminden 24 saat içinde tahsil edilebilir.';
+  String get sub_renew_charge =>
+      'Yenileme ücretleri mevcut dönem bitiminden 24 saat içinde tahsil edilebilir.';
 
   @override
   String sub_period_price(Object period, Object price) {
@@ -696,7 +732,8 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get sub_restore => 'Önceki satın alımlar \"Satın Alımları Geri Yükle\" ile geri yüklenebilir.';
+  String get sub_restore =>
+      'Önceki satın alımlar \"Satın Alımları Geri Yükle\" ile geri yüklenebilir.';
 
   @override
   String get terms => 'Hizmet Şartları';
@@ -705,10 +742,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String get privacy => 'Gizlilik Politikası';
 
   @override
-  String get sub_manage_ios => 'Ödemeler Apple Kimliğinize yansıtılır ve Ayarlar > [adınız] > Abonelikler bölümünden yönetilebilir veya iptal edilebilir.';
+  String get sub_manage_ios =>
+      'Ödemeler Apple Kimliğinize yansıtılır ve Ayarlar > [adınız] > Abonelikler bölümünden yönetilebilir veya iptal edilebilir.';
 
   @override
-  String get sub_manage_android => 'Ödemeler Google hesabınıza yansıtılır ve Play Store uygulaması > Profil simgesi > Ödemeler ve abonelikler > Abonelikler bölümünden yönetilebilir veya iptal edilebilir.';
+  String get sub_manage_android =>
+      'Ödemeler Google hesabınıza yansıtılır ve Play Store uygulaması > Profil simgesi > Ödemeler ve abonelikler > Abonelikler bölümünden yönetilebilir veya iptal edilebilir.';
 
   @override
   String get sub_badge_trial_1m => '🎁 İlk kez abone olanlara 1 ay ücretsiz';
@@ -732,7 +771,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get login_welcomeBack => 'Tekrar hoş geldiniz';
 
   @override
-  String get login_subtitle => 'Yapay zekâ ile lezzet keşfi artık çok daha kolay. Hemen başlayın.';
+  String get login_subtitle =>
+      'Yapay zekâ ile lezzet keşfi artık çok daha kolay. Hemen başlayın.';
 
   @override
   String get login_emailLabel => 'E-posta Adresi';
@@ -756,7 +796,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get login_signUpFree => 'Ücretsiz kaydol';
 
   @override
-  String get signup_subtitle => 'Hesap oluşturarak taramaları kaydedin, ön ayarları yönetin ve premium özelliklere erişin.';
+  String get signup_subtitle =>
+      'Hesap oluşturarak taramaları kaydedin, ön ayarları yönetin ve premium özelliklere erişin.';
 
   @override
   String get signup_emailLabel => 'E-posta Adresi';
@@ -920,7 +961,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get favorite_restaurantNameHint => 'Restoran adı';
 
   @override
-  String get result_fxRateLoadFailed => 'Kur verileri yüklenemedi. Lütfen bağlantınızı kontrol edin.';
+  String get result_fxRateLoadFailed =>
+      'Kur verileri yüklenemedi. Lütfen bağlantınızı kontrol edin.';
 
   @override
   String get result_fxConvertFailed => 'Bu tutar dönüştürülemedi.';
@@ -943,10 +985,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String get result_preparingMenu => 'Detaylı menü hazırlanıyor…';
 
   @override
-  String get result_failedLoadSettings => 'Ayarlar yüklenemedi. Bulut kaydı varsayılan olarak açıktır.';
+  String get result_failedLoadSettings =>
+      'Ayarlar yüklenemedi. Bulut kaydı varsayılan olarak açıktır.';
 
   @override
-  String get result_imageUploadFailed => 'Görsel yüklenemedi. Lütfen tekrar deneyin.';
+  String get result_imageUploadFailed =>
+      'Görsel yüklenemedi. Lütfen tekrar deneyin.';
 
   @override
   String get result_analyzing => 'Yemek bilgileri analiz ediliyor';
@@ -961,7 +1005,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get guestLoginTitle2 => 'Hoş geldiniz, Kaşif!';
 
   @override
-  String get guestLoginContent2 => 'Misafir Modu\'nda yemek menülerini tarayarak kişiselleştirilmiş öneriler alabilirsiniz, ancak favorilerinizi kaydedemezsiniz veya cihazlar arasında geçmişinizi göremezsiniz.';
+  String get guestLoginContent2 =>
+      'Misafir Modu\'nda yemek menülerini tarayarak kişiselleştirilmiş öneriler alabilirsiniz, ancak favorilerinizi kaydedemezsiniz veya cihazlar arasında geçmişinizi göremezsiniz.';
 
   @override
   String get confirm2 => 'Misafir olarak devam et';
@@ -979,28 +1024,36 @@ class AppLocalizationsTr extends AppLocalizations {
   String get result_noMenuItemsFound => 'Menü öğesi bulunamadı.';
 
   @override
-  String get result_notMenuMessage => 'Bu görsel bir yemek menüsü gibi görünmüyor. Lütfen menü adlarının veya yemek adlarının net şekilde görüneceği şekilde fotoğrafı yeniden çekin.';
+  String get result_notMenuMessage =>
+      'Bu görsel bir yemek menüsü gibi görünmüyor. Lütfen menü adlarının veya yemek adlarının net şekilde görüneceği şekilde fotoğrafı yeniden çekin.';
 
   @override
-  String get result_uncertainMenuMessage => 'Bunun bir yemek menüsü olduğundan emin değilim. Lütfen menü adları ve fiyatlar net şekilde görünecek şekilde fotoğrafı yeniden çekin.';
+  String get result_uncertainMenuMessage =>
+      'Bunun bir yemek menüsü olduğundan emin değilim. Lütfen menü adları ve fiyatlar net şekilde görünecek şekilde fotoğrafı yeniden çekin.';
 
   @override
-  String get result_aiTimeoutMoreResponse => 'Devam etmek için daha fazla yapay zekâ yanıtı beklenirken zaman aşımına uğradı.';
+  String get result_aiTimeoutMoreResponse =>
+      'Devam etmek için daha fazla yapay zekâ yanıtı beklenirken zaman aşımına uğradı.';
 
   @override
-  String get result_aiTimeoutFirstChunk => 'İlk yapay zekâ parçası gelmeden önce zaman aşımına uğradı.';
+  String get result_aiTimeoutFirstChunk =>
+      'İlk yapay zekâ parçası gelmeden önce zaman aşımına uğradı.';
 
   @override
-  String get result_aiTimeoutFullMenu => 'Tam menü beklenirken zaman aşımına uğradı.';
+  String get result_aiTimeoutFullMenu =>
+      'Tam menü beklenirken zaman aşımına uğradı.';
 
   @override
-  String get result_aiTimeoutFullMenuStream => 'Tam menü akışı beklenirken zaman aşımına uğradı.';
+  String get result_aiTimeoutFullMenuStream =>
+      'Tam menü akışı beklenirken zaman aşımına uğradı.';
 
   @override
-  String get result_aiReceiveFailedFullMenuStream => 'Menü akışı tamamı alınırken başarısız olundu.';
+  String get result_aiReceiveFailedFullMenuStream =>
+      'Menü akışı tamamı alınırken başarısız olundu.';
 
   @override
-  String get result_aiEmptyStreamResponse => 'Yapay zekâ boş bir akış yanıtı döndürdü.';
+  String get result_aiEmptyStreamResponse =>
+      'Yapay zekâ boş bir akış yanıtı döndürdü.';
 
   @override
   String get tts_orderPhraseTitle => 'Sipariş cümlesi oluşturun';
@@ -1018,7 +1071,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get tts_generatePhraseButton => 'Cümle oluştur';
 
   @override
-  String get tts_generationFailed => 'İfade oluşturulamadı. Lütfen bir süre sonra tekrar deneyin.';
+  String get tts_generationFailed =>
+      'İfade oluşturulamadı. Lütfen bir süre sonra tekrar deneyin.';
 
   @override
   String get tts_resultSectionTitle => 'Oluşturulan ifade';
@@ -1072,7 +1126,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get premiumLoginRequiredTitle => 'Sign in to start Premium';
 
   @override
-  String get premiumLoginRequiredMessage => 'Sign in to restore purchases, keep your subscription, and access Premium across devices.';
+  String get premiumLoginRequiredMessage =>
+      'Sign in to restore purchases, keep your subscription, and access Premium across devices.';
 
   @override
   String get premiumLoginRequiredAction => 'Sign in to continue';
@@ -1084,10 +1139,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String get premiumStartCta => 'Start Premium';
 
   @override
-  String get premiumGuestSectionTitle => 'Connect your account before purchasing Premium in guest mode';
+  String get premiumGuestSectionTitle =>
+      'Connect your account before purchasing Premium in guest mode';
 
   @override
-  String get premiumGuestSectionMessage => 'Premium subscriptions are linked to your account so purchases can be restored and used across devices.';
+  String get premiumGuestSectionMessage =>
+      'Premium subscriptions are linked to your account so purchases can be restored and used across devices.';
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';

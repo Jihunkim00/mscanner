@@ -17,12 +17,12 @@ class MScannerSearchUi {
   static Color accentOrange(BuildContext context) =>
       isDark(context) ? const Color(0xFF6D311C) : const Color(0xFFE35D2F);
 
-  static Color accent(BuildContext context, {MScannerAccent scheme = MScannerAccent.blue}) {
+  static Color accent(BuildContext context,
+      {MScannerAccent scheme = MScannerAccent.blue}) {
     switch (scheme) {
       case MScannerAccent.orange:
         return accentOrange(context);
       case MScannerAccent.blue:
-      default:
         return primaryBlue(context);
     }
   }
@@ -30,46 +30,54 @@ class MScannerSearchUi {
   static Color searchBg(BuildContext context) {
     final dark = isDark(context);
     return dark
-        ? CupertinoColors.systemGrey5.withOpacity(0.25)
+        ? CupertinoColors.systemGrey5.withValues(alpha: 0.25)
         : CupertinoColors.systemGrey6;
   }
 
   /// Pill/Chip 배경
   static Color chipBg(
-      BuildContext context, {
-        required bool selected,
-        MScannerAccent scheme = MScannerAccent.blue,
-      }) {
+    BuildContext context, {
+    required bool selected,
+    MScannerAccent scheme = MScannerAccent.blue,
+  }) {
     final p = accent(context, scheme: scheme);
     if (selected) return p;
 
     // unselected는 tint 느낌
     if (scheme == MScannerAccent.orange) {
-      return isDark(context) ? p.withOpacity(0.18) : p.withOpacity(0.12);
+      return isDark(context)
+          ? p.withValues(alpha: 0.18)
+          : p.withValues(alpha: 0.12);
     }
-    return isDark(context) ? p.withOpacity(0.28) : p.withOpacity(0.22);
+    return isDark(context)
+        ? p.withValues(alpha: 0.28)
+        : p.withValues(alpha: 0.22);
   }
 
   /// Pill/Chip 텍스트/아이콘 색
   static Color chipFg(
-      BuildContext context, {
-        required bool selected,
-        MScannerAccent scheme = MScannerAccent.blue,
-      }) {
+    BuildContext context, {
+    required bool selected,
+    MScannerAccent scheme = MScannerAccent.blue,
+  }) {
     if (selected) return Colors.white;
 
     // unselected는 accent 색 또는 다크에서 화이트 톤
     final p = accent(context, scheme: scheme);
-    return isDark(context) ? Colors.white.withOpacity(0.92) : p.withOpacity(0.92);
+    return isDark(context)
+        ? Colors.white.withValues(alpha: 0.92)
+        : p.withValues(alpha: 0.92);
   }
 
   /// Pill/Chip 테두리 색
   static Color chipBorder(
-      BuildContext context, {
-        required bool selected,
-      }) {
-    if (selected) return Colors.white.withOpacity(0.14);
-    return isDark(context) ? Colors.white.withOpacity(0.10) : Colors.black.withOpacity(0.06);
+    BuildContext context, {
+    required bool selected,
+  }) {
+    if (selected) return Colors.white.withValues(alpha: 0.14);
+    return isDark(context)
+        ? Colors.white.withValues(alpha: 0.10)
+        : Colors.black.withValues(alpha: 0.06);
   }
 }
 

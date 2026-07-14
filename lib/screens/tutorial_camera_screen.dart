@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
-import 'Loading_Screen.dart';
+import 'loading_screen.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:path_provider/path_provider.dart';
@@ -9,8 +9,10 @@ import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import 'package:mscanner/widgets/tutorial_indicator.dart';
 
 class TutorialCameraScreen extends StatefulWidget {
+  const TutorialCameraScreen({super.key});
+
   @override
-  _TutorialCameraScreenState createState() => _TutorialCameraScreenState();
+  State<TutorialCameraScreen> createState() => _TutorialCameraScreenState();
 }
 
 class _TutorialCameraScreenState extends State<TutorialCameraScreen> {
@@ -28,6 +30,7 @@ class _TutorialCameraScreenState extends State<TutorialCameraScreen> {
     final tempDir = await getTemporaryDirectory();
     final file = File('${tempDir.path}/tutorial_sample.jpg');
     await file.writeAsBytes(byteData.buffer.asUint8List());
+    if (!mounted) return;
     setState(() {
       _sampleImageFile = file;
     });
@@ -42,62 +45,65 @@ class _TutorialCameraScreenState extends State<TutorialCameraScreen> {
       body: _sampleImageFile == null
           ? Center(child: CupertinoActivityIndicator(radius: 15))
           : Stack(
-        children: [
-          Positioned.fill(
-            child: Image.file(
-              _sampleImageFile!,
-              fit: BoxFit.cover,
-            ),
-          ),
-          // 🔻 튜토리얼 인디케이터 추가
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 10,
-            left: 20,
-            child: TutorialIndicator(),
-          ),
-          // 🔻 셔터 버튼
-          Positioned(
-            bottom: 50,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: GestureDetector(
-                onTap: _onShutterPressed,
-                child: Container(
-                  width: 70,
-                  height: 70,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 4),
+              children: [
+                Positioned.fill(
+                  child: Image.file(
+                    _sampleImageFile!,
+                    fit: BoxFit.cover,
                   ),
                 ),
-              ),
-            ),
-          ),
-          // 🔻 Skip 버튼
-          // Skip 버튼
-          Positioned(
-            bottom: 50,
-            right: 20,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, '/home');
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isDarkMode ? Colors.blueGrey[300] : Colors.blueGrey[700], // ✅ 다크/라이트 모드 대응
-                foregroundColor: isDarkMode ? Colors.black : Colors.white, // 텍스트 색상 반전
-                shape: RoundedRectangleBorder( // 둥근 버튼
-                  borderRadius: BorderRadius.circular(20),
+                // 🔻 튜토리얼 인디케이터 추가
+                Positioned(
+                  top: MediaQuery.of(context).padding.top + 10,
+                  left: 20,
+                  child: TutorialIndicator(),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12), // 여백 추가
-              ),
-              child: Text(AppLocalizations.of(context)?.skip ?? 'Skip'),
+                // 🔻 셔터 버튼
+                Positioned(
+                  bottom: 50,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: GestureDetector(
+                      onTap: _onShutterPressed,
+                      child: Container(
+                        width: 70,
+                        height: 70,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 4),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                // 🔻 Skip 버튼
+                // Skip 버튼
+                Positioned(
+                  bottom: 50,
+                  right: 20,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushReplacementNamed(context, '/home');
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isDarkMode
+                          ? Colors.blueGrey[300]
+                          : Colors.blueGrey[700], // ✅ 다크/라이트 모드 대응
+                      foregroundColor:
+                          isDarkMode ? Colors.black : Colors.white, // 텍스트 색상 반전
+                      shape: RoundedRectangleBorder(
+                        // 둥근 버튼
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 12), // 여백 추가
+                    ),
+                    child: Text(AppLocalizations.of(context)?.skip ?? 'Skip'),
+                  ),
+                ),
+              ],
             ),
-          ),
-
-        ],
-      ),
-
     );
   }
 
@@ -109,6 +115,7 @@ class _TutorialCameraScreenState extends State<TutorialCameraScreen> {
       DateTime captureTime = DateTime.now();
       Position? position = await _getCurrentLocation();
 
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -121,7 +128,8 @@ class _TutorialCameraScreenState extends State<TutorialCameraScreen> {
         ),
       );
     } catch (e) {
-      print("튜토리얼 오류: $e");
+      debugPrint("튜토리얼 오류: $e");
+      if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/home');
     }
   }

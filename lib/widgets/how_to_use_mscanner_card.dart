@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
@@ -50,23 +49,30 @@ class HowToUseMscannerCard extends StatelessWidget {
                         width: 28,
                         height: 28,
                         decoration: BoxDecoration(
-                          color: isDarkMode ? Colors.white12 : const Color(0xFFFFE2D5),
+                          color: isDarkMode
+                              ? Colors.white12
+                              : const Color(0xFFFFE2D5),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
                           Icons.lightbulb_outline,
                           size: 18,
-                          color: isDarkMode ? Colors.white70 : const Color(0xFFE35D2F),
+                          color: isDarkMode
+                              ? Colors.white70
+                              : const Color(0xFFE35D2F),
                         ),
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        AppLocalizations.of(context)?.howto_title ?? 'How to use Mscanner',
+                        AppLocalizations.of(context)?.howto_title ??
+                            'How to use Mscanner',
                         style: TextStyle(
                           fontFamily: 'SFProDisplay',
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: isDarkMode ? Colors.white : const Color(0xFF1E1E1E),
+                          color: isDarkMode
+                              ? Colors.white
+                              : const Color(0xFF1E1E1E),
                         ),
                       ),
                     ],
@@ -78,24 +84,30 @@ class HowToUseMscannerCard extends StatelessWidget {
                       Expanded(
                         child: _HowToStep(
                           icon: PhosphorIconsRegular.camera,
-                          step: AppLocalizations.of(context)?.howto_step1 ?? '1. SCAN',
-                          desc: AppLocalizations.of(context)?.howto_desc1 ?? 'Menu or Dish',
+                          step: AppLocalizations.of(context)?.howto_step1 ??
+                              '1. SCAN',
+                          desc: AppLocalizations.of(context)?.howto_desc1 ??
+                              'Menu or Dish',
                           isDarkMode: isDarkMode,
                         ),
                       ),
                       Expanded(
                         child: _HowToStep(
                           icon: PhosphorIconsRegular.sparkle,
-                          step: AppLocalizations.of(context)?.howto_step2 ?? '2. ANALYZE',
-                          desc: AppLocalizations.of(context)?.howto_desc2 ?? 'AI identifies\nitems',
+                          step: AppLocalizations.of(context)?.howto_step2 ??
+                              '2. ANALYZE',
+                          desc: AppLocalizations.of(context)?.howto_desc2 ??
+                              'AI identifies\nitems',
                           isDarkMode: isDarkMode,
                         ),
                       ),
                       Expanded(
                         child: _HowToStep(
                           icon: PhosphorIconsRegular.forkKnife,
-                          step: AppLocalizations.of(context)?.howto_step3 ?? '3. ENJOY',
-                          desc: AppLocalizations.of(context)?.howto_desc3 ?? 'Discover\nfavorites',
+                          step: AppLocalizations.of(context)?.howto_step3 ??
+                              '3. ENJOY',
+                          desc: AppLocalizations.of(context)?.howto_desc3 ??
+                              'Discover\nfavorites',
                           isDarkMode: isDarkMode,
                         ),
                       ),
@@ -105,7 +117,6 @@ class HowToUseMscannerCard extends StatelessWidget {
               ),
             ),
           ),
-
           Padding(
             padding: const EdgeInsets.only(bottom: 14, left: 12, right: 12),
             child: Center(
@@ -113,7 +124,8 @@ class HowToUseMscannerCard extends StatelessWidget {
                 onTap: _open,
                 behavior: HitTestBehavior.opaque,
                 child: Text(
-                  AppLocalizations.of(context)?.howto_detail_link ?? 'See more details',
+                  AppLocalizations.of(context)?.howto_detail_link ??
+                      'See more details',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'SFProText',

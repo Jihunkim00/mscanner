@@ -16,15 +16,15 @@ class PhotoCaptureWidget extends StatefulWidget {
   final VoidCallback onCancel;
 
   const PhotoCaptureWidget({
-    Key? key,
+    super.key,
     this.isMulti = false,
     this.maxCount = 4,
     required this.onCaptured,
     required this.onCancel,
-  }) : super(key: key);
+  });
 
   @override
-  _PhotoCaptureWidgetState createState() => _PhotoCaptureWidgetState();
+  State<PhotoCaptureWidget> createState() => _PhotoCaptureWidgetState();
 }
 
 class _PhotoCaptureWidgetState extends State<PhotoCaptureWidget> {
@@ -40,10 +40,10 @@ class _PhotoCaptureWidgetState extends State<PhotoCaptureWidget> {
 
   Future<void> _pickPhotos() async {
     if (widget.isMulti) {
-      final List<XFile>? pickedFiles = await _picker.pickMultiImage();
+      final List<XFile> pickedFiles = await _picker.pickMultiImage();
       if (!mounted) return;
       // 취소하거나 선택 없으면 바로 홈으로
-      if (pickedFiles == null || pickedFiles.isEmpty) {
+      if (pickedFiles.isEmpty) {
         widget.onCancel();
         return;
       }
@@ -51,14 +51,12 @@ class _PhotoCaptureWidgetState extends State<PhotoCaptureWidget> {
       if (pickedFiles.length > widget.maxCount) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(AppLocalizations.of(context)!.maxScanImages(widget.maxCount))
-          ),
+              content: Text(AppLocalizations.of(context)!
+                  .maxScanImages(widget.maxCount))),
         );
       }
-      final files = pickedFiles
-          .take(widget.maxCount)
-          .map((pf) => File(pf.path))
-          .toList();
+      final files =
+          pickedFiles.take(widget.maxCount).map((pf) => File(pf.path)).toList();
       setState(() => _photos = files);
       widget.onCaptured(files);
     } else {
@@ -78,29 +76,29 @@ class _PhotoCaptureWidgetState extends State<PhotoCaptureWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
+    return PopScope(
       // 뒤로가기 버튼 완전 차단
-      onWillPop: () async => false,
+      canPop: false,
       child: Center(
         child: _photos.isEmpty
-        // 사진 선택 전에는 빈 화면. 아이콘도 제거
+            // 사진 선택 전에는 빈 화면. 아이콘도 제거
             ? SizedBox.shrink()
-        // 선택된 사진 썸네일만 표시
+            // 선택된 사진 썸네일만 표시
             : Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: _photos
-              .map((file) => ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: Image.file(
-              file,
-              width: 80,
-              height: 80,
-              fit: BoxFit.cover,
-            ),
-          ))
-              .toList(),
-        ),
+                spacing: 8,
+                runSpacing: 8,
+                children: _photos
+                    .map((file) => ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: Image.file(
+                            file,
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                          ),
+                        ))
+                    .toList(),
+              ),
       ),
     );
   }

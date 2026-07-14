@@ -21,7 +21,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get alreadyHaveAccount => 'Уже есть аккаунт?';
 
   @override
-  String get areYouSureDeleteAccount => 'Вы уверены, что хотите удалить свой аккаунт? Это действие нельзя отменить.';
+  String get areYouSureDeleteAccount =>
+      'Вы уверены, что хотите удалить свой аккаунт? Это действие нельзя отменить.';
 
   @override
   String get camera => 'Камера';
@@ -72,7 +73,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get engine => 'Движок';
 
   @override
-  String get enterYourEmailtoResetPassword => 'Введите свой адрес электронной почты, чтобы сбросить пароль';
+  String get enterYourEmailtoResetPassword =>
+      'Введите свой адрес электронной почты, чтобы сбросить пароль';
 
   @override
   String get failedChangePassword => 'Не удалось изменить пароль';
@@ -216,7 +218,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get passwordChangedSuccess => 'Пароль успешно изменен.';
 
   @override
-  String get passwordResetEmailSent => 'Письмо для сброса пароля отправлено. Пожалуйста, проверьте свой почтовый ящик';
+  String get passwordResetEmailSent =>
+      'Письмо для сброса пароля отправлено. Пожалуйста, проверьте свой почтовый ящик';
 
   @override
   String get passwordsDoNotMatch => 'Пароли не совпадают';
@@ -225,7 +228,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get pleaseEnterPassword => 'Пожалуйста, введите пароль';
 
   @override
-  String get pleaseEnterValidEmail => 'Пожалуйста, введите действующий адрес электронной почты';
+  String get pleaseEnterValidEmail =>
+      'Пожалуйста, введите действующий адрес электронной почты';
 
   @override
   String presetSelected(Object presetId) {
@@ -236,7 +240,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get privacyPolicy => 'Политика конфиденциальности';
 
   @override
-  String get requiresRecentLogin => 'Пожалуйста, войдите снова и попробуйте удалить аккаунт.';
+  String get requiresRecentLogin =>
+      'Пожалуйста, войдите снова и попробуйте удалить аккаунт.';
 
   @override
   String get resetPassword => 'Сбросить пароль';
@@ -278,7 +283,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get yourFoodMenu => 'Ваше меню';
 
   @override
-  String get passwordResetError => 'Произошла ошибка при отправке письма для сброса пароля.';
+  String get passwordResetError =>
+      'Произошла ошибка при отправке письма для сброса пароля.';
 
   @override
   String get save => 'Сохранить';
@@ -308,7 +314,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get enterRestaurantName => 'Введите название ресторана';
 
   @override
-  String get pleaseEnterRestaurantAndRating => 'Пожалуйста, введите название ресторана и оценку';
+  String get pleaseEnterRestaurantAndRating =>
+      'Пожалуйста, введите название ресторана и оценку';
 
   @override
   String get all => 'Все';
@@ -323,7 +330,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get aiScanning => 'Сканирование ИИ...';
 
   @override
-  String get aiLoadingMessage => 'ИИ может совершать ошибки. Время загрузки обычно занимает около 5-10 секунд, но может варьироваться в зависимости от вашего интернет-соединения и устройства смартфона.';
+  String get aiLoadingMessage =>
+      'ИИ может совершать ошибки. Время загрузки обычно занимает около 5-10 секунд, но может варьироваться в зависимости от вашего интернет-соединения и устройства смартфона.';
 
   @override
   String get introductionTitle1 => 'Mscanner';
@@ -332,7 +340,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get introductionSubtitle1 => 'от THJ';
 
   @override
-  String get introductionBody1 => 'Чувствуйте себя комфортно, выбирая еду в ресторанах по всему миру';
+  String get introductionBody1 =>
+      'Чувствуйте себя комфортно, выбирая еду в ресторанах по всему миру';
 
   @override
   String get introductionTitle2 => 'Как вы хотите сканировать меню?';
@@ -341,10 +350,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get introductionBody2_1 => '1. Выберите язык (английский или родной)';
 
   @override
-  String get introductionBody2_2 => '2. Выберите свой стиль питания (диетический, любитель мяса и т.д.)';
+  String get introductionBody2_2 =>
+      '2. Выберите свой стиль питания (диетический, любитель мяса и т.д.)';
 
   @override
-  String get introductionBody2_3 => '3. Установите количество меню, которое вы хотите сканировать (больше меню, меньше деталей)';
+  String get introductionBody2_3 =>
+      '3. Установите количество меню, которое вы хотите сканировать (больше меню, меньше деталей)';
 
   @override
   String get introductionTitle3 => 'Оптимизируйте свои настройки';
@@ -359,7 +370,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get introductionBody3_3 => '3. Сбросьте настройки сканирования меню';
 
   @override
-  String get introductionBody3_4 => '4. Сохраните свои данные онлайн, чтобы включить больше функций';
+  String get introductionBody3_4 =>
+      '4. Сохраните свои данные онлайн, чтобы включить больше функций';
 
   @override
   String get introductionTitle4 => 'Поделитесь своим результатом';
@@ -368,19 +380,23 @@ class AppLocalizationsRu extends AppLocalizations {
   String get introductionBody4_1 => '1. Оставьте заметку к каждому результату';
 
   @override
-  String get introductionBody4_2 => '2. Сохраните результаты на своем смартфоне';
+  String get introductionBody4_2 =>
+      '2. Сохраните результаты на своем смартфоне';
 
   @override
-  String get introductionBody4_3 => '3. Кнопка избранного и копирование результата';
+  String get introductionBody4_3 =>
+      '3. Кнопка избранного и копирование результата';
 
   @override
   String get introductionTitle5 => 'Сохраните свои впечатления';
 
   @override
-  String get introductionBody5_1 => '1. Активные точки (показывают вашу активность в Mscanner)';
+  String get introductionBody5_1 =>
+      '1. Активные точки (показывают вашу активность в Mscanner)';
 
   @override
-  String get introductionBody5_2 => '2. Введите название ресторана, который вы посетили';
+  String get introductionBody5_2 =>
+      '2. Введите название ресторана, который вы посетили';
 
   @override
   String get introductionBody5_3 => '3. Оцените ресторан';
@@ -419,31 +435,39 @@ class AppLocalizationsRu extends AppLocalizations {
   String get cloudsavingError => 'Ошибка сохранения в облаке';
 
   @override
-  String get languagesdescprition => 'Сделайте фото блюда или меню и выберите язык для вывода';
+  String get languagesdescprition =>
+      'Сделайте фото блюда или меню и выберите язык для вывода';
 
   @override
-  String get fooddescprition => 'Пожалуйста, выберите диету или план питания. ИИ предоставит рекомендации и объяснения на основе вашего выбора';
+  String get fooddescprition =>
+      'Пожалуйста, выберите диету или план питания. ИИ предоставит рекомендации и объяснения на основе вашего выбора';
 
   @override
-  String get menudescribe => 'Пожалуйста, выберите количество пунктов меню для отображения. Чем меньше пунктов вы выберете, тем более подробными будут описания';
+  String get menudescribe =>
+      'Пожалуйста, выберите количество пунктов меню для отображения. Чем меньше пунктов вы выберете, тем более подробными будут описания';
 
   @override
-  String get darkdescp => 'Включите темный режим для более комфортного просмотра';
+  String get darkdescp =>
+      'Включите темный режим для более комфортного просмотра';
 
   @override
-  String get changepassdescp => 'Для безопасности регулярно меняйте свой пароль и используйте надежный, легко запоминающийся пароль';
+  String get changepassdescp =>
+      'Для безопасности регулярно меняйте свой пароль и используйте надежный, легко запоминающийся пароль';
 
   @override
   String get aIresetdescp => 'Вы можете сбросить настройки сканирования ИИ';
 
   @override
-  String get savedescp => 'Сохраните данные вывода на сервере. Сохранение необходимо для активации дополнительных функций';
+  String get savedescp =>
+      'Сохраните данные вывода на сервере. Сохранение необходимо для активации дополнительных функций';
 
   @override
-  String get scanFoodPhotoDescription => 'Сделайте фото блюда или меню и узнайте, что это! Попробуйте прямо сейчас';
+  String get scanFoodPhotoDescription =>
+      'Сделайте фото блюда или меню и узнайте, что это! Попробуйте прямо сейчас';
 
   @override
-  String get activepoint => 'Баллы отображают индекс активности пользователя, и в будущем будут предоставлены различные награды.';
+  String get activepoint =>
+      'Баллы отображают индекс активности пользователя, и в будущем будут предоставлены различные награды.';
 
   @override
   String get todayrecommand => 'Рекомендация на сегодня';
@@ -461,22 +485,26 @@ class AppLocalizationsRu extends AppLocalizations {
   String get map => 'Карта';
 
   @override
-  String get locationPermissionNeeded => 'Требуется разрешение на местоположение';
+  String get locationPermissionNeeded =>
+      'Требуется разрешение на местоположение';
 
   @override
-  String get locationPermissionContent => 'Это приложение требует разрешения на доступ к расположению для правильной работы. Пожалуйста, предоставьте доступ к местоположению в настройках приложения.';
+  String get locationPermissionContent =>
+      'Это приложение требует разрешения на доступ к расположению для правильной работы. Пожалуйста, предоставьте доступ к местоположению в настройках приложения.';
 
   @override
   String get locationServiceDisabled => 'Службы геолокации отключены';
 
   @override
-  String get locationServiceDisabledContent => 'Службы местоположения отключены. Пожалуйста, включите службы местоположения в настройках.';
+  String get locationServiceDisabledContent =>
+      'Службы местоположения отключены. Пожалуйста, включите службы местоположения в настройках.';
 
   @override
   String get openSettings => 'Открыть настройки';
 
   @override
-  String get languagesdescprition1 => 'Откройте мир кулинарных удовольствий с одним сканированием.';
+  String get languagesdescprition1 =>
+      'Откройте мир кулинарных удовольствий с одним сканированием.';
 
   @override
   String get continueAsGuest => 'Продолжить как Гость';
@@ -485,28 +513,33 @@ class AppLocalizationsRu extends AppLocalizations {
   String get guestLoginTitle => 'Гостевая учетная запись';
 
   @override
-  String get guestLoginContent => 'Вы вошли как гость. Все данные будут удалены при выходе из системы.';
+  String get guestLoginContent =>
+      'Вы вошли как гость. Все данные будут удалены при выходе из системы.';
 
   @override
   String get confirm => 'Подтвердите.';
 
   @override
-  String get guestLoginFailed => 'Ошибка входа гостя. Пожалуйста, попробуйте снова.';
+  String get guestLoginFailed =>
+      'Ошибка входа гостя. Пожалуйста, попробуйте снова.';
 
   @override
   String get logoutConfirmationTitle => 'Подтверждение выхода из системы';
 
   @override
-  String get logoutConfirmationContent => 'Выход из системы как гость удалит все ваши данные. Вы хотите продолжить?';
+  String get logoutConfirmationContent =>
+      'Выход из системы как гость удалит все ваши данные. Вы хотите продолжить?';
 
   @override
   String get convertAccount => 'Конвертировать учетную запись';
 
   @override
-  String get accountConversionDescription => 'Преобразуйте свою гостевую учетную запись в постоянную, чтобы сохранить ваши данные.';
+  String get accountConversionDescription =>
+      'Преобразуйте свою гостевую учетную запись в постоянную, чтобы сохранить ваши данные.';
 
   @override
-  String get accountConversionSuccess => 'Учетная запись успешно конвертирована.';
+  String get accountConversionSuccess =>
+      'Учетная запись успешно конвертирована.';
 
   @override
   String get accountConversionFailed => 'Ошибка преобразования аккаунта';
@@ -539,7 +572,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get loadingAnalyzing => 'Анализ меню с помощью ИИ...';
 
   @override
-  String get loadingAlmostDone => 'Почти завершена подготовка вашего результата...';
+  String get loadingAlmostDone =>
+      'Почти завершена подготовка вашего результата...';
 
   @override
   String get loadingFinalizing => 'Заканчиваем детали...';
@@ -557,7 +591,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get dismissToday => 'Не показывать сегодня';
 
   @override
-  String get gptErrorMessage => 'Извините.\\nПроизошла ошибка связи с сервером ИИ.\\nПожалуйста, попробуйте позже.';
+  String get gptErrorMessage =>
+      'Извините.\\nПроизошла ошибка связи с сервером ИИ.\\nПожалуйста, попробуйте позже.';
 
   @override
   String get restaurantName => 'Название ресторана';
@@ -623,7 +658,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get buy => 'Купить';
 
   @override
-  String get guestPurchaseMessage => 'Гостевые пользователи не могут совершать покупки';
+  String get guestPurchaseMessage =>
+      'Гостевые пользователи не могут совершать покупки';
 
   @override
   String get premiumFunctionMessage => 'Только премиум-сервис';
@@ -640,7 +676,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get restorePurchases => 'Восстановить покупки';
 
   @override
-  String get mergeInProgress => 'Объединение изображений…\nПожалуйста, подождите.';
+  String get mergeInProgress =>
+      'Объединение изображений…\nПожалуйста, подождите.';
 
   @override
   String get fx_title => 'Конвертер валют';
@@ -682,13 +719,16 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sub_disclaimer_title => 'Информация о подписке';
 
   @override
-  String get sub_trial_free => 'Новые подписчики не оплачивают в течение пробного периода.';
+  String get sub_trial_free =>
+      'Новые подписчики не оплачивают в течение пробного периода.';
 
   @override
-  String get sub_auto_renew => 'После окончания пробного периода подписка автоматически продлевается, если не отменить её как минимум за 24 часа до конца текущего периода.';
+  String get sub_auto_renew =>
+      'После окончания пробного периода подписка автоматически продлевается, если не отменить её как минимум за 24 часа до конца текущего периода.';
 
   @override
-  String get sub_renew_charge => 'Плата за продление может взиматься в течение 24 часов до окончания текущего периода.';
+  String get sub_renew_charge =>
+      'Плата за продление может взиматься в течение 24 часов до окончания текущего периода.';
 
   @override
   String sub_period_price(Object period, Object price) {
@@ -696,7 +736,8 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get sub_restore => 'Ранее приобретённые покупки можно восстановить через \"Восстановить покупки\".';
+  String get sub_restore =>
+      'Ранее приобретённые покупки можно восстановить через \"Восстановить покупки\".';
 
   @override
   String get terms => 'Условия использования';
@@ -705,10 +746,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get privacy => 'Политика конфиденциальности';
 
   @override
-  String get sub_manage_ios => 'Платежи списываются с вашего Apple ID, а подписками можно управлять или отменять в Настройки > [ваше имя] > Подписки.';
+  String get sub_manage_ios =>
+      'Платежи списываются с вашего Apple ID, а подписками можно управлять или отменять в Настройки > [ваше имя] > Подписки.';
 
   @override
-  String get sub_manage_android => 'Платежи списываются с вашего аккаунта Google, а подписками можно управлять или отменять в приложении Google Play > значок профиля > Платежи и подписки > Подписки.';
+  String get sub_manage_android =>
+      'Платежи списываются с вашего аккаунта Google, а подписками можно управлять или отменять в приложении Google Play > значок профиля > Платежи и подписки > Подписки.';
 
   @override
   String get sub_badge_trial_1m => '🎁 1 месяц бесплатно для новых подписчиков';
@@ -732,7 +775,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get login_welcomeBack => 'С возвращением';
 
   @override
-  String get login_subtitle => 'Удобный гастрономический поиск с ИИ — начнём прямо сейчас.';
+  String get login_subtitle =>
+      'Удобный гастрономический поиск с ИИ — начнём прямо сейчас.';
 
   @override
   String get login_emailLabel => 'Электронная почта';
@@ -756,7 +800,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get login_signUpFree => 'Зарегистрироваться бесплатно';
 
   @override
-  String get signup_subtitle => 'Создайте аккаунт, чтобы сохранять сканы, управлять пресетами и открывать премиум-функции.';
+  String get signup_subtitle =>
+      'Создайте аккаунт, чтобы сохранять сканы, управлять пресетами и открывать премиум-функции.';
 
   @override
   String get signup_emailLabel => 'Электронная почта';
@@ -920,7 +965,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get favorite_restaurantNameHint => 'Название заведения';
 
   @override
-  String get result_fxRateLoadFailed => 'Не удалось загрузить курсы валют. Проверьте подключение.';
+  String get result_fxRateLoadFailed =>
+      'Не удалось загрузить курсы валют. Проверьте подключение.';
 
   @override
   String get result_fxConvertFailed => 'Не удалось конвертировать сумму.';
@@ -943,10 +989,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get result_preparingMenu => 'Готовим подробное меню…';
 
   @override
-  String get result_failedLoadSettings => 'Не удалось загрузить настройки. Облачное сохранение включено по умолчанию.';
+  String get result_failedLoadSettings =>
+      'Не удалось загрузить настройки. Облачное сохранение включено по умолчанию.';
 
   @override
-  String get result_imageUploadFailed => 'Не удалось загрузить изображение. Попробуйте ещё раз.';
+  String get result_imageUploadFailed =>
+      'Не удалось загрузить изображение. Попробуйте ещё раз.';
 
   @override
   String get result_analyzing => 'Анализ информации о блюде';
@@ -961,7 +1009,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get guestLoginTitle2 => 'Добро пожаловать, исследователь!';
 
   @override
-  String get guestLoginContent2 => 'В режиме гостя вы можете сканировать меню блюд, чтобы получать персонализированные рекомендации, но не сможете сохранять избранное или просматривать историю на разных устройствах.';
+  String get guestLoginContent2 =>
+      'В режиме гостя вы можете сканировать меню блюд, чтобы получать персонализированные рекомендации, но не сможете сохранять избранное или просматривать историю на разных устройствах.';
 
   @override
   String get confirm2 => 'Продолжить как гость';
@@ -979,25 +1028,31 @@ class AppLocalizationsRu extends AppLocalizations {
   String get result_noMenuItemsFound => 'Не найдены пункты меню.';
 
   @override
-  String get result_notMenuMessage => 'На этом изображении, похоже, нет меню с едой. Пожалуйста, переснимите фотографию так, чтобы названия меню или блюда были хорошо видны.';
+  String get result_notMenuMessage =>
+      'На этом изображении, похоже, нет меню с едой. Пожалуйста, переснимите фотографию так, чтобы названия меню или блюда были хорошо видны.';
 
   @override
-  String get result_uncertainMenuMessage => 'Не уверен, что это меню еды. Пожалуйста, сделайте повторное фото так, чтобы названия и цены в меню были четко видны.';
+  String get result_uncertainMenuMessage =>
+      'Не уверен, что это меню еды. Пожалуйста, сделайте повторное фото так, чтобы названия и цены в меню были четко видны.';
 
   @override
-  String get result_aiTimeoutMoreResponse => 'Превышено время ожидания ответа от ИИ.';
+  String get result_aiTimeoutMoreResponse =>
+      'Превышено время ожидания ответа от ИИ.';
 
   @override
-  String get result_aiTimeoutFirstChunk => 'Тайм-аут истёк до поступления первого фрагмента от ИИ.';
+  String get result_aiTimeoutFirstChunk =>
+      'Тайм-аут истёк до поступления первого фрагмента от ИИ.';
 
   @override
   String get result_aiTimeoutFullMenu => 'Истекло время ожидания полного меню.';
 
   @override
-  String get result_aiTimeoutFullMenuStream => 'Превышено время ожидания завершения полной передачи меню.';
+  String get result_aiTimeoutFullMenuStream =>
+      'Превышено время ожидания завершения полной передачи меню.';
 
   @override
-  String get result_aiReceiveFailedFullMenuStream => 'Не удалось получить полный поток меню.';
+  String get result_aiReceiveFailedFullMenuStream =>
+      'Не удалось получить полный поток меню.';
 
   @override
   String get result_aiEmptyStreamResponse => 'AI вернул пустой ответ потока.';
@@ -1018,7 +1073,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get tts_generatePhraseButton => 'Сгенерируйте фразу';
 
   @override
-  String get tts_generationFailed => 'Не удалось создать фразу. Пожалуйста, попробуйте еще раз через некоторое время.';
+  String get tts_generationFailed =>
+      'Не удалось создать фразу. Пожалуйста, попробуйте еще раз через некоторое время.';
 
   @override
   String get tts_resultSectionTitle => 'Сгенерированная фраза';
@@ -1072,7 +1128,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get premiumLoginRequiredTitle => 'Sign in to start Premium';
 
   @override
-  String get premiumLoginRequiredMessage => 'Sign in to restore purchases, keep your subscription, and access Premium across devices.';
+  String get premiumLoginRequiredMessage =>
+      'Sign in to restore purchases, keep your subscription, and access Premium across devices.';
 
   @override
   String get premiumLoginRequiredAction => 'Sign in to continue';
@@ -1084,10 +1141,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get premiumStartCta => 'Start Premium';
 
   @override
-  String get premiumGuestSectionTitle => 'Connect your account before purchasing Premium in guest mode';
+  String get premiumGuestSectionTitle =>
+      'Connect your account before purchasing Premium in guest mode';
 
   @override
-  String get premiumGuestSectionMessage => 'Premium subscriptions are linked to your account so purchases can be restored and used across devices.';
+  String get premiumGuestSectionMessage =>
+      'Premium subscriptions are linked to your account so purchases can be restored and used across devices.';
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';

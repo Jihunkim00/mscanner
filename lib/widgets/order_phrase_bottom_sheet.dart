@@ -18,7 +18,7 @@ Future<void> showOrderPhraseBottomSheet({
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: Colors.transparent,
-    barrierColor: Colors.black.withOpacity(0.18),
+    barrierColor: Colors.black.withValues(alpha: 0.18),
     builder: (context) => OrderPhraseBottomSheet(
       menuName: menuName,
       menuOriginal: menuOriginal,
@@ -75,19 +75,6 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
     }
   }
 
-  String _modifierLabel(AppLocalizations l10n, OrderModifier modifier) {
-    switch (modifier) {
-      case OrderModifier.noCilantro:
-        return l10n.tts_modifierNoCilantro;
-      case OrderModifier.noOnion:
-        return l10n.tts_modifierNoOnion;
-      case OrderModifier.lessSpicy:
-        return l10n.tts_modifierLessSpicy;
-      case OrderModifier.lessSalty:
-        return l10n.tts_modifierLessSalty;
-    }
-  }
-
   String _allergyLabel(AppLocalizations l10n, AllergyType allergy) {
     switch (allergy) {
       case AllergyType.peanut:
@@ -135,7 +122,8 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
       setState(() => _result = response);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = AppLocalizations.of(context)!.tts_generationFailed);
+      setState(
+          () => _error = AppLocalizations.of(context)!.tts_generationFailed);
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -155,7 +143,8 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
     setState(() => _isSpeaking = true);
 
     try {
-      debugPrint('[OrderPhraseBottomSheet] origin=${_result!.originLanguageCode.code}');
+      debugPrint(
+          '[OrderPhraseBottomSheet] origin=${_result!.originLanguageCode.code}');
       debugPrint('[OrderPhraseBottomSheet] ttsText=${_result!.ttsText}');
 
       await _ttsService.speak(
@@ -176,7 +165,8 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final sheetBg = isDark ? const Color(0xFF1A1B1F) : const Color(0xFFF7F8FA);
-    final borderColor = isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE5E7EB);
+    final borderColor =
+        isDark ? Colors.white.withValues(alpha: 0.08) : const Color(0xFFE5E7EB);
     final subColor = isDark ? Colors.white70 : const Color(0xFF6B7280);
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
@@ -188,7 +178,10 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
         border: Border.all(color: borderColor),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 26, offset: const Offset(0, 12)),
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.12),
+              blurRadius: 26,
+              offset: const Offset(0, 12)),
         ],
       ),
       child: SingleChildScrollView(
@@ -200,8 +193,11 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                  l10n.tts_orderPhraseTitle,
-                    style: TextStyle(fontFamily: 'SFPro', fontWeight: FontWeight.w700, fontSize: 17),
+                    l10n.tts_orderPhraseTitle,
+                    style: TextStyle(
+                        fontFamily: 'SFPro',
+                        fontWeight: FontWeight.w700,
+                        fontSize: 17),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -229,10 +225,10 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
                         .map(
                           (scenario) => _ChoicePill(
                             label: _scenarioLabel(l10n, scenario),
-                        selected: _scenario == scenario,
-                        onTap: () => setState(() => _scenario = scenario),
-                      ),
-                    )
+                            selected: _scenario == scenario,
+                            onTap: () => setState(() => _scenario = scenario),
+                          ),
+                        )
                         .toList(),
                   ),
                   if (_scenario == OrderScenario.customizeOrder) ...[
@@ -245,19 +241,19 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
                       children: OrderModifier.values
                           .map(
                             (value) => _ChoicePill(
-                          label: value.labelKo,
-                          selected: _modifiers.contains(value),
-                          onTap: () {
-                            setState(() {
-                              if (_modifiers.contains(value)) {
-                                _modifiers.remove(value);
-                              } else {
-                                _modifiers.add(value);
-                              }
-                            });
-                          },
-                        ),
-                      )
+                              label: value.labelKo,
+                              selected: _modifiers.contains(value),
+                              onTap: () {
+                                setState(() {
+                                  if (_modifiers.contains(value)) {
+                                    _modifiers.remove(value);
+                                  } else {
+                                    _modifiers.add(value);
+                                  }
+                                });
+                              },
+                            ),
+                          )
                           .toList(),
                     ),
                   ],
@@ -272,18 +268,18 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
                           .map(
                             (value) => _ChoicePill(
                               label: _allergyLabel(l10n, value),
-                          selected: _allergies.contains(value),
-                          onTap: () {
-                            setState(() {
-                              if (_allergies.contains(value)) {
-                                _allergies.remove(value);
-                              } else {
-                                _allergies.add(value);
-                              }
-                            });
-                          },
-                        ),
-                      )
+                              selected: _allergies.contains(value),
+                              onTap: () {
+                                setState(() {
+                                  if (_allergies.contains(value)) {
+                                    _allergies.remove(value);
+                                  } else {
+                                    _allergies.add(value);
+                                  }
+                                });
+                              },
+                            ),
+                          )
                           .toList(),
                     ),
                   ],
@@ -297,28 +293,33 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
                 borderRadius: BorderRadius.circular(14),
                 onTap: _isLoading ? null : _generatePhrase,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF2A2D33) : const Color(0xFFF3F4F6),
+                    color: isDark
+                        ? const Color(0xFF2A2D33)
+                        : const Color(0xFFF3F4F6),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: borderColor),
                   ),
                   child: Center(
                     child: _isLoading
                         ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
                         : Text(
-                      l10n.tts_generatePhraseButton,
-                      style: TextStyle(
-                        fontFamily: 'SFPro',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : const Color(0xFF111827),
-                      ),
-                    ),
+                            l10n.tts_generatePhraseButton,
+                            style: TextStyle(
+                              fontFamily: 'SFPro',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF111827),
+                            ),
+                          ),
                   ),
                 ),
               ),
@@ -337,7 +338,7 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-    _SectionTitle(l10n.tts_resultSectionTitle),
+                    _SectionTitle(l10n.tts_resultSectionTitle),
                     const SizedBox(height: 8),
                     Text(
                       _result!.ttsText,
@@ -363,16 +364,19 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
                         _SheetActionButton(
                           onPressed: _toggleSpeak,
                           icon: PhosphorIcon(
-                            _isSpeaking ? PhosphorIcons.stop() : PhosphorIcons.speakerHigh(),
+                            _isSpeaking
+                                ? PhosphorIcons.stop()
+                                : PhosphorIcons.speakerHigh(),
                             size: 16,
                           ),
-    label: _isSpeaking ? l10n.tts_stop : l10n.tts_listen,
+                          label: _isSpeaking ? l10n.tts_stop : l10n.tts_listen,
                         ),
                         const SizedBox(width: 8),
                         _SheetActionButton(
                           onPressed: _isLoading ? null : _generatePhrase,
-                          icon: PhosphorIcon(PhosphorIcons.arrowsClockwise(), size: 16),
-    label: l10n.tts_regenerate,
+                          icon: PhosphorIcon(PhosphorIcons.arrowsClockwise(),
+                              size: 16),
+                          label: l10n.tts_regenerate,
                         ),
                       ],
                     ),
@@ -400,7 +404,7 @@ class _SectionCard extends StatelessWidget {
         ? (isDark ? const Color(0xFF2C2C31) : const Color(0xFFF6F7F9))
         : (isDark ? const Color(0xFF26262A) : Colors.white);
     final borderColor =
-    isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE5E7EB);
+        isDark ? Colors.white.withValues(alpha: 0.08) : const Color(0xFFE5E7EB);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
@@ -423,7 +427,8 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: const TextStyle(fontFamily: 'SFPro', fontSize: 13, fontWeight: FontWeight.w700),
+      style: const TextStyle(
+          fontFamily: 'SFPro', fontSize: 13, fontWeight: FontWeight.w700),
     );
   }
 }
@@ -443,11 +448,15 @@ class _ChoicePill extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final selectedBg = isDark ? const Color(0xFF34343A) : const Color(0xFFF1F3F5);
-    final selectedBorder = isDark ? Colors.white.withOpacity(0.16) : const Color(0xFFD1D5DB);
-    final unselectedBorder = isDark ? Colors.white.withOpacity(0.1) : const Color(0xFFE5E7EB);
+    final selectedBg =
+        isDark ? const Color(0xFF34343A) : const Color(0xFFF1F3F5);
+    final selectedBorder =
+        isDark ? Colors.white.withValues(alpha: 0.16) : const Color(0xFFD1D5DB);
+    final unselectedBorder =
+        isDark ? Colors.white.withValues(alpha: 0.1) : const Color(0xFFE5E7EB);
     final selectedText = isDark ? Colors.white : const Color(0xFF111827);
-    final unselectedText = theme.textTheme.bodyMedium?.color?.withOpacity(0.88);
+    final unselectedText =
+        theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.88);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
@@ -488,7 +497,8 @@ class _SheetActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final borderColor = isDark ? Colors.white.withOpacity(0.12) : const Color(0xFFE5E7EB);
+    final borderColor =
+        isDark ? Colors.white.withValues(alpha: 0.12) : const Color(0xFFE5E7EB);
     final titleColor = isDark ? Colors.white : const Color(0xFF111827);
     return InkWell(
       borderRadius: BorderRadius.circular(999),

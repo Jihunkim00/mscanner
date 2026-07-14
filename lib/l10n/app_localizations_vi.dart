@@ -21,7 +21,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get alreadyHaveAccount => 'Bạn đã có tài khoản?';
 
   @override
-  String get areYouSureDeleteAccount => 'Bạn có chắc chắn muốn xóa tài khoản của mình không? Hành động này không thể hoàn tác.';
+  String get areYouSureDeleteAccount =>
+      'Bạn có chắc chắn muốn xóa tài khoản của mình không? Hành động này không thể hoàn tác.';
 
   @override
   String get camera => 'Máy ảnh';
@@ -72,7 +73,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get engine => 'Công cụ';
 
   @override
-  String get enterYourEmailtoResetPassword => 'Nhập email của bạn để đặt lại mật khẩu';
+  String get enterYourEmailtoResetPassword =>
+      'Nhập email của bạn để đặt lại mật khẩu';
 
   @override
   String get failedChangePassword => 'Không thể thay đổi mật khẩu';
@@ -216,7 +218,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get passwordChangedSuccess => 'Mật khẩu đã được thay đổi thành công.';
 
   @override
-  String get passwordResetEmailSent => 'Email đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra hộp thư đến của bạn';
+  String get passwordResetEmailSent =>
+      'Email đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra hộp thư đến của bạn';
 
   @override
   String get passwordsDoNotMatch => 'Mật khẩu không khớp';
@@ -236,7 +239,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get privacyPolicy => 'Chính sách bảo mật';
 
   @override
-  String get requiresRecentLogin => 'Vui lòng đăng nhập lại và thử xóa tài khoản.';
+  String get requiresRecentLogin =>
+      'Vui lòng đăng nhập lại và thử xóa tài khoản.';
 
   @override
   String get resetPassword => 'Đặt lại mật khẩu';
@@ -278,7 +282,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get yourFoodMenu => 'Thực đơn của bạn';
 
   @override
-  String get passwordResetError => 'Đã xảy ra lỗi khi gửi email đặt lại mật khẩu.';
+  String get passwordResetError =>
+      'Đã xảy ra lỗi khi gửi email đặt lại mật khẩu.';
 
   @override
   String get save => 'Lưu';
@@ -308,7 +313,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get enterRestaurantName => 'Nhập tên nhà hàng';
 
   @override
-  String get pleaseEnterRestaurantAndRating => 'Vui lòng nhập tên và đánh giá của nhà hàng';
+  String get pleaseEnterRestaurantAndRating =>
+      'Vui lòng nhập tên và đánh giá của nhà hàng';
 
   @override
   String get all => 'Tất cả';
@@ -323,7 +329,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get aiScanning => 'Đang quét AI...';
 
   @override
-  String get aiLoadingMessage => 'AI có thể mắc lỗi. Thời gian tải thường mất khoảng 5-10 giây, nhưng có thể thay đổi tùy thuộc vào kết nối internet và thiết bị điện thoại thông minh của bạn.';
+  String get aiLoadingMessage =>
+      'AI có thể mắc lỗi. Thời gian tải thường mất khoảng 5-10 giây, nhưng có thể thay đổi tùy thuộc vào kết nối internet và thiết bị điện thoại thông minh của bạn.';
 
   @override
   String get introductionTitle1 => 'Mscanner';
@@ -332,19 +339,23 @@ class AppLocalizationsVi extends AppLocalizations {
   String get introductionSubtitle1 => 'bởi THJ';
 
   @override
-  String get introductionBody1 => 'Cảm thấy thoải mái khi chọn món ăn tại các nhà hàng trên toàn thế giới';
+  String get introductionBody1 =>
+      'Cảm thấy thoải mái khi chọn món ăn tại các nhà hàng trên toàn thế giới';
 
   @override
   String get introductionTitle2 => 'Bạn muốn quét thực đơn như thế nào?';
 
   @override
-  String get introductionBody2_1 => '1. Chọn ngôn ngữ của bạn (Tiếng Anh hoặc ngôn ngữ bản địa)';
+  String get introductionBody2_1 =>
+      '1. Chọn ngôn ngữ của bạn (Tiếng Anh hoặc ngôn ngữ bản địa)';
 
   @override
-  String get introductionBody2_2 => '2. Chọn phong cách ăn uống của bạn (ăn kiêng, yêu thích thịt, v.v.)';
+  String get introductionBody2_2 =>
+      '2. Chọn phong cách ăn uống của bạn (ăn kiêng, yêu thích thịt, v.v.)';
 
   @override
-  String get introductionBody2_3 => '3. Đặt số lượng thực đơn bạn muốn quét (nhiều thực đơn hơn, ít chi tiết hơn)';
+  String get introductionBody2_3 =>
+      '3. Đặt số lượng thực đơn bạn muốn quét (nhiều thực đơn hơn, ít chi tiết hơn)';
 
   @override
   String get introductionTitle3 => 'Tối ưu hóa cài đặt của bạn';
@@ -359,7 +370,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get introductionBody3_3 => '3. Đặt lại cài đặt quét thực đơn của bạn';
 
   @override
-  String get introductionBody3_4 => '4. Lưu dữ liệu của bạn trực tuyến để kích hoạt thêm các tính năng';
+  String get introductionBody3_4 =>
+      '4. Lưu dữ liệu của bạn trực tuyến để kích hoạt thêm các tính năng';
 
   @override
   String get introductionTitle4 => 'Chia sẻ kết quả của bạn';
@@ -368,7 +380,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get introductionBody4_1 => '1. Để lại ghi chú trên mỗi kết quả';
 
   @override
-  String get introductionBody4_2 => '2. Lưu kết quả vào điện thoại thông minh của bạn';
+  String get introductionBody4_2 =>
+      '2. Lưu kết quả vào điện thoại thông minh của bạn';
 
   @override
   String get introductionBody4_3 => '3. Nút yêu thích và sao chép kết quả';
@@ -377,7 +390,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get introductionTitle5 => 'Lưu giữ trải nghiệm của bạn';
 
   @override
-  String get introductionBody5_1 => '1. Điểm hoạt động (hiển thị hoạt động của bạn trong Mscanner)';
+  String get introductionBody5_1 =>
+      '1. Điểm hoạt động (hiển thị hoạt động của bạn trong Mscanner)';
 
   @override
   String get introductionBody5_2 => '2. Nhập tên nhà hàng bạn đã ghé thăm';
@@ -386,7 +400,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get introductionBody5_3 => '3. Đánh giá nhà hàng';
 
   @override
-  String get introductionBody5_4 => '4. Xem các địa điểm bạn đã ghé thăm trên bản đồ';
+  String get introductionBody5_4 =>
+      '4. Xem các địa điểm bạn đã ghé thăm trên bản đồ';
 
   @override
   String get skip => 'Bỏ qua';
@@ -419,31 +434,38 @@ class AppLocalizationsVi extends AppLocalizations {
   String get cloudsavingError => 'Lỗi lưu trữ đám mây';
 
   @override
-  String get languagesdescprition => 'Chụp ảnh một món ăn hoặc thực đơn và chọn ngôn ngữ đầu ra';
+  String get languagesdescprition =>
+      'Chụp ảnh một món ăn hoặc thực đơn và chọn ngôn ngữ đầu ra';
 
   @override
-  String get fooddescprition => 'Vui lòng chọn chế độ ăn kiêng hoặc kế hoạch bữa ăn. AI sẽ cung cấp các đề xuất và giải thích dựa trên lựa chọn của bạn';
+  String get fooddescprition =>
+      'Vui lòng chọn chế độ ăn kiêng hoặc kế hoạch bữa ăn. AI sẽ cung cấp các đề xuất và giải thích dựa trên lựa chọn của bạn';
 
   @override
-  String get menudescribe => 'Vui lòng chọn số lượng món ăn để hiển thị trong thực đơn. Số lượng món ăn bạn chọn càng ít, mô tả càng chi tiết';
+  String get menudescribe =>
+      'Vui lòng chọn số lượng món ăn để hiển thị trong thực đơn. Số lượng món ăn bạn chọn càng ít, mô tả càng chi tiết';
 
   @override
   String get darkdescp => 'Bật chế độ tối để có trải nghiệm xem thoải mái hơn';
 
   @override
-  String get changepassdescp => 'Để bảo mật, hãy thường xuyên thay đổi mật khẩu của bạn và sử dụng mật khẩu mạnh, dễ nhớ';
+  String get changepassdescp =>
+      'Để bảo mật, hãy thường xuyên thay đổi mật khẩu của bạn và sử dụng mật khẩu mạnh, dễ nhớ';
 
   @override
   String get aIresetdescp => 'Bạn có thể đặt lại cài đặt quét AI';
 
   @override
-  String get savedescp => 'Lưu dữ liệu đầu ra vào máy chủ. Việc lưu trữ là cần thiết để kích hoạt các tính năng bổ sung';
+  String get savedescp =>
+      'Lưu dữ liệu đầu ra vào máy chủ. Việc lưu trữ là cần thiết để kích hoạt các tính năng bổ sung';
 
   @override
-  String get scanFoodPhotoDescription => 'Chụp ảnh một món ăn hoặc thực đơn và tìm hiểu xem đó là gì! Hãy thử ngay bây giờ';
+  String get scanFoodPhotoDescription =>
+      'Chụp ảnh một món ăn hoặc thực đơn và tìm hiểu xem đó là gì! Hãy thử ngay bây giờ';
 
   @override
-  String get activepoint => 'Điểm hiển thị chỉ số hoạt động của người dùng, và nhiều phần thưởng sẽ được cung cấp trong tương lai.';
+  String get activepoint =>
+      'Điểm hiển thị chỉ số hoạt động của người dùng, và nhiều phần thưởng sẽ được cung cấp trong tương lai.';
 
   @override
   String get todayrecommand => 'Gợi ý hôm nay';
@@ -464,19 +486,22 @@ class AppLocalizationsVi extends AppLocalizations {
   String get locationPermissionNeeded => 'Cần quyền truy cập vị trí';
 
   @override
-  String get locationPermissionContent => 'Ứng dụng này yêu cầu quyền truy cập vị trí để hoạt động đúng cách. Vui lòng cho phép truy cập vị trí trong cài đặt ứng dụng.';
+  String get locationPermissionContent =>
+      'Ứng dụng này yêu cầu quyền truy cập vị trí để hoạt động đúng cách. Vui lòng cho phép truy cập vị trí trong cài đặt ứng dụng.';
 
   @override
   String get locationServiceDisabled => 'Dịch vụ vị trí đã bị tắt';
 
   @override
-  String get locationServiceDisabledContent => 'Dịch vụ vị trí đã bị vô hiệu hóa. Vui lòng bật dịch vụ vị trí trong cài đặt.';
+  String get locationServiceDisabledContent =>
+      'Dịch vụ vị trí đã bị vô hiệu hóa. Vui lòng bật dịch vụ vị trí trong cài đặt.';
 
   @override
   String get openSettings => 'Mở Cài đặt';
 
   @override
-  String get languagesdescprition1 => 'Mở ra một thế giới ẩm thực phong phú chỉ với một lần quét.';
+  String get languagesdescprition1 =>
+      'Mở ra một thế giới ẩm thực phong phú chỉ với một lần quét.';
 
   @override
   String get continueAsGuest => 'Tiếp tục với tư cách Khách';
@@ -485,28 +510,33 @@ class AppLocalizationsVi extends AppLocalizations {
   String get guestLoginTitle => 'Đăng nhập khách';
 
   @override
-  String get guestLoginContent => 'Bạn đã đăng nhập với tư cách khách. Tất cả dữ liệu sẽ được xóa khi đăng xuất.';
+  String get guestLoginContent =>
+      'Bạn đã đăng nhập với tư cách khách. Tất cả dữ liệu sẽ được xóa khi đăng xuất.';
 
   @override
   String get confirm => 'Xác nhận';
 
   @override
-  String get guestLoginFailed => 'Đăng nhập khách không thành công. Vui lòng thử lại.';
+  String get guestLoginFailed =>
+      'Đăng nhập khách không thành công. Vui lòng thử lại.';
 
   @override
   String get logoutConfirmationTitle => 'Xác nhận đăng xuất';
 
   @override
-  String get logoutConfirmationContent => 'Đăng xuất với tư cách khách sẽ xóa tất cả dữ liệu của bạn. Bạn có muốn tiếp tục không?';
+  String get logoutConfirmationContent =>
+      'Đăng xuất với tư cách khách sẽ xóa tất cả dữ liệu của bạn. Bạn có muốn tiếp tục không?';
 
   @override
   String get convertAccount => 'Chuyển đổi Tài khoản';
 
   @override
-  String get accountConversionDescription => 'Chuyển tài khoản khách của bạn thành tài khoản vĩnh viễn để lưu dữ liệu của bạn.';
+  String get accountConversionDescription =>
+      'Chuyển tài khoản khách của bạn thành tài khoản vĩnh viễn để lưu dữ liệu của bạn.';
 
   @override
-  String get accountConversionSuccess => 'Tài khoản đã được chuyển đổi thành công.';
+  String get accountConversionSuccess =>
+      'Tài khoản đã được chuyển đổi thành công.';
 
   @override
   String get accountConversionFailed => 'Chuyển đổi tài khoản thất bại';
@@ -539,13 +569,15 @@ class AppLocalizationsVi extends AppLocalizations {
   String get loadingAnalyzing => 'Phân tích thực đơn bằng AI...';
 
   @override
-  String get loadingAlmostDone => 'Gần hoàn thành việc chuẩn bị kết quả của bạn...';
+  String get loadingAlmostDone =>
+      'Gần hoàn thành việc chuẩn bị kết quả của bạn...';
 
   @override
   String get loadingFinalizing => 'Hoàn thiện những chi tiết...';
 
   @override
-  String get loadingWaiting => 'Chỉ một chút nữa thôi... Cảm ơn bạn đã kiên nhẫn!';
+  String get loadingWaiting =>
+      'Chỉ một chút nữa thôi... Cảm ơn bạn đã kiên nhẫn!';
 
   @override
   String get emergencyTitle => 'Thông báo khẩn cấp';
@@ -557,7 +589,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get dismissToday => 'Không hiển thị lại hôm nay';
 
   @override
-  String get gptErrorMessage => 'Rất tiếc.\\nĐã xảy ra lỗi khi kết nối với máy chủ AI.\\nVui lòng thử lại sau.';
+  String get gptErrorMessage =>
+      'Rất tiếc.\\nĐã xảy ra lỗi khi kết nối với máy chủ AI.\\nVui lòng thử lại sau.';
 
   @override
   String get restaurantName => 'Tên nhà hàng';
@@ -682,13 +715,16 @@ class AppLocalizationsVi extends AppLocalizations {
   String get sub_disclaimer_title => 'Thông tin gói đăng ký';
 
   @override
-  String get sub_trial_free => 'Người đăng ký lần đầu sẽ không bị tính phí trong thời gian dùng thử.';
+  String get sub_trial_free =>
+      'Người đăng ký lần đầu sẽ không bị tính phí trong thời gian dùng thử.';
 
   @override
-  String get sub_auto_renew => 'Sau khi hết thời gian dùng thử, gói đăng ký sẽ tự động gia hạn trừ khi hủy ít nhất 24 giờ trước khi kết thúc chu kỳ hiện tại.';
+  String get sub_auto_renew =>
+      'Sau khi hết thời gian dùng thử, gói đăng ký sẽ tự động gia hạn trừ khi hủy ít nhất 24 giờ trước khi kết thúc chu kỳ hiện tại.';
 
   @override
-  String get sub_renew_charge => 'Phí gia hạn có thể bị tính trong vòng 24 giờ trước khi kết thúc chu kỳ hiện tại.';
+  String get sub_renew_charge =>
+      'Phí gia hạn có thể bị tính trong vòng 24 giờ trước khi kết thúc chu kỳ hiện tại.';
 
   @override
   String sub_period_price(Object period, Object price) {
@@ -696,7 +732,8 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get sub_restore => 'Các mục đã mua trước đây có thể được khôi phục bằng \"Khôi phục mua hàng\".';
+  String get sub_restore =>
+      'Các mục đã mua trước đây có thể được khôi phục bằng \"Khôi phục mua hàng\".';
 
   @override
   String get terms => 'Điều khoản dịch vụ';
@@ -705,13 +742,16 @@ class AppLocalizationsVi extends AppLocalizations {
   String get privacy => 'Chính sách bảo mật';
 
   @override
-  String get sub_manage_ios => 'Thanh toán sẽ được tính vào Apple ID của bạn và có thể quản lý/hủy trong Cài đặt > [tên của bạn] > Đăng ký.';
+  String get sub_manage_ios =>
+      'Thanh toán sẽ được tính vào Apple ID của bạn và có thể quản lý/hủy trong Cài đặt > [tên của bạn] > Đăng ký.';
 
   @override
-  String get sub_manage_android => 'Thanh toán sẽ được tính vào tài khoản Google của bạn và có thể quản lý/hủy trong ứng dụng Cửa hàng Play > Biểu tượng hồ sơ > Thanh toán & gói đăng ký > Đăng ký.';
+  String get sub_manage_android =>
+      'Thanh toán sẽ được tính vào tài khoản Google của bạn và có thể quản lý/hủy trong ứng dụng Cửa hàng Play > Biểu tượng hồ sơ > Thanh toán & gói đăng ký > Đăng ký.';
 
   @override
-  String get sub_badge_trial_1m => '🎁 1 tháng miễn phí cho người đăng ký lần đầu';
+  String get sub_badge_trial_1m =>
+      '🎁 1 tháng miễn phí cho người đăng ký lần đầu';
 
   @override
   String get iapRestoreError => 'Đã xảy ra lỗi trong quá trình khôi phục.';
@@ -732,7 +772,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get login_welcomeBack => 'Chào mừng bạn quay lại';
 
   @override
-  String get login_subtitle => 'Khám phá ẩm thực dễ dàng hơn với AI. Bắt đầu ngay nhé.';
+  String get login_subtitle =>
+      'Khám phá ẩm thực dễ dàng hơn với AI. Bắt đầu ngay nhé.';
 
   @override
   String get login_emailLabel => 'Địa chỉ email';
@@ -756,7 +797,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get login_signUpFree => 'Đăng ký miễn phí';
 
   @override
-  String get signup_subtitle => 'Tạo tài khoản để lưu bản quét, quản lý preset và mở khóa tính năng cao cấp.';
+  String get signup_subtitle =>
+      'Tạo tài khoản để lưu bản quét, quản lý preset và mở khóa tính năng cao cấp.';
 
   @override
   String get signup_emailLabel => 'Địa chỉ email';
@@ -920,7 +962,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get favorite_restaurantNameHint => 'Tên nhà hàng';
 
   @override
-  String get result_fxRateLoadFailed => 'Không tải được tỷ giá. Vui lòng kiểm tra kết nối mạng.';
+  String get result_fxRateLoadFailed =>
+      'Không tải được tỷ giá. Vui lòng kiểm tra kết nối mạng.';
 
   @override
   String get result_fxConvertFailed => 'Không thể chuyển đổi số tiền này.';
@@ -943,10 +986,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get result_preparingMenu => 'Đang chuẩn bị menu chi tiết…';
 
   @override
-  String get result_failedLoadSettings => 'Không tải được cài đặt. Lưu đám mây được bật mặc định.';
+  String get result_failedLoadSettings =>
+      'Không tải được cài đặt. Lưu đám mây được bật mặc định.';
 
   @override
-  String get result_imageUploadFailed => 'Tải ảnh lên thất bại. Vui lòng thử lại.';
+  String get result_imageUploadFailed =>
+      'Tải ảnh lên thất bại. Vui lòng thử lại.';
 
   @override
   String get result_analyzing => 'Đang phân tích thông tin món ăn';
@@ -961,7 +1006,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get guestLoginTitle2 => 'Chào mừng, Nhà thám hiểm!';
 
   @override
-  String get guestLoginContent2 => 'Ở Chế độ Khách, bạn có thể quét thực đơn để nhận đề xuất được cá nhân hóa, nhưng bạn sẽ không thể lưu mục yêu thích hoặc xem lịch sử trên nhiều thiết bị.';
+  String get guestLoginContent2 =>
+      'Ở Chế độ Khách, bạn có thể quét thực đơn để nhận đề xuất được cá nhân hóa, nhưng bạn sẽ không thể lưu mục yêu thích hoặc xem lịch sử trên nhiều thiết bị.';
 
   @override
   String get confirm2 => 'Tiếp tục với tư cách khách';
@@ -979,28 +1025,36 @@ class AppLocalizationsVi extends AppLocalizations {
   String get result_noMenuItemsFound => 'Không tìm thấy mục trong menu.';
 
   @override
-  String get result_notMenuMessage => 'Hình ảnh này có vẻ không phải là thực đơn. Vui lòng chụp lại ảnh để tên thực đơn hoặc tên món ăn có thể nhìn rõ ràng.';
+  String get result_notMenuMessage =>
+      'Hình ảnh này có vẻ không phải là thực đơn. Vui lòng chụp lại ảnh để tên thực đơn hoặc tên món ăn có thể nhìn rõ ràng.';
 
   @override
-  String get result_uncertainMenuMessage => 'Chưa chắc đây là thực đơn đồ ăn. Vui lòng chụp lại ảnh để tên món và giá được nhìn rõ ràng.';
+  String get result_uncertainMenuMessage =>
+      'Chưa chắc đây là thực đơn đồ ăn. Vui lòng chụp lại ảnh để tên món và giá được nhìn rõ ràng.';
 
   @override
-  String get result_aiTimeoutMoreResponse => 'Hết thời gian chờ khi đang chờ thêm phản hồi từ AI.';
+  String get result_aiTimeoutMoreResponse =>
+      'Hết thời gian chờ khi đang chờ thêm phản hồi từ AI.';
 
   @override
-  String get result_aiTimeoutFirstChunk => 'Đã hết thời gian trước khi nhận được đoạn dữ liệu AI đầu tiên.';
+  String get result_aiTimeoutFirstChunk =>
+      'Đã hết thời gian trước khi nhận được đoạn dữ liệu AI đầu tiên.';
 
   @override
-  String get result_aiTimeoutFullMenu => 'Hết thời gian chờ để tải đầy đủ menu.';
+  String get result_aiTimeoutFullMenu =>
+      'Hết thời gian chờ để tải đầy đủ menu.';
 
   @override
-  String get result_aiTimeoutFullMenuStream => 'Hết thời gian chờ khi đang chờ luồng menu đầy đủ.';
+  String get result_aiTimeoutFullMenuStream =>
+      'Hết thời gian chờ khi đang chờ luồng menu đầy đủ.';
 
   @override
-  String get result_aiReceiveFailedFullMenuStream => 'Gặp lỗi khi nhận luồng menu đầy đủ.';
+  String get result_aiReceiveFailedFullMenuStream =>
+      'Gặp lỗi khi nhận luồng menu đầy đủ.';
 
   @override
-  String get result_aiEmptyStreamResponse => 'AI đã trả về một phản hồi luồng trống.';
+  String get result_aiEmptyStreamResponse =>
+      'AI đã trả về một phản hồi luồng trống.';
 
   @override
   String get tts_orderPhraseTitle => 'Tạo cụm từ để đặt hàng';
@@ -1018,7 +1072,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get tts_generatePhraseButton => 'Tạo câu cụm từ';
 
   @override
-  String get tts_generationFailed => 'Không thể tạo cụm từ. Vui lòng thử lại sau một chút.';
+  String get tts_generationFailed =>
+      'Không thể tạo cụm từ. Vui lòng thử lại sau một chút.';
 
   @override
   String get tts_resultSectionTitle => 'Cụm từ được tạo ra';
@@ -1072,7 +1127,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get premiumLoginRequiredTitle => 'Sign in to start Premium';
 
   @override
-  String get premiumLoginRequiredMessage => 'Sign in to restore purchases, keep your subscription, and access Premium across devices.';
+  String get premiumLoginRequiredMessage =>
+      'Sign in to restore purchases, keep your subscription, and access Premium across devices.';
 
   @override
   String get premiumLoginRequiredAction => 'Sign in to continue';
@@ -1084,10 +1140,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get premiumStartCta => 'Start Premium';
 
   @override
-  String get premiumGuestSectionTitle => 'Connect your account before purchasing Premium in guest mode';
+  String get premiumGuestSectionTitle =>
+      'Connect your account before purchasing Premium in guest mode';
 
   @override
-  String get premiumGuestSectionMessage => 'Premium subscriptions are linked to your account so purchases can be restored and used across devices.';
+  String get premiumGuestSectionMessage =>
+      'Premium subscriptions are linked to your account so purchases can be restored and used across devices.';
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';

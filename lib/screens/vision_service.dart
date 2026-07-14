@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
@@ -34,7 +35,7 @@ class VisionService {
         await FirebaseAuth.instance.signInAnonymously();
       }
 
-      print(
+      debugPrint(
         '🚀 [Functions] analyzeVision call '
         'scanMode=$scanMode responseMode=$responseMode '
         'maxTokens=$maxOutputTokens imageBase64Len=${imageBase64.length}',
@@ -58,7 +59,7 @@ class VisionService {
       final data = Map<String, dynamic>.from(result.data as Map);
       final text = data['result']?.toString() ?? '';
 
-      print(
+      debugPrint(
         '✅ [Functions] analyzeVision success '
         'model=${data['model']} scanMode=${data['scanMode']} '
         'responseMode=${data['responseMode']} '
@@ -72,13 +73,13 @@ class VisionService {
 
       return text;
     } on FirebaseFunctionsException catch (e) {
-      print(
+      debugPrint(
         '❌ [Functions] analyzeVision failed '
         'code=${e.code} message=${e.message} details=${e.details}',
       );
       rethrow;
     } catch (e) {
-      print('❌ [Functions] analyzeVision unknown error=$e');
+      debugPrint('❌ [Functions] analyzeVision unknown error=$e');
       rethrow;
     }
   }
@@ -316,7 +317,7 @@ If it doesn’t seem food-related, just say so.
 
     final mergedPrompt = template
         .replaceAll('{promptContext}', _resolvePromptContext(promptContext))
-        .replaceAll('{question}', question ?? '');
+        .replaceAll('{question}', question);
 
     return '$outputProtocol\n$mergedPrompt';
   }
@@ -329,12 +330,12 @@ If it doesn’t seem food-related, just say so.
     try {
       final bytes = await imageFile.readAsBytes();
       final kb = bytes.length / 1024;
-      print(
+      debugPrint(
           '🗜️ [Vision] bytes=${kb.toStringAsFixed(1)}KB file=${imageFile.path}');
 
       final tEncode0 = DateTime.now();
       final base64Image = base64Encode(bytes);
-      print(
+      debugPrint(
           '⏱️ [Vision] base64Encode ${DateTime.now().difference(tEncode0).inMilliseconds}ms');
 
       const outputProtocol = '''[OUTPUT PROTOCOL]
@@ -355,7 +356,7 @@ Output exactly ONE JSON object.
       final scanMode = _resolveScanMode(maxOutputTokens);
       final tReq0 = DateTime.now();
 
-      print(
+      debugPrint(
         '🚀 [Vision] functions request start ${tReq0.toIso8601String()} '
         'maxTokens=$maxOutputTokens model=gpt-5-mini scanMode=$scanMode rag=$_useRag',
       );
@@ -369,8 +370,8 @@ Output exactly ONE JSON object.
       );
 
       final reqMs = DateTime.now().difference(tReq0).inMilliseconds;
-      print('⏱️ [Vision] functions response in ${reqMs}ms');
-      print('🧾 [Vision] contentLen=${text.trim().length}');
+      debugPrint('⏱️ [Vision] functions response in ${reqMs}ms');
+      debugPrint('🧾 [Vision] contentLen=${text.trim().length}');
 
       return text;
     } catch (e) {
@@ -378,7 +379,7 @@ Output exactly ONE JSON object.
     }
   }
 
-  /// 기존 LoadingScreen 구조 유지를 위해 Stream<String> 형태는 유지합니다.
+  /// 기존 LoadingScreen 구조 유지를 위해 [Stream] 형태는 유지합니다.
   /// 단, Firebase callable은 SSE streaming이 아니므로 최종 결과를 한 번 받아 yield 합니다.
   static Stream<String> analyzeImageStream(
     File imageFile, {
@@ -407,7 +408,7 @@ Output exactly ONE JSON object using the existing app schema.
       final scanMode = _resolveScanMode(maxOutputTokens);
       final tReq0 = DateTime.now();
 
-      print(
+      debugPrint(
         '🚀 [VisionStream] functions request start ${tReq0.toIso8601String()} '
         'maxTokens=$maxOutputTokens model=gpt-5.4-mini scanMode=$scanMode rag=$_useRag',
       );
@@ -421,8 +422,8 @@ Output exactly ONE JSON object using the existing app schema.
       );
 
       final reqMs = DateTime.now().difference(tReq0).inMilliseconds;
-      print('⏱️ [VisionStream] functions response in ${reqMs}ms');
-      print('🧾 [VisionStream] contentLen=${text.trim().length}');
+      debugPrint('⏱️ [VisionStream] functions response in ${reqMs}ms');
+      debugPrint('🧾 [VisionStream] contentLen=${text.trim().length}');
 
       yield text;
     } catch (e) {

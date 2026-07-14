@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/settings_helper.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import 'package:adaptive_theme/adaptive_theme.dart'; // Import for adaptive theme
-import 'package:mscanner/screens/TutorialCamera_Screen.dart';
+import 'package:mscanner/screens/tutorial_camera_screen.dart';
 import '/screens/log_service.dart';
 import '/analytics_service.dart';
 import '../helpers/preset_update_review_service.dart';
@@ -36,7 +36,7 @@ class PresetSelectionScreen extends StatefulWidget {
   });
 
   @override
-  _PresetSelectionScreenState createState() => _PresetSelectionScreenState();
+  State<PresetSelectionScreen> createState() => _PresetSelectionScreenState();
 }
 
 class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
@@ -425,8 +425,8 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
                             fontSize: 14,
                           ),
                         ),
-                        child: Text(localizations.saveAndContinue),
                         onPressed: _isSaving ? null : _savePresetAndNavigate,
+                        child: Text(localizations.saveAndContinue),
                       ),
                     ),
                   ],
@@ -460,7 +460,7 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
           child: Material(
             type: MaterialType.transparency,
             child: DropdownButtonFormField<String>(
-              value: selectedValue,
+              initialValue: selectedValue,
               onChanged: (value) {
                 if (value != null) {
                   onChanged(value);
@@ -519,6 +519,7 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
     });
 
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     final localizations = AppLocalizations.of(context)!;
     final normalizedMenuCount =
         _normalizeMenuCountHint(localizations, _selectedMenuNumber);
@@ -530,9 +531,9 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
     await prefs.setString(
         SettingsHelper.selectedMenuNumberKey, normalizedMenuCount);
 
-    print('Saved Language Code: $_selectedLanguageCode');
-    print('Saved Food Style: $_selectedFoodStyle');
-    print('Saved Menu Number: $normalizedMenuCount');
+    debugPrint('Saved Language Code: $_selectedLanguageCode');
+    debugPrint('Saved Food Style: $_selectedFoodStyle');
+    debugPrint('Saved Menu Number: $normalizedMenuCount');
 
     // ✅ 첫 로그인(튜토리얼) 아닐 때만 로그
     await AnalyticsService.instance.logOnboardingComplete(
@@ -560,6 +561,7 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
       }
     }
 
+    if (!mounted) return;
     final preset = _createPresetDescription(
       selectedMenuNumber: normalizedMenuCount,
     );
@@ -568,6 +570,7 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
       await PresetUpdateReviewService.markReviewComplete(prefs: prefs);
     }
     _isPresetSaved = true;
+    if (!mounted) return;
 
     // 확인을 위해 바로 값을 가져와서 출력
     final savedLanguageCode =
@@ -577,9 +580,9 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
     final savedMenuNumber =
         prefs.getString(SettingsHelper.selectedMenuNumberKey) ?? 'Not found';
 
-    print('Loaded Language Code: $savedLanguageCode');
-    print('Loaded Food Style: $savedFoodStyle');
-    print('Loaded Menu Number: $savedMenuNumber');
+    debugPrint('Loaded Language Code: $savedLanguageCode');
+    debugPrint('Loaded Food Style: $savedFoodStyle');
+    debugPrint('Loaded Menu Number: $savedMenuNumber');
 
     if (!widget.isFirstLogin) {
       // 첫 로그인(튜토리얼) 아닐 때만 토스트

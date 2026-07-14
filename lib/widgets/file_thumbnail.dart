@@ -10,11 +10,11 @@ class FileThumbnail extends StatelessWidget {
   final int cacheSize;
 
   const FileThumbnail({
-    Key? key,
+    super.key,
     required this.file,
     required this.size,
     required this.cacheSize,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -35,9 +35,8 @@ class FileThumbnail extends StatelessWidget {
         gaplessPlayback: true,
         frameBuilder: (ctx, child, frame, _) {
           if (frame != null) {
-
-                  return child;
-                }
+            return child;
+          }
 
           return Container(
             width: size,

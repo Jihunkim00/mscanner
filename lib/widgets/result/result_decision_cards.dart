@@ -69,8 +69,6 @@ String _quickDecisionBadgeLabel(BuildContext context) {
   return ResultUiCopy.text(context, ResultUiCopy.quickPickBadge);
 }
 
-
-
 class ResultDecisionCards extends StatelessWidget {
   const ResultDecisionCards({
     super.key,
@@ -99,12 +97,12 @@ class ResultDecisionCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor =
-    isDarkMode ? Colors.white.withOpacity(0.08) : const Color(0xFFE5E7EB);
+    final borderColor = isDarkMode
+        ? Colors.white.withValues(alpha: 0.08)
+        : const Color(0xFFE5E7EB);
     final cardColor = isDarkMode ? const Color(0xFF1F1F22) : Colors.white;
     final textColor = isDarkMode ? Colors.white : const Color(0xFF111827);
-    final subTextColor =
-    isDarkMode ? Colors.white70 : const Color(0xFF6B7280);
+    final subTextColor = isDarkMode ? Colors.white70 : const Color(0xFF6B7280);
 
     final hasReason = (decisionReason ?? '').trim().isNotEmpty;
 
@@ -122,7 +120,7 @@ class ResultDecisionCards extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
             decoration: BoxDecoration(
               color: isDarkMode
-                  ? Colors.white.withOpacity(0.07)
+                  ? Colors.white.withValues(alpha: 0.07)
                   : const Color(0xFFF3F4F6),
               borderRadius: BorderRadius.circular(999),
             ),
@@ -130,7 +128,7 @@ class ResultDecisionCards extends StatelessWidget {
               _quickDecisionBadgeLabel(context),
               style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: textColor.withOpacity(0.85),
+                color: textColor.withValues(alpha: 0.85),
                 fontSize: 11,
               ),
             ),
@@ -176,7 +174,7 @@ class ResultDecisionCards extends StatelessWidget {
               child: Text(
                 priceLabel!.trim(),
                 style: TextStyle(
-                  color: textColor.withOpacity(0.95),
+                  color: textColor.withValues(alpha: 0.95),
                   fontWeight: FontWeight.w700,
                   fontSize: 13.5,
                 ),
@@ -190,7 +188,7 @@ class ResultDecisionCards extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
               decoration: BoxDecoration(
                 color: isDarkMode
-                    ? Colors.white.withOpacity(0.045)
+                    ? Colors.white.withValues(alpha: 0.045)
                     : const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -199,7 +197,7 @@ class ResultDecisionCards extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: textColor.withOpacity(0.78),
+                  color: textColor.withValues(alpha: 0.78),
                   fontSize: 11.5,
                   fontWeight: FontWeight.w500,
                 ),
@@ -214,7 +212,7 @@ class ResultDecisionCards extends StatelessWidget {
               children: tags.take(2).map((tag) {
                 final normalized = MenuTagRegistry.normalizeCode(tag).trim();
                 final isRegistryTag =
-                _quickDecisionRegistryCodes.contains(normalized);
+                    _quickDecisionRegistryCodes.contains(normalized);
                 final label = isRegistryTag
                     ? quickDecisionTagLabel(normalized)
                     : _plainQuickTagLabel(tag);
@@ -227,11 +225,11 @@ class ResultDecisionCards extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: isDarkMode
-                        ? Colors.white.withOpacity(0.045)
+                        ? Colors.white.withValues(alpha: 0.045)
                         : const Color(0xFFF7F8FA),
                     border: Border.all(
                       color: isDarkMode
-                          ? Colors.white.withOpacity(0.08)
+                          ? Colors.white.withValues(alpha: 0.08)
                           : const Color(0xFFE8EBF0),
                     ),
                     borderRadius: BorderRadius.circular(999),
@@ -243,7 +241,7 @@ class ResultDecisionCards extends StatelessWidget {
                         Icon(
                           MenuTagRegistry.iconForCode(normalized),
                           size: 10.5,
-                          color: textColor.withOpacity(0.6),
+                          color: textColor.withValues(alpha: 0.6),
                         ),
                         const SizedBox(width: 3),
                       ],
@@ -251,7 +249,7 @@ class ResultDecisionCards extends StatelessWidget {
                         label,
                         style: TextStyle(
                           fontSize: 10,
-                          color: textColor.withOpacity(0.74),
+                          color: textColor.withValues(alpha: 0.74),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -324,13 +322,13 @@ class ResultRecommendationCompactCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor =
-    isDarkMode ? Colors.white.withOpacity(0.07) : const Color(0xFFE5E7EB);
+    final borderColor = isDarkMode
+        ? Colors.white.withValues(alpha: 0.07)
+        : const Color(0xFFE5E7EB);
     final cardColor =
-    isDarkMode ? const Color(0xFF252529) : const Color(0xFFFBFCFE);
+        isDarkMode ? const Color(0xFF252529) : const Color(0xFFFBFCFE);
     final textColor = isDarkMode ? Colors.white : const Color(0xFF111827);
-    final subTextColor =
-    isDarkMode ? Colors.white70 : const Color(0xFF6B7280);
+    final subTextColor = isDarkMode ? Colors.white70 : const Color(0xFF6B7280);
 
     return Container(
       width: double.infinity,
@@ -379,7 +377,7 @@ class ResultRecommendationCompactCard extends StatelessWidget {
                       child: Text(
                         priceLabel!.trim(),
                         style: TextStyle(
-                          color: textColor.withOpacity(0.85),
+                          color: textColor.withValues(alpha: 0.85),
                           fontWeight: FontWeight.w600,
                           fontSize: 12.5,
                         ),
@@ -414,7 +412,7 @@ class ResultRecommendationCompactCard extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: isDarkMode
-                                ? Colors.white.withOpacity(0.07)
+                                ? Colors.white.withValues(alpha: 0.07)
                                 : const Color(0xFFF3F4F6),
                             borderRadius: BorderRadius.circular(999),
                           ),
@@ -422,7 +420,7 @@ class ResultRecommendationCompactCard extends StatelessWidget {
                             tag,
                             style: TextStyle(
                               fontSize: 9.5,
-                              color: textColor.withOpacity(0.85),
+                              color: textColor.withValues(alpha: 0.85),
                             ),
                           ),
                         );

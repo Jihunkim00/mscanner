@@ -27,8 +27,7 @@ class _CommentSectionState extends State<CommentSection> {
   }
 
   Future<void> _loadComments() async {
-
-    print('🔥 불러올 geohash5: ${widget.userGeohash}');
+    debugPrint('🔥 불러올 geohash5: ${widget.userGeohash}');
 
     final snapshot = await FirebaseFirestore.instance
         .collection('rag_reviews')
@@ -37,10 +36,11 @@ class _CommentSectionState extends State<CommentSection> {
         .limit(10)
         .get();
     final currentUser = FirebaseAuth.instance.currentUser;
-    final filtered = snapshot.docs.where((doc) => doc['uid'] != currentUser?.uid).toList();
+    final filtered =
+        snapshot.docs.where((doc) => doc['uid'] != currentUser?.uid).toList();
 
-    print('📦 불러온 리뷰 개수 (자기 댓글 제외 후): ${filtered.length}');
-    if (!mounted) return;           // ← 추가
+    debugPrint('📦 불러온 리뷰 개수 (자기 댓글 제외 후): ${filtered.length}');
+    if (!mounted) return; // ← 추가
     setState(() {
       _comments = filtered.cast<QueryDocumentSnapshot<Map<String, dynamic>>>();
       _translatedStates = List.filled(_comments.length, false);
@@ -61,13 +61,14 @@ class _CommentSectionState extends State<CommentSection> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 20),
-        Text(local.commentSection_title, style: Theme.of(context).textTheme.titleMedium),
+        Text(local.commentSection_title,
+            style: Theme.of(context).textTheme.titleMedium),
         _buildCard(first, 0),
         ...(_expanded
             ? rest.asMap().entries.map((entry) {
-          final index = entry.key + 1;
-          return _buildCard(entry.value, index);
-        }).toList()
+                final index = entry.key + 1;
+                return _buildCard(entry.value, index);
+              }).toList()
             : []),
         if (rest.isNotEmpty)
           TextButton(
@@ -83,14 +84,14 @@ class _CommentSectionState extends State<CommentSection> {
     );
   }
 
-  Widget _buildCard(QueryDocumentSnapshot<Map<String, dynamic>> doc, int index) {
+  Widget _buildCard(
+      QueryDocumentSnapshot<Map<String, dynamic>> doc, int index) {
     final data = doc.data();
     final rawTime = data['timestamp'];
     DateTime time;
 
     if (rawTime is Timestamp) {
       time = rawTime.toDate().toLocal(); // ✅ toLocal() 추가
-
     } else if (rawTime is String) {
       time = DateTime.tryParse(rawTime) ?? DateTime.now();
     } else {
@@ -99,13 +100,15 @@ class _CommentSectionState extends State<CommentSection> {
 
     final local = AppLocalizations.of(context)!;
     final String commentLang = data['lang'] ?? 'en';
-    final String systemLang = ui.window.locale.languageCode;
+    final String systemLang =
+        ui.PlatformDispatcher.instance.locale.languageCode;
     final emoji = _getFlagEmoji(commentLang);
     final ago = _formatTimeAgo(time, local);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final String originalText = data['detail'] ?? local.commentSection_noContent;
+    final String originalText =
+        data['detail'] ?? local.commentSection_noContent;
     final bool needsTranslation = commentLang != systemLang;
 
     final bool isTranslated = _translatedStates[index];
@@ -159,20 +162,21 @@ class _CommentSectionState extends State<CommentSection> {
                           originalText,
                           to: systemLang,
                         );
-                        if (!mounted) return;         // ← 추가
+                        if (!mounted) return; // ← 추가
                         setState(() {
                           _translatedTexts[index] = translation.text;
                           _translatedStates[index] = true;
                         });
                       } else {
-                        if (!mounted) return;         // ← 추가
+                        if (!mounted) return; // ← 추가
                         setState(() {
                           _translatedStates[index] = false;
                         });
                       }
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6), // ← 터치 영역 확대
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 6), // ← 터치 영역 확대
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(6),
                         color: Colors.transparent, // 필요 시 살짝 배경 색 넣어도 됨
@@ -181,22 +185,18 @@ class _CommentSectionState extends State<CommentSection> {
                         isTranslated
                             ? local.commentSection_original
                             : local.commentSection_translate,
-                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                     ),
                   ),
                 ),
-
             ],
           ),
         ),
       ),
     );
   }
-
-
-
-
 
   String _getFlagEmoji(String code) {
     const flags = {

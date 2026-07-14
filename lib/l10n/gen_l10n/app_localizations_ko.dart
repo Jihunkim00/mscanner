@@ -323,7 +323,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get aiScanning => 'AI 스캐닝 중...';
 
   @override
-  String get aiLoadingMessage => 'AI는 실수를 할 수 있습니다. 로딩 시간은 대략 5-10초 걸리나 인터넷 연결 상태와 스마트폰 기기에 따라 다를 수 있습니다.';
+  String get aiLoadingMessage =>
+      'AI는 실수를 할 수 있습니다. 로딩 시간은 대략 5-10초 걸리나 인터넷 연결 상태와 스마트폰 기기에 따라 다를 수 있습니다.';
 
   @override
   String get introductionTitle1 => 'Mscanner';
@@ -344,7 +345,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get introductionBody2_2 => '2. 음식 스타일을 선택하세요 (다이어트, 고기 애호가 등)';
 
   @override
-  String get introductionBody2_3 => '3. 스캔할 메뉴의 수를 설정하세요 (메뉴가 많을수록 세부 정보는 적어집니다)';
+  String get introductionBody2_3 =>
+      '3. 스캔할 메뉴의 수를 설정하세요 (메뉴가 많을수록 세부 정보는 적어집니다)';
 
   @override
   String get introductionTitle3 => '설정을 최적화하세요';
@@ -431,7 +433,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get darkdescp => '설정에서 다크 모드를 활성화하여 더 편안한 화면을 즐겨보세요';
 
   @override
-  String get changepassdescp => '보안을 위해 주기적으로 비밀번호를 변경하고 기억하기 쉬운 강력한 비밀번호를 사용하세요';
+  String get changepassdescp =>
+      '보안을 위해 주기적으로 비밀번호를 변경하고 기억하기 쉬운 강력한 비밀번호를 사용하세요';
 
   @override
   String get aIresetdescp => 'AI 스캔 설정을 재설정할 수 있습니다';
@@ -440,7 +443,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get savedescp => '출력 데이터를 서버에 저장하세요. 추가 기능을 활성화하려면 저장이 필요합니다';
 
   @override
-  String get scanFoodPhotoDescription => '음식이나 메뉴를 찍으면 무엇인지 알려드려요! 지금 바로 확인해보세요';
+  String get scanFoodPhotoDescription =>
+      '음식이나 메뉴를 찍으면 무엇인지 알려드려요! 지금 바로 확인해보세요';
 
   @override
   String get activepoint => '포인트는 사용자 활동 지수를 표시하며, 향후 다양한 보상이 제공될 예정입니다.';
@@ -464,13 +468,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get locationPermissionNeeded => '위치 권한이 필요합니다.';
 
   @override
-  String get locationPermissionContent => '이 앱은 제대로 작동하기 위해 위치 권한이 필요합니다. 앱 설정에서 위치 접근을 허용해 주세요.';
+  String get locationPermissionContent =>
+      '이 앱은 제대로 작동하기 위해 위치 권한이 필요합니다. 앱 설정에서 위치 접근을 허용해 주세요.';
 
   @override
   String get locationServiceDisabled => '위치 서비스 비활성화됨';
 
   @override
-  String get locationServiceDisabledContent => '위치 서비스가 비활성화되어 있습니다. 설정에서 위치 서비스를 활성화해 주십시오.';
+  String get locationServiceDisabledContent =>
+      '위치 서비스가 비활성화되어 있습니다. 설정에서 위치 서비스를 활성화해 주십시오.';
 
   @override
   String get openSettings => '설정 열기';
@@ -497,7 +503,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get logoutConfirmationTitle => '로그아웃 확인';
 
   @override
-  String get logoutConfirmationContent => '게스트로 로그아웃하면 모든 데이터가 삭제됩니다. 진행하시겠습니까?';
+  String get logoutConfirmationContent =>
+      '게스트로 로그아웃하면 모든 데이터가 삭제됩니다. 진행하시겠습니까?';
 
   @override
   String get convertAccount => '계정 변환';
@@ -557,7 +564,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get dismissToday => '오늘 하루 안 보기';
 
   @override
-  String get gptErrorMessage => '죄송합니다.\\nAI 서버에 통신 에러가 발생했습니다.\\n잠시 후 다시 시도해주세요.';
+  String get gptErrorMessage =>
+      '죄송합니다.\\nAI 서버에 통신 에러가 발생했습니다.\\n잠시 후 다시 시도해주세요.';
 
   @override
   String get restaurantName => '레스토랑 이름';
@@ -685,7 +693,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get sub_trial_free => '첫 구독자는 체험 기간 동안 요금이 청구되지 않습니다.';
 
   @override
-  String get sub_auto_renew => '체험 종료 후 자동으로 유료 전환되며, 최소 24시간 전에 해지하지 않으면 다음 기간으로 갱신됩니다.';
+  String get sub_auto_renew =>
+      '체험 종료 후 자동으로 유료 전환되며, 최소 24시간 전에 해지하지 않으면 다음 기간으로 갱신됩니다.';
 
   @override
   String get sub_renew_charge => '갱신 비용은 기간 종료 24시간 이내에 청구될 수 있습니다.';
@@ -705,10 +714,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get privacy => '개인정보 처리방침';
 
   @override
-  String get sub_manage_ios => '결제는 Apple ID로 청구되며, 설정 > [사용자 이름] > 구독에서 관리/해지할 수 있습니다.';
+  String get sub_manage_ios =>
+      '결제는 Apple ID로 청구되며, 설정 > [사용자 이름] > 구독에서 관리/해지할 수 있습니다.';
 
   @override
-  String get sub_manage_android => '결제는 Google 계정으로 청구되며, Play 스토어 앱 > 프로필 아이콘 > 결제 및 구독 > 구독에서 관리/해지할 수 있습니다.';
+  String get sub_manage_android =>
+      '결제는 Google 계정으로 청구되며, Play 스토어 앱 > 프로필 아이콘 > 결제 및 구독 > 구독에서 관리/해지할 수 있습니다.';
 
   @override
   String get sub_badge_trial_1m => '🎁 신규 구독자 1개월 무료';
@@ -961,7 +972,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get guestLoginTitle2 => '환영합니다, 탐험가!';
 
   @override
-  String get guestLoginContent2 => '게스트 모드에서는 음식 메뉴를 스캔해 개인화된 추천을 받을 수 있지만, 즐겨찾기를 저장하거나 여러 기기에서 사용 내역을 확인할 수는 없습니다.';
+  String get guestLoginContent2 =>
+      '게스트 모드에서는 음식 메뉴를 스캔해 개인화된 추천을 받을 수 있지만, 즐겨찾기를 저장하거나 여러 기기에서 사용 내역을 확인할 수는 없습니다.';
 
   @override
   String get confirm2 => '비회원으로 계속';
@@ -979,10 +991,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get result_noMenuItemsFound => '메뉴 항목을 찾을 수 없습니다.';
 
   @override
-  String get result_notMenuMessage => '이 이미지는 음식 메뉴로 보이지 않습니다. 메뉴 이름이나 음식 이름이 선명하게 보이도록 사진을 다시 찍어 주세요.';
+  String get result_notMenuMessage =>
+      '이 이미지는 음식 메뉴로 보이지 않습니다. 메뉴 이름이나 음식 이름이 선명하게 보이도록 사진을 다시 찍어 주세요.';
 
   @override
-  String get result_uncertainMenuMessage => '이게 음식 메뉴인지 확실하지 않네요. 메뉴 이름과 가격이 또렷하게 보이도록 사진을 다시 찍어 주세요.';
+  String get result_uncertainMenuMessage =>
+      '이게 음식 메뉴인지 확실하지 않네요. 메뉴 이름과 가격이 또렷하게 보이도록 사진을 다시 찍어 주세요.';
 
   @override
   String get result_aiTimeoutMoreResponse => 'AI 응답을 더 기다리는 동안 시간이 초과되었습니다.';
@@ -994,10 +1008,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get result_aiTimeoutFullMenu => '전체 메뉴를 기다리는 동안 시간이 초과되었습니다.';
 
   @override
-  String get result_aiTimeoutFullMenuStream => '전체 메뉴 스트림을 기다리는 동안 시간 초과가 발생했습니다.';
+  String get result_aiTimeoutFullMenuStream =>
+      '전체 메뉴 스트림을 기다리는 동안 시간 초과가 발생했습니다.';
 
   @override
-  String get result_aiReceiveFailedFullMenuStream => '전체 메뉴 스트림을 수신하는 동안 실패했습니다.';
+  String get result_aiReceiveFailedFullMenuStream =>
+      '전체 메뉴 스트림을 수신하는 동안 실패했습니다.';
 
   @override
   String get result_aiEmptyStreamResponse => 'AI가 빈 스트림 응답을 반환했습니다.';
@@ -1072,7 +1088,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get premiumLoginRequiredTitle => '프리미엄을 시작하려면 로그인이 필요해요';
 
   @override
-  String get premiumLoginRequiredMessage => '구매 내역 복원, 구독 유지, 기기 변경 시 복원을 위해 계정 연결이 필요해요.';
+  String get premiumLoginRequiredMessage =>
+      '구매 내역 복원, 구독 유지, 기기 변경 시 복원을 위해 계정 연결이 필요해요.';
 
   @override
   String get premiumLoginRequiredAction => '로그인 후 계속';
@@ -1087,7 +1104,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get premiumGuestSectionTitle => '게스트 모드에서는 프리미엄 구매 전에 계정 연결이 필요해요';
 
   @override
-  String get premiumGuestSectionMessage => '프리미엄 구독은 계정에 연결되어 구매 내역 복원과 기기 간 유지가 가능해요.';
+  String get premiumGuestSectionMessage =>
+      '프리미엄 구독은 계정에 연결되어 구매 내역 복원과 기기 간 유지가 가능해요.';
 
   @override
   String get premiumGuestConvertButton => '계정 전환 후 계속';

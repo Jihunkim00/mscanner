@@ -21,7 +21,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alreadyHaveAccount => 'Already have an account? ';
 
   @override
-  String get areYouSureDeleteAccount => 'Are you sure you want to delete your account? This action cannot be undone.';
+  String get areYouSureDeleteAccount =>
+      'Are you sure you want to delete your account? This action cannot be undone.';
 
   @override
   String get camera => 'Camera';
@@ -72,7 +73,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get engine => 'Engine';
 
   @override
-  String get enterYourEmailtoResetPassword => 'Enter your email to reset your password';
+  String get enterYourEmailtoResetPassword =>
+      'Enter your email to reset your password';
 
   @override
   String get failedChangePassword => 'Failed to change password';
@@ -216,7 +218,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passwordChangedSuccess => 'Password changed successfully.';
 
   @override
-  String get passwordResetEmailSent => 'Password reset email sent. Please check your inbox';
+  String get passwordResetEmailSent =>
+      'Password reset email sent. Please check your inbox';
 
   @override
   String get passwordsDoNotMatch => 'Passwords do not match';
@@ -236,7 +239,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privacyPolicy => 'Privacy Policy';
 
   @override
-  String get requiresRecentLogin => 'Please log in again and try deleting the account.';
+  String get requiresRecentLogin =>
+      'Please log in again and try deleting the account.';
 
   @override
   String get resetPassword => 'Reset Passwoprd';
@@ -278,7 +282,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get yourFoodMenu => 'Your Food Menu';
 
   @override
-  String get passwordResetError => 'An error occurred while sending the password reset email.';
+  String get passwordResetError =>
+      'An error occurred while sending the password reset email.';
 
   @override
   String get save => 'Save';
@@ -308,7 +313,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enterRestaurantName => 'Enter restaurant name';
 
   @override
-  String get pleaseEnterRestaurantAndRating => 'Please enter a restaurant name and rating';
+  String get pleaseEnterRestaurantAndRating =>
+      'Please enter a restaurant name and rating';
 
   @override
   String get all => 'All';
@@ -323,7 +329,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiScanning => 'AI Scanning...';
 
   @override
-  String get aiLoadingMessage => 'AI can make mistakes. The loading time typically takes around 5-10 seconds, but it may vary depending on your internet connection and smartphone device.';
+  String get aiLoadingMessage =>
+      'AI can make mistakes. The loading time typically takes around 5-10 seconds, but it may vary depending on your internet connection and smartphone device.';
 
   @override
   String get introductionTitle1 => 'Mscanner';
@@ -332,19 +339,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get introductionSubtitle1 => 'by THJ';
 
   @override
-  String get introductionBody1 => 'Feel comfortable choosing food at restaurants worldwide';
+  String get introductionBody1 =>
+      'Feel comfortable choosing food at restaurants worldwide';
 
   @override
   String get introductionTitle2 => 'How would you like to scan the menu?';
 
   @override
-  String get introductionBody2_1 => '1. Select your language (English or native)';
+  String get introductionBody2_1 =>
+      '1. Select your language (English or native)';
 
   @override
-  String get introductionBody2_2 => '2. Choose your food style (dietary, beef lover, etc.)';
+  String get introductionBody2_2 =>
+      '2. Choose your food style (dietary, beef lover, etc.)';
 
   @override
-  String get introductionBody2_3 => '3. Set the number of menus you want to scan. (more menus, less detail)';
+  String get introductionBody2_3 =>
+      '3. Set the number of menus you want to scan. (more menus, less detail)';
 
   @override
   String get introductionTitle3 => 'Optimize Your settings';
@@ -359,7 +370,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get introductionBody3_3 => '3. Reset your menu scan settings';
 
   @override
-  String get introductionBody3_4 => '4. Save your data online to enable more features';
+  String get introductionBody3_4 =>
+      '4. Save your data online to enable more features';
 
   @override
   String get introductionTitle4 => 'Share your Result';
@@ -377,10 +389,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get introductionTitle5 => 'Save your experiences';
 
   @override
-  String get introductionBody5_1 => '1. Active points(shows your activity in Mscanner)';
+  String get introductionBody5_1 =>
+      '1. Active points(shows your activity in Mscanner)';
 
   @override
-  String get introductionBody5_2 => '2. Enter the name of the restaurant you visited';
+  String get introductionBody5_2 =>
+      '2. Enter the name of the restaurant you visited';
 
   @override
   String get introductionBody5_3 => '3. Rate Restaurant';
@@ -419,31 +433,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cloudsavingError => 'Cloud Saving Error';
 
   @override
-  String get languagesdescprition => 'Take a photo of a food item or menu and select the language for the output';
+  String get languagesdescprition =>
+      'Take a photo of a food item or menu and select the language for the output';
 
   @override
-  String get fooddescprition => 'Please select a diet or meal plan. The AI will provide recommendations and explanations based on your selection';
+  String get fooddescprition =>
+      'Please select a diet or meal plan. The AI will provide recommendations and explanations based on your selection';
 
   @override
-  String get menudescribe => 'Please select the number of food menu items to display. The fewer items you select, the more detailed the descriptions will be';
+  String get menudescribe =>
+      'Please select the number of food menu items to display. The fewer items you select, the more detailed the descriptions will be';
 
   @override
-  String get darkdescp => 'Enable dark mode for a more comfortable viewing experience';
+  String get darkdescp =>
+      'Enable dark mode for a more comfortable viewing experience';
 
   @override
-  String get changepassdescp => 'For security, regularly change your password and use a strong password that is easy to remember';
+  String get changepassdescp =>
+      'For security, regularly change your password and use a strong password that is easy to remember';
 
   @override
   String get aIresetdescp => 'You can reset the AI scan settings';
 
   @override
-  String get savedescp => 'Save the output data to the server. Saving is required to enable additional features';
+  String get savedescp =>
+      'Save the output data to the server. Saving is required to enable additional features';
 
   @override
-  String get scanFoodPhotoDescription => 'Take a photo of a food item or menu and find out what it is! Check it out now';
+  String get scanFoodPhotoDescription =>
+      'Take a photo of a food item or menu and find out what it is! Check it out now';
 
   @override
-  String get activepoint => 'The points display the user activity index, and various rewards will be provided in the future.';
+  String get activepoint =>
+      'The points display the user activity index, and various rewards will be provided in the future.';
 
   @override
   String get todayrecommand => 'Today\'s Recommendation';
@@ -464,19 +486,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get locationPermissionNeeded => 'Location Permission Required';
 
   @override
-  String get locationPermissionContent => 'This app requires location permissions to function properly. Please allow location access in the app settings.';
+  String get locationPermissionContent =>
+      'This app requires location permissions to function properly. Please allow location access in the app settings.';
 
   @override
   String get locationServiceDisabled => 'Location Services Disabled';
 
   @override
-  String get locationServiceDisabledContent => 'Location services are disabled. Please enable location services in the settings.';
+  String get locationServiceDisabledContent =>
+      'Location services are disabled. Please enable location services in the settings.';
 
   @override
   String get openSettings => 'Open Settings';
 
   @override
-  String get languagesdescprition1 => 'Unlock a world of culinary delights with one scan.';
+  String get languagesdescprition1 =>
+      'Unlock a world of culinary delights with one scan.';
 
   @override
   String get continueAsGuest => 'Continue as Guest';
@@ -485,7 +510,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guestLoginTitle => 'Guest login';
 
   @override
-  String get guestLoginContent => 'You are logged in as a guest. All data will be deleted upon logout.';
+  String get guestLoginContent =>
+      'You are logged in as a guest. All data will be deleted upon logout.';
 
   @override
   String get confirm => 'Confirm';
@@ -497,13 +523,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logoutConfirmationTitle => 'Logout Confirmation';
 
   @override
-  String get logoutConfirmationContent => 'Logging out as a guest will delete all your data. Do you want to proceed?';
+  String get logoutConfirmationContent =>
+      'Logging out as a guest will delete all your data. Do you want to proceed?';
 
   @override
   String get convertAccount => 'Convert Account';
 
   @override
-  String get accountConversionDescription => 'Convert your guest account to a permanent account to save your data.';
+  String get accountConversionDescription =>
+      'Convert your guest account to a permanent account to save your data.';
 
   @override
   String get accountConversionSuccess => 'Account successfully converted.';
@@ -545,7 +573,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loadingFinalizing => 'Finalizing the details...';
 
   @override
-  String get loadingWaiting => 'Just a bit more... Thank you for your patience!';
+  String get loadingWaiting =>
+      'Just a bit more... Thank you for your patience!';
 
   @override
   String get emergencyTitle => 'Emergency Notice';
@@ -557,7 +586,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dismissToday => 'Don\'t show again today';
 
   @override
-  String get gptErrorMessage => 'Sorry.\\nA AI Server communication error occurred.\\n Please try again later.';
+  String get gptErrorMessage =>
+      'Sorry.\\nA AI Server communication error occurred.\\n Please try again later.';
 
   @override
   String get restaurantName => 'Restaurant name';
@@ -682,13 +712,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sub_disclaimer_title => 'Subscription Information';
 
   @override
-  String get sub_trial_free => 'First-time subscribers are not charged during the trial period.';
+  String get sub_trial_free =>
+      'First-time subscribers are not charged during the trial period.';
 
   @override
-  String get sub_auto_renew => 'After the trial ends, the subscription automatically renews unless canceled at least 24 hours before the end of the current period.';
+  String get sub_auto_renew =>
+      'After the trial ends, the subscription automatically renews unless canceled at least 24 hours before the end of the current period.';
 
   @override
-  String get sub_renew_charge => 'Renewal charges may occur within 24 hours before the end of the current period.';
+  String get sub_renew_charge =>
+      'Renewal charges may occur within 24 hours before the end of the current period.';
 
   @override
   String sub_period_price(Object period, Object price) {
@@ -696,7 +729,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get sub_restore => 'Previously purchased items can be restored using \"Restore Purchases\".';
+  String get sub_restore =>
+      'Previously purchased items can be restored using \"Restore Purchases\".';
 
   @override
   String get terms => 'Terms of Service';
@@ -705,10 +739,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privacy => 'Privacy Policy';
 
   @override
-  String get sub_manage_ios => 'Payments are charged to your Apple ID and subscriptions can be managed or canceled in Settings > [your name] > Subscriptions.';
+  String get sub_manage_ios =>
+      'Payments are charged to your Apple ID and subscriptions can be managed or canceled in Settings > [your name] > Subscriptions.';
 
   @override
-  String get sub_manage_android => 'Payments are charged to your Google account and subscriptions can be managed or canceled in the Play Store app > Profile icon > Payments & subscriptions > Subscriptions.';
+  String get sub_manage_android =>
+      'Payments are charged to your Google account and subscriptions can be managed or canceled in the Play Store app > Profile icon > Payments & subscriptions > Subscriptions.';
 
   @override
   String get sub_badge_trial_1m => '🎁 1‑month free for first‑time subscribers';
@@ -732,7 +768,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get login_welcomeBack => 'Welcome back';
 
   @override
-  String get login_subtitle => 'A smarter, easier way to explore food with AI—let’s get started.';
+  String get login_subtitle =>
+      'A smarter, easier way to explore food with AI—let’s get started.';
 
   @override
   String get login_emailLabel => 'Email Address';
@@ -756,7 +793,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get login_signUpFree => 'Sign up for free';
 
   @override
-  String get signup_subtitle => 'Create an account to save scans, manage presets, and unlock premium features.';
+  String get signup_subtitle =>
+      'Create an account to save scans, manage presets, and unlock premium features.';
 
   @override
   String get signup_emailLabel => 'Email Address';
@@ -920,7 +958,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get favorite_restaurantNameHint => 'Restaurant name';
 
   @override
-  String get result_fxRateLoadFailed => 'Couldn\'t load exchange rates. Please check your connection.';
+  String get result_fxRateLoadFailed =>
+      'Couldn\'t load exchange rates. Please check your connection.';
 
   @override
   String get result_fxConvertFailed => 'Couldn\'t convert this amount.';
@@ -943,10 +982,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get result_preparingMenu => 'Preparing detailed menu…';
 
   @override
-  String get result_failedLoadSettings => 'Couldn\'t load settings. Cloud save is enabled by default.';
+  String get result_failedLoadSettings =>
+      'Couldn\'t load settings. Cloud save is enabled by default.';
 
   @override
-  String get result_imageUploadFailed => 'Image upload failed. Please try again.';
+  String get result_imageUploadFailed =>
+      'Image upload failed. Please try again.';
 
   @override
   String get result_analyzing => 'Analyzing food details';
@@ -961,7 +1002,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guestLoginTitle2 => 'Welcome, Explorer!';
 
   @override
-  String get guestLoginContent2 => 'In Guest Mode, you can scan food menus to get personalized recommendations, but you won’t be able to save your favorites or view history across devices.';
+  String get guestLoginContent2 =>
+      'In Guest Mode, you can scan food menus to get personalized recommendations, but you won’t be able to save your favorites or view history across devices.';
 
   @override
   String get confirm2 => 'Continue as Guest';
@@ -979,28 +1021,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get result_noMenuItemsFound => 'No menu items found.';
 
   @override
-  String get result_notMenuMessage => 'This image does not appear to be a food menu. Please retake the photo so menu names or food names are clearly visible.';
+  String get result_notMenuMessage =>
+      'This image does not appear to be a food menu. Please retake the photo so menu names or food names are clearly visible.';
 
   @override
-  String get result_uncertainMenuMessage => 'Not sure this is a food menu. Please retake the photo so menu names and prices are clearly visible.';
+  String get result_uncertainMenuMessage =>
+      'Not sure this is a food menu. Please retake the photo so menu names and prices are clearly visible.';
 
   @override
-  String get result_aiTimeoutMoreResponse => 'Timed out while waiting for more AI response.';
+  String get result_aiTimeoutMoreResponse =>
+      'Timed out while waiting for more AI response.';
 
   @override
-  String get result_aiTimeoutFirstChunk => 'Timed out before first AI chunk arrived.';
+  String get result_aiTimeoutFirstChunk =>
+      'Timed out before first AI chunk arrived.';
 
   @override
-  String get result_aiTimeoutFullMenu => 'Timed out while waiting for full menu.';
+  String get result_aiTimeoutFullMenu =>
+      'Timed out while waiting for full menu.';
 
   @override
-  String get result_aiTimeoutFullMenuStream => 'Timed out while waiting for full menu stream.';
+  String get result_aiTimeoutFullMenuStream =>
+      'Timed out while waiting for full menu stream.';
 
   @override
-  String get result_aiReceiveFailedFullMenuStream => 'Failed while receiving full menu stream.';
+  String get result_aiReceiveFailedFullMenuStream =>
+      'Failed while receiving full menu stream.';
 
   @override
-  String get result_aiEmptyStreamResponse => 'AI returned an empty stream response.';
+  String get result_aiEmptyStreamResponse =>
+      'AI returned an empty stream response.';
 
   @override
   String get tts_orderPhraseTitle => 'Create ordering phrase';
@@ -1018,7 +1068,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tts_generatePhraseButton => 'Generate phrase';
 
   @override
-  String get tts_generationFailed => 'Failed to generate phrase. Please try again in a moment.';
+  String get tts_generationFailed =>
+      'Failed to generate phrase. Please try again in a moment.';
 
   @override
   String get tts_resultSectionTitle => 'Generated phrase';
@@ -1072,7 +1123,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get premiumLoginRequiredTitle => 'Sign in to start Premium';
 
   @override
-  String get premiumLoginRequiredMessage => 'Sign in to restore purchases, keep your subscription, and access Premium across devices.';
+  String get premiumLoginRequiredMessage =>
+      'Sign in to restore purchases, keep your subscription, and access Premium across devices.';
 
   @override
   String get premiumLoginRequiredAction => 'Sign in to continue';
@@ -1084,10 +1136,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get premiumStartCta => 'Start Premium';
 
   @override
-  String get premiumGuestSectionTitle => 'Connect your account before purchasing Premium in guest mode';
+  String get premiumGuestSectionTitle =>
+      'Connect your account before purchasing Premium in guest mode';
 
   @override
-  String get premiumGuestSectionMessage => 'Premium subscriptions are linked to your account so purchases can be restored and used across devices.';
+  String get premiumGuestSectionMessage =>
+      'Premium subscriptions are linked to your account so purchases can be restored and used across devices.';
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';

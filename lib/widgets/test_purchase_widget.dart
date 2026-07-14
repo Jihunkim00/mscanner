@@ -14,12 +14,10 @@ import '/screens/log_service.dart';
 import '/analytics_service.dart';
 import 'package:flutter/cupertino.dart';
 
-
 class TestPurchaseWidget extends StatefulWidget {
   const TestPurchaseWidget({super.key, this.onPurchased});
 
   final VoidCallback? onPurchased; // ✅ 추가
-
 
   @override
   State<TestPurchaseWidget> createState() => _TestPurchaseWidgetState();
@@ -47,7 +45,8 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
   void initState() {
     super.initState();
     _log.logPremiumCtaClick(placement: 'settings', plan: 'view');
-    unawaited(AnalyticsService.instance.logPaywallView(source: 'settings', trigger: 'purchase_widget_open'));
+    unawaited(AnalyticsService.instance
+        .logPaywallView(source: 'settings', trigger: 'purchase_widget_open'));
     _sub = _iap.purchaseStream.listen(
       _onPurchaseUpdated,
       onError: _onPurchaseError,
@@ -127,7 +126,7 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
           .get();
 
       if (doc.exists) {
-        final data = doc.data()! as Map<String, dynamic>;
+        final data = doc.data()!;
 
         // 1) 영구 광고 제거 권리
         isAdFree = data['adFreePurchased'] as bool? ?? false;
@@ -137,22 +136,26 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
         final now = DateTime.now();
 
         if (premium is Map<String, dynamic>) {
-          final status = (premium['status'] as String? ?? 'expired').toLowerCase();
+          final status =
+              (premium['status'] as String? ?? 'expired').toLowerCase();
           final Timestamp? ts = premium['expiresAt'] as Timestamp?;
           final DateTime? expiresAt = ts?.toDate();
 
           final bool hasExpires = expiresAt != null;
-          final bool entitlementValid = hasExpires && now.isBefore(expiresAt!);
+          final bool entitlementValid = hasExpires && now.isBefore(expiresAt);
 
           // 서버가 권리 확정 전/유예 중인 상태
-          final bool statusActive = status == 'active' || status == 'grace' || status == 'pending';
+          final bool statusActive =
+              status == 'active' || status == 'grace' || status == 'pending';
 
           // 취소했어도 만료 전 권리는 유지
-          final bool canceledButEntitled = status == 'canceled' && entitlementValid;
+          final bool canceledButEntitled =
+              status == 'canceled' && entitlementValid;
 
           // 권장 로직: 만료일이 있으면 그걸 우선시
           if (hasExpires) {
-            isSubscribed = entitlementValid || statusActive || canceledButEntitled;
+            isSubscribed =
+                entitlementValid || statusActive || canceledButEntitled;
           } else {
             // expiresAt 없으면 무기한 활성 방지: 활성 상태에서만 임시 true
             isSubscribed = statusActive;
@@ -175,6 +178,7 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
     }
 
     // Provider 반영 (기존 그대로)
+    if (!mounted) return;
     final adProvider = Provider.of<AdRemoveProvider>(context, listen: false);
     adProvider.setRemoveAds(isAdFree);
     adProvider.setSubscribed(isSubscribed);
@@ -185,7 +189,6 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
     });
   }
 
-
   void _onPurchaseUpdated(List<PurchaseDetails> purchases) async {
     // ✅ 3개월 상품 제거에 따라 복원 대상도 정리
     const restoreIds = {'remove_ads', 'premium_monthly'};
@@ -194,10 +197,12 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
       final status = purchase.status;
       final id = purchase.productID;
       final isPurchased = status == PurchaseStatus.purchased;
-      final isRestored = status == PurchaseStatus.restored && restoreIds.contains(id);
+      final isRestored =
+          status == PurchaseStatus.restored && restoreIds.contains(id);
 
       if (isPurchased || isRestored) {
-        final txId = purchase.purchaseID ?? purchase.verificationData.serverVerificationData;
+        final txId = purchase.purchaseID ??
+            purchase.verificationData.serverVerificationData;
         if (!_processedTxns.contains(txId)) {
           _processedTxns.add(txId);
           _onPurchaseSuccess(purchase);
@@ -207,7 +212,6 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
           productId: purchase.productID,
           orderId: purchase.verificationData.serverVerificationData,
         );
-
 
         _iap.completePurchase(purchase);
       } else if (status == PurchaseStatus.error) {
@@ -230,8 +234,9 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
   Future<void> _restoreWithFeedback() async {
     await _log.logPremiumCtaClick(placement: 'settings', plan: 'restore');
     await AnalyticsService.instance.logPurchaseRestoreStarted();
+    if (!mounted) return;
 
-    if (_restoring) return;     // ✅ 가드
+    if (_restoring) return; // ✅ 가드
     _restoring = true;
     final before = _processedTxns.length;
 
@@ -243,10 +248,16 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
       await _iap.restorePurchases();
       await Future.delayed(const Duration(seconds: 2));
     } catch (e) {
+      if (!mounted) {
+        _restoring = false;
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${AppLocalizations.of(context)!.iapRestoreError}: $e')),
+        SnackBar(
+            content:
+                Text('${AppLocalizations.of(context)!.iapRestoreError}: $e')),
       );
-      _restoring = false;        // ✅ 해제
+      _restoring = false; // ✅ 해제
       return;
     }
 
@@ -257,6 +268,10 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
       await AnalyticsService.instance.logPurchaseRestoreEmpty();
     }
 
+    if (!mounted) {
+      _restoring = false;
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -266,16 +281,17 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
         ),
       ),
     );
-    _restoring = false;          // ✅ 해제
+    _restoring = false; // ✅ 해제
   }
-
 
   Future<void> _onPurchaseSuccess(PurchaseDetails purchase) async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null || currentUser.isAnonymous) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.premiumLoginRequiredMessage)),
+        SnackBar(
+            content: Text(
+                AppLocalizations.of(context)!.premiumLoginRequiredMessage)),
       );
       return;
     }
@@ -287,9 +303,10 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
       if (purchase.productID == 'remove_ads') {
         // 영구 광고 제거
         await ref.set({'adFreePurchased': true}, SetOptions(merge: true));
+        if (!mounted) return;
         _isAdFree = true;
-        Provider.of<AdRemoveProvider>(context, listen: false).setRemoveAds(true);
-
+        Provider.of<AdRemoveProvider>(context, listen: false)
+            .setRemoveAds(true);
       } else if (purchase.productID == 'premium_monthly') {
         // ✅ 구독: 만료일 직접 계산 금지. 서버 검증/웹훅으로 채우도록 pending만 기록.
         await ref.set({
@@ -300,18 +317,26 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
             'pendingAt': Timestamp.now(),
           }
         }, SetOptions(merge: true));
+        if (!mounted) return;
 
         _isSubscribed = true;
         _isAdFree = true; // 구독 중엔 광고 제거
 
-        final adProvider = Provider.of<AdRemoveProvider>(context, listen: false);
+        final adProvider =
+            Provider.of<AdRemoveProvider>(context, listen: false);
         adProvider.setSubscribed(true);
         adProvider.setRemoveAds(true);
       }
 
       setState(() {});
 
-      final matchedProduct = _products.where((p) => p.id == purchase.productID).cast<ProductDetails?>().firstWhere((p) => p != null, orElse: () => null);
+      ProductDetails? matchedProduct;
+      for (final product in _products) {
+        if (product.id == purchase.productID) {
+          matchedProduct = product;
+          break;
+        }
+      }
       await AnalyticsService.instance.logPurchaseSuccess(
         productId: purchase.productID,
         currency: matchedProduct?.currencyCode,
@@ -319,6 +344,7 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
       );
     } catch (e) {
       debugPrint('Error saving purchase: $e');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Saving error: $e')),
       );
@@ -328,12 +354,14 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
   }
 
   // ✅ Android: basePlanId=monthly + offerId=free1month 의 offerToken으로 결제
-  String? _findAndroidOfferToken(ProductDetails prod, {
+  String? _findAndroidOfferToken(
+    ProductDetails prod, {
     required String basePlanId,
     required String offerId,
   }) {
     final gp = prod is GooglePlayProductDetails ? prod : null;
-    final offers = gp?.productDetails.subscriptionOfferDetails; // List<SubscriptionOfferDetailsWrapper>?
+    final offers = gp?.productDetails
+        .subscriptionOfferDetails; // List<SubscriptionOfferDetailsWrapper>?
     if (offers == null) return null;
 
     for (final o in offers) {
@@ -348,7 +376,9 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null || currentUser.isAnonymous) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.premiumLoginRequiredMessage)),
+        SnackBar(
+            content: Text(
+                AppLocalizations.of(context)!.premiumLoginRequiredMessage)),
       );
       return;
     }
@@ -384,8 +414,6 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
     _iap.buyNonConsumable(purchaseParam: param);
   }
 
-
-
   @override
   void dispose() {
     _sub.cancel();
@@ -396,15 +424,21 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!; // 👈 추가
 
-        // 👇 따뜻한 모노톤 팔레트 (라이트/다크 자동 전환)
-        final isDark = Theme.of(context).brightness == Brightness.dark;
-        final Color warmCardBg = isDark ? const Color(0xFF3E2F2A) : const Color(0xFFF3ECE7);
-        final Color warmBtnBg  = isDark ? const Color(0xFF4E342E) : const Color(0xFFE8DFDA);
-        final Color warmText   = isDark ? Colors.white : const Color(0xFF4A3B35);
-        final Color warmTextSub= isDark ? Colors.white70 : const Color(0xFF4A3B35).withOpacity(0.75);
-        final Color warmIcon   = isDark ? Colors.white : const Color(0xFF5A463F);
-        final Color warmLink = isDark ? const Color(0xFFE5DDD8) : const Color(0xFF5A4942);
-        final Color warmLegal = isDark ? const Color(0xFFC8BCB4) : const Color(0xFF6F5D55);
+    // 👇 따뜻한 모노톤 팔레트 (라이트/다크 자동 전환)
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color warmCardBg =
+        isDark ? const Color(0xFF3E2F2A) : const Color(0xFFF3ECE7);
+    final Color warmBtnBg =
+        isDark ? const Color(0xFF4E342E) : const Color(0xFFE8DFDA);
+    final Color warmText = isDark ? Colors.white : const Color(0xFF4A3B35);
+    final Color warmTextSub = isDark
+        ? Colors.white70
+        : const Color(0xFF4A3B35).withValues(alpha: 0.75);
+    final Color warmIcon = isDark ? Colors.white : const Color(0xFF5A463F);
+    final Color warmLink =
+        isDark ? const Color(0xFFE5DDD8) : const Color(0xFF5A4942);
+    final Color warmLegal =
+        isDark ? const Color(0xFFC8BCB4) : const Color(0xFF6F5D55);
 
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null) return ListTile(title: Text(_error!));
@@ -418,37 +452,40 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
 // ✅ ANDROID 전용: premium_monthly는 하나만 노출(무료오퍼/기본 중 상황에 맞게 선택)
     if (Platform.isAndroid) {
       // premium 후보들 수집
-      final premiumCandidates = _products.where((p) => p.id == 'premium_monthly').toList();
+      final premiumCandidates =
+          _products.where((p) => p.id == 'premium_monthly').toList();
 
       ProductDetails? chosen;
 
       // 무료 오퍼 토큰 있는지 검사 함수 (null-safe)
-      String? _trialToken(ProductDetails p) => _findAndroidOfferToken(
-        p,
-        basePlanId: 'monthly',
-        offerId: 'free1month',
-      );
+      String? trialToken(ProductDetails p) => _findAndroidOfferToken(
+            p,
+            basePlanId: 'monthly',
+            offerId: 'free1month',
+          );
 
       if (!_isSubscribed) {
         // 첫 구독자 → 무료 오퍼 있는 항목을 우선 선택
         for (final p in premiumCandidates) {
-          if (_trialToken(p) != null) {
+          if (trialToken(p) != null) {
             chosen = p;
             break;
           }
         }
         // 무료 오퍼 후보가 없으면 아무거나 1개
-        chosen ??= premiumCandidates.isNotEmpty ? premiumCandidates.first : null;
+        chosen ??=
+            premiumCandidates.isNotEmpty ? premiumCandidates.first : null;
       } else {
         // 이미 구독 권리 있음 → 기본 플랜(무료오퍼 없는 항목) 우선
         for (final p in premiumCandidates) {
-          if (_trialToken(p) == null) {
+          if (trialToken(p) == null) {
             chosen = p;
             break;
           }
         }
         // 기본 플랜 후보 없으면 아무거나 1개
-        chosen ??= premiumCandidates.isNotEmpty ? premiumCandidates.first : null;
+        chosen ??=
+            premiumCandidates.isNotEmpty ? premiumCandidates.first : null;
       }
 
       // 리스트에서 premium 전부 제거 후, 선택된 것만 1개 추가
@@ -457,7 +494,6 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
         available.add(chosen);
       }
     }
-
 
     // 구독 중인 사용자
     if (_isSubscribed) {
@@ -470,15 +506,14 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
 
     // 구매 가능한 상품이 없을 때
     if (available.isEmpty) {
-      return ListTile(title: Text(AppLocalizations.of(context)!.noAvailableProducts));
+      return ListTile(
+          title: Text(AppLocalizations.of(context)!.noAvailableProducts));
     }
 
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-
-
           // 상품 리스트
           ListView.builder(
             shrinkWrap: true,
@@ -488,7 +523,8 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
               final prod = available[idx];
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
                 elevation: 1,
                 color: warmCardBg,
                 child: Padding(
@@ -506,24 +542,27 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
                             // 👉 여기 Builder(...) 부분 삭제!
                             Text(
                               prod.description,
-                              style: TextStyle(fontSize: 12, color: warmTextSub),
+                              style:
+                                  TextStyle(fontSize: 12, color: warmTextSub),
                             ),
                           ],
                         ),
                       ),
-
                       ElevatedButton(
                         onPressed: () => _buy(prod),
                         style: ElevatedButton.styleFrom(
-                                                      backgroundColor: warmBtnBg,
-                                                      foregroundColor: warmText,
-                                                      elevation: 0,
-                                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
+                          backgroundColor: warmBtnBg,
+                          foregroundColor: warmText,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
                         child: Text(
                           prod.price,
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                          style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w600),
                         ),
                       ),
                     ],
@@ -546,8 +585,6 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
               ),
             ),
 
-
-
           // 👇 고지 문구 블록 (L10n 적용)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -557,26 +594,30 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
                 const Divider(),
                 Text(
                   l10n.sub_disclaimer_title, // "구독 안내"
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: warmText),
+                  style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: warmText),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   '• ${l10n.sub_trial_free}\n'
-                      '• ${l10n.sub_auto_renew}\n'
-                      '• ${Platform.isIOS ? l10n.sub_manage_ios : l10n.sub_manage_android}\n'
-                      '• ${l10n.sub_renew_charge}\n'
-                      '• ${l10n.sub_restore}',
+                  '• ${l10n.sub_auto_renew}\n'
+                  '• ${Platform.isIOS ? l10n.sub_manage_ios : l10n.sub_manage_android}\n'
+                  '• ${l10n.sub_renew_charge}\n'
+                  '• ${l10n.sub_restore}',
                   style: TextStyle(fontSize: 12, color: warmTextSub),
                 ),
-
                 const SizedBox(height: 8),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CupertinoButton(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                      minSize: 34,
-                      onPressed: () => launchUrl(Uri.parse('https://mscanner.net/terms-conditions/')),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 2),
+                      minimumSize: const Size.square(34),
+                      onPressed: () => launchUrl(
+                          Uri.parse('https://mscanner.net/terms-conditions/')),
                       child: Text(
                         l10n.terms,
                         style: TextStyle(
@@ -587,9 +628,11 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
                       ),
                     ),
                     CupertinoButton(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                      minSize: 34,
-                      onPressed: () => launchUrl(Uri.parse('https://mscanner.net/privacy-policy/')),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 2),
+                      minimumSize: const Size.square(34),
+                      onPressed: () => launchUrl(
+                          Uri.parse('https://mscanner.net/privacy-policy/')),
                       child: Text(
                         l10n.privacy,
                         style: TextStyle(
@@ -601,7 +644,6 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
                     ),
                   ],
                 )
-
               ],
             ),
           ),
@@ -612,8 +654,9 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 CupertinoButton(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                  minSize: 34,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                  minimumSize: const Size.square(34),
                   onPressed: _restoreWithFeedback,
                   child: Text(
                     AppLocalizations.of(context)!.restorePurchases,
@@ -627,65 +670,68 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
               ],
             ),
           ),
-
-
         ],
       ),
     );
-
   }
 }
+
 // =========================
 //  헬퍼: 상품 타이틀 표시 위젯
 // =========================
-Widget _buildProductTitle(ProductDetails prod, Color warmText, Color warmTextSub) {
-    final title = prod.title;
+Widget _buildProductTitle(
+    ProductDetails prod, Color warmText, Color warmTextSub) {
+  final title = prod.title;
 
-    // iOS: 앱 이름 접미사가 원래 안 붙으므로 그대로 한 줄 표시
-    if (Platform.isIOS) {
-      return Text(
-        title,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        softWrap: false,
-        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: warmText),
-      );
-    }
-
-    // Android: 끝의 괄호 블록( ( ... ) )만 분리해서 축소 표시
-    // - 예) "Premium Monthly (My Super Long App Name)"
-    final reg = RegExp(r'^(.*?)(\s*\([^()]*\)\s*)$'); // 마지막 괄호 블록만 캡처
-    final m = reg.firstMatch(title);
-
-    if (m == null) {
-      // 괄호 블록이 없으면 일반 텍스트 처리
-      return Text(
-        title,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        softWrap: false,
-        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: warmText),
-      );
-    }
-
-    final mainText = (m.group(1) ?? '').trimRight();
-    final appSuffix = (m.group(2) ?? '').trimLeft();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          mainText,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: warmText),
-        ),
-        Text(
-          appSuffix,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w400, color: warmTextSub),
-        ),
-      ],
+  // iOS: 앱 이름 접미사가 원래 안 붙으므로 그대로 한 줄 표시
+  if (Platform.isIOS) {
+    return Text(
+      title,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      softWrap: false,
+      style:
+          TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: warmText),
     );
+  }
+
+  // Android: 끝의 괄호 블록( ( ... ) )만 분리해서 축소 표시
+  // - 예) "Premium Monthly (My Super Long App Name)"
+  final reg = RegExp(r'^(.*?)(\s*\([^()]*\)\s*)$'); // 마지막 괄호 블록만 캡처
+  final m = reg.firstMatch(title);
+
+  if (m == null) {
+    // 괄호 블록이 없으면 일반 텍스트 처리
+    return Text(
+      title,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      softWrap: false,
+      style:
+          TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: warmText),
+    );
+  }
+
+  final mainText = (m.group(1) ?? '').trimRight();
+  final appSuffix = (m.group(2) ?? '').trimLeft();
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        mainText,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+            fontSize: 15, fontWeight: FontWeight.w600, color: warmText),
+      ),
+      Text(
+        appSuffix,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+            fontSize: 10, fontWeight: FontWeight.w400, color: warmTextSub),
+      ),
+    ],
+  );
 }

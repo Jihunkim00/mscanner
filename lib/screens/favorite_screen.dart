@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:intl/intl.dart';
-import 'dart:typed_data';
 import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'package:flutter/rendering.dart';
@@ -15,26 +14,26 @@ import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import 'mapscreen.dart';
 import 'package:getwidget/getwidget.dart'; // GetWidget 패키지 임포트
 import 'dart:convert';
-import 'package:mscanner/widgets/menu_tag_registry.dart';
 import 'package:mscanner/utils/ai_result_copy_formatter.dart';
 import 'package:mscanner/widgets/result/result_decision_cards.dart';
-
 
 class _FavoriteMenuNamePair {
   final String original;
   final String translated;
-  const _FavoriteMenuNamePair({required this.original, required this.translated});
+  const _FavoriteMenuNamePair(
+      {required this.original, required this.translated});
 
-  String get display => translated.trim().isNotEmpty ? translated.trim() : original.trim();
+  String get display =>
+      translated.trim().isNotEmpty ? translated.trim() : original.trim();
 }
 
 class FavoriteScreen extends StatefulWidget {
   final String documentId;
 
-  FavoriteScreen({required this.documentId});
+  const FavoriteScreen({super.key, required this.documentId});
 
   @override
-  _FavoriteScreenState createState() => _FavoriteScreenState();
+  State<FavoriteScreen> createState() => _FavoriteScreenState();
 }
 
 class _FavoriteScreenState extends State<FavoriteScreen> {
@@ -43,8 +42,9 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
   bool _hasChanges = false;
   final GlobalKey _shareWidgetKey = GlobalKey();
   Map<String, dynamic>? _favoriteData;
-  TextEditingController _restaurantNameController = TextEditingController();
-  TextEditingController _reviewController = TextEditingController();
+  final TextEditingController _restaurantNameController =
+      TextEditingController();
+  final TextEditingController _reviewController = TextEditingController();
   int _rating = 0;
 
   String? _extractJsonObjectFromText(String input) {
@@ -82,13 +82,12 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
       },
       labels: AiResultCopyFormatterLabels(
         recommendedTitle:
-        AppLocalizations.of(context)?.aiAnswer ?? 'Recommended Dishes',
+            AppLocalizations.of(context)?.aiAnswer ?? 'Recommended Dishes',
         summaryTitle:
-        AppLocalizations.of(context)?.favorite_summary ?? 'Summary',
+            AppLocalizations.of(context)?.favorite_summary ?? 'Summary',
         priceLabel: '가격',
         tagsLabel: '태그',
-        noContentFallback:
-        AppLocalizations.of(context)?.favorite_noResponses ??
+        noContentFallback: AppLocalizations.of(context)?.favorite_noResponses ??
             'No responses available',
       ),
     );
@@ -96,10 +95,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
 
   // ✅ JSON(칩 UI) 지원
   Map<String, dynamic>? _aiJson;
-  String? _aiJsonError;
   List<String> _normalizedResponses = const [];
-
-
 
   @override
   void initState() {
@@ -110,12 +106,11 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
 
   Future<void> _checkDarkMode() async {
     final savedThemeMode = await AdaptiveTheme.getThemeMode();
+    if (!mounted) return;
     setState(() {
       _isDarkMode = savedThemeMode == AdaptiveThemeMode.dark;
     });
   }
-
-
 
   Future<void> _fetchFavoriteData() async {
     User? user = FirebaseAuth.instance.currentUser;
@@ -127,6 +122,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
           .doc(widget.documentId)
           .get();
 
+      if (!mounted) return;
       if (docSnapshot.exists) {
         setState(() {
           _favoriteData = docSnapshot.data() as Map<String, dynamic>?;
@@ -141,8 +137,6 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
           });
 
           // 추가: 위도와 경도 데이터 가져오기
-          double latitude = _favoriteData?['latitude'] ?? 0.0;
-          double longitude = _favoriteData?['longitude'] ?? 0.0;
 
           // Listener to detect changes in the restaurant name
           _restaurantNameController.addListener(() {
@@ -175,8 +169,6 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     Map<String, dynamic>? firstJson;
     final List<Map<String, dynamic>> jsonList = [];
 
-    _aiJsonError = null;
-
     for (final r in responses) {
       final s = _extractJsonObjectFromText(r);
       if (s == null) continue;
@@ -188,8 +180,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
           firstJson ??= m;
           jsonList.add(m);
         }
-      } catch (e) {
-        _aiJsonError = 'jsonDecode failed: $e';
+      } catch (_) {
         continue;
       }
     }
@@ -220,7 +211,9 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     String dedupKey(Map<String, dynamic> item) {
       final no = (item['nameOriginal'] ?? '').toString().trim().toLowerCase();
       final nt = (item['name'] ?? '').toString().trim().toLowerCase();
-      return (no.isNotEmpty ? no : nt).isNotEmpty ? (no.isNotEmpty ? no : nt) : item.toString();
+      return (no.isNotEmpty ? no : nt).isNotEmpty
+          ? (no.isNotEmpty ? no : nt)
+          : item.toString();
     }
 
     List<Map<String, dynamic>> dedupList(List<Map<String, dynamic>> items) {
@@ -259,9 +252,15 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
 
     merged['recommended'] = dedupList(recommendedAll);
     merged['fullMenu'] = {
-      'items': { for (final k in fullMenuAll.keys) k: dedupList(fullMenuAll[k]!) },
-      'summary': (firstJson['fullMenu'] is Map) ? ((firstJson['fullMenu']['summary'] ?? '').toString()) : '',
-      'truncated': (firstJson['fullMenu'] is Map) ? (firstJson['fullMenu']['truncated'] == true) : false,
+      'items': {
+        for (final k in fullMenuAll.keys) k: dedupList(fullMenuAll[k]!)
+      },
+      'summary': (firstJson['fullMenu'] is Map)
+          ? ((firstJson['fullMenu']['summary'] ?? '').toString())
+          : '',
+      'truncated': (firstJson['fullMenu'] is Map)
+          ? (firstJson['fullMenu']['truncated'] == true)
+          : false,
     };
 
     _aiJson = merged;
@@ -304,9 +303,10 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final sheetBg = isDark ? const Color(0xFF1C1C1E) : const Color(0xFFFCFCFD);
     final cardBg = isDark ? const Color(0xFF26262A) : Colors.white;
-    final summaryBg = isDark ? const Color(0xFF2C2C31) : const Color(0xFFF6F7F9);
+    final summaryBg =
+        isDark ? const Color(0xFF2C2C31) : const Color(0xFFF6F7F9);
     final borderColor =
-    isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE5E7EB);
+        isDark ? Colors.white.withValues(alpha: 0.08) : const Color(0xFFE5E7EB);
     final titleColor = isDark ? Colors.white : const Color(0xFF111827);
     final subColor = isDark ? Colors.white70 : const Color(0xFF6B7280);
 
@@ -314,7 +314,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.18),
+      barrierColor: Colors.black.withValues(alpha: 0.18),
       builder: (_) {
         return DraggableScrollableSheet(
           expand: false,
@@ -336,7 +336,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                     width: 44,
                     height: 5,
                     decoration: BoxDecoration(
-                      color: subColor.withOpacity(0.28),
+                      color: subColor.withValues(alpha: 0.28),
                       borderRadius: BorderRadius.circular(999),
                     ),
                   ),
@@ -402,11 +402,11 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                                 Text(
                                   truncated
                                       ? (AppLocalizations.of(context)
-                                      ?.favorite_summaryTruncated ??
-                                      'Summary (truncated)')
+                                              ?.favorite_summaryTruncated ??
+                                          'Summary (truncated)')
                                       : (AppLocalizations.of(context)
-                                      ?.favorite_summary ??
-                                      'Summary'),
+                                              ?.favorite_summary ??
+                                          'Summary'),
                                   style: TextStyle(
                                     fontFamily: 'SFPro',
                                     fontSize: 13,
@@ -430,32 +430,38 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                           const SizedBox(height: 18),
                         ],
                         ..._buildMenuSection(
-                          AppLocalizations.of(context)?.favorite_menuMain ?? 'Main',
+                          AppLocalizations.of(context)?.favorite_menuMain ??
+                              'Main',
                           itemsMap?['main'],
                           textColor,
                         ),
                         ..._buildMenuSection(
-                          AppLocalizations.of(context)?.favorite_menuSide ?? 'Side',
+                          AppLocalizations.of(context)?.favorite_menuSide ??
+                              'Side',
                           itemsMap?['side'],
                           textColor,
                         ),
                         ..._buildMenuSection(
-                          AppLocalizations.of(context)?.favorite_menuMeal ?? 'Meal',
+                          AppLocalizations.of(context)?.favorite_menuMeal ??
+                              'Meal',
                           itemsMap?['meal'],
                           textColor,
                         ),
                         ..._buildMenuSection(
-                          AppLocalizations.of(context)?.favorite_menuDrink ?? 'Drink',
+                          AppLocalizations.of(context)?.favorite_menuDrink ??
+                              'Drink',
                           itemsMap?['drink'],
                           textColor,
                         ),
                         ..._buildMenuSection(
-                          AppLocalizations.of(context)?.favorite_menuBeverage ?? 'Beverage',
+                          AppLocalizations.of(context)?.favorite_menuBeverage ??
+                              'Beverage',
                           itemsMap?['beverage'],
                           textColor,
                         ),
                         ..._buildMenuSection(
-                          AppLocalizations.of(context)?.favorite_menuOther ?? 'Other',
+                          AppLocalizations.of(context)?.favorite_menuOther ??
+                              'Other',
                           itemsMap?['unknown'],
                           textColor,
                         ),
@@ -468,7 +474,8 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                               border: Border.all(color: borderColor),
                             ),
                             child: Text(
-                              AppLocalizations.of(context)?.favorite_noResponses ??
+                              AppLocalizations.of(context)
+                                      ?.favorite_noResponses ??
                                   'No menu items found.',
                               style: TextStyle(
                                 fontFamily: 'SFPro',
@@ -495,11 +502,11 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final sectionBg = isDark ? const Color(0xFF26262A) : Colors.white;
     final borderColor =
-    isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE5E7EB);
+        isDark ? Colors.white.withValues(alpha: 0.08) : const Color(0xFFE5E7EB);
     final titleColor = isDark ? Colors.white : const Color(0xFF111827);
     final subColor = isDark ? Colors.white70 : const Color(0xFF6B7280);
     final priceBg =
-    isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFF3F4F6);
+        isDark ? Colors.white.withValues(alpha: 0.08) : const Color(0xFFF3F4F6);
 
     final menuItems = items
         .whereType<Map>()
@@ -531,9 +538,10 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
 
             final displayName = nameOriginal.isNotEmpty
                 ? (nameTranslated.isNotEmpty &&
-                nameTranslated.toLowerCase() != nameOriginal.toLowerCase()
-                ? '$nameOriginal ($nameTranslated)'
-                : nameOriginal)
+                        nameTranslated.toLowerCase() !=
+                            nameOriginal.toLowerCase()
+                    ? '$nameOriginal ($nameTranslated)'
+                    : nameOriginal)
                 : nameTranslated;
 
             final desc = (m['shortDesc'] ?? '').toString();
@@ -611,48 +619,6 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     ];
   }
 
-  Widget _tagChipPhosphor({
-    required String rawTag,
-  }) {
-    final code = MenuTagRegistry.normalizeCode(rawTag);
-    final icon = MenuTagRegistry.iconForCode(code);
-    final bg = MenuTagRegistry.backgroundForCode(code);
-    final showCheck = MenuTagRegistry.isCheckTag(code);
-
-    const foreground = Color(0xFF1F2937);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.black.withOpacity(0.08)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 18, color: foreground),
-          const SizedBox(width: 8),
-          Text(
-            rawTag,
-            style: const TextStyle(
-              fontFamily: 'SFPro',
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: foreground,
-              height: 1.0,
-            ),
-          ),
-          if (showCheck) ...[
-            const SizedBox(width: 10),
-            Icon(Icons.check, size: 18, color: foreground),
-          ],
-        ],
-      ),
-    );
-  }
-
-
   double? _parseAmountAny(dynamic v) {
     if (v == null) return null;
     if (v is num) return v.toDouble();
@@ -672,7 +638,8 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     if (prices is Map) {
       code = (prices['currency'] ?? prices['currencyCode'])?.toString();
     }
-    code ??= (item['currency'] ?? item['currencyCode'] ?? item['priceCurrency'])?.toString();
+    code ??= (item['currency'] ?? item['currencyCode'] ?? item['priceCurrency'])
+        ?.toString();
     final c = code?.trim().toUpperCase();
     return (c == null || c.isEmpty || c == 'NULL') ? null : c;
   }
@@ -728,12 +695,16 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     final a = _formatAmount(amount);
     if (sym != null && sym.isNotEmpty) {
       final base = '$sym$a';
-      if (currencyCode == 'USD' || currencyCode == 'JPY' || currencyCode == 'CNY') {
+      if (currencyCode == 'USD' ||
+          currencyCode == 'JPY' ||
+          currencyCode == 'CNY') {
         return '$base ($currencyCode)';
       }
       return base;
     }
-    if (currencyCode != null && currencyCode.isNotEmpty) return '$currencyCode $a';
+    if (currencyCode != null && currencyCode.isNotEmpty) {
+      return '$currencyCode $a';
+    }
     return a;
   }
 
@@ -743,12 +714,16 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     final aMax = _formatAmount(max);
     if (sym != null && sym.isNotEmpty) {
       var base = '$sym$aMin~$sym$aMax';
-      if (currencyCode == 'USD' || currencyCode == 'JPY' || currencyCode == 'CNY') {
+      if (currencyCode == 'USD' ||
+          currencyCode == 'JPY' ||
+          currencyCode == 'CNY') {
         base += ' ($currencyCode)';
       }
       return base;
     }
-    if (currencyCode != null && currencyCode.isNotEmpty) return '$currencyCode $aMin~$aMax';
+    if (currencyCode != null && currencyCode.isNotEmpty) {
+      return '$currencyCode $aMin~$aMax';
+    }
     return '$aMin~$aMax';
   }
 
@@ -764,7 +739,9 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     }
     if (vals.isEmpty) {
       final raw = (item['price'] ?? '').toString().trim();
-      if (raw.isNotEmpty && RegExp(r'[^\d\s,.]').hasMatch(raw)) return raw;
+      if (raw.isNotEmpty && RegExp(r'[^\d\s,.]').hasMatch(raw)) {
+        return raw;
+      }
       final a = _parseAmountAny(item['price']);
       if (a != null && a > 0) vals.add(a);
     }
@@ -815,11 +792,11 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     final pair = _extractPrimaryMenuPair();
     if (pair != null && pair.display.isNotEmpty) return pair.display;
     return (_favoriteData?['primary_menu'] ??
-        _favoriteData?['menu_name'] ??
-        _favoriteData?['menuName'] ??
-        _favoriteData?['restaurantName'] ??
-        AppLocalizations.of(context)?.favorite_unknownRestaurant ??
-        'Scan result')
+            _favoriteData?['menu_name'] ??
+            _favoriteData?['menuName'] ??
+            _favoriteData?['restaurantName'] ??
+            AppLocalizations.of(context)?.favorite_unknownRestaurant ??
+            'Scan result')
         .toString();
   }
 
@@ -835,11 +812,18 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
   String _decisionSubtitle() {
     final country = (_favoriteData?['country'] ?? '').toString().trim();
     final city = (_favoriteData?['city'] ?? '').toString().trim();
-    final restaurant = (_favoriteData?['restaurantName'] ?? '').toString().trim();
+    final restaurant =
+        (_favoriteData?['restaurantName'] ?? '').toString().trim();
     final location = [country, city].where((e) => e.isNotEmpty).join(', ');
-    if (restaurant.isNotEmpty && location.isNotEmpty) return '$restaurant · $location';
-    if (restaurant.isNotEmpty) return restaurant;
-    if (location.isNotEmpty) return location;
+    if (restaurant.isNotEmpty && location.isNotEmpty) {
+      return '$restaurant · $location';
+    }
+    if (restaurant.isNotEmpty) {
+      return restaurant;
+    }
+    if (location.isNotEmpty) {
+      return location;
+    }
     return AppLocalizations.of(context)?.aiAnswer ?? 'Recommended Dishes';
   }
 
@@ -861,7 +845,11 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     if (rec.isEmpty) return const [];
     final tags = rec.first['tags'];
     if (tags is! List) return const [];
-    return tags.map((e) => e.toString().trim()).where((e) => e.isNotEmpty).take(6).toList();
+    return tags
+        .map((e) => e.toString().trim())
+        .where((e) => e.isNotEmpty)
+        .take(6)
+        .toList();
   }
 
   List<String> _decisionLocalInsights() {
@@ -900,10 +888,10 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
   }
 
   Widget _buildDishRow(
-      Map<String, dynamic> item,
-      Color textColor, {
-        required bool isPrimaryRecommended,
-      }) {
+    Map<String, dynamic> item,
+    Color textColor, {
+    required bool isPrimaryRecommended,
+  }) {
     final nameOriginal = (item['nameOriginal'] ?? '').toString().trim();
     final nameTranslated = (item['name'] ?? '').toString().trim();
     final desc = (item['shortDesc'] ?? '').toString();
@@ -968,7 +956,10 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              responseText.isNotEmpty ? responseText : (AppLocalizations.of(context)?.favorite_noResponses ?? 'No responses available'),
+              responseText.isNotEmpty
+                  ? responseText
+                  : (AppLocalizations.of(context)?.favorite_noResponses ??
+                      'No responses available'),
               style: TextStyle(fontSize: 12, color: textColor),
             ),
             const SizedBox(height: 10),
@@ -978,8 +969,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.copy,
-                        color: Colors.blue, size: 20),
+                    icon: const Icon(Icons.copy, color: Colors.blue, size: 20),
                     onPressed: () => _copyTextToClipboard(responseText),
                   ),
                   IconButton(
@@ -1019,16 +1009,19 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
               textColor,
               isPrimaryRecommended: entry.key == 0,
             );
-          }).toList(),
+          }),
           const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
                 child: InkWell(
                   borderRadius: BorderRadius.circular(16),
-                  onTap: _hasUsableFullMenu() ? () => _showFullMenuSheet(textColor) : null,
+                  onTap: _hasUsableFullMenu()
+                      ? () => _showFullMenuSheet(textColor)
+                      : null,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14),
                     decoration: BoxDecoration(
                       color: _isDarkMode
                           ? const Color(0xFF2A2A2E)
@@ -1036,7 +1029,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: _isDarkMode
-                            ? Colors.white.withOpacity(0.08)
+                            ? Colors.white.withValues(alpha: 0.08)
                             : const Color(0xFFE5E7EB),
                       ),
                     ),
@@ -1046,7 +1039,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                         Icon(
                           CupertinoIcons.square_list,
                           size: 18,
-                          color: textColor.withOpacity(0.86),
+                          color: textColor.withValues(alpha: 0.86),
                         ),
                         const SizedBox(width: 8),
                         Text(
@@ -1063,7 +1056,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                         Icon(
                           CupertinoIcons.chevron_up_chevron_down,
                           size: 13,
-                          color: textColor.withOpacity(0.45),
+                          color: textColor.withValues(alpha: 0.45),
                         ),
                       ],
                     ),
@@ -1079,18 +1072,18 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: _isDarkMode
-                        ? Colors.white.withOpacity(0.08)
+                        ? Colors.white.withValues(alpha: 0.08)
                         : const Color(0xFFE5E7EB),
                   ),
                 ),
                 child: IconButton(
                     icon: Icon(
                       Icons.copy,
-                      color: textColor.withOpacity(0.86),
+                      color: textColor.withValues(alpha: 0.86),
                       size: 20,
                     ),
-                    onPressed: () => _copyTextToClipboard(_buildReadableCopyText())
-                ),
+                    onPressed: () =>
+                        _copyTextToClipboard(_buildReadableCopyText())),
               ),
               const SizedBox(width: 8),
               Container(
@@ -1101,14 +1094,14 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: _isDarkMode
-                        ? Colors.white.withOpacity(0.08)
+                        ? Colors.white.withValues(alpha: 0.08)
                         : const Color(0xFFE5E7EB),
                   ),
                 ),
                 child: IconButton(
                   icon: Icon(
                     CupertinoIcons.square_arrow_up,
-                    color: textColor.withOpacity(0.86),
+                    color: textColor.withValues(alpha: 0.86),
                     size: 22,
                   ),
                   onPressed: _shareCapturedImage,
@@ -1140,10 +1133,10 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
           'review': _reviewController.text.trim(), // ✅ 여기
         });
 
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AppLocalizations.of(context)?.saved ?? 'Saved'),
-
           ),
         );
 
@@ -1151,15 +1144,18 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
           _hasChanges = false; // 저장 후 변경 상태 초기화
         });
       } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${AppLocalizations.of(context)?.favorite_failedSaveChanges ?? 'Failed to save changes'}: $e'),
+            content: Text(
+                '${AppLocalizations.of(context)?.favorite_failedSaveChanges ?? 'Failed to save changes'}: $e'),
             backgroundColor: Colors.red,
           ),
         );
       }
     }
 
+    if (!mounted) return;
     setState(() {
       _isLoading = false;
     });
@@ -1169,14 +1165,17 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     try {
       // 위젯이 완전히 렌더링된 후에 캡처하도록 합니다.
       WidgetsBinding.instance.addPostFrameCallback((_) async {
-        RenderRepaintBoundary? boundary =
-        _shareWidgetKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+        RenderRepaintBoundary? boundary = _shareWidgetKey.currentContext
+            ?.findRenderObject() as RenderRepaintBoundary?;
 
         if (boundary == null) {
-          print('RenderRepaintBoundary is still null');
+          debugPrint('RenderRepaintBoundary is still null');
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(AppLocalizations.of(context)?.favorite_renderNotReady ?? 'Error: RenderRepaintBoundary is not ready.'),
+              content: Text(
+                  AppLocalizations.of(context)?.favorite_renderNotReady ??
+                      'Error: RenderRepaintBoundary is not ready.'),
               backgroundColor: Colors.red,
             ),
           );
@@ -1184,13 +1183,18 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
         }
 
         // 현재 디바이스의 픽셀 비율을 가져오고, 해상도를 높이기 위해 두 배로 설정
+        if (!mounted) return;
         double pixelRatio = MediaQuery.of(context).devicePixelRatio;
         double desiredPixelRatio = pixelRatio * 2;
+        final shareText = AppLocalizations.of(context)?.checkOutRestaurant ??
+            'Check out this restaurant!';
 
         // 높은 픽셀 비율로 이미지 캡처
         var image = await boundary.toImage(pixelRatio: desiredPixelRatio);
-        ByteData? byteData = await image.toByteData(format: ImageByteFormat.png);
-        Uint8List pngBytes = byteData!.buffer.asUint8List();
+        ByteData? byteData =
+            await image.toByteData(format: ImageByteFormat.png);
+        if (byteData == null) return;
+        Uint8List pngBytes = byteData.buffer.asUint8List();
 
         // 임시 파일로 저장
         final tempDir = await getTemporaryDirectory();
@@ -1200,12 +1204,12 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
         // 쉐어 기능 호출
         await Share.shareXFiles(
           [XFile(file.path)],
-          text: AppLocalizations.of(context)?.checkOutRestaurant ?? 'Check out this restaurant!',
+          text: shareText,
         );
       });
     } catch (e) {
       // 예외 발생 시 로그 출력
-      print('Error sharing the image: $e');
+      debugPrint('Error sharing the image: $e');
     }
   }
 
@@ -1214,7 +1218,8 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          AppLocalizations.of(context)?.textCopied ?? 'Text copied to clipboard',
+          AppLocalizations.of(context)?.textCopied ??
+              'Text copied to clipboard',
         ),
         duration: Duration(seconds: 2),
       ),
@@ -1224,23 +1229,23 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
   @override
   Widget build(BuildContext context) {
     final Color backgroundColor =
-    _isDarkMode ? Colors.black : const Color(0xFFF5F6F8);
+        _isDarkMode ? Colors.black : const Color(0xFFF5F6F8);
     final Color textColor =
-    _isDarkMode ? Colors.white : const Color(0xFF111827);
+        _isDarkMode ? Colors.white : const Color(0xFF111827);
 
     final BoxDecoration boxDecoration = BoxDecoration(
       color: _isDarkMode ? const Color(0xFF1F1F22) : Colors.white,
       borderRadius: BorderRadius.circular(16),
       border: Border.all(
         color: _isDarkMode
-            ? Colors.white.withOpacity(0.06)
+            ? Colors.white.withValues(alpha: 0.06)
             : const Color(0xFFE5E7EB),
       ),
       boxShadow: [
         BoxShadow(
           color: _isDarkMode
-              ? Colors.black.withOpacity(0.18)
-              : Colors.black.withOpacity(0.04),
+              ? Colors.black.withValues(alpha: 0.18)
+              : Colors.black.withValues(alpha: 0.04),
           offset: const Offset(0, 8),
           blurRadius: 24,
         ),
@@ -1303,7 +1308,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                           width: double.infinity,
                           image: NetworkImage(_favoriteData!['image_url']),
                           colorFilter: ColorFilter.mode(
-                            Colors.black.withOpacity(0.3),
+                            Colors.black.withValues(alpha: 0.3),
                             BlendMode.darken,
                           ),
                           borderRadius: BorderRadius.circular(16),
@@ -1346,7 +1351,8 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                                           ),
                                           Expanded(
                                             child: Text(
-                                              _favoriteData!['other'] ?? 'Unknown other',
+                                              _favoriteData!['other'] ??
+                                                  'Unknown other',
                                               style: TextStyle(
                                                 fontSize: 14,
                                                 color: Colors.white,
@@ -1365,12 +1371,15 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                                 // 시간 정보
                                 Row(
                                   children: [
-                                    Icon(CupertinoIcons.time, color: Colors.white),
+                                    Icon(CupertinoIcons.time,
+                                        color: Colors.white),
                                     SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
-                                        DateFormat('MMM dd, yyyy - h:mm a').format(
-                                          DateTime.parse(_favoriteData!['timestamp']),
+                                        DateFormat('MMM dd, yyyy - h:mm a')
+                                            .format(
+                                          DateTime.parse(
+                                              _favoriteData!['timestamp']),
                                         ),
                                         style: TextStyle(
                                           fontSize: 14,
@@ -1392,7 +1401,9 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                                     color: Colors.white,
                                   ),
                                   decoration: InputDecoration(
-                                    hintText: AppLocalizations.of(context)?.favorite_restaurantNameHint ?? '레스토랑 이름',
+                                    hintText: AppLocalizations.of(context)
+                                            ?.favorite_restaurantNameHint ??
+                                        '레스토랑 이름',
                                     hintStyle: TextStyle(color: Colors.white70),
                                     border: InputBorder.none,
                                   ),
@@ -1406,17 +1417,23 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                                       onTap: () {
                                         setState(() {
                                           _rating = index + 1;
-                                          _hasChanges =
-                                              _rating != (_favoriteData?['rating'] ?? 0) ||
-                                                  _restaurantNameController.text.trim() != (_favoriteData?['restaurantName'] ?? '');
+                                          _hasChanges = _rating !=
+                                                  (_favoriteData?['rating'] ??
+                                                      0) ||
+                                              _restaurantNameController.text
+                                                      .trim() !=
+                                                  (_favoriteData?[
+                                                          'restaurantName'] ??
+                                                      '');
                                         });
-
                                       },
                                       child: Icon(
                                         index < _rating
                                             ? CupertinoIcons.star_fill
                                             : CupertinoIcons.star,
-                                        color: index < _rating ? Colors.amber : Colors.grey,
+                                        color: index < _rating
+                                            ? Colors.amber
+                                            : Colors.grey,
                                         size: 24.0,
                                       ),
                                     );
@@ -1463,20 +1480,19 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                             color: textColor,
                           ),
                           decoration: InputDecoration(
-                            hintText: AppLocalizations.of(context)?.reviewHint ??
+                            hintText: AppLocalizations.of(context)
+                                    ?.reviewHint ??
                                 'Write your thoughts about this restaurant...',
                             hintStyle: TextStyle(
                               fontFamily: 'SFPro',
                               fontSize: 14,
                               color: Colors.grey,
                             ),
-
                           ),
                         ),
                       ],
                     ),
                   ),
-
                 ],
               ),
             ),
@@ -1490,30 +1506,34 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                 alignment: Alignment.center,
                 child: SizedBox(
                   width: 100,
-                  child:
-                  ElevatedButton(
+                  child: ElevatedButton(
                     onPressed: _isLoading ? null : _saveChanges,
                     style: ElevatedButton.styleFrom(
                       elevation: 0,
-                      foregroundColor: _isDarkMode ? Colors.white : const Color(0xFF111827),
-                      backgroundColor:
-                      _isDarkMode ? const Color(0xFF2A2A2E) : const Color(0xFFF6F7F9),
-                      disabledForegroundColor: (_isDarkMode ? Colors.white : const Color(0xFF111827))
-                          .withOpacity(0.4),
-                      disabledBackgroundColor:
-                      (_isDarkMode ? const Color(0xFF2A2A2E) : const Color(0xFFF6F7F9))
-                          .withOpacity(0.7),
+                      foregroundColor:
+                          _isDarkMode ? Colors.white : const Color(0xFF111827),
+                      backgroundColor: _isDarkMode
+                          ? const Color(0xFF2A2A2E)
+                          : const Color(0xFFF6F7F9),
+                      disabledForegroundColor:
+                          (_isDarkMode ? Colors.white : const Color(0xFF111827))
+                              .withValues(alpha: 0.4),
+                      disabledBackgroundColor: (_isDarkMode
+                              ? const Color(0xFF2A2A2E)
+                              : const Color(0xFFF6F7F9))
+                          .withValues(alpha: 0.7),
                       textStyle: const TextStyle(
                         fontFamily: 'SFPro',
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 18, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                         side: BorderSide(
                           color: _isDarkMode
-                              ? Colors.white.withOpacity(0.08)
+                              ? Colors.white.withValues(alpha: 0.08)
                               : const Color(0xFFE5E7EB),
                         ),
                       ),
@@ -1525,7 +1545,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
             ),
           if (_isLoading)
             Container(
-              color: Colors.black.withOpacity(0.5),
+              color: Colors.black.withValues(alpha: 0.5),
               child: Center(
                 child: CupertinoActivityIndicator(radius: 10.0),
               ),
@@ -1538,8 +1558,11 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
   // 지도 화면으로 이동하는 함수
   void _navigateToMapScreen() {
     if (_favoriteData != null) {
-      String restaurantName = _favoriteData?['restaurantName'] ?? AppLocalizations.of(context)?.favorite_unknownRestaurant ?? 'Unknown Restaurant';
-      GeoPoint geoPoint = _favoriteData?['gps'] ?? GeoPoint(0.0, 0.0); // gps 필드가 없을 경우 기본값 설정
+      String restaurantName = _favoriteData?['restaurantName'] ??
+          AppLocalizations.of(context)?.favorite_unknownRestaurant ??
+          'Unknown Restaurant';
+      GeoPoint geoPoint =
+          _favoriteData?['gps'] ?? GeoPoint(0.0, 0.0); // gps 필드가 없을 경우 기본값 설정
 
       double latitude = geoPoint.latitude;
       double longitude = geoPoint.longitude;
@@ -1611,11 +1634,11 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
       },
     );
   }
+
   @override
   void dispose() {
     _restaurantNameController.dispose();
     _reviewController.dispose();
     super.dispose();
   }
-
 }

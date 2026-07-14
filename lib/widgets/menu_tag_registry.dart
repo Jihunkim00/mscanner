@@ -63,7 +63,6 @@ class MenuTagRegistry {
     'シーフード': seafood,
     '海鮮': seafood,
 
-
     // KO
     '비건': vegan,
     '채식': vegetarian,
@@ -82,7 +81,6 @@ class MenuTagRegistry {
     '달걀': egg,
     '해산물': seafood,
     '생선': seafood,
-
   };
 
   static String normalizeCode(String raw) {
@@ -127,10 +125,10 @@ class MenuTagRegistry {
         return PhosphorIcons.trendUp();
 
       case egg:
-      // ✅ 1차 시도 (있으면 이게 베스트)
-      // return PhosphorIcons.egg();
+        // ✅ 1차 시도 (있으면 이게 베스트)
+        // return PhosphorIcons.egg();
 
-      // ✅ 2.1.0에서 egg()가 없으면 아래처럼 대체(컴파일 100% 보장)
+        // ✅ 2.1.0에서 egg()가 없으면 아래처럼 대체(컴파일 100% 보장)
         return PhosphorIcons.egg();
 
       case seafood:

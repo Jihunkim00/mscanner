@@ -21,7 +21,8 @@ class AppLocalizationsUr extends AppLocalizations {
   String get alreadyHaveAccount => 'کیا آپ کے پاس پہلے سے اکاؤنٹ ہے؟';
 
   @override
-  String get areYouSureDeleteAccount => 'کیا آپ واقعی اپنا اکاؤنٹ ڈیلیٹ کرنا چاہتے ہیں؟ یہ عمل واپس نہیں ہو سکتا۔';
+  String get areYouSureDeleteAccount =>
+      'کیا آپ واقعی اپنا اکاؤنٹ ڈیلیٹ کرنا چاہتے ہیں؟ یہ عمل واپس نہیں ہو سکتا۔';
 
   @override
   String get camera => 'کیمرہ';
@@ -72,7 +73,8 @@ class AppLocalizationsUr extends AppLocalizations {
   String get engine => 'انجن';
 
   @override
-  String get enterYourEmailtoResetPassword => 'اپنا پاسورڈ ری سیٹ کرنے کے لئے اپنا ای میل درج کریں';
+  String get enterYourEmailtoResetPassword =>
+      'اپنا پاسورڈ ری سیٹ کرنے کے لئے اپنا ای میل درج کریں';
 
   @override
   String get failedChangePassword => 'پاس ورڈ تبدیل کرنے میں ناکام';
@@ -216,7 +218,8 @@ class AppLocalizationsUr extends AppLocalizations {
   String get passwordChangedSuccess => 'پاس ورڈ کامیابی سے تبدیل ہوگیا۔';
 
   @override
-  String get passwordResetEmailSent => 'پاسورڈ ری سیٹ ای میل بھیج دی گئی ہے۔ براہ کرم اپنے ان باکس کو چیک کریں';
+  String get passwordResetEmailSent =>
+      'پاسورڈ ری سیٹ ای میل بھیج دی گئی ہے۔ براہ کرم اپنے ان باکس کو چیک کریں';
 
   @override
   String get passwordsDoNotMatch => 'پاس ورڈز میل نہیں کھاتے';
@@ -236,7 +239,8 @@ class AppLocalizationsUr extends AppLocalizations {
   String get privacyPolicy => 'رازداری کی پالیسی';
 
   @override
-  String get requiresRecentLogin => 'براہ کرم دوبارہ لاگ ان کریں اور اکاؤنٹ ڈیلیٹ کرنے کی کوشش کریں۔';
+  String get requiresRecentLogin =>
+      'براہ کرم دوبارہ لاگ ان کریں اور اکاؤنٹ ڈیلیٹ کرنے کی کوشش کریں۔';
 
   @override
   String get resetPassword => 'پاسورڈ ری سیٹ کریں';
@@ -278,7 +282,8 @@ class AppLocalizationsUr extends AppLocalizations {
   String get yourFoodMenu => 'آپ کا کھانے کا مینو';
 
   @override
-  String get passwordResetError => 'پاس ورڈ ری سیٹ ای میل بھیجتے وقت ایک خرابی پیش آگئی۔';
+  String get passwordResetError =>
+      'پاس ورڈ ری سیٹ ای میل بھیجتے وقت ایک خرابی پیش آگئی۔';
 
   @override
   String get save => 'محفوظ کریں';
@@ -308,7 +313,8 @@ class AppLocalizationsUr extends AppLocalizations {
   String get enterRestaurantName => 'ریستوران کا نام درج کریں';
 
   @override
-  String get pleaseEnterRestaurantAndRating => 'براہ کرم ریستوران کا نام اور درجہ بندی درج کریں';
+  String get pleaseEnterRestaurantAndRating =>
+      'براہ کرم ریستوران کا نام اور درجہ بندی درج کریں';
 
   @override
   String get all => 'سب';
@@ -323,7 +329,8 @@ class AppLocalizationsUr extends AppLocalizations {
   String get aiScanning => 'اے آئی اسکیننگ...';
 
   @override
-  String get aiLoadingMessage => 'اے آئی غلطیاں کر سکتا ہے۔ لوڈنگ کا وقت عام طور پر 5-10 سیکنڈ لگتا ہے، لیکن یہ آپ کے انٹرنیٹ کنکشن اور اسمارٹ فون ڈیوائس پر منحصر ہو سکتا ہے۔';
+  String get aiLoadingMessage =>
+      'اے آئی غلطیاں کر سکتا ہے۔ لوڈنگ کا وقت عام طور پر 5-10 سیکنڈ لگتا ہے، لیکن یہ آپ کے انٹرنیٹ کنکشن اور اسمارٹ فون ڈیوائس پر منحصر ہو سکتا ہے۔';
 
   @override
   String get introductionTitle1 => 'ایمسکینر';
@@ -332,19 +339,23 @@ class AppLocalizationsUr extends AppLocalizations {
   String get introductionSubtitle1 => 'بذریعہ THJ';
 
   @override
-  String get introductionBody1 => 'دنیا بھر کے ریستورانوں میں کھانے کا انتخاب کرتے وقت آرام محسوس کریں';
+  String get introductionBody1 =>
+      'دنیا بھر کے ریستورانوں میں کھانے کا انتخاب کرتے وقت آرام محسوس کریں';
 
   @override
   String get introductionTitle2 => 'آپ مینو کو کیسے اسکین کرنا چاہیں گے؟';
 
   @override
-  String get introductionBody2_1 => '1. اپنی زبان منتخب کریں (انگریزی یا مادری زبان)';
+  String get introductionBody2_1 =>
+      '1. اپنی زبان منتخب کریں (انگریزی یا مادری زبان)';
 
   @override
-  String get introductionBody2_2 => '2. اپنے کھانے کا انداز منتخب کریں (غذائیت، گوشت پسند، وغیرہ)';
+  String get introductionBody2_2 =>
+      '2. اپنے کھانے کا انداز منتخب کریں (غذائیت، گوشت پسند، وغیرہ)';
 
   @override
-  String get introductionBody2_3 => '3. وہ مینو کی تعداد سیٹ کریں جو آپ اسکین کرنا چاہتے ہیں (زیادہ مینو، کم تفصیل)';
+  String get introductionBody2_3 =>
+      '3. وہ مینو کی تعداد سیٹ کریں جو آپ اسکین کرنا چاہتے ہیں (زیادہ مینو، کم تفصیل)';
 
   @override
   String get introductionTitle3 => 'اپنی سیٹنگز کو بہتر بنائیں';
@@ -359,7 +370,8 @@ class AppLocalizationsUr extends AppLocalizations {
   String get introductionBody3_3 => '3. مینو اسکین کی ترتیبات کو ری سیٹ کریں';
 
   @override
-  String get introductionBody3_4 => '4. مزید خصوصیات کو فعال کرنے کے لیے اپنے ڈیٹا کو آن لائن محفوظ کریں';
+  String get introductionBody3_4 =>
+      '4. مزید خصوصیات کو فعال کرنے کے لیے اپنے ڈیٹا کو آن لائن محفوظ کریں';
 
   @override
   String get introductionTitle4 => 'اپنا نتیجہ شیئر کریں';
@@ -377,16 +389,19 @@ class AppLocalizationsUr extends AppLocalizations {
   String get introductionTitle5 => 'اپنے تجربات محفوظ کریں';
 
   @override
-  String get introductionBody5_1 => '1. ایکٹیو پوائنٹس (Mscanner میں آپ کی سرگرمی ظاہر کرتے ہیں)';
+  String get introductionBody5_1 =>
+      '1. ایکٹیو پوائنٹس (Mscanner میں آپ کی سرگرمی ظاہر کرتے ہیں)';
 
   @override
-  String get introductionBody5_2 => '2. اس ریستوران کا نام درج کریں جو آپ نے وزٹ کیا';
+  String get introductionBody5_2 =>
+      '2. اس ریستوران کا نام درج کریں جو آپ نے وزٹ کیا';
 
   @override
   String get introductionBody5_3 => '3. ریستوران کی درجہ بندی کریں';
 
   @override
-  String get introductionBody5_4 => '4. آپ نے جو مقامات وزٹ کیے ہیں انہیں نقشے پر دیکھیں';
+  String get introductionBody5_4 =>
+      '4. آپ نے جو مقامات وزٹ کیے ہیں انہیں نقشے پر دیکھیں';
 
   @override
   String get skip => 'چھوڑ دیں';
@@ -419,31 +434,40 @@ class AppLocalizationsUr extends AppLocalizations {
   String get cloudsavingError => 'کلاؤڈ محفوظ کرنے میں خرابی';
 
   @override
-  String get languagesdescprition => 'کسی کھانے کی چیز یا مینو کی تصویر کھینچیں اور نتائج کے لیے زبان منتخب کریں';
+  String get languagesdescprition =>
+      'کسی کھانے کی چیز یا مینو کی تصویر کھینچیں اور نتائج کے لیے زبان منتخب کریں';
 
   @override
-  String get fooddescprition => 'براہ کرم ایک غذا یا کھانے کا منصوبہ منتخب کریں۔ AI آپ کے انتخاب کی بنیاد پر سفارشات اور وضاحتیں فراہم کرے گا';
+  String get fooddescprition =>
+      'براہ کرم ایک غذا یا کھانے کا منصوبہ منتخب کریں۔ AI آپ کے انتخاب کی بنیاد پر سفارشات اور وضاحتیں فراہم کرے گا';
 
   @override
-  String get menudescribe => 'براہ کرم دکھانے کے لیے کھانے کے مینو اشیاء کی تعداد منتخب کریں۔ آپ جتنی کم اشیاء منتخب کریں گے، تفصیلات اتنی ہی زیادہ ہوں گی';
+  String get menudescribe =>
+      'براہ کرم دکھانے کے لیے کھانے کے مینو اشیاء کی تعداد منتخب کریں۔ آپ جتنی کم اشیاء منتخب کریں گے، تفصیلات اتنی ہی زیادہ ہوں گی';
 
   @override
-  String get darkdescp => 'زیادہ آرام دہ دیکھنے کے تجربے کے لیے ڈارک موڈ کو فعال کریں';
+  String get darkdescp =>
+      'زیادہ آرام دہ دیکھنے کے تجربے کے لیے ڈارک موڈ کو فعال کریں';
 
   @override
-  String get changepassdescp => 'حفاظت کے لیے، باقاعدگی سے اپنا پاس ورڈ تبدیل کریں اور ایک مضبوط پاس ورڈ استعمال کریں جو یاد رکھنا آسان ہو';
+  String get changepassdescp =>
+      'حفاظت کے لیے، باقاعدگی سے اپنا پاس ورڈ تبدیل کریں اور ایک مضبوط پاس ورڈ استعمال کریں جو یاد رکھنا آسان ہو';
 
   @override
-  String get aIresetdescp => 'آپ AI اسکین کی ترتیبات کو دوبارہ ترتیب دے سکتے ہیں';
+  String get aIresetdescp =>
+      'آپ AI اسکین کی ترتیبات کو دوبارہ ترتیب دے سکتے ہیں';
 
   @override
-  String get savedescp => 'خروج کا ڈیٹا سرور پر محفوظ کریں۔ اضافی خصوصیات کو فعال کرنے کے لیے محفوظ کرنا ضروری ہے';
+  String get savedescp =>
+      'خروج کا ڈیٹا سرور پر محفوظ کریں۔ اضافی خصوصیات کو فعال کرنے کے لیے محفوظ کرنا ضروری ہے';
 
   @override
-  String get scanFoodPhotoDescription => 'کسی کھانے کی چیز یا مینو کی تصویر کھینچیں اور معلوم کریں کہ یہ کیا ہے! ابھی کوشش کریں';
+  String get scanFoodPhotoDescription =>
+      'کسی کھانے کی چیز یا مینو کی تصویر کھینچیں اور معلوم کریں کہ یہ کیا ہے! ابھی کوشش کریں';
 
   @override
-  String get activepoint => 'پوائنٹس صارف کی سرگرمی کا اشاریہ ظاہر کرتے ہیں، اور مستقبل میں مختلف انعامات فراہم کیے جائیں گے۔';
+  String get activepoint =>
+      'پوائنٹس صارف کی سرگرمی کا اشاریہ ظاہر کرتے ہیں، اور مستقبل میں مختلف انعامات فراہم کیے جائیں گے۔';
 
   @override
   String get todayrecommand => 'آج کی سفارش';
@@ -464,19 +488,22 @@ class AppLocalizationsUr extends AppLocalizations {
   String get locationPermissionNeeded => 'مقام کی اجازت درکار ہے';
 
   @override
-  String get locationPermissionContent => 'اس ایپ کے صحیح طور پر کام کرنے کے لیے لوکیشن کی اجازت کی ضرورت ہے۔ براہ کرم ایپ کی سیٹنگز میں لوکیشن کی رسائی کی اجازت دیں۔';
+  String get locationPermissionContent =>
+      'اس ایپ کے صحیح طور پر کام کرنے کے لیے لوکیشن کی اجازت کی ضرورت ہے۔ براہ کرم ایپ کی سیٹنگز میں لوکیشن کی رسائی کی اجازت دیں۔';
 
   @override
   String get locationServiceDisabled => 'مقام کی خدمات غیر فعال ہیں';
 
   @override
-  String get locationServiceDisabledContent => 'لوکیشن سروسز غیر فعال ہیں۔ براہ کرم سیٹنگز میں لوکیشن سروسز کو فعال کریں۔';
+  String get locationServiceDisabledContent =>
+      'لوکیشن سروسز غیر فعال ہیں۔ براہ کرم سیٹنگز میں لوکیشن سروسز کو فعال کریں۔';
 
   @override
   String get openSettings => 'سیٹنگز کھولیں';
 
   @override
-  String get languagesdescprition1 => 'ایک اسکین کے ساتھ دلی ذائقوں کی دنیا کو کھولیں۔';
+  String get languagesdescprition1 =>
+      'ایک اسکین کے ساتھ دلی ذائقوں کی دنیا کو کھولیں۔';
 
   @override
   String get continueAsGuest => 'مہمان کے طور پر جاری رکھیں';
@@ -485,25 +512,29 @@ class AppLocalizationsUr extends AppLocalizations {
   String get guestLoginTitle => 'مہمان لاگ ان';
 
   @override
-  String get guestLoginContent => 'آپ مہمان کے طور پر لاگ ان ہیں۔ لاگ آؤٹ کرنے پر تمام ڈیٹا حذف کر دیا جائے گا۔';
+  String get guestLoginContent =>
+      'آپ مہمان کے طور پر لاگ ان ہیں۔ لاگ آؤٹ کرنے پر تمام ڈیٹا حذف کر دیا جائے گا۔';
 
   @override
   String get confirm => 'تصدیق کریں';
 
   @override
-  String get guestLoginFailed => 'مہمان لاگ ان ناکام ہوگیا۔ براہ کرم دوبارہ کوشش کریں۔';
+  String get guestLoginFailed =>
+      'مہمان لاگ ان ناکام ہوگیا۔ براہ کرم دوبارہ کوشش کریں۔';
 
   @override
   String get logoutConfirmationTitle => 'لاگ آؤٹ کی تصدیق';
 
   @override
-  String get logoutConfirmationContent => 'مہمان کی حیثیت سے لاگ آؤٹ کرنے سے آپ کا تمام ڈیٹا حذف ہو جائے گا۔ کیا آپ جاری رکھنا چاہتے ہیں؟';
+  String get logoutConfirmationContent =>
+      'مہمان کی حیثیت سے لاگ آؤٹ کرنے سے آپ کا تمام ڈیٹا حذف ہو جائے گا۔ کیا آپ جاری رکھنا چاہتے ہیں؟';
 
   @override
   String get convertAccount => 'اکاؤنٹ منتقل کریں';
 
   @override
-  String get accountConversionDescription => 'اپنے مہمان اکاؤنٹ کو مستقل اکاؤنٹ میں تبدیل کریں تاکہ اپنے ڈیٹا کو محفوظ رکھ سکیں۔';
+  String get accountConversionDescription =>
+      'اپنے مہمان اکاؤنٹ کو مستقل اکاؤنٹ میں تبدیل کریں تاکہ اپنے ڈیٹا کو محفوظ رکھ سکیں۔';
 
   @override
   String get accountConversionSuccess => 'اکاؤنٹ کامیابی سے تبدیل کر دیا گیا۔';
@@ -524,7 +555,8 @@ class AppLocalizationsUr extends AppLocalizations {
   String get viewbycountry => 'ملک کے لحاظ سے دیکھیں';
 
   @override
-  String get cameraHint => 'خوراک کے مینو کو اسکین کرنے کے لیے کیمرے پر ٹیپ کریں۔';
+  String get cameraHint =>
+      'خوراک کے مینو کو اسکین کرنے کے لیے کیمرے پر ٹیپ کریں۔';
 
   @override
   String get manualTitle => 'رہنمائی';
@@ -557,7 +589,8 @@ class AppLocalizationsUr extends AppLocalizations {
   String get dismissToday => 'آج دوبارہ نہ دکھائیں';
 
   @override
-  String get gptErrorMessage => 'معذرت خواہ ہیں۔\\nAI سرور سے مواصلات میں خرابی پیش آئی۔\\nبراہ کرم بعد میں دوبارہ کوشش کریں۔';
+  String get gptErrorMessage =>
+      'معذرت خواہ ہیں۔\\nAI سرور سے مواصلات میں خرابی پیش آئی۔\\nبراہ کرم بعد میں دوبارہ کوشش کریں۔';
 
   @override
   String get restaurantName => 'ریسٹورنٹ کا نام';
@@ -569,7 +602,8 @@ class AppLocalizationsUr extends AppLocalizations {
   String get reviewTitle => 'تبصرہ';
 
   @override
-  String get reviewHint => 'براہ کرم ریستوران کے بارے میں مختصر جائزہ درج کریں۔';
+  String get reviewHint =>
+      'براہ کرم ریستوران کے بارے میں مختصر جائزہ درج کریں۔';
 
   @override
   String get commentSection_title => '🗨 نزدیکی صارفین کے جائزے';
@@ -611,7 +645,8 @@ class AppLocalizationsUr extends AppLocalizations {
   String get iapUnavailable => 'ایپ کے اندر خریداری دستیاب نہیں ہے';
 
   @override
-  String get noAvailableProducts => 'خریداری کے لئے کوئی مصنوعات دستیاب نہیں ہیں';
+  String get noAvailableProducts =>
+      'خریداری کے لئے کوئی مصنوعات دستیاب نہیں ہیں';
 
   @override
   String get premiumUserTitle => 'پریمیم صارف';
@@ -640,7 +675,8 @@ class AppLocalizationsUr extends AppLocalizations {
   String get restorePurchases => 'خریداریوں کی بحالی کریں';
 
   @override
-  String get mergeInProgress => 'تصاویر یکجا کی جا رہی ہیں…\nبراہ کرم انتظار کریں۔';
+  String get mergeInProgress =>
+      'تصاویر یکجا کی جا رہی ہیں…\nبراہ کرم انتظار کریں۔';
 
   @override
   String get fx_title => 'کرنسی کنورٹر';
@@ -682,13 +718,16 @@ class AppLocalizationsUr extends AppLocalizations {
   String get sub_disclaimer_title => 'سبسکرپشن کی معلومات';
 
   @override
-  String get sub_trial_free => 'پہلی بار سبسکرپشن لینے والوں سے آزمائشی مدت میں چارج نہیں لیا جائے گا۔';
+  String get sub_trial_free =>
+      'پہلی بار سبسکرپشن لینے والوں سے آزمائشی مدت میں چارج نہیں لیا جائے گا۔';
 
   @override
-  String get sub_auto_renew => 'ٹیسٹ ختم ہونے کے بعد سبسکرپشن خود بخود ری نیو ہو جائے گی اگر موجودہ مدت کے اختتام سے کم از کم 24 گھنٹے پہلے منسوخ نہ کیا جائے۔';
+  String get sub_auto_renew =>
+      'ٹیسٹ ختم ہونے کے بعد سبسکرپشن خود بخود ری نیو ہو جائے گی اگر موجودہ مدت کے اختتام سے کم از کم 24 گھنٹے پہلے منسوخ نہ کیا جائے۔';
 
   @override
-  String get sub_renew_charge => 'تجدید کے اخراجات موجودہ مدت کے اختتام سے 24 گھنٹے پہلے لاگو ہوسکتے ہیں۔';
+  String get sub_renew_charge =>
+      'تجدید کے اخراجات موجودہ مدت کے اختتام سے 24 گھنٹے پہلے لاگو ہوسکتے ہیں۔';
 
   @override
   String sub_period_price(Object period, Object price) {
@@ -696,7 +735,8 @@ class AppLocalizationsUr extends AppLocalizations {
   }
 
   @override
-  String get sub_restore => 'پہلے کی خریداری کو \"خریداری بحال کریں\" کے ذریعے بحال کیا جا سکتا ہے۔';
+  String get sub_restore =>
+      'پہلے کی خریداری کو \"خریداری بحال کریں\" کے ذریعے بحال کیا جا سکتا ہے۔';
 
   @override
   String get terms => 'سروس کی شرائط';
@@ -705,13 +745,16 @@ class AppLocalizationsUr extends AppLocalizations {
   String get privacy => 'رازداری کی پالیسی';
 
   @override
-  String get sub_manage_ios => 'ادائیگی آپ کے Apple ID سے کی جائے گی اور آپ سبسکرپشن کو سیٹنگز > [آپ کا نام] > سبسکرپشنز میں منظم یا منسوخ کرسکتے ہیں۔';
+  String get sub_manage_ios =>
+      'ادائیگی آپ کے Apple ID سے کی جائے گی اور آپ سبسکرپشن کو سیٹنگز > [آپ کا نام] > سبسکرپشنز میں منظم یا منسوخ کرسکتے ہیں۔';
 
   @override
-  String get sub_manage_android => 'ادائیگی آپ کے Google اکاؤنٹ سے کی جائے گی اور آپ سبسکرپشن کو Play اسٹور ایپ > پروفائل آئیکن > ادائیگی اور سبسکرپشن > سبسکرپشن میں منظم یا منسوخ کرسکتے ہیں۔';
+  String get sub_manage_android =>
+      'ادائیگی آپ کے Google اکاؤنٹ سے کی جائے گی اور آپ سبسکرپشن کو Play اسٹور ایپ > پروفائل آئیکن > ادائیگی اور سبسکرپشن > سبسکرپشن میں منظم یا منسوخ کرسکتے ہیں۔';
 
   @override
-  String get sub_badge_trial_1m => '🎁 پہلی بار سبسکرائب کرنے والوں کے لیے ایک ماہ مفت';
+  String get sub_badge_trial_1m =>
+      '🎁 پہلی بار سبسکرائب کرنے والوں کے لیے ایک ماہ مفت';
 
   @override
   String get iapRestoreError => 'بحالی کے دوران ایک خرابی پیش آئی۔';
@@ -723,7 +766,8 @@ class AppLocalizationsUr extends AppLocalizations {
   String get iapRestoreEmpty => 'بحال کرنے کے لیے کوئی خریداری نہیں ہے۔';
 
   @override
-  String get iapRestoreTrying => 'خریداریوں کو بحال کرنے کی کوشش کی جا رہی ہے...';
+  String get iapRestoreTrying =>
+      'خریداریوں کو بحال کرنے کی کوشش کی جا رہی ہے...';
 
   @override
   String get viewOnMap => 'نقشے پر دیکھیں';
@@ -732,7 +776,8 @@ class AppLocalizationsUr extends AppLocalizations {
   String get login_welcomeBack => 'خوش آمدید، دوبارہ';
 
   @override
-  String get login_subtitle => 'AI کے ساتھ مزید آسانی سے فوڈ ایکسپلور کریں۔ ابھی شروع کریں۔';
+  String get login_subtitle =>
+      'AI کے ساتھ مزید آسانی سے فوڈ ایکسپلور کریں۔ ابھی شروع کریں۔';
 
   @override
   String get login_emailLabel => 'ای میل پتہ';
@@ -756,7 +801,8 @@ class AppLocalizationsUr extends AppLocalizations {
   String get login_signUpFree => 'مفت سائن اپ کریں';
 
   @override
-  String get signup_subtitle => 'اسکین محفوظ کریں، پری سیٹس مینیج کریں، اور پریمیم فیچرز ان لاک کرنے کے لیے اکاؤنٹ بنائیں۔';
+  String get signup_subtitle =>
+      'اسکین محفوظ کریں، پری سیٹس مینیج کریں، اور پریمیم فیچرز ان لاک کرنے کے لیے اکاؤنٹ بنائیں۔';
 
   @override
   String get signup_emailLabel => 'ای میل پتہ';
@@ -920,7 +966,8 @@ class AppLocalizationsUr extends AppLocalizations {
   String get favorite_restaurantNameHint => 'ریسٹورنٹ کا نام';
 
   @override
-  String get result_fxRateLoadFailed => 'ایکسچینج ریٹ لوڈ نہیں ہو سکا۔ کنکشن چیک کریں۔';
+  String get result_fxRateLoadFailed =>
+      'ایکسچینج ریٹ لوڈ نہیں ہو سکا۔ کنکشن چیک کریں۔';
 
   @override
   String get result_fxConvertFailed => 'یہ رقم تبدیل نہیں ہو سکی۔';
@@ -943,10 +990,12 @@ class AppLocalizationsUr extends AppLocalizations {
   String get result_preparingMenu => 'تفصیلی مینو تیار ہو رہا ہے…';
 
   @override
-  String get result_failedLoadSettings => 'سیٹنگز لوڈ نہیں ہو سکیں۔ کلاؤڈ سیو ڈیفالٹ طور پر فعال ہے۔';
+  String get result_failedLoadSettings =>
+      'سیٹنگز لوڈ نہیں ہو سکیں۔ کلاؤڈ سیو ڈیفالٹ طور پر فعال ہے۔';
 
   @override
-  String get result_imageUploadFailed => 'تصویر اپلوڈ ناکام۔ براہ کرم دوبارہ کوشش کریں۔';
+  String get result_imageUploadFailed =>
+      'تصویر اپلوڈ ناکام۔ براہ کرم دوبارہ کوشش کریں۔';
 
   @override
   String get result_analyzing => 'کھانے کی معلومات کا تجزیہ جاری ہے';
@@ -961,7 +1010,8 @@ class AppLocalizationsUr extends AppLocalizations {
   String get guestLoginTitle2 => 'خوش آمدید، مہم جو!';
 
   @override
-  String get guestLoginContent2 => 'گیسٹ موڈ میں آپ کھانے کے مینو اسکین کر کے ذاتی سفارشات حاصل کر سکتے ہیں، لیکن آپ اپنے پسندیدہ محفوظ نہیں کر پائیں گے اور نہ ہی مختلف ڈیوائسز پر تاریخ دیکھ پائیں گے۔';
+  String get guestLoginContent2 =>
+      'گیسٹ موڈ میں آپ کھانے کے مینو اسکین کر کے ذاتی سفارشات حاصل کر سکتے ہیں، لیکن آپ اپنے پسندیدہ محفوظ نہیں کر پائیں گے اور نہ ہی مختلف ڈیوائسز پر تاریخ دیکھ پائیں گے۔';
 
   @override
   String get confirm2 => 'مہمان کے طور پر جاری رکھیں';
@@ -979,28 +1029,36 @@ class AppLocalizationsUr extends AppLocalizations {
   String get result_noMenuItemsFound => 'کوئی مینو آئٹمز نہیں ملے۔';
 
   @override
-  String get result_notMenuMessage => 'یہ تصویر کھانے کے مینو کی نہیں لگتی۔ براہ کرم دوبارہ تصویر لیں تاکہ مینو کے نام یا کھانے کے نام واضح طور پر نظر آئیں۔';
+  String get result_notMenuMessage =>
+      'یہ تصویر کھانے کے مینو کی نہیں لگتی۔ براہ کرم دوبارہ تصویر لیں تاکہ مینو کے نام یا کھانے کے نام واضح طور پر نظر آئیں۔';
 
   @override
-  String get result_uncertainMenuMessage => 'یقین نہیں کہ یہ فوڈ مینو ہے۔ براہِ کرم دوبارہ تصویر لیں تاکہ مینو کے نام اور قیمتیں واضح طور پر نظر آئیں۔';
+  String get result_uncertainMenuMessage =>
+      'یقین نہیں کہ یہ فوڈ مینو ہے۔ براہِ کرم دوبارہ تصویر لیں تاکہ مینو کے نام اور قیمتیں واضح طور پر نظر آئیں۔';
 
   @override
-  String get result_aiTimeoutMoreResponse => 'تعطل ہو گیا کیونکہ مزید AI کے جواب کا انتظار کرتے ہوئے وقت ختم ہو گیا۔';
+  String get result_aiTimeoutMoreResponse =>
+      'تعطل ہو گیا کیونکہ مزید AI کے جواب کا انتظار کرتے ہوئے وقت ختم ہو گیا۔';
 
   @override
-  String get result_aiTimeoutFirstChunk => 'پہلے AI حصے کے آنے سے پہلے وقت ختم ہو گیا۔';
+  String get result_aiTimeoutFirstChunk =>
+      'پہلے AI حصے کے آنے سے پہلے وقت ختم ہو گیا۔';
 
   @override
-  String get result_aiTimeoutFullMenu => 'مکمل مینو کے لیے انتظار کرتے ہوئے ٹائم آؤٹ ہو گیا۔';
+  String get result_aiTimeoutFullMenu =>
+      'مکمل مینو کے لیے انتظار کرتے ہوئے ٹائم آؤٹ ہو گیا۔';
 
   @override
-  String get result_aiTimeoutFullMenuStream => 'مکمل مینو اسٹریم کا انتظار کرتے ہوئے وقت ختم ہو گیا۔';
+  String get result_aiTimeoutFullMenuStream =>
+      'مکمل مینو اسٹریم کا انتظار کرتے ہوئے وقت ختم ہو گیا۔';
 
   @override
-  String get result_aiReceiveFailedFullMenuStream => 'مکمل مینو اسٹریم وصول کرنے کے دوران ناکامی۔';
+  String get result_aiReceiveFailedFullMenuStream =>
+      'مکمل مینو اسٹریم وصول کرنے کے دوران ناکامی۔';
 
   @override
-  String get result_aiEmptyStreamResponse => 'AI نے خالی اسٹریم کا جواب واپس کیا۔';
+  String get result_aiEmptyStreamResponse =>
+      'AI نے خالی اسٹریم کا جواب واپس کیا۔';
 
   @override
   String get tts_orderPhraseTitle => 'آرڈر کرنے کا جملہ بنائیں';
@@ -1018,7 +1076,8 @@ class AppLocalizationsUr extends AppLocalizations {
   String get tts_generatePhraseButton => 'جملہ تیار کریں';
 
   @override
-  String get tts_generationFailed => 'جملہ تیار نہیں ہو سکا۔ براہِ کرم کچھ دیر بعد دوبارہ کوشش کریں۔';
+  String get tts_generationFailed =>
+      'جملہ تیار نہیں ہو سکا۔ براہِ کرم کچھ دیر بعد دوبارہ کوشش کریں۔';
 
   @override
   String get tts_resultSectionTitle => 'تولید کردہ جملہ';
@@ -1072,7 +1131,8 @@ class AppLocalizationsUr extends AppLocalizations {
   String get premiumLoginRequiredTitle => 'Sign in to start Premium';
 
   @override
-  String get premiumLoginRequiredMessage => 'Sign in to restore purchases, keep your subscription, and access Premium across devices.';
+  String get premiumLoginRequiredMessage =>
+      'Sign in to restore purchases, keep your subscription, and access Premium across devices.';
 
   @override
   String get premiumLoginRequiredAction => 'Sign in to continue';
@@ -1084,10 +1144,12 @@ class AppLocalizationsUr extends AppLocalizations {
   String get premiumStartCta => 'Start Premium';
 
   @override
-  String get premiumGuestSectionTitle => 'Connect your account before purchasing Premium in guest mode';
+  String get premiumGuestSectionTitle =>
+      'Connect your account before purchasing Premium in guest mode';
 
   @override
-  String get premiumGuestSectionMessage => 'Premium subscriptions are linked to your account so purchases can be restored and used across devices.';
+  String get premiumGuestSectionMessage =>
+      'Premium subscriptions are linked to your account so purchases can be restored and used across devices.';
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';

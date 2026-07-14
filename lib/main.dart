@@ -6,10 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:mscanner/screens/PresetSelectionScreen.dart';
+import 'package:mscanner/screens/preset_selection_screen.dart';
 import 'package:mscanner/screens/location_service.dart';
 import 'firebase_options.dart';
-import '/screens/Login_Screen.dart';
+import '/screens/login_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'helpers/l10n.dart';
@@ -18,7 +18,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:getwidget/getwidget.dart';
 import 'dart:io';
 import 'dart:async';
-import '/screens/Home_Screen.dart';
+import '/screens/home_screen.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '/screens/result_screen.dart';
@@ -29,7 +29,6 @@ import '/screens/log_service.dart';
 import 'package:provider/provider.dart';
 import 'ad_remove_provider.dart';
 import 'analytics_service.dart';
-import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart'; // 이 줄 추가 map
 import 'helpers/preset_update_review_service.dart';
 
 enum GuestWelcomeAction {
@@ -61,18 +60,18 @@ Future<void> loadInterstitialAd({bool nonPersonalized = false}) async {
     request: request,
     adLoadCallback: InterstitialAdLoadCallback(
       onAdLoaded: (ad) {
-        print("전면 광고 로드 성공 ($adUnitId)");
+        debugPrint("전면 광고 로드 성공 ($adUnitId)");
         globalInterstitialAd = ad;
         globalInterstitialAd?.fullScreenContentCallback =
             FullScreenContentCallback(
           onAdDismissedFullScreenContent: (ad) {
-            print("전면 광고 닫힘");
+            debugPrint("전면 광고 닫힘");
             ad.dispose();
             globalInterstitialAd = null;
             loadInterstitialAd(nonPersonalized: nonPersonalized);
           },
           onAdFailedToShowFullScreenContent: (ad, err) {
-            print("전면 광고 표시 실패: $err");
+            debugPrint("전면 광고 표시 실패: $err");
             ad.dispose();
             globalInterstitialAd = null;
             loadInterstitialAd(nonPersonalized: nonPersonalized);
@@ -80,7 +79,7 @@ Future<void> loadInterstitialAd({bool nonPersonalized = false}) async {
         );
       },
       onAdFailedToLoad: (err) {
-        print("전면 광고 로드 실패: $err");
+        debugPrint("전면 광고 로드 실패: $err");
         globalInterstitialAd = null;
         Future.delayed(Duration(seconds: 5), () {
           loadInterstitialAd(nonPersonalized: nonPersonalized);
@@ -168,7 +167,7 @@ class MyApp extends StatelessWidget {
   final AdaptiveThemeMode savedThemeMode;
   final String? savedLocale;
 
-  MyApp({required this.savedThemeMode, this.savedLocale});
+  const MyApp({super.key, required this.savedThemeMode, this.savedLocale});
 
   @override
   Widget build(BuildContext context) {
@@ -292,8 +291,10 @@ class _PresetUpdateReviewGateState extends State<_PresetUpdateReviewGate> {
 }
 
 class IntroductionScreenPage extends StatefulWidget {
+  const IntroductionScreenPage({super.key});
+
   @override
-  _IntroductionScreenPageState createState() => _IntroductionScreenPageState();
+  State<IntroductionScreenPage> createState() => _IntroductionScreenPageState();
 }
 
 class _IntroductionScreenPageState extends State<IntroductionScreenPage> {
@@ -313,6 +314,7 @@ class _IntroductionScreenPageState extends State<IntroductionScreenPage> {
 
         if (action == GuestWelcomeAction.signIn) {
           await FirebaseAuth.instance.signOut();
+          if (!mounted) return;
           Navigator.pushReplacementNamed(context, '/login');
           return;
         }
@@ -321,6 +323,7 @@ class _IntroductionScreenPageState extends State<IntroductionScreenPage> {
           _navigateAfterSignIn(user);
         }
       } else {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -331,6 +334,7 @@ class _IntroductionScreenPageState extends State<IntroductionScreenPage> {
         );
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -339,17 +343,16 @@ class _IntroductionScreenPageState extends State<IntroductionScreenPage> {
           ),
         ),
       );
-      print('Guest sign-in error: $e');
+      debugPrint('Guest sign-in error: $e');
     }
   }
 
   Future<GuestWelcomeAction?> _showGuestWelcomePopup() {
-    final mediaQuery = MediaQuery.of(context).size;
     final localizations = AppLocalizations.of(context);
 
     return showCupertinoModalPopup<GuestWelcomeAction>(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.18),
+      barrierColor: Colors.black.withValues(alpha: 0.18),
       filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
       builder: (context) {
         return SafeArea(
@@ -517,7 +520,6 @@ class _IntroductionScreenPageState extends State<IntroductionScreenPage> {
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context).size;
     final localizations = AppLocalizations.of(context);
-    final isDarkMode = AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark;
 
     return Scaffold(
       body: Stack(

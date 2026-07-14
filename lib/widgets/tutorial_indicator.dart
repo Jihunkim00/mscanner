@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 
 class TutorialIndicator extends StatefulWidget {
-  const TutorialIndicator({Key? key}) : super(key: key);
+  const TutorialIndicator({super.key});
 
   @override
-  _TutorialIndicatorState createState() => _TutorialIndicatorState();
+  State<TutorialIndicator> createState() => _TutorialIndicatorState();
 }
 
 class _TutorialIndicatorState extends State<TutorialIndicator> {
@@ -31,7 +31,6 @@ class _TutorialIndicatorState extends State<TutorialIndicator> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final label = AppLocalizations.of(context)?.tutorialMode ?? 'Tutorial Mode';
 
     return AnimatedOpacity(
@@ -40,7 +39,7 @@ class _TutorialIndicatorState extends State<TutorialIndicator> {
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
         decoration: BoxDecoration(
-          color: Colors.red.withOpacity(0.7),
+          color: Colors.red.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(4),
         ),
         child: Text(

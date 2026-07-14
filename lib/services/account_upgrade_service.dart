@@ -72,7 +72,8 @@ class AccountUpgradeService {
         email: email,
         password: password,
       ),
-      emailInUseMessage: 'This email is already in use. Signed in to existing account.',
+      emailInUseMessage:
+          'This email is already in use. Signed in to existing account.',
     );
   }
 
@@ -88,7 +89,8 @@ class AccountUpgradeService {
       );
       final target = userCredential.user;
       if (target == null) {
-        return AccountUpgradeResult.failure('Unable to sign in to this account.');
+        return AccountUpgradeResult.failure(
+            'Unable to sign in to this account.');
       }
 
       final migrated = await _migrateIfNeeded(before, target.uid);
@@ -107,7 +109,8 @@ class AccountUpgradeService {
         errorCode: e.code,
       );
     } catch (_) {
-      return AccountUpgradeResult.failure('Unable to sign in. Please try again.');
+      return AccountUpgradeResult.failure(
+          'Unable to sign in. Please try again.');
     }
   }
 
@@ -118,7 +121,8 @@ class AccountUpgradeService {
       final account = await _googleSignIn.authenticate();
       final idToken = account.authentication.idToken;
       if (idToken == null || idToken.isEmpty) {
-        return AccountUpgradeResult.failure('Google sign-in failed. Please try again.');
+        return AccountUpgradeResult.failure(
+            'Google sign-in failed. Please try again.');
       }
 
       final credential = GoogleAuthProvider.credential(idToken: idToken);
@@ -140,9 +144,11 @@ class AccountUpgradeService {
     } on GoogleSignInException catch (_) {
       return AccountUpgradeResult.cancelled('Google sign-in was cancelled.');
     } on FirebaseAuthException catch (e) {
-      return AccountUpgradeResult.failure(_friendlyAuthError(e), errorCode: e.code);
+      return AccountUpgradeResult.failure(_friendlyAuthError(e),
+          errorCode: e.code);
     } catch (_) {
-      return AccountUpgradeResult.failure('Google sign-in failed. Please try again.');
+      return AccountUpgradeResult.failure(
+          'Google sign-in failed. Please try again.');
     }
   }
 
@@ -150,20 +156,25 @@ class AccountUpgradeService {
     final before = _auth.currentUser;
 
     if (!Platform.isIOS && !Platform.isMacOS) {
-      return AccountUpgradeResult.failure('Apple Sign-In is only available on Apple devices.');
+      return AccountUpgradeResult.failure(
+          'Apple Sign-In is only available on Apple devices.');
     }
 
     try {
       final rawNonce = _generateNonce();
       final hashedNonce = _sha256ofString(rawNonce);
       final appleCredential = await SignInWithApple.getAppleIDCredential(
-        scopes: [AppleIDAuthorizationScopes.email, AppleIDAuthorizationScopes.fullName],
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName
+        ],
         nonce: hashedNonce,
       );
 
       final token = appleCredential.identityToken;
       if (token == null || token.isEmpty) {
-        return AccountUpgradeResult.failure('Apple sign-in failed. Please try again.');
+        return AccountUpgradeResult.failure(
+            'Apple sign-in failed. Please try again.');
       }
 
       final credential = AppleAuthProvider.credentialWithIDToken(
@@ -194,15 +205,19 @@ class AccountUpgradeService {
       if (e.code == AuthorizationErrorCode.canceled) {
         return AccountUpgradeResult.cancelled('Apple sign-in was cancelled.');
       }
-      return AccountUpgradeResult.failure('Apple sign-in failed. Please try again.');
+      return AccountUpgradeResult.failure(
+          'Apple sign-in failed. Please try again.');
     } on FirebaseAuthException catch (e) {
-      return AccountUpgradeResult.failure(_friendlyAuthError(e), errorCode: e.code);
+      return AccountUpgradeResult.failure(_friendlyAuthError(e),
+          errorCode: e.code);
     } catch (_) {
-      return AccountUpgradeResult.failure('Apple sign-in failed. Please try again.');
+      return AccountUpgradeResult.failure(
+          'Apple sign-in failed. Please try again.');
     }
   }
 
-  static Future<AccountUpgradeResult> _linkCredentialToCurrentUser(AuthCredential credential) async {
+  static Future<AccountUpgradeResult> _linkCredentialToCurrentUser(
+      AuthCredential credential) async {
     final user = _auth.currentUser;
     if (user == null) {
       return AccountUpgradeResult.failure('No active user found.');
@@ -224,7 +239,8 @@ class AccountUpgradeService {
           message: 'This provider is already linked.',
         );
       }
-      return AccountUpgradeResult.failure(_friendlyAuthError(e), errorCode: e.code);
+      return AccountUpgradeResult.failure(_friendlyAuthError(e),
+          errorCode: e.code);
     }
   }
 
@@ -248,7 +264,8 @@ class AccountUpgradeService {
       if (e.code != 'credential-already-in-use' &&
           e.code != 'email-already-in-use' &&
           e.code != 'provider-already-linked') {
-        return AccountUpgradeResult.failure(_friendlyAuthError(e), errorCode: e.code);
+        return AccountUpgradeResult.failure(_friendlyAuthError(e),
+            errorCode: e.code);
       }
 
       try {
@@ -258,13 +275,16 @@ class AccountUpgradeService {
           return AccountUpgradeResult.failure('Unable to switch account.');
         }
 
-        final migrated = await _mergeGuestData(oldUid: oldUid, newUid: targetUser.uid);
+        final migrated =
+            await _mergeGuestData(oldUid: oldUid, newUid: targetUser.uid);
         return AccountUpgradeResult(
           success: true,
           user: targetUser,
           migrationPerformed: migrated,
           shouldContinueToPurchase: true,
-          message: migrated ? '$emailInUseMessage Guest data migrated.' : emailInUseMessage,
+          message: migrated
+              ? '$emailInUseMessage Guest data migrated.'
+              : emailInUseMessage,
         );
       } on FirebaseAuthException catch (signInError) {
         return AccountUpgradeResult.failure(
@@ -289,9 +309,12 @@ class AccountUpgradeService {
     if (oldUid == newUid) return false;
 
     bool migrated = false;
-    final pointsMigrated = await _mergeUserPoints(oldUid: oldUid, newUid: newUid);
-    final userDataMigrated = await _mergeNestedCollection('user_data', oldUid, newUid);
-    final ratingMigrated = await _mergeNestedCollection('user_rating', oldUid, newUid);
+    final pointsMigrated =
+        await _mergeUserPoints(oldUid: oldUid, newUid: newUid);
+    final userDataMigrated =
+        await _mergeNestedCollection('user_data', oldUid, newUid);
+    final ratingMigrated =
+        await _mergeNestedCollection('user_rating', oldUid, newUid);
 
     migrated = pointsMigrated || userDataMigrated || ratingMigrated;
     if (migrated) {
@@ -303,7 +326,8 @@ class AccountUpgradeService {
     return migrated;
   }
 
-  static Future<bool> _mergeUserPoints({required String oldUid, required String newUid}) async {
+  static Future<bool> _mergeUserPoints(
+      {required String oldUid, required String newUid}) async {
     final sourceRef = _firestore.collection('user_points').doc(oldUid);
     final targetRef = _firestore.collection('user_points').doc(newUid);
 
@@ -316,9 +340,11 @@ class AccountUpgradeService {
       final targetData = targetSnap.data() ?? <String, dynamic>{};
 
       final merged = <String, dynamic>{...sourceData, ...targetData};
-      merged['points'] = _safeNum(targetData['points']) + _safeNum(sourceData['points']);
+      merged['points'] =
+          _safeNum(targetData['points']) + _safeNum(sourceData['points']);
 
-      if (_asBool(sourceData['adFreePurchased']) || _asBool(targetData['adFreePurchased'])) {
+      if (_asBool(sourceData['adFreePurchased']) ||
+          _asBool(targetData['adFreePurchased'])) {
         merged['adFreePurchased'] = true;
       }
 
@@ -332,19 +358,27 @@ class AccountUpgradeService {
     });
   }
 
-  static Future<bool> _mergeNestedCollection(String root, String oldUid, String newUid) async {
-    final source = await _firestore.collection(root).doc(oldUid).collection('data').get();
+  static Future<bool> _mergeNestedCollection(
+      String root, String oldUid, String newUid) async {
+    final source =
+        await _firestore.collection(root).doc(oldUid).collection('data').get();
     if (source.docs.isEmpty) return false;
 
     bool changed = false;
     final batch = _firestore.batch();
 
     for (final doc in source.docs) {
-      final destRef = _firestore.collection(root).doc(newUid).collection('data').doc(doc.id);
+      final destRef = _firestore
+          .collection(root)
+          .doc(newUid)
+          .collection('data')
+          .doc(doc.id);
       final destSnap = await destRef.get();
       final merged = _mergeMaps(
         Map<String, dynamic>.from(doc.data()),
-        destSnap.exists ? (destSnap.data() ?? <String, dynamic>{}) : <String, dynamic>{},
+        destSnap.exists
+            ? (destSnap.data() ?? <String, dynamic>{})
+            : <String, dynamic>{},
       );
       batch.set(destRef, merged, SetOptions(merge: true));
       changed = true;
@@ -357,9 +391,9 @@ class AccountUpgradeService {
   }
 
   static Map<String, dynamic> _mergeMaps(
-      Map<String, dynamic> source,
-      Map<String, dynamic> destination,
-      ) {
+    Map<String, dynamic> source,
+    Map<String, dynamic> destination,
+  ) {
     final merged = <String, dynamic>{...source};
     destination.forEach((key, destValue) {
       if (!merged.containsKey(key)) {
@@ -370,8 +404,8 @@ class AccountUpgradeService {
       final sourceValue = merged[key];
       if (sourceValue is Map && destValue is Map) {
         merged[key] = _mergeMaps(
-          Map<String, dynamic>.from(sourceValue as Map),
-          Map<String, dynamic>.from(destValue as Map),
+          Map<String, dynamic>.from(sourceValue),
+          Map<String, dynamic>.from(destValue),
         );
       } else if (sourceValue is List && destValue is List) {
         final combined = [...sourceValue, ...destValue];
@@ -403,7 +437,7 @@ class AccountUpgradeService {
     if (_googleInitialized) return;
     await _googleSignIn.initialize(
       serverClientId:
-      '522189466074-ijitmvohfhromjc32kkjs6khbprasp8e.apps.googleusercontent.com',
+          '522189466074-ijitmvohfhromjc32kkjs6khbprasp8e.apps.googleusercontent.com',
       clientId: Platform.isIOS
           ? '522189466074-qjculmgnptdeorlv86rh9e0uulp934rs.apps.googleusercontent.com'
           : null,
@@ -412,12 +446,15 @@ class AccountUpgradeService {
   }
 
   static String _generateNonce([int length = 32]) {
-    const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    const charset =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
     final random = Random.secure();
-    return List.generate(length, (_) => charset[random.nextInt(charset.length)]).join();
+    return List.generate(length, (_) => charset[random.nextInt(charset.length)])
+        .join();
   }
 
-  static String _sha256ofString(String input) => sha256.convert(utf8.encode(input)).toString();
+  static String _sha256ofString(String input) =>
+      sha256.convert(utf8.encode(input)).toString();
 
   static String _friendlyAuthError(FirebaseAuthException e) {
     switch (e.code) {

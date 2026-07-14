@@ -10,7 +10,7 @@ enum SupportedLanguage {
 
   static SupportedLanguage fromCode(String code) {
     return SupportedLanguage.values.firstWhere(
-          (v) => v.code == code,
+      (v) => v.code == code,
       orElse: () => SupportedLanguage.ko,
     );
   }
@@ -27,7 +27,7 @@ enum OrderScenario {
 
   static OrderScenario fromValue(String value) {
     return OrderScenario.values.firstWhere(
-          (v) => v.value == value,
+      (v) => v.value == value,
       orElse: () => OrderScenario.basicOrder,
     );
   }
@@ -92,7 +92,6 @@ enum AllergyType {
   }
 }
 
-
 @immutable
 class GenerateOrderPhraseRequest {
   const GenerateOrderPhraseRequest({
@@ -116,20 +115,20 @@ class GenerateOrderPhraseRequest {
   final List<AllergyType> allergies;
 
   Map<String, dynamic> toJson() => {
-    'menuName': menuName,
-    'menuOriginal': menuOriginal,
-    if ((menuOriginalReading ?? '').trim().isNotEmpty)
-      'menuOriginalReading': menuOriginalReading!.trim(),
-    'originLanguageCode': originLanguageCode.code,
-    'targetLanguageCode': targetLanguageCode.code,
-    // legacy compatibility for older backends
-    'languageCode': targetLanguageCode.code,
-    'scenario': scenario.value,
-    if (modifiers.isNotEmpty)
-      'modifiers': modifiers.map((m) => m.value).toList(),
-    if (allergies.isNotEmpty)
-      'allergies': allergies.map((a) => a.value).toList(),
-  };
+        'menuName': menuName,
+        'menuOriginal': menuOriginal,
+        if ((menuOriginalReading ?? '').trim().isNotEmpty)
+          'menuOriginalReading': menuOriginalReading!.trim(),
+        'originLanguageCode': originLanguageCode.code,
+        'targetLanguageCode': targetLanguageCode.code,
+        // legacy compatibility for older backends
+        'languageCode': targetLanguageCode.code,
+        'scenario': scenario.value,
+        if (modifiers.isNotEmpty)
+          'modifiers': modifiers.map((m) => m.value).toList(),
+        if (allergies.isNotEmpty)
+          'allergies': allergies.map((a) => a.value).toList(),
+      };
 }
 
 @immutable
@@ -154,14 +153,20 @@ class GenerateOrderPhraseResponse {
 
   factory GenerateOrderPhraseResponse.fromJson(Map<String, dynamic> json) {
     final originCode =
-    (json['originLanguageCode'] ?? json['languageCode'] ?? 'ko').toString();
+        (json['originLanguageCode'] ?? json['languageCode'] ?? 'ko').toString();
     final targetCode =
-    (json['targetLanguageCode'] ?? json['languageCode'] ?? 'ko').toString();
+        (json['targetLanguageCode'] ?? json['languageCode'] ?? 'ko').toString();
     final targetLang = SupportedLanguage.fromCode(targetCode);
     final fallbackTargetText = () {
-      if (targetLang == SupportedLanguage.ko) return (json['koText'] ?? '').toString();
-      if (targetLang == SupportedLanguage.en) return (json['enText'] ?? '').toString();
-      if (targetLang == SupportedLanguage.ja) return (json['jaText'] ?? '').toString();
+      if (targetLang == SupportedLanguage.ko) {
+        return (json['koText'] ?? '').toString();
+      }
+      if (targetLang == SupportedLanguage.en) {
+        return (json['enText'] ?? '').toString();
+      }
+      if (targetLang == SupportedLanguage.ja) {
+        return (json['jaText'] ?? '').toString();
+      }
       return '';
     }();
 

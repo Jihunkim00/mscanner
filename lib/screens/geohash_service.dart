@@ -1,4 +1,5 @@
 import 'package:dart_geohash/dart_geohash.dart';
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 
 class GeohashService {
@@ -9,18 +10,21 @@ class GeohashService {
 
   Future<String> getCurrentGeohash() async {
     final position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+      ),
     );
 
     final latitude = position.latitude;
     final longitude = position.longitude;
-    print('현재 위치: lat=${position.latitude}, lon=${position.longitude}');
-
+    debugPrint('현재 위치: lat=${position.latitude}, lon=${position.longitude}');
 
     // ✅ 오류 방지: 좌표 유효성 검사
-    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+    if (latitude < -90 ||
+        latitude > 90 ||
+        longitude < -180 ||
+        longitude > 180) {
       throw RangeError("Invalid GPS: lat=$latitude, lon=$longitude");
-
     }
 
     return _geoHasher.encode(latitude, longitude, precision: 8);
@@ -30,22 +34,26 @@ class GeohashService {
   Future<String?> getCurrentGeohash5() async {
     try {
       final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
 
       final latitude = position.latitude;
       final longitude = position.longitude;
-      final geohash = generateGeohash(latitude, longitude, precision: 5); // 5자리로 지정
+      final geohash =
+          generateGeohash(latitude, longitude, precision: 5); // 5자리로 지정
 
-      print('🏷️ 5자리 geohash (HomeScreen용): $geohash');
+      debugPrint('🏷️ 5자리 geohash (HomeScreen용): $geohash');
       return geohash;
     } catch (e) {
-      print('5자리 geohash 계산 중 오류: $e');
+      debugPrint('5자리 geohash 계산 중 오류: $e');
       return null;
     }
   }
 
-  String generateGeohash(double latitude, double longitude, {int precision = 8}) {
+  String generateGeohash(double latitude, double longitude,
+      {int precision = 8}) {
     final latInterval = [-90.0, 90.0];
     final lonInterval = [-180.0, 180.0];
     final hash = StringBuffer();
@@ -85,18 +93,19 @@ class GeohashService {
 
     return hash.toString();
   }
+
   /// 위치 객체로부터 geohash 계산
   Future<String?> getGeohashFromPosition(Position position) async {
     try {
       double lat = position.latitude;
       double lon = position.longitude;
-      print("정확한 위도: $lat, 경도: $lon");
+      debugPrint("정확한 위도: $lat, 경도: $lon");
       final hash = generateGeohash(lat, lon); // 직접 구현한 메서드
 
-      print("생성된 geohash: $hash");
+      debugPrint("생성된 geohash: $hash");
       return hash;
     } catch (e) {
-      print('Geohash 계산 중 오류: $e');
+      debugPrint('Geohash 계산 중 오류: $e');
       return null;
     }
   }

@@ -5,7 +5,8 @@ import 'package:mscanner/models/order_phrase_models.dart';
 class OrderPhraseTtsService {
   OrderPhraseTtsService._internal();
 
-  static final OrderPhraseTtsService instance = OrderPhraseTtsService._internal();
+  static final OrderPhraseTtsService instance =
+      OrderPhraseTtsService._internal();
 
   final FlutterTts _tts = FlutterTts();
   bool _initialized = false;
@@ -89,11 +90,10 @@ class OrderPhraseTtsService {
       if (raw is! Map) continue;
 
       final voice = raw.map(
-            (key, value) => MapEntry(key.toString(), value.toString()),
+        (key, value) => MapEntry(key.toString(), value.toString()),
       );
 
-      final locale =
-      (voice['locale'] ?? voice['language'] ?? '').toLowerCase();
+      final locale = (voice['locale'] ?? voice['language'] ?? '').toLowerCase();
 
       if (locale == 'ja-jp') {
         selected = voice;

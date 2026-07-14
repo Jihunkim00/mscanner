@@ -3,7 +3,8 @@ import 'dart:math';
 import 'package:image/image.dart';
 
 class ImageMergeService {
-  static Future<Uint8List> mergeAndCompress(List<Uint8List> imageBytesList) async {
+  static Future<Uint8List> mergeAndCompress(
+      List<Uint8List> imageBytesList) async {
     // 1) 바이트 리스트를 Image 객체로 디코딩
     final images = imageBytesList.map((b) => decodeImage(b)!).toList();
     final count = images.length;
@@ -44,18 +45,18 @@ class ImageMergeService {
     // b) copyResize: named width/height
     final resized = copyResize(
       src,
-      width:  (src.width  * scale).round(),
+      width: (src.width * scale).round(),
       height: (src.height * scale).round(),
     );
 
     // c) copyCrop: named x/y/width/height
-    final offsetX = (resized.width  - targetW) ~/ 2;
+    final offsetX = (resized.width - targetW) ~/ 2;
     final offsetY = (resized.height - targetH) ~/ 2;
     return copyCrop(
       resized,
-      x:      offsetX,
-      y:      offsetY,
-      width:  targetW,
+      x: offsetX,
+      y: offsetY,
+      width: targetW,
       height: targetH,
     );
   }

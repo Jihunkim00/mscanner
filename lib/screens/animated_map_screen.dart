@@ -9,17 +9,15 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import '../models/place_data.dart';
 import 'package:image/image.dart' as img;
 import 'package:flutter/material.dart' hide Visibility;
-import 'dart:typed_data'; // ✅ 추가
 import 'dart:async';
 
-
 // 변경 (릴리즈 빌드에서는 로그 안 찍힘)
-void _L(String m) {
-  assert(() { debugPrint('[MAP-DEBUG] $m'); return true; }());
+void _logMapDebug(String m) {
+  assert(() {
+    debugPrint('[MAP-DEBUG] $m');
+    return true;
+  }());
 }
-
-
-
 
 List<Position> interpolatePositions(Position start, Position end, int steps) {
   List<Position> points = [];
@@ -36,13 +34,11 @@ enum BubbleFit { contain, cover }
 
 class AnimatedMapScreen extends StatefulWidget {
   final List<PlaceData> selectedPlaces;
-  const AnimatedMapScreen({Key? key, required this.selectedPlaces})
-      : super(key: key);
+  const AnimatedMapScreen({super.key, required this.selectedPlaces});
   // 크기 상수 (기존 대비 1/3)
-  static const double PHOTO_SIZE  = 2.0;   // 이전 1.5
-  static const double PIN_SIZE    = 0.15;   // 이전 0.9
-  static const double HIDDEN_SIZE = 0.01;  // 숨김용 그대로
-
+  static const double photoSize = 2.0; // 이전 1.5
+  static const double pinSize = 0.15; // 이전 0.9
+  static const double hiddenSize = 0.01; // 숨김용 그대로
 
   @override
   State<AnimatedMapScreen> createState() => _AnimatedMapScreenState();
@@ -54,7 +50,7 @@ class _AnimatedMapScreenState extends State<AnimatedMapScreen> {
   PolylineAnnotationManager? _lineManager;
   final List<PointAnnotation> _pointAnnotations = [];
   PolylineAnnotation? _animatedPolyline;
-  static const double _Z_SWITCH = 14.0; // 이 줌 미만=핀, 이상=사진
+  static const double _zSwitch = 14.0; // 이 줌 미만=핀, 이상=사진
   // 추가: 애니메이션 중에는 카메라 리스너 스킵
   bool _isAnimating = false;
 
@@ -62,10 +58,6 @@ class _AnimatedMapScreenState extends State<AnimatedMapScreen> {
   Timer? _zoomDebounce;
 
   // 추가: 같은 상태면 다시 그리지 않기
-  bool? _lastShowPhoto;
-  int _lastZoomBucket = -999; // 0.5 단위 버킷
-
-
   PointAnnotationManager? _zoomOutManager;
   final List<PointAnnotation> _zoomOutPins = [];
 
@@ -79,35 +71,34 @@ class _AnimatedMapScreenState extends State<AnimatedMapScreen> {
     MapboxOptions.setAccessToken(token);
   }
 
-
-
   Future<Uint8List> _createBubbleMarker(
-      Uint8List bytes, {
-        int insetLeft = 12,
-        int insetTop = 10,
-        int insetRight = 18,
-        int insetBottom = 24,
-        BubbleFit fit = BubbleFit.cover,  // 꽉 채우기
-        int overscanPx = 2,               // 프레임 가장자리 미세 틈 방지
-      }) async {
+    Uint8List bytes, {
+    int insetLeft = 12,
+    int insetTop = 10,
+    int insetRight = 18,
+    int insetBottom = 24,
+    BubbleFit fit = BubbleFit.cover, // 꽉 채우기
+    int overscanPx = 2, // 프레임 가장자리 미세 틈 방지
+  }) async {
     final original = img.decodeImage(bytes)!;
 
     // ⚠️ icon.png 는 반드시 투명 배경이어야 함
     final frameData = await rootBundle.load('assets/images/icon.png');
     final frame = img.decodeImage(frameData.buffer.asUint8List())!;
 
-    final contentW = frame.width  - insetLeft - insetRight  + overscanPx * 2;
-    final contentH = frame.height - insetTop  - insetBottom + overscanPx * 2;
+    final contentW = frame.width - insetLeft - insetRight + overscanPx * 2;
+    final contentH = frame.height - insetTop - insetBottom + overscanPx * 2;
 
     final sx = contentW / original.width;
     final sy = contentH / original.height;
-    final scale = (fit == BubbleFit.cover) ? math.max(sx, sy) : math.min(sx, sy);
+    final scale =
+        (fit == BubbleFit.cover) ? math.max(sx, sy) : math.min(sx, sy);
 
     final newW = (original.width * scale).round();
     final newH = (original.height * scale).round();
 
     final dx = insetLeft - overscanPx + ((contentW - newW) / 2).round();
-    final dy = insetTop  - overscanPx + ((contentH - newH) / 2).round();
+    final dy = insetTop - overscanPx + ((contentH - newH) / 2).round();
 
     final resized = img.copyResize(original, width: newW, height: newH);
 
@@ -137,44 +128,46 @@ class _AnimatedMapScreenState extends State<AnimatedMapScreen> {
       blend: img.BlendMode.alpha,
     );
 
-
     return Uint8List.fromList(img.encodePng(canvas));
   }
 
-
-
-
-
   Future<void> _applyMarkerMode(double zoom) async {
-    if (_mapboxMap == null) { _L('applyMode: map null'); return; }
-    final showPhoto = zoom >= _Z_SWITCH;
-    _L('applyMode: zoom=$zoom => showPhoto=$showPhoto '
+    if (_mapboxMap == null) {
+      _logMapDebug('applyMode: map null');
+      return;
+    }
+    final showPhoto = zoom >= _zSwitch;
+    _logMapDebug('applyMode: zoom=$zoom => showPhoto=$showPhoto '
         '(photo=${_pointAnnotations.length}, pins=${_zoomOutPins.length})');
 
     if (_pointManager != null && _pointAnnotations.isNotEmpty) {
       for (final ann in _pointAnnotations) {
         ann
-     ..iconOpacity = showPhoto ? 1.0 : 0.0
-     ..iconSize    = showPhoto ? AnimatedMapScreen.PHOTO_SIZE
-                                : AnimatedMapScreen.HIDDEN_SIZE;
+          ..iconOpacity = showPhoto ? 1.0 : 0.0
+          ..iconSize = showPhoto
+              ? AnimatedMapScreen.photoSize
+              : AnimatedMapScreen.hiddenSize;
         await _pointManager!.update(ann);
       }
-      _L('applyMode: photo markers => ${showPhoto ? "VISIBLE" : "HIDDEN"}');
+      _logMapDebug(
+          'applyMode: photo markers => ${showPhoto ? "VISIBLE" : "HIDDEN"}');
     } else {
-      _L('applyMode: photo manager/list empty');
+      _logMapDebug('applyMode: photo manager/list empty');
     }
 
     if (_zoomOutManager != null && _zoomOutPins.isNotEmpty) {
       for (final ann in _zoomOutPins) {
         ann
-      ..iconOpacity = showPhoto ? 0.0 : 1.0
-      ..iconSize    = showPhoto ? AnimatedMapScreen.HIDDEN_SIZE
-                                : AnimatedMapScreen.PIN_SIZE;
+          ..iconOpacity = showPhoto ? 0.0 : 1.0
+          ..iconSize = showPhoto
+              ? AnimatedMapScreen.hiddenSize
+              : AnimatedMapScreen.pinSize;
         await _zoomOutManager!.update(ann);
       }
-      _L('applyMode: zoomout pins => ${showPhoto ? "HIDDEN" : "VISIBLE"}');
+      _logMapDebug(
+          'applyMode: zoomout pins => ${showPhoto ? "HIDDEN" : "VISIBLE"}');
     } else {
-      _L('applyMode: zoomout manager/list empty');
+      _logMapDebug('applyMode: zoomout manager/list empty');
     }
   }
 
@@ -210,23 +203,21 @@ class _AnimatedMapScreenState extends State<AnimatedMapScreen> {
         );
 
     // ✅ bounds 대신 coordinates로 fit (버전차 이슈, infiniteBounds 요구 등 회피)
-    return await _mapboxMap!.cameraForCoordinates(
+    return await _mapboxMap!.cameraForCoordinatesPadding(
       coords,
+      CameraOptions(
+        bearing: 0.0,
+        pitch: 0.0,
+      ),
       pad,
-      0.0, // bearing
-      0.0, // pitch
+      null,
+      null,
     );
   }
-
-
-
-
 
   Future<void> _onMapCreated(MapboxMap mapboxMap) async {
     debugPrint('[MAP] onMapCreated');
     _mapboxMap = mapboxMap;
-
-
   }
 
   Future<void> _onStyleLoaded(StyleLoadedEventData _) async {
@@ -256,7 +247,11 @@ class _AnimatedMapScreenState extends State<AnimatedMapScreen> {
         id: '3d-buildings',
         sourceId: 'composite',
         sourceLayer: 'building',
-        filter: ['==', ['get', 'extrude'], true],
+        filter: [
+          '==',
+          ['get', 'extrude'],
+          true
+        ],
         minZoom: 15.0,
         // 필요 시 아래 라인 사용: fillExtrusionColor: const Color(0xFFAAAAAA).value,
         fillExtrusionColor: 0xffaaaaaa,
@@ -269,15 +264,18 @@ class _AnimatedMapScreenState extends State<AnimatedMapScreen> {
     }
 
     // Annotation 매니저 생성 (그대로)
-    _pointManager = await _mapboxMap!.annotations.createPointAnnotationManager();
-    _lineManager  = await _mapboxMap!.annotations.createPolylineAnnotationManager();
+    _pointManager =
+        await _mapboxMap!.annotations.createPointAnnotationManager();
+    _lineManager =
+        await _mapboxMap!.annotations.createPolylineAnnotationManager();
 
     // 사진 말풍선 마커 생성 (그대로)
     final cacheManager = DefaultCacheManager();
     for (final place in widget.selectedPlaces) {
       Uint8List raw;
       if (place.imageUrl.startsWith('http')) {
-        raw = await (await cacheManager.getSingleFile(place.imageUrl)).readAsBytes();
+        raw = await (await cacheManager.getSingleFile(place.imageUrl))
+            .readAsBytes();
       } else {
         final data = await rootBundle.load(place.imageUrl);
         raw = data.buffer.asUint8List();
@@ -292,37 +290,40 @@ class _AnimatedMapScreenState extends State<AnimatedMapScreen> {
       _pointAnnotations.add(ann);
     }
 
-
-
 // 줌아웃 핀 생성 (이전의 _ensureZoomOutLayer 호출 대신)
     await _ensureZoomOutPins();
 
 // 초기 표시 상태 적용
     final z0 = (await _mapboxMap!.getCameraState()).zoom;
-    _L('styleLoaded: apply mode @zoom=$z0');
+    _logMapDebug('styleLoaded: apply mode @zoom=$z0');
     await _applyMarkerMode(z0);
 
-    _L('[MAP] 모든 마커 추가 완료');
-
+    _logMapDebug('[MAP] 모든 마커 추가 완료');
   }
 
   Future<void> _ensureZoomOutPins() async {
-    if (_mapboxMap == null) { _L('ensurePins: map null'); return; }
+    if (_mapboxMap == null) {
+      _logMapDebug('ensurePins: map null');
+      return;
+    }
     if (_zoomOutManager != null && _zoomOutPins.isNotEmpty) {
-      _L('ensurePins: already created (${_zoomOutPins.length})');
+      _logMapDebug('ensurePins: already created (${_zoomOutPins.length})');
       return;
     }
 
-    _L('ensurePins: start, places=${widget.selectedPlaces.length}');
-    _zoomOutManager = await _mapboxMap!.annotations.createPointAnnotationManager();
-    _L('ensurePins: manager created');
+    _logMapDebug('ensurePins: start, places=${widget.selectedPlaces.length}');
+    _zoomOutManager =
+        await _mapboxMap!.annotations.createPointAnnotationManager();
+    _logMapDebug('ensurePins: manager created');
 
     Uint8List pinBytes;
     try {
-      pinBytes = (await rootBundle.load('assets/images/m_zoomout_pin.png')).buffer.asUint8List();
-      _L('ensurePins: asset loaded (bytes=${pinBytes.length})');
+      pinBytes = (await rootBundle.load('assets/images/m_zoomout_pin.png'))
+          .buffer
+          .asUint8List();
+      _logMapDebug('ensurePins: asset loaded (bytes=${pinBytes.length})');
     } catch (e) {
-      _L('ensurePins: asset load FAIL: $e');
+      _logMapDebug('ensurePins: asset load FAIL: $e');
       rethrow; // 에셋 경로 문제면 바로 알 수 있게
     }
 
@@ -332,22 +333,25 @@ class _AnimatedMapScreenState extends State<AnimatedMapScreen> {
         final ann = await _zoomOutManager!.create(PointAnnotationOptions(
           geometry: Point(coordinates: Position(p.lng, p.lat)),
           image: pinBytes,
-          iconSize: AnimatedMapScreen.PIN_SIZE,
+          iconSize: AnimatedMapScreen.pinSize,
           iconOpacity: 0.0, // 초기 숨김
         ));
         _zoomOutPins.add(ann);
-        if (i < 3) { // 너무 많이 안 찍도록 앞부분만
-          _L('ensurePins: +pin[$i] @(${p.lat}, ${p.lng})');
+        if (i < 3) {
+          // 너무 많이 안 찍도록 앞부분만
+          _logMapDebug('ensurePins: +pin[$i] @(${p.lat}, ${p.lng})');
         }
       } catch (e) {
-        _L('ensurePins: create pin[$i] FAIL: $e');
+        _logMapDebug('ensurePins: create pin[$i] FAIL: $e');
       }
     }
-    _L('ensurePins: done, pins=${_zoomOutPins.length}');
+    _logMapDebug('ensurePins: done, pins=${_zoomOutPins.length}');
   }
 
   Future<void> _startAnimation() async {
-    if (_mapboxMap == null || _pointManager == null || _lineManager == null) return;
+    if (_mapboxMap == null || _pointManager == null || _lineManager == null) {
+      return;
+    }
     if (widget.selectedPlaces.isEmpty) return;
 
     _isAnimating = true;
@@ -356,17 +360,20 @@ class _AnimatedMapScreenState extends State<AnimatedMapScreen> {
       final bool isMulti = places.length > 1;
 
       // ── 속도 헬퍼: 다중 선택이면 1.5배 느리게 ─────────────────────
-      final double SPEED = isMulti ? 1.5 : 1.0;
-      int ms(num v) => (v * SPEED).round();
+      final double speed = isMulti ? 1.5 : 1.0;
+      int ms(num v) => (v * speed).round();
       Duration dz(int baseMs) => Duration(milliseconds: ms(baseMs));
-      MapAnimationOptions anim(int baseMs) => MapAnimationOptions(duration: ms(baseMs));
+      MapAnimationOptions anim(int baseMs) =>
+          MapAnimationOptions(duration: ms(baseMs));
 
       final int steps = 100; // 또는 120
-      final int stepDelay = isMulti ? 38 : 50;    // 50ms → 75ms (다중일 때)
+      final int stepDelay = isMulti ? 38 : 50; // 50ms → 75ms (다중일 때)
       final double zoomIn = 19.0;
 
       // 폴리라인 초기화
-      final polylineCoords = <Position>[Position(places.first.lng, places.first.lat)];
+      final polylineCoords = <Position>[
+        Position(places.first.lng, places.first.lat)
+      ];
       _animatedPolyline = await _lineManager!.create(
         PolylineAnnotationOptions(
           geometry: LineString(coordinates: polylineCoords),
@@ -379,7 +386,7 @@ class _AnimatedMapScreenState extends State<AnimatedMapScreen> {
       // 첫 마커 준비
       final firstAnn = _pointAnnotations[0]
         ..iconOpacity = 0.0
-        ..iconSize = AnimatedMapScreen.PHOTO_SIZE * 0.66;
+        ..iconSize = AnimatedMapScreen.photoSize * 0.66;
       await _pointManager!.update(firstAnn);
 
       // 1) 지구 → 2) 첫 장소 줌인 (초기 연출은 원래 속도 유지)
@@ -390,16 +397,17 @@ class _AnimatedMapScreenState extends State<AnimatedMapScreen> {
       await Future.delayed(Duration(milliseconds: 600));
 
       await _mapboxMap!.flyTo(
-        CameraOptions(center: Point(coordinates: polylineCoords.first), zoom: zoomIn),
+        CameraOptions(
+            center: Point(coordinates: polylineCoords.first), zoom: zoomIn),
         MapAnimationOptions(duration: 2500),
       );
       await _applyMarkerMode(zoomIn);
 
       // 첫 사진 아이콘 키우기
       for (final size in [
-        AnimatedMapScreen.PHOTO_SIZE * 0.66,
-        AnimatedMapScreen.PHOTO_SIZE * 0.85,
-        AnimatedMapScreen.PHOTO_SIZE,
+        AnimatedMapScreen.photoSize * 0.66,
+        AnimatedMapScreen.photoSize * 0.85,
+        AnimatedMapScreen.photoSize,
       ]) {
         firstAnn
           ..iconOpacity = 1.0
@@ -413,7 +421,8 @@ class _AnimatedMapScreenState extends State<AnimatedMapScreen> {
         final endZoom = math.min(zoomIn, 17.0);
         await _mapboxMap!.flyTo(
           CameraOptions(
-            center: Point(coordinates: Position(places.first.lng, places.first.lat)),
+            center: Point(
+                coordinates: Position(places.first.lng, places.first.lat)),
             zoom: endZoom,
             pitch: 45.0,
             bearing: -15.0,
@@ -441,7 +450,8 @@ class _AnimatedMapScreenState extends State<AnimatedMapScreen> {
 
         for (final pos in interpolated) {
           polylineCoords.add(pos);
-          _animatedPolyline!.geometry = LineString(coordinates: List.from(polylineCoords));
+          _animatedPolyline!.geometry =
+              LineString(coordinates: List.from(polylineCoords));
           await _lineManager!.update(_animatedPolyline!);
           await Future.delayed(Duration(milliseconds: stepDelay)); // 50 → 75ms
         }
@@ -450,7 +460,7 @@ class _AnimatedMapScreenState extends State<AnimatedMapScreen> {
         // 필요하면 중간 지점 아이콘만 천천히 나타내고 싶을 때:
         // final ann = _pointAnnotations[i]
         //   ..iconOpacity = 1.0
-        //   ..iconSize = AnimatedMapScreen.PHOTO_SIZE * 0.7;
+        //   ..iconSize = AnimatedMapScreen.photoSize * 0.7;
         // await _pointManager!.update(ann);
         // (주의: camAll 줌에서는 사진 모드가 아닐 수 있음)
       }
@@ -471,13 +481,13 @@ class _AnimatedMapScreenState extends State<AnimatedMapScreen> {
       // 마지막 사진 아이콘만 키우기
       final lastAnn = _pointAnnotations.last
         ..iconOpacity = 1.0
-        ..iconSize = AnimatedMapScreen.PHOTO_SIZE * 0.66;
+        ..iconSize = AnimatedMapScreen.photoSize * 0.66;
       await _pointManager!.update(lastAnn);
 
       for (final size in [
-        AnimatedMapScreen.PHOTO_SIZE * 0.66,
-        AnimatedMapScreen.PHOTO_SIZE * 0.85,
-        AnimatedMapScreen.PHOTO_SIZE,
+        AnimatedMapScreen.photoSize * 0.66,
+        AnimatedMapScreen.photoSize * 0.85,
+        AnimatedMapScreen.photoSize,
       ]) {
         lastAnn.iconSize = size;
         await _pointManager!.update(lastAnn);
@@ -487,14 +497,10 @@ class _AnimatedMapScreenState extends State<AnimatedMapScreen> {
       // 5) 엔딩: 전체 보기로 한 번만 줌아웃
       await _mapboxMap!.flyTo(camAll, anim(700)); // 700 → 1050ms
       await _applyMarkerMode((camAll.zoom ?? 12.0));
-
     } finally {
       _isAnimating = false;
     }
   }
-
-
-
 
   Future<void> _onCameraChanged(CameraChangedEventData _) async {
     if (_mapboxMap == null || _isAnimating) return;
@@ -503,59 +509,52 @@ class _AnimatedMapScreenState extends State<AnimatedMapScreen> {
       final z = (await _mapboxMap!.getCameraState()).zoom;
       await _applyMarkerMode(z); // 내부에서 상태변화 없으면 NO-OP 처리
     });
-
-
   }
-
-
 
   @override
-      Widget build(BuildContext context) {
-        final initialCenter = widget.selectedPlaces.isNotEmpty
-            ? Point(coordinates: Position(
-          widget.selectedPlaces.first.lng,
-          widget.selectedPlaces.first.lat,
-        ))
-            : Point(coordinates: Position(0, 0));
+  Widget build(BuildContext context) {
+    final initialCenter = widget.selectedPlaces.isNotEmpty
+        ? Point(
+            coordinates: Position(
+            widget.selectedPlaces.first.lng,
+            widget.selectedPlaces.first.lat,
+          ))
+        : Point(coordinates: Position(0, 0));
 
-        return Scaffold(
-          body: Stack(
-            children: [
-              Positioned.fill(
-                child: MapWidget(
-                  key: const ValueKey('mapWidget'),
-                  styleUri: 'mapbox://styles/thjcompany/cmdxyza3o00u601rh78vk915y',
-                  cameraOptions: CameraOptions(
-                    center: initialCenter,
-                    zoom: 4.0,
-                    pitch: 50.0,
-                    bearing: -20.0,
-                  ),
-                  onMapCreated: _onMapCreated,
-                  onStyleLoadedListener: _onStyleLoaded, // ✅ 추가
-                  onCameraChangeListener: _onCameraChanged,
-                  onMapIdleListener: (e) async {
-                    if (_mapboxMap == null || _isAnimating) return;
-                    final z = (await _mapboxMap!.getCameraState()).zoom;
-                    await _applyMarkerMode(z);
-                  },
-
-
-                ),
+    return Scaffold(
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: MapWidget(
+              key: const ValueKey('mapWidget'),
+              styleUri: 'mapbox://styles/thjcompany/cmdxyza3o00u601rh78vk915y',
+              viewport: CameraViewportState(
+                center: initialCenter,
+                zoom: 4.0,
+                pitch: 50.0,
+                bearing: -20.0,
               ),
-              Positioned(
-                bottom: 40,
-                right: 20,
-                child: FloatingActionButton.small(
-                  onPressed: _startAnimation,
-                  child: const Icon(Icons.play_arrow),
-                  tooltip: '애니메이션 시작',
-                ),
-              ),
-
-            ],
+              onMapCreated: _onMapCreated,
+              onStyleLoadedListener: _onStyleLoaded, // ✅ 추가
+              onCameraChangeListener: _onCameraChanged,
+              onMapIdleListener: (e) async {
+                if (_mapboxMap == null || _isAnimating) return;
+                final z = (await _mapboxMap!.getCameraState()).zoom;
+                await _applyMarkerMode(z);
+              },
+            ),
           ),
-        );
-   }
+          Positioned(
+            bottom: 40,
+            right: 20,
+            child: FloatingActionButton.small(
+              onPressed: _startAnimation,
+              tooltip: '애니메이션 시작',
+              child: const Icon(Icons.play_arrow),
+            ),
+          ),
+        ],
+      ),
+    );
   }
-
+}

@@ -25,7 +25,8 @@ Locale? parseLocale(String? localeString) {
     final secondPart = parts[1];
 
     // 스크립트 코드인지 국가 코드인지 확인
-    if (secondPart.length == 4) { // 스크립트 코드는 보통 4글자
+    if (secondPart.length == 4) {
+      // 스크립트 코드는 보통 4글자
       return Locale.fromSubtags(
         languageCode: languageCode,
         scriptCode: secondPart,

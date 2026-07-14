@@ -10,19 +10,36 @@ class MapScreen extends StatefulWidget {
   final double longitude;
   final String restaurantName;
 
-  MapScreen({
+  const MapScreen({
+    super.key,
     required this.latitude,
     required this.longitude,
     required this.restaurantName,
   });
 
   @override
-  _MapScreenState createState() => _MapScreenState();
+  State<MapScreen> createState() => _MapScreenState();
 }
 
 class _MapScreenState extends State<MapScreen> {
   late GoogleMapController mapController;
   bool isDarkMode = false;
+  String? _darkMapStyle;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDarkMapStyle();
+  }
+
+  Future<void> _loadDarkMapStyle() async {
+    final style =
+        await rootBundle.loadString('assets/map_styles/dark_mode.json');
+    if (!mounted) return;
+    setState(() {
+      _darkMapStyle = style;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +52,8 @@ class _MapScreenState extends State<MapScreen> {
           'Map View',
           style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
         ),
-        iconTheme: IconThemeData(color: isDarkMode ? Colors.white : Colors.black),
+        iconTheme:
+            IconThemeData(color: isDarkMode ? Colors.white : Colors.black),
         actions: [
           IconButton(
             icon: Icon(Icons.share),
@@ -45,6 +63,7 @@ class _MapScreenState extends State<MapScreen> {
       ),
       body: GoogleMap(
         onMapCreated: _onMapCreated,
+        style: isDarkMode ? _darkMapStyle : null,
         initialCameraPosition: CameraPosition(
           target: LatLng(widget.latitude, widget.longitude),
           zoom: 14.0,
@@ -55,7 +74,8 @@ class _MapScreenState extends State<MapScreen> {
             position: LatLng(widget.latitude, widget.longitude),
             infoWindow: InfoWindow(
               title: widget.restaurantName,
-              snippet: AppLocalizations.of(context)?.shareLocation ?? 'Share location',
+              snippet: AppLocalizations.of(context)?.shareLocation ??
+                  'Share location',
               onTap: _shareLocation,
             ),
           ),
@@ -64,21 +84,15 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  void _onMapCreated(GoogleMapController controller) async {
+  void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
-
-    if (isDarkMode) {
-      String darkMapStyle = await rootBundle.loadString('assets/map_styles/dark_mode.json');
-      mapController.setMapStyle(darkMapStyle);
-    } else {
-      mapController.setMapStyle(null); // 기본 맵 스타일 적용
-    }
   }
 
   void _shareLocation() {
     final locationUrl =
         'https://www.google.com/maps/search/?api=1&query=${widget.latitude},${widget.longitude}';
-    final message = 'Mscanner: ${widget.restaurantName}\n\nLocation: $locationUrl';
+    final message =
+        'Mscanner: ${widget.restaurantName}\n\nLocation: $locationUrl';
 
     Share.share(message);
   }

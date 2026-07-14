@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
-import 'Loading_Screen.dart';
+import 'loading_screen.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -10,28 +10,20 @@ import '/widgets/photo_capture_widget.dart';
 import '/screens/log_service.dart';
 import '/analytics_service.dart';
 
-
-
 class CameraScreen extends StatefulWidget {
   final VoidCallback onCancel;
   final bool isPremium; // (하위 호환 유지용) 상위에서 넘기면 우선 사용, 없으면 Provider 사용
-  CameraScreen({
+  const CameraScreen({
+    super.key,
     required this.onCancel,
-    this.isPremium = false,           // 기본값 false
-    Key? key,
-  }) : super(key: key);
+    this.isPremium = false, // 기본값 false
+  });
 
   @override
-  _CameraScreenState createState() => _CameraScreenState();
+  State<CameraScreen> createState() => _CameraScreenState();
 }
 
 class _CameraScreenState extends State<CameraScreen> {
-  bool _showClosingOverlay = false;
-
-
-  String _response = '';
-  Position? _position;
-  DateTime? _captureTime;
   bool _isProcessing = false;
   bool _isCancelled = false;
 
@@ -43,8 +35,6 @@ class _CameraScreenState extends State<CameraScreen> {
     _isCancelled = false;
   }
 
-
-
   @override
   void dispose() {
     _isCancelled = true; // ② 위젯이 사라질 때도 취소로 마킹
@@ -53,7 +43,8 @@ class _CameraScreenState extends State<CameraScreen> {
 
   /// PhotoCaptureWidget.onCaptured 콜백
   Future<void> _onCaptured(List<File> rawFiles) async {
-    print('📸 _onCaptured called: cancelled=$_isCancelled, processing=$_isProcessing');
+    debugPrint(
+        '📸 _onCaptured called: cancelled=$_isCancelled, processing=$_isProcessing');
     // 이미 처리 중이거나 취소된 상태면 즉시 리턴
     if (_isCancelled || _isProcessing) return;
 
@@ -64,7 +55,9 @@ class _CameraScreenState extends State<CameraScreen> {
       // 프리미엄이 아니면 1장만 허용(혹시 위젯 변경/플랫폼 버그 등으로 여러 장 올 경우 대비)
       // 멀티스캔 탭에서만 여러 장 허용: 네비게이션에서 넘긴 flag만 사용
       final isMultiMode = widget.isPremium; // (이름 그대로: 멀티스캔 여부)
-      final incoming = isMultiMode ? rawFiles : (rawFiles.isNotEmpty ? [rawFiles.first] : rawFiles);
+      final incoming = isMultiMode
+          ? rawFiles
+          : (rawFiles.isNotEmpty ? [rawFiles.first] : rawFiles);
 
       await AnalyticsService.instance.logScanStarted(
         scanMode: isMultiMode ? 'multi' : 'single',
@@ -78,7 +71,6 @@ class _CameraScreenState extends State<CameraScreen> {
         await LogService().logMultiScanSubmit(imageCount: incoming.length);
       }
 
-
       // 1) 이미지 압축
       List<File> files = [];
       for (var f in incoming) {
@@ -91,11 +83,11 @@ class _CameraScreenState extends State<CameraScreen> {
 
       // 중간에 취소되었거나 위젯이 언마운트되었으면 중단
       if (_isCancelled || !mounted) return;
-      print('📸 네비게이션 전, mounted=$mounted');
+      debugPrint('📸 네비게이션 전, mounted=$mounted');
 
       // 3) 다음 화면으로 안전하게 네비게이션
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        print('📸 Navigator.push 실행');
+        debugPrint('📸 Navigator.push 실행');
         if (!mounted) return;
         Navigator.of(context).push(
           MaterialPageRoute(
@@ -120,8 +112,7 @@ class _CameraScreenState extends State<CameraScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            AppLocalizations.of(context)?.loadingError
-                ?? '분석 중 오류가 발생했습니다.',
+            AppLocalizations.of(context)?.loadingError ?? '분석 중 오류가 발생했습니다.',
           ),
         ),
       );
@@ -132,8 +123,6 @@ class _CameraScreenState extends State<CameraScreen> {
     }
   }
 
-
-
   Future<File> compressImage(File file) async {
     final tempDir = await getTemporaryDirectory();
     final targetPath =
@@ -142,7 +131,8 @@ class _CameraScreenState extends State<CameraScreen> {
     // 🔎 원본 크기 로그(디버그)
     try {
       final inSize = await file.length();
-      print('🖼️ [Compress] input = ${(inSize / 1024).toStringAsFixed(1)} KB');
+      debugPrint(
+          '🖼️ [Compress] input = ${(inSize / 1024).toStringAsFixed(1)} KB');
     } catch (_) {}
 
     // ✅ 분석/OCR 용도: 과도한 원본(4K/8K) 전송 방지
@@ -151,8 +141,8 @@ class _CameraScreenState extends State<CameraScreen> {
       file.absolute.path,
       targetPath,
       format: CompressFormat.jpeg,
-      quality: 85,          // 50~70 권장 (OCR 고려)
-      minWidth: 1400,        // ✅ 너무 큰 원본을 줄이기 위한 기준
+      quality: 85, // 50~70 권장 (OCR 고려)
+      minWidth: 1400, // ✅ 너무 큰 원본을 줄이기 위한 기준
       minHeight: 1400,
       keepExif: false,
     );
@@ -166,12 +156,12 @@ class _CameraScreenState extends State<CameraScreen> {
     // 🔎 압축 후 크기 로그(디버그)
     try {
       final outSize = await outFile.length();
-      print('🗜️ [Compress] output = ${(outSize / 1024).toStringAsFixed(1)} KB');
+      debugPrint(
+          '🗜️ [Compress] output = ${(outSize / 1024).toStringAsFixed(1)} KB');
     } catch (_) {}
 
     return outFile;
   }
-
 
   Future<Position?> _getCurrentLocation() async {
     bool serviceEnabled;
@@ -200,18 +190,16 @@ class _CameraScreenState extends State<CameraScreen> {
     return await Geolocator.getCurrentPosition(); // ✅ Position을 반환함
   }
 
-
   void _showLocationPermissionDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         if (Platform.isIOS) {
           return CupertinoAlertDialog(
-            title: Text(
-                AppLocalizations.of(context)!.locationPermissionNeeded),
+            title: Text(AppLocalizations.of(context)!.locationPermissionNeeded),
             // 로컬라이즈된 제목
-            content: Text(AppLocalizations.of(context)!
-                .locationPermissionContent),
+            content:
+                Text(AppLocalizations.of(context)!.locationPermissionContent),
             // 로컬라이즈된 내용
             actions: [
               CupertinoDialogAction(
@@ -223,8 +211,7 @@ class _CameraScreenState extends State<CameraScreen> {
                 },
               ),
               CupertinoDialogAction(
-                child:
-                Text(AppLocalizations.of(context)!.openSettings),
+                child: Text(AppLocalizations.of(context)!.openSettings),
                 // 로컬라이즈된 "설정 열기" 버튼
                 onPressed: () {
                   Navigator.of(context).pop();
@@ -235,11 +222,10 @@ class _CameraScreenState extends State<CameraScreen> {
           );
         } else {
           return AlertDialog(
-            title: Text(
-                AppLocalizations.of(context)!.locationPermissionNeeded),
+            title: Text(AppLocalizations.of(context)!.locationPermissionNeeded),
             // 로컬라이즈된 제목
-            content: Text(AppLocalizations.of(context)!
-                .locationPermissionContent),
+            content:
+                Text(AppLocalizations.of(context)!.locationPermissionContent),
             // 로컬라이즈된 내용
             actions: [
               TextButton(
@@ -251,8 +237,7 @@ class _CameraScreenState extends State<CameraScreen> {
                 },
               ),
               TextButton(
-                child:
-                Text(AppLocalizations.of(context)!.openSettings),
+                child: Text(AppLocalizations.of(context)!.openSettings),
                 // 로컬라이즈된 "설정 열기" 버튼
                 onPressed: () {
                   Navigator.of(context).pop();
@@ -272,11 +257,10 @@ class _CameraScreenState extends State<CameraScreen> {
       builder: (BuildContext context) {
         if (Platform.isIOS) {
           return CupertinoAlertDialog(
-            title: Text(
-                AppLocalizations.of(context)!.locationServiceDisabled),
+            title: Text(AppLocalizations.of(context)!.locationServiceDisabled),
             // 로컬라이즈된 제목
-            content: Text(AppLocalizations.of(context)!
-                .locationServiceDisabledContent),
+            content: Text(
+                AppLocalizations.of(context)!.locationServiceDisabledContent),
             // 로컬라이즈된 내용
             actions: [
               CupertinoDialogAction(
@@ -288,8 +272,7 @@ class _CameraScreenState extends State<CameraScreen> {
                 },
               ),
               CupertinoDialogAction(
-                child:
-                Text(AppLocalizations.of(context)!.openSettings),
+                child: Text(AppLocalizations.of(context)!.openSettings),
                 // 로컬라이즈된 "설정 열기" 버튼
                 onPressed: () {
                   Navigator.of(context).pop();
@@ -300,11 +283,10 @@ class _CameraScreenState extends State<CameraScreen> {
           );
         } else {
           return AlertDialog(
-            title: Text(
-                AppLocalizations.of(context)!.locationServiceDisabled),
+            title: Text(AppLocalizations.of(context)!.locationServiceDisabled),
             // 로컬라이즈된 제목
-            content: Text(AppLocalizations.of(context)!
-                .locationServiceDisabledContent),
+            content: Text(
+                AppLocalizations.of(context)!.locationServiceDisabledContent),
             // 로컬라이즈된 내용
             actions: [
               TextButton(
@@ -316,8 +298,7 @@ class _CameraScreenState extends State<CameraScreen> {
                 },
               ),
               TextButton(
-                child:
-                Text(AppLocalizations.of(context)!.openSettings),
+                child: Text(AppLocalizations.of(context)!.openSettings),
                 // 로컬라이즈된 "설정 열기" 버튼
                 onPressed: () {
                   Navigator.of(context).pop();
@@ -338,15 +319,18 @@ class _CameraScreenState extends State<CameraScreen> {
 // 네비게이션에서 넘긴 값으로만 멀티/싱글 결정
     final isMultiMode = widget.isPremium;
     final maxCount = isMultiMode ? 4 : 1;
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
         // Flutter 레벨 뒤로가기도 홈으로
         widget.onCancel();
-        return false;
       },
       child: Scaffold(
         backgroundColor: isDark ? Colors.black : Colors.white,
-        appBar: AppBar(leading: SizedBox.shrink(), /*…*/),
+        appBar: AppBar(
+          leading: SizedBox.shrink(), /*…*/
+        ),
         body: PhotoCaptureWidget(
           isMulti: isMultiMode,
           maxCount: maxCount,
