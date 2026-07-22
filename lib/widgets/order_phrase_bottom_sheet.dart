@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import 'package:mscanner/models/order_phrase_models.dart';
 import 'package:mscanner/services/order_phrase_service.dart';
 import 'package:mscanner/services/order_phrase_tts_service.dart';
@@ -365,8 +365,8 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
                           onPressed: _toggleSpeak,
                           icon: PhosphorIcon(
                             _isSpeaking
-                                ? PhosphorIcons.stop()
-                                : PhosphorIcons.speakerHigh(),
+                                ? PhosphorIcons.stop
+                                : PhosphorIcons.speakerHigh,
                             size: 16,
                           ),
                           label: _isSpeaking ? l10n.tts_stop : l10n.tts_listen,
@@ -374,7 +374,7 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
                         const SizedBox(width: 8),
                         _SheetActionButton(
                           onPressed: _isLoading ? null : _generatePhrase,
-                          icon: PhosphorIcon(PhosphorIcons.arrowsClockwise(),
+                          icon: PhosphorIcon(PhosphorIcons.arrowsClockwise,
                               size: 16),
                           label: l10n.tts_regenerate,
                         ),

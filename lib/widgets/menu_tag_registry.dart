@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 class MenuTagRegistry {
   static const String vegan = 'vegan';
@@ -94,48 +94,48 @@ class MenuTagRegistry {
   static IconData iconForCode(String code) {
     switch (code) {
       case vegan:
-        return PhosphorIcons.leaf();
+        return PhosphorIcons.leaf;
       case vegetarian:
-        return PhosphorIcons.plant();
+        return PhosphorIcons.plant;
 
       case glutenFree:
-        return PhosphorIcons.grainsSlash(); // (대체) 금지/제한 느낌
+        return PhosphorIcons.grainsSlash; // (대체) 금지/제한 느낌
       case dairyFree:
-        return PhosphorIcons.drop(); // (대체) 유제품/라떼 느낌 대신 드롭
+        return PhosphorIcons.drop; // (대체) 유제품/라떼 느낌 대신 드롭
       case nutAllergy:
-        return PhosphorIcons.warning(); // (대체) 알러지 경고
+        return PhosphorIcons.warning; // (대체) 알러지 경고
 
       case halal:
-        return PhosphorIcons.moon();
+        return PhosphorIcons.moon;
       case pescatarian:
-        return PhosphorIcons.fish();
+        return PhosphorIcons.fish;
 
       case spicy:
-        return PhosphorIcons.fire();
+        return PhosphorIcons.fire;
       case grill:
-        return PhosphorIcons.flame();
+        return PhosphorIcons.flame;
       case stew:
-        return PhosphorIcons.cookingPot();
+        return PhosphorIcons.cookingPot;
 
       case recommended:
-        return PhosphorIcons.star();
+        return PhosphorIcons.star;
       case signature:
-        return PhosphorIcons.medal();
+        return PhosphorIcons.medal;
       case popular:
-        return PhosphorIcons.trendUp();
+        return PhosphorIcons.trendUp;
 
       case egg:
         // ✅ 1차 시도 (있으면 이게 베스트)
         // return PhosphorIcons.egg();
 
         // ✅ 2.1.0에서 egg()가 없으면 아래처럼 대체(컴파일 100% 보장)
-        return PhosphorIcons.egg();
+        return PhosphorIcons.egg;
 
       case seafood:
-        return PhosphorIcons.fish();
+        return PhosphorIcons.fish;
 
       default:
-        return PhosphorIcons.tag();
+        return PhosphorIcons.tag;
     }
   }
 

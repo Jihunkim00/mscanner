@@ -32,7 +32,7 @@ import 'package:flutter/rendering.dart';
 import '/analytics_service.dart';
 import 'package:mscanner/models/order_phrase_models.dart';
 import 'package:mscanner/widgets/order_phrase_bottom_sheet.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import 'package:mscanner/widgets/result/result_decision_skeleton.dart';
 import 'package:mscanner/widgets/result/result_decision_cards.dart';
 import 'package:mscanner/widgets/result/result_ui_copy.dart';
@@ -1687,7 +1687,7 @@ class _ResultScreenState extends State<ResultScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       PhosphorIcon(
-                        PhosphorIcons.speakerHigh(),
+                        PhosphorIcons.speakerHigh,
                         size: 14,
                         color: textColor.withValues(alpha: 0.82),
                       ),
