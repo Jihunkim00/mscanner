@@ -1,3 +1,33 @@
+enum PremiumAutoPromptAudience {
+  guest,
+  registeredFree,
+  ineligible,
+}
+
+extension PremiumAutoPromptAudienceX on PremiumAutoPromptAudience {
+  String get analyticsValue {
+    switch (this) {
+      case PremiumAutoPromptAudience.guest:
+        return 'guest';
+      case PremiumAutoPromptAudience.registeredFree:
+        return 'registered_free';
+      case PremiumAutoPromptAudience.ineligible:
+        return 'ineligible';
+    }
+  }
+
+  String get prefsSegment {
+    switch (this) {
+      case PremiumAutoPromptAudience.guest:
+        return 'guest';
+      case PremiumAutoPromptAudience.registeredFree:
+        return 'registered';
+      case PremiumAutoPromptAudience.ineligible:
+        return 'ineligible';
+    }
+  }
+}
+
 class PremiumAutoPromptDecision {
   const PremiumAutoPromptDecision({
     required this.shouldShow,
@@ -14,66 +44,64 @@ class PremiumAutoPromptDecision {
 
 class PremiumAutoPromptPolicy {
   static const int homeEntryInterval = 3;
-  static const Duration cooldown = Duration(days: 7);
+  static const Duration registeredCooldown = Duration(days: 7);
 
   const PremiumAutoPromptPolicy();
 
-  static String homeEntryCountPrefsKey(String uid) =>
-      'premium_auto_prompt_home_entry_count_$uid';
+  static String homeEntryCountPrefsKey(
+    String uid,
+    PremiumAutoPromptAudience audience,
+  ) =>
+      'premium_auto_prompt_home_entry_count_${audience.prefsSegment}_$uid';
 
-  static String lastShownAtPrefsKey(String uid) =>
-      'premium_auto_prompt_last_shown_at_$uid';
+  static String registeredLastShownAtPrefsKey(String uid) =>
+      'premium_auto_prompt_last_shown_at_registered_$uid';
 
   bool shouldShow({
+    required PremiumAutoPromptAudience audience,
     required int homeEntryCount,
     required DateTime? lastShownAt,
     required DateTime now,
-    required bool isGuest,
     required bool isSubscribed,
     required bool isAdRemoved,
     required bool entitlementLoaded,
     required bool shownThisSession,
     required bool manuallyOpenedThisSession,
     bool routeIsCurrent = true,
+    bool recentInterstitial = false,
   }) {
     return evaluate(
+      audience: audience,
       homeEntryCount: homeEntryCount,
       lastShownAt: lastShownAt,
       now: now,
-      isGuest: isGuest,
       isSubscribed: isSubscribed,
       isAdRemoved: isAdRemoved,
       entitlementLoaded: entitlementLoaded,
       shownThisSession: shownThisSession,
       manuallyOpenedThisSession: manuallyOpenedThisSession,
       routeIsCurrent: routeIsCurrent,
+      recentInterstitial: recentInterstitial,
     ).shouldShow;
   }
 
   PremiumAutoPromptDecision evaluate({
+    required PremiumAutoPromptAudience audience,
     required int homeEntryCount,
     required DateTime? lastShownAt,
     required DateTime now,
-    required bool isGuest,
     required bool isSubscribed,
     required bool isAdRemoved,
     required bool entitlementLoaded,
     required bool shownThisSession,
     required bool manuallyOpenedThisSession,
     bool routeIsCurrent = true,
+    bool recentInterstitial = false,
   }) {
     if (!routeIsCurrent) {
       return const PremiumAutoPromptDecision(
         shouldShow: false,
         reason: 'route_not_current',
-        shouldCountHomeEntry: false,
-      );
-    }
-
-    if (!isGuest) {
-      return const PremiumAutoPromptDecision(
-        shouldShow: false,
-        reason: 'not_guest',
         shouldCountHomeEntry: false,
       );
     }
@@ -102,21 +130,34 @@ class PremiumAutoPromptPolicy {
       );
     }
 
+    if (audience == PremiumAutoPromptAudience.ineligible) {
+      return const PremiumAutoPromptDecision(
+        shouldShow: false,
+        reason: 'ineligible',
+        shouldCountHomeEntry: false,
+      );
+    }
+
+    if (audience == PremiumAutoPromptAudience.registeredFree) {
+      final remaining = registeredCooldownRemaining(
+        lastShownAt: lastShownAt,
+        now: now,
+      );
+      if (remaining > Duration.zero) {
+        return PremiumAutoPromptDecision(
+          shouldShow: false,
+          reason: 'registered_cooldown',
+          shouldCountHomeEntry: false,
+          cooldownRemaining: remaining,
+        );
+      }
+    }
+
     if (homeEntryCount < homeEntryInterval) {
       return const PremiumAutoPromptDecision(
         shouldShow: false,
         reason: 'entry_count_not_met',
         shouldCountHomeEntry: true,
-      );
-    }
-
-    final remaining = cooldownRemaining(lastShownAt: lastShownAt, now: now);
-    if (remaining > Duration.zero) {
-      return PremiumAutoPromptDecision(
-        shouldShow: false,
-        reason: 'cooldown',
-        shouldCountHomeEntry: true,
-        cooldownRemaining: remaining,
       );
     }
 
@@ -136,6 +177,14 @@ class PremiumAutoPromptPolicy {
       );
     }
 
+    if (recentInterstitial) {
+      return const PremiumAutoPromptDecision(
+        shouldShow: false,
+        reason: 'recent_interstitial',
+        shouldCountHomeEntry: true,
+      );
+    }
+
     return const PremiumAutoPromptDecision(
       shouldShow: true,
       reason: 'eligible',
@@ -143,15 +192,26 @@ class PremiumAutoPromptPolicy {
     );
   }
 
-  Duration cooldownRemaining({
+  Duration registeredCooldownRemaining({
     required DateTime? lastShownAt,
     required DateTime now,
   }) {
     if (lastShownAt == null) return Duration.zero;
 
     final elapsed = now.difference(lastShownAt);
-    if (elapsed < Duration.zero) return cooldown;
-    if (elapsed >= cooldown) return Duration.zero;
-    return cooldown - elapsed;
+    if (elapsed < Duration.zero) return registeredCooldown;
+    if (elapsed >= registeredCooldown) return Duration.zero;
+    return registeredCooldown - elapsed;
+  }
+
+  bool isRecentInterstitial({
+    required DateTime? lastShownAt,
+    required DateTime now,
+    required Duration cooldown,
+  }) {
+    if (lastShownAt == null) return false;
+    final elapsed = now.difference(lastShownAt);
+    if (elapsed < Duration.zero) return true;
+    return elapsed < cooldown;
   }
 }

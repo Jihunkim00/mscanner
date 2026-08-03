@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert'; // JSON 인코딩 및 디코딩에 사용
 import 'dart:ui';
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -32,6 +33,7 @@ import '/widgets/how_to_use_mscanner_card.dart';
 import '/analytics_service.dart';
 import '/helpers/account_upgrade_helper.dart';
 import '/services/premium_auto_prompt_policy.dart';
+import '/services/result_exit_interstitial_policy.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -59,12 +61,16 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isHandlingPremiumCta = false;
   static const Duration _premiumPromptAutoShowDelay =
       Duration(milliseconds: 900);
+  static const Duration _premiumPromptAfterInterstitialCooldown =
+      Duration(minutes: 5);
   static bool _premiumAutoPromptShownThisSession = false;
   static bool _premiumPromptManuallyOpenedThisSession = false;
 
   final PremiumAutoPromptPolicy _premiumAutoPromptPolicy =
       const PremiumAutoPromptPolicy();
-  bool _homeEntryProcessed = false;
+  bool _premiumHomeEntryProcessing = false;
+  bool _premiumHomeEntryProcessed = false;
+  AdRemoveProvider? _premiumEntitlementProvider;
 
   String _nearbyTrendingText(String lang) {
     try {
@@ -94,16 +100,19 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadGeohash();
     _initializeHome();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _homeEntryProcessed) return;
-      _homeEntryProcessed = true;
-      unawaited(_handlePremiumAutoPromptOnHomeEntry());
+      _tryProcessPremiumHomeEntry();
     });
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // 별도 리스너 불필요 – Provider를 build 시점에 바로 읽습니다.
+    final provider = context.read<AdRemoveProvider>();
+    if (_premiumEntitlementProvider == provider) return;
+
+    _premiumEntitlementProvider?.removeListener(_onPremiumEntitlementChanged);
+    _premiumEntitlementProvider = provider;
+    provider.addListener(_onPremiumEntitlementChanged);
   }
 
   Future<void> _loadGeohash() async {
@@ -135,31 +144,91 @@ class _HomeScreenState extends State<HomeScreen> {
       _selectedIndex == 0 &&
       ModalRoute.of(context)?.isCurrent == true;
 
-  DateTime? _readPremiumLastShownAt(SharedPreferences prefs, String uid) {
-    final raw = prefs.get(PremiumAutoPromptPolicy.lastShownAtPrefsKey(uid));
+  void _logPremiumAutoPromptDebug(String message) {
+    debugPrint('[PremiumAutoPrompt] $message');
+  }
+
+  DateTime? _readDateTimePref(SharedPreferences prefs, String key) {
+    final raw = prefs.get(key);
     if (raw is int) {
       return DateTime.fromMillisecondsSinceEpoch(raw);
     }
-    if (raw is String) {
+    if (raw is String && raw.isNotEmpty) {
       return DateTime.tryParse(raw);
     }
     return null;
   }
 
+  DateTime? _readRegisteredPremiumLastShownAt(
+    SharedPreferences prefs,
+    String uid,
+  ) {
+    return _readDateTimePref(
+      prefs,
+      PremiumAutoPromptPolicy.registeredLastShownAtPrefsKey(uid),
+    );
+  }
+
+  DateTime? _readResultExitInterstitialLastShownAt(SharedPreferences prefs) {
+    return _readDateTimePref(
+      prefs,
+      ResultExitInterstitialPolicy.lastShownAtPrefsKey,
+    );
+  }
+
+  bool _isRecentResultExitInterstitial(DateTime? lastShownAt, DateTime now) {
+    return _premiumAutoPromptPolicy.isRecentInterstitial(
+      lastShownAt: lastShownAt,
+      now: now,
+      cooldown: _premiumPromptAfterInterstitialCooldown,
+    );
+  }
+
+  String _formatPromptTime(DateTime? value) =>
+      value?.toIso8601String() ?? 'none';
+
+  PremiumAutoPromptAudience _resolvePremiumAutoPromptAudience(
+    AdRemoveProvider adProvider,
+  ) {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      _logPremiumAutoPromptDebug('waiting_for_auth');
+      return PremiumAutoPromptAudience.ineligible;
+    }
+
+    if (adProvider.isSubscribed) {
+      _logPremiumAutoPromptDebug('premium_skipped');
+      return PremiumAutoPromptAudience.ineligible;
+    }
+
+    if (adProvider.isAdRemoved) {
+      _logPremiumAutoPromptDebug('ad_removed_skipped');
+      return PremiumAutoPromptAudience.ineligible;
+    }
+
+    final audience = user.isAnonymous
+        ? PremiumAutoPromptAudience.guest
+        : PremiumAutoPromptAudience.registeredFree;
+    _logPremiumAutoPromptDebug(
+        'audience_resolved audience=${audience.analyticsValue}');
+    return audience;
+  }
+
   PremiumAutoPromptDecision _evaluatePremiumAutoPrompt({
+    required PremiumAutoPromptAudience audience,
     required int homeEntryCount,
     required DateTime? lastShownAt,
     required DateTime now,
+    required bool recentInterstitial,
     bool ignoreReservedAutoPrompt = false,
   }) {
-    final user = FirebaseAuth.instance.currentUser;
     final adProvider = context.read<AdRemoveProvider>();
 
     return _premiumAutoPromptPolicy.evaluate(
+      audience: audience,
       homeEntryCount: homeEntryCount,
       lastShownAt: lastShownAt,
       now: now,
-      isGuest: user?.isAnonymous == true,
       isSubscribed: adProvider.isSubscribed,
       isAdRemoved: adProvider.isAdRemoved,
       entitlementLoaded: adProvider.isEntitlementLoaded,
@@ -167,6 +236,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ignoreReservedAutoPrompt ? false : _premiumAutoPromptShownThisSession,
       manuallyOpenedThisSession: _premiumPromptManuallyOpenedThisSession,
       routeIsCurrent: _isHomeRouteCurrent,
+      recentInterstitial: recentInterstitial,
     );
   }
 
@@ -174,12 +244,14 @@ class _HomeScreenState extends State<HomeScreen> {
     String name, {
     String? reason,
     required int homeEntryCount,
+    required PremiumAutoPromptAudience audience,
+    required bool recentInterstitial,
     Duration cooldownRemaining = Duration.zero,
   }) {
-    final user = FirebaseAuth.instance.currentUser;
     final params = <String, Object?>{
       'home_entry_count': homeEntryCount,
-      'is_guest': user?.isAnonymous == true ? 1 : 0,
+      'audience': audience.analyticsValue,
+      'recent_interstitial': recentInterstitial ? 1 : 0,
       'entry_point': 'home',
     };
 
@@ -196,57 +268,197 @@ class _HomeScreenState extends State<HomeScreen> {
   void _logPremiumAutoPromptSkipped(
     PremiumAutoPromptDecision decision, {
     required int homeEntryCount,
+    required PremiumAutoPromptAudience audience,
+    required bool recentInterstitial,
   }) {
+    _logPremiumAutoPromptDebug(
+      'premium_skipped reason=${decision.reason} '
+      'audience=${audience.analyticsValue} '
+      'homeEntryCount=$homeEntryCount '
+      'recentInterstitial=$recentInterstitial',
+    );
+
+    if (decision.reason == 'registered_cooldown') {
+      _logPremiumAutoPromptDebug(
+        'registered_cooldown remainingSeconds=${decision.cooldownRemaining.inSeconds}',
+      );
+    }
+    if (decision.reason == 'shown_this_session') {
+      _logPremiumAutoPromptDebug('shown_this_session');
+    }
+    if (decision.reason == 'manually_opened_this_session') {
+      _logPremiumAutoPromptDebug('manually_opened_this_session');
+    }
+
     _logPremiumAutoPromptEvent(
       'premium_auto_prompt_skipped',
       reason: decision.reason,
       homeEntryCount: homeEntryCount,
+      audience: audience,
+      recentInterstitial: recentInterstitial,
       cooldownRemaining: decision.cooldownRemaining,
+    );
+  }
+
+  void _onPremiumEntitlementChanged() {
+    if (!mounted) return;
+    if (_premiumEntitlementProvider?.isEntitlementLoaded == true) {
+      _logPremiumAutoPromptDebug('entitlement_loaded');
+    }
+    _tryProcessPremiumHomeEntry();
+  }
+
+  void _tryProcessPremiumHomeEntry() {
+    _logPremiumAutoPromptDebug('home_entry_callback');
+    if (!mounted || _premiumHomeEntryProcessing || _premiumHomeEntryProcessed) {
+      return;
+    }
+
+    final provider = context.read<AdRemoveProvider>();
+    if (!provider.isEntitlementLoaded) {
+      _logPremiumAutoPromptDebug('waiting_for_entitlement');
+      return;
+    }
+
+    _logPremiumAutoPromptDebug('entitlement_loaded');
+    _premiumHomeEntryProcessing = true;
+    unawaited(
+      _handlePremiumAutoPromptOnHomeEntry().whenComplete(() {
+        _premiumHomeEntryProcessing = false;
+      }),
     );
   }
 
   Future<void> _handlePremiumAutoPromptOnHomeEntry() async {
     if (!mounted) return;
 
-    final countGate = _evaluatePremiumAutoPrompt(
-      homeEntryCount: PremiumAutoPromptPolicy.homeEntryInterval,
-      lastShownAt: null,
-      now: DateTime.now(),
-      ignoreReservedAutoPrompt: true,
-    );
-    if (!countGate.shouldCountHomeEntry) {
-      _logPremiumAutoPromptSkipped(countGate, homeEntryCount: 0);
+    final adProvider = context.read<AdRemoveProvider>();
+    if (!adProvider.isEntitlementLoaded) {
+      _logPremiumAutoPromptDebug('waiting_for_entitlement');
       return;
     }
+
+    _premiumHomeEntryProcessed = true;
 
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null || !user.isAnonymous) {
-      _logPremiumAutoPromptSkipped(countGate, homeEntryCount: 0);
+    if (user == null) {
+      final decision = _premiumAutoPromptPolicy.evaluate(
+        audience: PremiumAutoPromptAudience.ineligible,
+        homeEntryCount: 0,
+        lastShownAt: null,
+        now: DateTime.now(),
+        isSubscribed: adProvider.isSubscribed,
+        isAdRemoved: adProvider.isAdRemoved,
+        entitlementLoaded: adProvider.isEntitlementLoaded,
+        shownThisSession: _premiumAutoPromptShownThisSession,
+        manuallyOpenedThisSession: _premiumPromptManuallyOpenedThisSession,
+        routeIsCurrent: _isHomeRouteCurrent,
+        recentInterstitial: false,
+      );
+      _logPremiumAutoPromptDebug('waiting_for_auth');
+      _logPremiumAutoPromptSkipped(
+        decision,
+        homeEntryCount: 0,
+        audience: PremiumAutoPromptAudience.ineligible,
+        recentInterstitial: false,
+      );
       return;
     }
 
+    final audience = _resolvePremiumAutoPromptAudience(adProvider);
     final uid = user.uid;
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
 
-    final countKey = PremiumAutoPromptPolicy.homeEntryCountPrefsKey(uid);
-    final homeEntryCount = (prefs.getInt(countKey) ?? 0) + 1;
-    await prefs.setInt(countKey, homeEntryCount);
+    final now = DateTime.now();
+    final lastShownAt = audience == PremiumAutoPromptAudience.registeredFree
+        ? _readRegisteredPremiumLastShownAt(prefs, uid)
+        : null;
+    final interstitialLastShownAt =
+        _readResultExitInterstitialLastShownAt(prefs);
+    final recentInterstitial = _isRecentResultExitInterstitial(
+      interstitialLastShownAt,
+      now,
+    );
+
+    final countKey = PremiumAutoPromptPolicy.homeEntryCountPrefsKey(
+      uid,
+      audience,
+    );
+    final countBefore = math.min(
+      math.max(0, prefs.getInt(countKey) ?? 0),
+      PremiumAutoPromptPolicy.homeEntryInterval,
+    );
+
+    _logPremiumAutoPromptDebug(
+      'count_before audience=${audience.analyticsValue} countBefore=$countBefore',
+    );
+    _logPremiumAutoPromptDebug(
+      'premium_last_shown_at ${_formatPromptTime(lastShownAt)}',
+    );
+    _logPremiumAutoPromptDebug(
+      'interstitial_last_shown_at ${_formatPromptTime(interstitialLastShownAt)}',
+    );
+    _logPremiumAutoPromptDebug('recent_interstitial $recentInterstitial');
+
+    final countGate = _evaluatePremiumAutoPrompt(
+      audience: audience,
+      homeEntryCount: countBefore,
+      lastShownAt: lastShownAt,
+      now: now,
+      recentInterstitial: false,
+    );
+    if (!countGate.shouldCountHomeEntry) {
+      _logPremiumAutoPromptDebug(
+        'policy_decision reason=${countGate.reason} '
+        'audience=${audience.analyticsValue} count=$countBefore '
+        'recentInterstitial=false',
+      );
+      _logPremiumAutoPromptSkipped(
+        countGate,
+        homeEntryCount: countBefore,
+        audience: audience,
+        recentInterstitial: false,
+      );
+      return;
+    }
+
+    final countAfter = math.min(
+      countBefore + 1,
+      PremiumAutoPromptPolicy.homeEntryInterval,
+    );
+    await prefs.setInt(countKey, countAfter);
     if (!mounted) return;
 
+    _logPremiumAutoPromptDebug(
+      'count_after audience=${audience.analyticsValue} countAfter=$countAfter',
+    );
     _logPremiumAutoPromptEvent(
       'premium_auto_prompt_home_entry',
-      homeEntryCount: homeEntryCount,
+      homeEntryCount: countAfter,
+      audience: audience,
+      recentInterstitial: recentInterstitial,
     );
 
-    final lastShownAt = _readPremiumLastShownAt(prefs, uid);
     final decision = _evaluatePremiumAutoPrompt(
-      homeEntryCount: homeEntryCount,
+      audience: audience,
+      homeEntryCount: countAfter,
       lastShownAt: lastShownAt,
       now: DateTime.now(),
+      recentInterstitial: recentInterstitial,
+    );
+    _logPremiumAutoPromptDebug(
+      'policy_decision reason=${decision.reason} '
+      'audience=${audience.analyticsValue} count=$countAfter '
+      'recentInterstitial=$recentInterstitial',
     );
     if (!decision.shouldShow) {
-      _logPremiumAutoPromptSkipped(decision, homeEntryCount: homeEntryCount);
+      _logPremiumAutoPromptSkipped(
+        decision,
+        homeEntryCount: countAfter,
+        audience: audience,
+        recentInterstitial: recentInterstitial,
+      );
       return;
     }
 
@@ -254,13 +466,19 @@ class _HomeScreenState extends State<HomeScreen> {
     var didShow = false;
 
     try {
+      _logPremiumAutoPromptDebug(
+          'scheduled delayMs=${_premiumPromptAutoShowDelay.inMilliseconds}');
       await Future<void>.delayed(_premiumPromptAutoShowDelay);
 
       if (!mounted || !_isHomeRouteCurrent) {
+        _logPremiumAutoPromptDebug(
+            'schedule_cancelled reason=route_not_current');
         _logPremiumAutoPromptEvent(
           'premium_auto_prompt_skipped',
           reason: 'route_not_current',
-          homeEntryCount: homeEntryCount,
+          homeEntryCount: countAfter,
+          audience: audience,
+          recentInterstitial: recentInterstitial,
         );
         return;
       }
@@ -268,35 +486,84 @@ class _HomeScreenState extends State<HomeScreen> {
       if (_showPremiumOverlay ||
           _isOpeningPurchaseSheet ||
           _isHandlingPremiumCta) {
+        _logPremiumAutoPromptDebug(
+            'schedule_cancelled reason=route_not_current');
         _logPremiumAutoPromptEvent(
           'premium_auto_prompt_skipped',
           reason: 'route_not_current',
-          homeEntryCount: homeEntryCount,
+          homeEntryCount: countAfter,
+          audience: audience,
+          recentInterstitial: recentInterstitial,
         );
         return;
       }
 
       final latestUser = FirebaseAuth.instance.currentUser;
       if (latestUser?.uid != uid) {
+        _logPremiumAutoPromptDebug('schedule_cancelled reason=not_guest');
         _logPremiumAutoPromptEvent(
           'premium_auto_prompt_skipped',
           reason: 'not_guest',
-          homeEntryCount: homeEntryCount,
+          homeEntryCount: countAfter,
+          audience: audience,
+          recentInterstitial: recentInterstitial,
         );
         return;
       }
 
-      final latestLastShownAt = _readPremiumLastShownAt(prefs, uid);
+      final latestAdProvider = context.read<AdRemoveProvider>();
+      final latestAudience =
+          _resolvePremiumAutoPromptAudience(latestAdProvider);
+      final latestLastShownAt =
+          latestAudience == PremiumAutoPromptAudience.registeredFree
+              ? _readRegisteredPremiumLastShownAt(prefs, uid)
+              : null;
+      final latestInterstitialLastShownAt =
+          _readResultExitInterstitialLastShownAt(prefs);
+      final latestRecentInterstitial = _isRecentResultExitInterstitial(
+        latestInterstitialLastShownAt,
+        DateTime.now(),
+      );
+      _logPremiumAutoPromptDebug(
+        'interstitial_last_shown_at ${_formatPromptTime(latestInterstitialLastShownAt)}',
+      );
+      _logPremiumAutoPromptDebug(
+          'recent_interstitial $latestRecentInterstitial');
+
+      if (latestAudience != audience) {
+        _logPremiumAutoPromptDebug('schedule_cancelled reason=not_guest');
+        _logPremiumAutoPromptEvent(
+          'premium_auto_prompt_skipped',
+          reason: 'not_guest',
+          homeEntryCount: countAfter,
+          audience: latestAudience,
+          recentInterstitial: latestRecentInterstitial,
+        );
+        return;
+      }
+
       final finalDecision = _evaluatePremiumAutoPrompt(
-        homeEntryCount: homeEntryCount,
+        audience: latestAudience,
+        homeEntryCount: countAfter,
         lastShownAt: latestLastShownAt,
         now: DateTime.now(),
+        recentInterstitial: latestRecentInterstitial,
         ignoreReservedAutoPrompt: true,
       );
+      _logPremiumAutoPromptDebug(
+        'policy_decision reason=${finalDecision.reason} '
+        'audience=${latestAudience.analyticsValue} count=$countAfter '
+        'recentInterstitial=$latestRecentInterstitial',
+      );
       if (!finalDecision.shouldShow) {
+        _logPremiumAutoPromptDebug(
+          'schedule_cancelled reason=${finalDecision.reason}',
+        );
         _logPremiumAutoPromptSkipped(
           finalDecision,
-          homeEntryCount: homeEntryCount,
+          homeEntryCount: countAfter,
+          audience: latestAudience,
+          recentInterstitial: latestRecentInterstitial,
         );
         return;
       }
@@ -304,16 +571,24 @@ class _HomeScreenState extends State<HomeScreen> {
       final shownAt = DateTime.now();
       setState(() => _showPremiumOverlay = true);
       didShow = true;
+      _logPremiumAutoPromptDebug(
+          'overlay_shown audience=${audience.analyticsValue}');
 
       await prefs.setInt(countKey, 0);
-      await prefs.setString(
-        PremiumAutoPromptPolicy.lastShownAtPrefsKey(uid),
-        shownAt.toIso8601String(),
-      );
+      _logPremiumAutoPromptDebug(
+          'count_reset audience=${audience.analyticsValue}');
+      if (audience == PremiumAutoPromptAudience.registeredFree) {
+        await prefs.setString(
+          PremiumAutoPromptPolicy.registeredLastShownAtPrefsKey(uid),
+          shownAt.toIso8601String(),
+        );
+      }
 
       _logPremiumAutoPromptEvent(
         'premium_auto_prompt_shown',
-        homeEntryCount: homeEntryCount,
+        homeEntryCount: countAfter,
+        audience: audience,
+        recentInterstitial: latestRecentInterstitial,
       );
     } finally {
       if (!didShow) {
@@ -332,6 +607,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }) async {
     if (!triggeredAutomatically) {
       _premiumPromptManuallyOpenedThisSession = true;
+      _logPremiumAutoPromptDebug('manually_opened_this_session');
     }
     if (_isOpeningPurchaseSheet || !mounted) return;
     _isOpeningPurchaseSheet = true;
@@ -379,6 +655,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }) async {
     if (!triggeredAutomatically) {
       _premiumPromptManuallyOpenedThisSession = true;
+      _logPremiumAutoPromptDebug('manually_opened_this_session');
     }
     if (_isHandlingPremiumCta || !mounted) return;
     _isHandlingPremiumCta = true;
@@ -1239,6 +1516,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _authSub?.cancel(); // ✅ 스트림 구독 해제
+    _premiumEntitlementProvider?.removeListener(_onPremiumEntitlementChanged);
 
     _blinkTimer?.cancel();
     super.dispose();
