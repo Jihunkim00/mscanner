@@ -31,6 +31,7 @@ import '/screens/log_service.dart';
 import '/widgets/how_to_use_mscanner_card.dart';
 import '/analytics_service.dart';
 import '/helpers/account_upgrade_helper.dart';
+import '/services/premium_auto_prompt_policy.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -56,6 +57,14 @@ class _HomeScreenState extends State<HomeScreen> {
   StreamSubscription<User?>? _authSub;
   bool _isOpeningPurchaseSheet = false;
   bool _isHandlingPremiumCta = false;
+  static const Duration _premiumPromptAutoShowDelay =
+      Duration(milliseconds: 900);
+  static bool _premiumAutoPromptShownThisSession = false;
+  static bool _premiumPromptManuallyOpenedThisSession = false;
+
+  final PremiumAutoPromptPolicy _premiumAutoPromptPolicy =
+      const PremiumAutoPromptPolicy();
+  bool _homeEntryProcessed = false;
 
   String _nearbyTrendingText(String lang) {
     try {
@@ -84,7 +93,11 @@ class _HomeScreenState extends State<HomeScreen> {
     });
     _loadGeohash();
     _initializeHome();
-    _checkPremiumOverlay(); // 🔹 프리미엄 팝업 체크 추가
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _homeEntryProcessed) return;
+      _homeEntryProcessed = true;
+      unawaited(_handlePremiumAutoPromptOnHomeEntry());
+    });
   }
 
   @override
@@ -117,36 +130,209 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _checkPremiumOverlay() async {
-    final adp = context.read<AdRemoveProvider>();
-    if (adp.isSubscribed || adp.isAdRemoved) {
-      debugPrint('[PremiumOverlay] premium/adfree 사용자 → 팝업 안 띄움');
+  bool get _isHomeRouteCurrent =>
+      mounted &&
+      _selectedIndex == 0 &&
+      ModalRoute.of(context)?.isCurrent == true;
+
+  DateTime? _readPremiumLastShownAt(SharedPreferences prefs, String uid) {
+    final raw = prefs.get(PremiumAutoPromptPolicy.lastShownAtPrefsKey(uid));
+    if (raw is int) {
+      return DateTime.fromMillisecondsSinceEpoch(raw);
+    }
+    if (raw is String) {
+      return DateTime.tryParse(raw);
+    }
+    return null;
+  }
+
+  PremiumAutoPromptDecision _evaluatePremiumAutoPrompt({
+    required int homeEntryCount,
+    required DateTime? lastShownAt,
+    required DateTime now,
+    bool ignoreReservedAutoPrompt = false,
+  }) {
+    final user = FirebaseAuth.instance.currentUser;
+    final adProvider = context.read<AdRemoveProvider>();
+
+    return _premiumAutoPromptPolicy.evaluate(
+      homeEntryCount: homeEntryCount,
+      lastShownAt: lastShownAt,
+      now: now,
+      isGuest: user?.isAnonymous == true,
+      isSubscribed: adProvider.isSubscribed,
+      isAdRemoved: adProvider.isAdRemoved,
+      entitlementLoaded: adProvider.isEntitlementLoaded,
+      shownThisSession:
+          ignoreReservedAutoPrompt ? false : _premiumAutoPromptShownThisSession,
+      manuallyOpenedThisSession: _premiumPromptManuallyOpenedThisSession,
+      routeIsCurrent: _isHomeRouteCurrent,
+    );
+  }
+
+  void _logPremiumAutoPromptEvent(
+    String name, {
+    String? reason,
+    required int homeEntryCount,
+    Duration cooldownRemaining = Duration.zero,
+  }) {
+    final user = FirebaseAuth.instance.currentUser;
+    final params = <String, Object?>{
+      'home_entry_count': homeEntryCount,
+      'is_guest': user?.isAnonymous == true ? 1 : 0,
+      'entry_point': 'home',
+    };
+
+    if (reason != null) {
+      params['reason'] = reason;
+    }
+    if (cooldownRemaining > Duration.zero) {
+      params['cooldown_remaining_seconds'] = cooldownRemaining.inSeconds;
+    }
+
+    unawaited(AnalyticsService.instance.logEvent(name, params: params));
+  }
+
+  void _logPremiumAutoPromptSkipped(
+    PremiumAutoPromptDecision decision, {
+    required int homeEntryCount,
+  }) {
+    _logPremiumAutoPromptEvent(
+      'premium_auto_prompt_skipped',
+      reason: decision.reason,
+      homeEntryCount: homeEntryCount,
+      cooldownRemaining: decision.cooldownRemaining,
+    );
+  }
+
+  Future<void> _handlePremiumAutoPromptOnHomeEntry() async {
+    if (!mounted) return;
+
+    final countGate = _evaluatePremiumAutoPrompt(
+      homeEntryCount: PremiumAutoPromptPolicy.homeEntryInterval,
+      lastShownAt: null,
+      now: DateTime.now(),
+      ignoreReservedAutoPrompt: true,
+    );
+    if (!countGate.shouldCountHomeEntry) {
+      _logPremiumAutoPromptSkipped(countGate, homeEntryCount: 0);
       return;
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    final last = prefs.getInt('premium_overlay_closed_time');
-    final now = DateTime.now().millisecondsSinceEpoch;
-    const dayMs = 24 * 60 * 60 * 1000;
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || !user.isAnonymous) {
+      _logPremiumAutoPromptSkipped(countGate, homeEntryCount: 0);
+      return;
+    }
 
-    if (last == null || now - last > dayMs) {
-      debugPrint('[PremiumOverlay] 조건 충족 → 3초 뒤 표시');
-      Future.delayed(const Duration(seconds: 3), () {
-        if (mounted) setState(() => _showPremiumOverlay = true);
-      });
-    } else {
-      debugPrint('[PremiumOverlay] 24시간 내에 닫음 → 표시 안 함');
+    final uid = user.uid;
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+
+    final countKey = PremiumAutoPromptPolicy.homeEntryCountPrefsKey(uid);
+    final homeEntryCount = (prefs.getInt(countKey) ?? 0) + 1;
+    await prefs.setInt(countKey, homeEntryCount);
+    if (!mounted) return;
+
+    _logPremiumAutoPromptEvent(
+      'premium_auto_prompt_home_entry',
+      homeEntryCount: homeEntryCount,
+    );
+
+    final lastShownAt = _readPremiumLastShownAt(prefs, uid);
+    final decision = _evaluatePremiumAutoPrompt(
+      homeEntryCount: homeEntryCount,
+      lastShownAt: lastShownAt,
+      now: DateTime.now(),
+    );
+    if (!decision.shouldShow) {
+      _logPremiumAutoPromptSkipped(decision, homeEntryCount: homeEntryCount);
+      return;
+    }
+
+    _premiumAutoPromptShownThisSession = true;
+    var didShow = false;
+
+    try {
+      await Future<void>.delayed(_premiumPromptAutoShowDelay);
+
+      if (!mounted || !_isHomeRouteCurrent) {
+        _logPremiumAutoPromptEvent(
+          'premium_auto_prompt_skipped',
+          reason: 'route_not_current',
+          homeEntryCount: homeEntryCount,
+        );
+        return;
+      }
+
+      if (_showPremiumOverlay ||
+          _isOpeningPurchaseSheet ||
+          _isHandlingPremiumCta) {
+        _logPremiumAutoPromptEvent(
+          'premium_auto_prompt_skipped',
+          reason: 'route_not_current',
+          homeEntryCount: homeEntryCount,
+        );
+        return;
+      }
+
+      final latestUser = FirebaseAuth.instance.currentUser;
+      if (latestUser?.uid != uid) {
+        _logPremiumAutoPromptEvent(
+          'premium_auto_prompt_skipped',
+          reason: 'not_guest',
+          homeEntryCount: homeEntryCount,
+        );
+        return;
+      }
+
+      final latestLastShownAt = _readPremiumLastShownAt(prefs, uid);
+      final finalDecision = _evaluatePremiumAutoPrompt(
+        homeEntryCount: homeEntryCount,
+        lastShownAt: latestLastShownAt,
+        now: DateTime.now(),
+        ignoreReservedAutoPrompt: true,
+      );
+      if (!finalDecision.shouldShow) {
+        _logPremiumAutoPromptSkipped(
+          finalDecision,
+          homeEntryCount: homeEntryCount,
+        );
+        return;
+      }
+
+      final shownAt = DateTime.now();
+      setState(() => _showPremiumOverlay = true);
+      didShow = true;
+
+      await prefs.setInt(countKey, 0);
+      await prefs.setString(
+        PremiumAutoPromptPolicy.lastShownAtPrefsKey(uid),
+        shownAt.toIso8601String(),
+      );
+
+      _logPremiumAutoPromptEvent(
+        'premium_auto_prompt_shown',
+        homeEntryCount: homeEntryCount,
+      );
+    } finally {
+      if (!didShow) {
+        _premiumAutoPromptShownThisSession = false;
+      }
     }
   }
 
-  Future<void> _closePremiumOverlay() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(
-        'premium_overlay_closed_time', DateTime.now().millisecondsSinceEpoch);
+  void _closePremiumOverlay() {
+    if (!mounted) return;
     setState(() => _showPremiumOverlay = false);
   }
 
-  Future<void> _showPurchaseSheet() async {
+  Future<void> _showPurchaseSheet({
+    bool triggeredAutomatically = false,
+  }) async {
+    if (!triggeredAutomatically) {
+      _premiumPromptManuallyOpenedThisSession = true;
+    }
     if (_isOpeningPurchaseSheet || !mounted) return;
     _isOpeningPurchaseSheet = true;
 
@@ -188,7 +374,12 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _handleGuestUpgradeAndContinuePurchase() async {
+  Future<void> _handleGuestUpgradeAndContinuePurchase({
+    bool triggeredAutomatically = false,
+  }) async {
+    if (!triggeredAutomatically) {
+      _premiumPromptManuallyOpenedThisSession = true;
+    }
     if (_isHandlingPremiumCta || !mounted) return;
     _isHandlingPremiumCta = true;
 
@@ -214,7 +405,9 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       if (result.shouldContinueToPurchase && mounted) {
-        await _showPurchaseSheet();
+        await _showPurchaseSheet(
+          triggeredAutomatically: triggeredAutomatically,
+        );
       }
     } finally {
       _isHandlingPremiumCta = false;
@@ -992,10 +1185,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       final user = FirebaseAuth.instance.currentUser;
                       final isGuest = user == null || user.isAnonymous;
                       if (isGuest) {
-                        await _handleGuestUpgradeAndContinuePurchase();
+                        await _handleGuestUpgradeAndContinuePurchase(
+                          triggeredAutomatically: true,
+                        );
                         return;
                       }
-                      await _showPurchaseSheet();
+                      await _showPurchaseSheet(triggeredAutomatically: true);
                     },
                     onClose: _closePremiumOverlay,
                   )),

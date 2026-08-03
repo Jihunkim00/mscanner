@@ -8,9 +8,11 @@ import '/analytics_service.dart';
 class AdRemoveProvider extends ChangeNotifier {
   bool _isAdRemoved = false; // 광고 제거 여부 (adfree 영구권리 OR premium 활성시 true)
   bool _isSubscribed = false; // 프리미엄 기능 사용 가능 여부 (premium 활성시 true)
+  bool _isEntitlementLoaded = false;
 
   bool get isAdRemoved => _isAdRemoved;
   bool get isSubscribed => _isSubscribed;
+  bool get isEntitlementLoaded => _isEntitlementLoaded;
 
   StreamSubscription<DocumentSnapshot>? _userPointsSub;
   StreamSubscription<User?>? _authSub;
@@ -21,7 +23,11 @@ class AdRemoveProvider extends ChangeNotifier {
 
     // 앱 시작 시 이미 로그인 되어 있으면 바로 구독 시작
     final current = FirebaseAuth.instance.currentUser;
-    if (current != null) _startListening(current.uid);
+    if (current != null) {
+      _startListening(current.uid);
+    } else {
+      _isEntitlementLoaded = true;
+    }
   }
 
   void _onAuthChanged(User? user) {
@@ -29,7 +35,11 @@ class AdRemoveProvider extends ChangeNotifier {
 
     if (user == null) {
       // 로그아웃 시 상태 초기화
-      _applyState(isAdRemoved: false, isSubscribed: false);
+      _applyState(
+        isAdRemoved: false,
+        isSubscribed: false,
+        isEntitlementLoaded: true,
+      );
     } else {
       _startListening(user.uid);
     }
@@ -37,13 +47,18 @@ class AdRemoveProvider extends ChangeNotifier {
 
   /// Firestore: user_points/{uid} 문서를 실시간 구독
   void _startListening(String uid) {
+    _setEntitlementLoading();
     _userPointsSub = FirebaseFirestore.instance
         .collection('user_points')
         .doc(uid)
         .snapshots()
         .listen((doc) {
       if (!doc.exists) {
-        _applyState(isAdRemoved: false, isSubscribed: false);
+        _applyState(
+          isAdRemoved: false,
+          isSubscribed: false,
+          isEntitlementLoaded: true,
+        );
         return;
       }
       final data = doc.data();
@@ -60,7 +75,11 @@ class AdRemoveProvider extends ChangeNotifier {
       final bool newSubscribed = premiumActive;
       final bool newAdRemoved = adFreePurchased || premiumActive;
 
-      _applyState(isAdRemoved: newAdRemoved, isSubscribed: newSubscribed);
+      _applyState(
+        isAdRemoved: newAdRemoved,
+        isSubscribed: newSubscribed,
+        isEntitlementLoaded: true,
+      );
     }, onError: (e) {
       debugPrint('AdRemoveProvider listen error: $e');
       // 에러 시 기존 상태 유지 (필요하면 fallback 처리)
@@ -110,12 +129,29 @@ class AdRemoveProvider extends ChangeNotifier {
     return false;
   }
 
-  void _applyState({required bool isAdRemoved, required bool isSubscribed}) {
-    if (_isAdRemoved != isAdRemoved || _isSubscribed != isSubscribed) {
-      _isAdRemoved = isAdRemoved;
-      _isSubscribed = isSubscribed;
-      notifyListeners();
+  void _setEntitlementLoading() {
+    if (!_isEntitlementLoaded) return;
+    _isEntitlementLoaded = false;
+    notifyListeners();
+  }
 
+  void _applyState({
+    required bool isAdRemoved,
+    required bool isSubscribed,
+    required bool isEntitlementLoaded,
+  }) {
+    final statusChanged =
+        _isAdRemoved != isAdRemoved || _isSubscribed != isSubscribed;
+    final loadedChanged = _isEntitlementLoaded != isEntitlementLoaded;
+
+    if (!statusChanged && !loadedChanged) return;
+
+    _isAdRemoved = isAdRemoved;
+    _isSubscribed = isSubscribed;
+    _isEntitlementLoaded = isEntitlementLoaded;
+    notifyListeners();
+
+    if (statusChanged) {
       final premiumStatus =
           isSubscribed ? 'premium' : (isAdRemoved ? 'ad_free' : 'free');
       unawaited(AnalyticsService.instance.setPremiumStatus(premiumStatus));
@@ -134,17 +170,26 @@ class AdRemoveProvider extends ChangeNotifier {
   void setRemoveAds(bool value) => _applyState(
         isAdRemoved: value,
         isSubscribed: _isSubscribed,
+        isEntitlementLoaded: _isEntitlementLoaded,
       );
 
   void setSubscribed(bool value) => _applyState(
         isAdRemoved: _isAdRemoved || value, // 프리미엄 ON이면 광고 제거도 ON
         isSubscribed: value,
+        isEntitlementLoaded: _isEntitlementLoaded,
       );
 
   /// 수동으로 Firestore 구독 재시작
   void refreshStatus() {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    if (user == null) {
+      _applyState(
+        isAdRemoved: false,
+        isSubscribed: false,
+        isEntitlementLoaded: true,
+      );
+      return;
+    }
     _userPointsSub?.cancel();
     _startListening(user.uid);
   }
