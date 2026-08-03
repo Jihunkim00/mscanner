@@ -11,6 +11,21 @@ class ResultParsingOutput {
 }
 
 class ResultParsingService {
+  static const String _directRecommendedMenuMarkerKey =
+      '_has_direct_recommended_menu';
+
+  static const Set<String> _nonMenuResultTypes = <String>{
+    'not_menu',
+    'non_menu',
+    'notmenu',
+    'no_menu',
+    'nomenu',
+    'not_food_menu',
+    'invalid_image',
+    'unclear',
+    'unrecognized',
+    'uncertain',
+  };
   static String? extractCurrencyCodeFromText(String text) {
     final s = text.toLowerCase();
 
@@ -103,14 +118,21 @@ class ResultParsingService {
 
     if (!isMulti) {
       final normalized = Map<String, dynamic>.from(firstJson);
+      final hasDirectRecommended =
+          _hasValidMenuItems(_mapList(normalized['recommended']));
       final fallbackRecommended = _recommendedItemsFromJson(normalized);
       if (fallbackRecommended.isNotEmpty) {
         normalized['recommended'] = fallbackRecommended;
       }
-      normalized['result_type'] =
-          (normalized['result_type'] ?? 'menu').toString().trim().toLowerCase();
+      normalized[_directRecommendedMenuMarkerKey] = hasDirectRecommended;
+      normalized['result_type'] = normalizeResultType(
+        (normalized['result_type'] ?? normalized['resultType'] ?? 'menu')
+            .toString(),
+      );
       normalized['user_message'] =
-          (normalized['user_message'] ?? '').toString().trim();
+          (normalized['user_message'] ?? normalized['userMessage'] ?? '')
+              .toString()
+              .trim();
       return ResultParsingOutput(aiJson: normalized, aiJsonError: null);
     }
 
@@ -125,7 +147,11 @@ class ResultParsingService {
       'unknown': <Map<String, dynamic>>[],
     };
 
+    bool hasDirectRecommended = false;
+
     for (final j in jsonList) {
+      hasDirectRecommended = hasDirectRecommended ||
+          _hasValidMenuItems(_mapList(j['recommended']));
       recommendedAll.addAll(_recommendedItemsFromJson(j));
 
       final fm = j['fullMenu'] ?? j['full_menu'] ?? j['menu'] ?? j['menus'];
@@ -145,6 +171,7 @@ class ResultParsingService {
       }
     }
 
+    merged[_directRecommendedMenuMarkerKey] = hasDirectRecommended;
     merged['recommended'] = _dedupList(recommendedAll);
     merged['fullMenu'] = {
       'items': {
@@ -158,9 +185,13 @@ class ResultParsingService {
           : false,
     };
 
-    merged['result_type'] =
-        (merged['result_type'] ?? 'menu').toString().trim().toLowerCase();
-    merged['user_message'] = (merged['user_message'] ?? '').toString().trim();
+    merged['result_type'] = normalizeResultType(
+      (merged['result_type'] ?? merged['resultType'] ?? 'menu').toString(),
+    );
+    merged['user_message'] =
+        (merged['user_message'] ?? merged['userMessage'] ?? '')
+            .toString()
+            .trim();
 
     return ResultParsingOutput(aiJson: merged, aiJsonError: null);
   }
@@ -173,12 +204,43 @@ class ResultParsingService {
 
   static String aiResultType(Map<String, dynamic>? aiJson) {
     if (aiJson == null) return 'unknown';
-    return (aiJson['result_type'] ?? '').toString().trim().toLowerCase();
+    return normalizeResultType(
+      (aiJson['result_type'] ?? aiJson['resultType'] ?? '').toString(),
+    );
+  }
+
+  static String normalizeResultType(String value) {
+    return value.trim().toLowerCase().replaceAll('-', '_').replaceAll(
+          RegExp(r'\s+'),
+          '_',
+        );
+  }
+
+  static bool isNonMenuResultType(String value) {
+    return _nonMenuResultTypes.contains(normalizeResultType(value));
+  }
+
+  static bool hasValidRecommendedMenu(Map<String, dynamic>? aiJson) {
+    if (aiJson == null) return false;
+    if (isNonMenuResultType(aiResultType(aiJson))) return false;
+
+    final marker = aiJson[_directRecommendedMenuMarkerKey];
+    if (marker is bool) return marker;
+
+    return _hasValidMenuItems(_mapList(aiJson['recommended']));
+  }
+
+  static bool shouldShowDecisionSummary(Map<String, dynamic>? aiJson) {
+    if (aiJson == null) return false;
+    if (isNonMenuResultType(aiResultType(aiJson))) return false;
+    return hasValidRecommendedMenu(aiJson);
   }
 
   static String aiUserMessage(Map<String, dynamic>? aiJson) {
     if (aiJson == null) return '';
-    return (aiJson['user_message'] ?? '').toString().trim();
+    return (aiJson['user_message'] ?? aiJson['userMessage'] ?? '')
+        .toString()
+        .trim();
   }
 
   static String normalizeMenuText(String input) {
@@ -215,6 +277,26 @@ class ResultParsingService {
     if (geohash.isEmpty) return geohash;
     if (len <= 0) return geohash;
     return geohash.substring(0, geohash.length < len ? geohash.length : len);
+  }
+
+  static bool _hasValidMenuItems(List<Map<String, dynamic>> items) {
+    return items.any((item) {
+      final original = (item['nameOriginal'] ??
+              item['original'] ??
+              item['menuOriginal'] ??
+              '')
+          .toString()
+          .trim();
+      final translated = (item['name'] ??
+              item['nameTranslated'] ??
+              item['translated'] ??
+              item['menuName'] ??
+              '')
+          .toString()
+          .trim();
+
+      return original.isNotEmpty || translated.isNotEmpty;
+    });
   }
 
   static List<Map<String, dynamic>> _dedupList(

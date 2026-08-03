@@ -341,6 +341,11 @@ class _ResultScreenState extends State<ResultScreen> {
     return ResultParsingService.aiUserMessage(_aiJson);
   }
 
+  bool get _shouldShowDecisionSummary {
+    if (_isWaitingFullMenu) return true;
+    return ResultParsingService.shouldShowDecisionSummary(_aiJson);
+  }
+
   bool _hasAnyFullMenuItems(Map<String, dynamic>? itemsMap) {
     if (itemsMap == null || itemsMap.isEmpty) return false;
 
@@ -3947,13 +3952,15 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   Widget _buildDecisionSummarySection() {
-    final rec = _getRecommendedItems();
-    final isLoadingTop = _isWaitingFullMenu && rec.isEmpty;
-    if (isLoadingTop) {
+    if (_isWaitingFullMenu) {
       return ResultDecisionSkeletonCard(
         isDarkMode: _isDarkMode,
         showResultListSkeleton: true,
       );
+    }
+
+    if (!_shouldShowDecisionSummary) {
+      return const SizedBox.shrink();
     }
 
     final pair = _extractPrimaryMenuPair();
@@ -3994,6 +4001,8 @@ class _ResultScreenState extends State<ResultScreen> {
         "▶️ [ResultScreen] build() at ${DateTime.now().toIso8601String()}");
     final localizations = AppLocalizations.of(context);
     final bool showResultActions = !_isWaitingFullMenu;
+    final bool showDecisionArea =
+        _isWaitingFullMenu || _shouldShowDecisionSummary;
     final Color backgroundColor =
         _isDarkMode ? Colors.black : const Color(0xFFF5F6F8);
     final Color textColor =
@@ -4060,8 +4069,10 @@ class _ResultScreenState extends State<ResultScreen> {
                       },
                     ),
                     SizedBox(height: 16),
-                    _buildDecisionSummarySection(),
-                    SizedBox(height: 16),
+                    if (showDecisionArea) ...[
+                      _buildDecisionSummarySection(),
+                      SizedBox(height: 16),
+                    ],
 
                     // ✅ NEW UI (JSON-based) with fallback to old text
                     _buildScanResultCard(

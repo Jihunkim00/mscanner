@@ -107,6 +107,7 @@ class ResultDecisionCards extends StatelessWidget {
     final hasReason = (decisionReason ?? '').trim().isNotEmpty;
 
     return Container(
+      key: const Key('result_decision_summary'),
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(16),
