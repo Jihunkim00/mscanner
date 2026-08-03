@@ -1,12 +1,12 @@
+// ignore_for_file: file_names
+
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import 'package:mscanner/screens/result_screen.dart';
-import '../main.dart';
 import 'vision_service.dart';
 import 'package:mscanner/widgets/tutorial_indicator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -78,7 +78,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
       if (!mounted || _hasNavigated || _isLoadingError) return;
       _showErrorUI();
     });
-    _showAdThenHandleGpt();
+    _handleGptResult();
   }
 
   @override
@@ -103,32 +103,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
           setState(() => _currentMessage = _loadingMessages[i]);
         }
       });
-    }
-  }
-
-  /// 광고를 띄우고, 닫힌 뒤에 GPT 결과 처리
-  Future<void> _showAdThenHandleGpt() async {
-    await Future.delayed(Duration(milliseconds: 800));
-
-    if (enableInterstitialAds && globalInterstitialAd != null) {
-      globalInterstitialAd!.fullScreenContentCallback =
-          FullScreenContentCallback(
-        onAdDismissedFullScreenContent: (ad) {
-          ad.dispose();
-          globalInterstitialAd = null;
-          loadInterstitialAd();
-          _handleGptResult();
-        },
-        onAdFailedToShowFullScreenContent: (ad, err) {
-          ad.dispose();
-          globalInterstitialAd = null;
-          loadInterstitialAd();
-          _handleGptResult();
-        },
-      );
-      globalInterstitialAd!.show();
-    } else {
-      _handleGptResult();
     }
   }
 

@@ -30,63 +30,11 @@ import 'package:provider/provider.dart';
 import 'ad_remove_provider.dart';
 import 'analytics_service.dart';
 import 'helpers/preset_update_review_service.dart';
+import 'services/interstitial_ad_service.dart';
 
 enum GuestWelcomeAction {
   continueGuest,
   signIn,
-}
-
-// 전역 변수 선언
-InterstitialAd? globalInterstitialAd;
-
-// 전면 광고 사용 여부 설정
-bool enableInterstitialAds = false; // true로 바꾸면 다시 사용됨
-
-// 광고 로드 함수 정의
-Future<void> loadInterstitialAd({bool nonPersonalized = false}) async {
-  AdRequest request =
-      nonPersonalized ? AdRequest(extras: {'npa': '1'}) : AdRequest();
-
-  // 플랫폼에 따른 광고 유닛 ID 설정
-  String adUnitId;
-  if (Platform.isIOS) {
-    adUnitId = 'ca-app-pub-2942885230901008/8324808650'; // iOS 광고 유닛
-  } else {
-    adUnitId = 'ca-app-pub-2942885230901008/5920902942'; // Android 광고 유닛
-  }
-
-  InterstitialAd.load(
-    adUnitId: adUnitId,
-    request: request,
-    adLoadCallback: InterstitialAdLoadCallback(
-      onAdLoaded: (ad) {
-        debugPrint("전면 광고 로드 성공 ($adUnitId)");
-        globalInterstitialAd = ad;
-        globalInterstitialAd?.fullScreenContentCallback =
-            FullScreenContentCallback(
-          onAdDismissedFullScreenContent: (ad) {
-            debugPrint("전면 광고 닫힘");
-            ad.dispose();
-            globalInterstitialAd = null;
-            loadInterstitialAd(nonPersonalized: nonPersonalized);
-          },
-          onAdFailedToShowFullScreenContent: (ad, err) {
-            debugPrint("전면 광고 표시 실패: $err");
-            ad.dispose();
-            globalInterstitialAd = null;
-            loadInterstitialAd(nonPersonalized: nonPersonalized);
-          },
-        );
-      },
-      onAdFailedToLoad: (err) {
-        debugPrint("전면 광고 로드 실패: $err");
-        globalInterstitialAd = null;
-        Future.delayed(Duration(seconds: 5), () {
-          loadInterstitialAd(nonPersonalized: nonPersonalized);
-        });
-      },
-    ),
-  );
 }
 
 void main() async {
@@ -140,9 +88,11 @@ Future<void> _initializeAfterLaunch() async {
       }
     }
 
-    if (enableInterstitialAds) {
-      await loadInterstitialAd(nonPersonalized: nonPersonalized);
-    }
+    unawaited(
+      InterstitialAdService.instance.preload(
+        nonPersonalized: nonPersonalized,
+      ),
+    );
 
     // ✅ 화면 방향 고정 (iPad 구분)
     final binding = WidgetsBinding.instance;

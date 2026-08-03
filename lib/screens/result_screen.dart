@@ -30,6 +30,10 @@ import '/widgets/ai_food_image_button.dart'; // 파일 경로 맞게
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/rendering.dart';
 import '/analytics_service.dart';
+import 'package:provider/provider.dart';
+import '/ad_remove_provider.dart';
+import '/services/interstitial_ad_service.dart';
+import '/services/result_exit_interstitial_policy.dart';
 import 'package:mscanner/models/order_phrase_models.dart';
 import 'package:mscanner/widgets/order_phrase_bottom_sheet.dart';
 import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
@@ -154,6 +158,12 @@ class _ResultScreenState extends State<ResultScreen> {
   bool _localInsightEventLogged = false;
   Timer? _stuckUiTimer;
   bool _showStuckFallback = false;
+  final ResultExitInterstitialPolicy _resultExitInterstitialPolicy =
+      const ResultExitInterstitialPolicy();
+  bool _isLeavingResult = false;
+  bool _navigationCompleted = false;
+
+  bool get _isResultExitBlocked => _isLoading || _isWaitingFullMenu;
 
   // ===== Recommended price candidates (for FxQuickFxButton) =====
   double? _parseAmountAny(dynamic v) {
@@ -3188,6 +3198,151 @@ class _ResultScreenState extends State<ResultScreen> {
     await ResultActionService.checkAndRequestReview();
   }
 
+  Future<void> _exitResultWithInterstitial() async {
+    if (_isResultExitBlocked || _isLeavingResult || _navigationCompleted) {
+      return;
+    }
+
+    _isLeavingResult = true;
+    try {
+      await _maybeShowResultExitInterstitial();
+    } finally {
+      _navigateHomeOnce();
+    }
+  }
+
+  Future<bool> _maybeShowResultExitInterstitial() async {
+    final adProvider = context.read<AdRemoveProvider>();
+    final adService = InterstitialAdService.instance;
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return false;
+
+    final now = DateTime.now();
+    final countBefore = math.max(
+      0,
+      prefs.getInt(ResultExitInterstitialPolicy.exitCountPrefsKey) ?? 0,
+    );
+
+    final baseDecision = _resultExitInterstitialPolicy.evaluate(
+      exitCount: countBefore,
+      lastShownAt: _readResultExitLastShownAt(prefs),
+      now: now,
+      isAdRemoved: adProvider.isAdRemoved,
+      isSubscribed: adProvider.isSubscribed,
+      isTutorial: widget.isTutorial,
+      isFromHistory: widget.isFromHistory,
+      adReady: adService.isReady,
+      alreadyShowing: adService.isShowing,
+    );
+
+    if (!baseDecision.shouldCountExit) {
+      _logResultExitInterstitialEvent(
+        'result_exit_interstitial_skipped',
+        reason: baseDecision.reason,
+        exitCount: countBefore,
+        cooldownRemaining: baseDecision.cooldownRemaining,
+      );
+      return false;
+    }
+
+    final exitCount = countBefore + 1;
+    await prefs.setInt(
+      ResultExitInterstitialPolicy.exitCountPrefsKey,
+      exitCount,
+    );
+
+    final decision = _resultExitInterstitialPolicy.evaluate(
+      exitCount: exitCount,
+      lastShownAt: _readResultExitLastShownAt(prefs),
+      now: now,
+      isAdRemoved: adProvider.isAdRemoved,
+      isSubscribed: adProvider.isSubscribed,
+      isTutorial: widget.isTutorial,
+      isFromHistory: widget.isFromHistory,
+      adReady: adService.isReady,
+      alreadyShowing: adService.isShowing,
+    );
+
+    if (!decision.shouldShow) {
+      _logResultExitInterstitialEvent(
+        'result_exit_interstitial_skipped',
+        reason: decision.reason,
+        exitCount: exitCount,
+        cooldownRemaining: decision.cooldownRemaining,
+      );
+      if (decision.reason == 'ad_not_ready') {
+        unawaited(adService.preload());
+      }
+      return false;
+    }
+
+    _logResultExitInterstitialEvent(
+      'result_exit_interstitial_eligible',
+      reason: decision.reason,
+      exitCount: exitCount,
+      cooldownRemaining: decision.cooldownRemaining,
+    );
+
+    final shown = await adService.show();
+    if (shown) {
+      await prefs.setInt(ResultExitInterstitialPolicy.exitCountPrefsKey, 0);
+      await prefs.setString(
+        ResultExitInterstitialPolicy.lastShownAtPrefsKey,
+        DateTime.now().toIso8601String(),
+      );
+      _logResultExitInterstitialEvent(
+        'result_exit_interstitial_shown',
+        reason: 'shown',
+        exitCount: exitCount,
+      );
+      return true;
+    }
+
+    _logResultExitInterstitialEvent(
+      'result_exit_interstitial_failed',
+      reason: 'show_failed',
+      exitCount: exitCount,
+    );
+    return false;
+  }
+
+  DateTime? _readResultExitLastShownAt(SharedPreferences prefs) {
+    final raw = prefs.getString(
+      ResultExitInterstitialPolicy.lastShownAtPrefsKey,
+    );
+    if (raw == null || raw.isEmpty) return null;
+    return DateTime.tryParse(raw);
+  }
+
+  void _logResultExitInterstitialEvent(
+    String eventName, {
+    required String reason,
+    required int exitCount,
+    Duration cooldownRemaining = Duration.zero,
+  }) {
+    unawaited(
+      AnalyticsService.instance.logEvent(
+        eventName,
+        params: {
+          'platform': Platform.isIOS ? 'ios' : 'android',
+          'reason': reason,
+          'exit_count': exitCount,
+          'cooldown_remaining': cooldownRemaining.inSeconds,
+          'entry_point': 'scan_result',
+        },
+      ),
+    );
+  }
+
+  void _navigateHomeOnce() {
+    if (_navigationCompleted || !mounted) return;
+    _navigationCompleted = true;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => HomeScreen()),
+    );
+  }
+
 // NOTE(result-refactor): Keep the full save pipeline here for now because it coordinates
   // UI loading states, snackbars, timers, and navigation side-effects tightly coupled to this screen.
 
@@ -3246,10 +3401,7 @@ class _ResultScreenState extends State<ResultScreen> {
 
       Future.delayed(Duration(seconds: 2), () {
         if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomeScreen()),
-        );
+        unawaited(_exitResultWithInterstitial());
       });
     }
   }
@@ -3869,11 +4021,8 @@ class _ResultScreenState extends State<ResultScreen> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
-        if (didPop || _isLoading) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => HomeScreen()),
-        );
+        if (didPop || _isResultExitBlocked) return;
+        unawaited(_exitResultWithInterstitial());
       },
       child: Scaffold(
         backgroundColor: backgroundColor,
@@ -3883,14 +4032,9 @@ class _ResultScreenState extends State<ResultScreen> {
               ? null
               : IconButton(
                   icon: Icon(CupertinoIcons.back, color: textColor, size: 30),
-                  onPressed: () {
-                    if (!_isLoading) {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (_) => HomeScreen()),
-                      );
-                    }
-                  },
+                  onPressed: _isResultExitBlocked
+                      ? null
+                      : () => unawaited(_exitResultWithInterstitial()),
                 ),
           title: widget.isTutorial ? TutorialIndicator() : null,
         ),
