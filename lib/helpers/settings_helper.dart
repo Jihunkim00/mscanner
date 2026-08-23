@@ -336,7 +336,7 @@ Safety wording:
       "dietaryWarnings": ["string"],
       "allergyHints": ["string"],
       "requiresStaffCheck": false,
-      "sourceImageIndexes": [0]''';
+      "sourceImageIndexes": [1]''';
   }
 
   static String _fullMenuSchemaFor(String menuCountHint) {

@@ -151,7 +151,6 @@ class ResultParsingService {
       'beverage': <Map<String, dynamic>>[],
       'unknown': <Map<String, dynamic>>[],
     };
-    final List<Map<String, dynamic>> directItemsAll = [];
 
     bool hasDirectRecommended = false;
 
@@ -159,10 +158,7 @@ class ResultParsingService {
       hasDirectRecommended = hasDirectRecommended ||
           _hasValidMenuItems(_mapList(j['recommended'])) ||
           _hasValidMenuItems(_mapList(j['items']));
-      directItemsAll
-        ..addAll(_mapList(j['items']))
-        ..addAll(_mapList(j['recommended']));
-      recommendedAll.addAll(_recommendedItemsFromJson(j));
+      recommendedAll.addAll(_directRecommendedItemsFromJson(j));
 
       final fm = j['fullMenu'] ?? j['full_menu'] ?? j['menu'] ?? j['menus'];
       if (fm is Map) {
@@ -181,14 +177,6 @@ class ResultParsingService {
       }
     }
 
-    final hasProvidedFullMenuItems = _hasAnyCategoryItems(fullMenuAll);
-    if (!hasProvidedFullMenuItems) {
-      _addItemsToFullMenuCategories(
-        fullMenuAll,
-        directItemsAll.where((item) => _hasValidMenuItems([item])).toList(),
-      );
-    }
-
     final firstFullMenu = firstJson['fullMenu'] ??
         firstJson['full_menu'] ??
         firstJson['menu'] ??
@@ -199,13 +187,11 @@ class ResultParsingService {
     merged[_directRecommendedMenuMarkerKey] = hasDirectRecommended;
     merged['recommended'] = _dedupList(recommendedAll);
     merged['fullMenu'] = {
-      'items': {
-        for (final k in fullMenuAll.keys) k: _dedupList(fullMenuAll[k]!)
-      },
-      'summary': hasProvidedFullMenuItems && firstFullMenuMap != null
+      'items': _dedupCategoryMap(fullMenuAll),
+      'summary': firstFullMenuMap != null
           ? ((firstFullMenuMap['summary'] ?? '').toString())
           : '',
-      'truncated': hasProvidedFullMenuItems && firstFullMenuMap != null
+      'truncated': firstFullMenuMap != null
           ? (firstFullMenuMap['truncated'] == true)
           : false,
     };
@@ -261,6 +247,20 @@ class ResultParsingService {
     if (aiJson == null) return false;
     if (isNonMenuResultType(aiResultType(aiJson))) return false;
     return hasValidRecommendedMenu(aiJson);
+  }
+
+  static bool hasUsableFullMenu(Map<String, dynamic>? aiJson) {
+    if (aiJson == null) return false;
+
+    final rawFullMenu = aiJson['fullMenu'] ??
+        aiJson['full_menu'] ??
+        aiJson['menu'] ??
+        aiJson['menus'];
+    if (rawFullMenu is! Map) return false;
+
+    final items = rawFullMenu['items'];
+    final itemsMap = items is Map ? items : rawFullMenu;
+    return itemsMap.values.any((value) => value is List && value.isNotEmpty);
   }
 
   static String aiUserMessage(Map<String, dynamic>? aiJson) {
@@ -328,16 +328,70 @@ class ResultParsingService {
 
   static List<Map<String, dynamic>> _dedupList(
       List<Map<String, dynamic>> items) {
-    final seen = <String>{};
+    final indexesByKey = <String, int>{};
     final out = <Map<String, dynamic>>[];
     for (final it in items) {
-      final no = (it['nameOriginal'] ?? '').toString().trim().toLowerCase();
-      final nt = (it['name'] ?? '').toString().trim().toLowerCase();
-      final key = (no.isNotEmpty ? no : nt).trim();
-      final dedupKey = key.isNotEmpty ? key : it.toString();
-      if (seen.add(dedupKey)) out.add(it);
+      final key = _menuItemKey(it);
+      final existingIndex = indexesByKey[key];
+      if (existingIndex == null) {
+        indexesByKey[key] = out.length;
+        out.add(it);
+      } else {
+        _mergeSourceImageIndexes(out[existingIndex], it);
+      }
     }
     return out;
+  }
+
+  static String _menuItemKey(Map<String, dynamic> item) {
+    final original =
+        (item['nameOriginal'] ?? '').toString().trim().toLowerCase();
+    final translated = (item['name'] ?? '').toString().trim().toLowerCase();
+    final name = original.isNotEmpty ? original : translated;
+    return name.isNotEmpty ? name : item.toString();
+  }
+
+  static Map<String, List<Map<String, dynamic>>> _dedupCategoryMap(
+      Map<String, List<Map<String, dynamic>>> categories) {
+    final indexesByKey = <String, Map<String, dynamic>>{};
+    final output = <String, List<Map<String, dynamic>>>{
+      for (final key in categories.keys) key: <Map<String, dynamic>>[],
+    };
+
+    for (final key in categories.keys) {
+      for (final item in categories[key]!) {
+        final itemKey = _menuItemKey(item);
+        final existing = indexesByKey[itemKey];
+        if (existing == null) {
+          indexesByKey[itemKey] = item;
+          output[key]!.add(item);
+        } else {
+          _mergeSourceImageIndexes(existing, item);
+        }
+      }
+    }
+    return output;
+  }
+
+  static void _mergeSourceImageIndexes(
+      Map<String, dynamic> target, Map<String, dynamic> source) {
+    final merged = <int>{};
+    for (final item in [target, source]) {
+      final indexes = item['sourceImageIndexes'];
+      if (indexes is List) {
+        merged.addAll(indexes.whereType<int>().where((index) => index >= 1));
+      }
+    }
+    if (merged.isNotEmpty) {
+      target['sourceImageIndexes'] = merged.toList()..sort();
+    }
+  }
+
+  static List<Map<String, dynamic>> _directRecommendedItemsFromJson(
+      Map<String, dynamic> aiJson) {
+    final recommended = _mapList(aiJson['recommended']);
+    if (recommended.isNotEmpty) return _dedupList(recommended);
+    return _dedupList(_mapList(aiJson['items']));
   }
 
   static List<Map<String, dynamic>> _recommendedItemsFromJson(
@@ -382,23 +436,6 @@ class ResultParsingService {
       out.addAll(_mapList(source[k]));
     }
     return out;
-  }
-
-  static bool _hasAnyCategoryItems(
-      Map<String, List<Map<String, dynamic>>> categories) {
-    return categories.values.any((items) => items.isNotEmpty);
-  }
-
-  static void _addItemsToFullMenuCategories(
-      Map<String, List<Map<String, dynamic>>> categories,
-      List<Map<String, dynamic>> items) {
-    for (final item in items) {
-      final rawCategory =
-          (item['category'] ?? '').toString().trim().toLowerCase();
-      final category =
-          categories.containsKey(rawCategory) ? rawCategory : 'unknown';
-      categories[category]!.add(item);
-    }
   }
 
   static List<Map<String, dynamic>> _mapList(dynamic source) {

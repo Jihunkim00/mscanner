@@ -24,6 +24,92 @@ class VisionService {
     return maxOutputTokens >= 9000 ? 'multi' : 'single';
   }
 
+  static String _multiVisionV2Contract({
+    required int sourceImageCount,
+  }) {
+    final count = sourceImageCount < 2 ? 2 : sourceImageCount;
+    final layout = count == 2
+        ? 'The merged sheet has one column: source 1 is the top cell and source 2 is the bottom cell.'
+        : 'The merged sheet has two columns in row-major order: source 1 is top-left, source 2 top-right, source 3 next-left, source 4 next-right, and so on.';
+
+    return '''
+
+[MULTI-SCAN V2 CONTRACT - HIGHEST PRIORITY]
+This is a multi-image food menu scan with $count source images.
+The source images were merged into one contact sheet before upload.
+$layout
+Analyze every visible source section/page, not only the first or most prominent cell.
+
+RECOMMENDED:
+- Select at least one strong recommendation from each distinct source image/menu page when possible.
+- Do not select all recommendations from only one page when other pages contain valid readable food items.
+- Keep recommendations selective and do not invent items from unreadable or non-menu regions.
+- Use sourceImageIndexes only when the source cell is visually clear. Never guess an index.
+- sourceImageIndexes are 1-based: [1] means the first source image.
+
+FULL MENU:
+- If isMenu=true, fullMenu is REQUIRED and must be an independent broad inventory from all readable source pages.
+- Extract as many clearly readable menu items as reasonably possible across all source pages.
+- fullMenu is NOT a copy of recommended, and recommended is NOT the full menu.
+- fullMenu may contain recommended items when they are also visible in the source menu.
+- Prioritize exact names, translated names, visible prices, then one short phrase or sentence for shortDesc.
+- Keep fullMenu descriptions concise and avoid recommendationReason unless genuinely needed.
+- If no readable food menu exists, return isMenu=false with recommended:[] and fullMenu:null rather than hallucinating.
+
+Keep all user-facing text in the requested outputLanguage and return the existing JSON schema.
+''';
+  }
+
+  static int _countVisionList(dynamic value) {
+    if (value is! List) return 0;
+    return value.whereType<Map>().length;
+  }
+
+  static int _countVisionFullMenu(dynamic value) {
+    if (value is! Map || value['items'] is! Map) return 0;
+    var count = 0;
+    for (final items in (value['items'] as Map).values) {
+      if (items is List) count += items.whereType<Map>().length;
+    }
+    return count;
+  }
+
+  static String _visionSourceCoverage(
+      dynamic recommended, int sourceImageCount) {
+    final seen = <int>{};
+    if (recommended is List) {
+      for (final rawItem in recommended.whereType<Map>()) {
+        final indexes = rawItem['sourceImageIndexes'];
+        if (indexes is List) {
+          for (final index in indexes.whereType<int>()) {
+            if (index >= 1 && index <= sourceImageCount) seen.add(index);
+          }
+        }
+      }
+    }
+    return '${seen.length}/$sourceImageCount';
+  }
+
+  static String _outputProtocol({
+    required bool streamMode,
+    required String scanMode,
+  }) {
+    final header = streamMode
+        ? 'Output exactly ONE JSON object using the existing app schema.'
+        : 'Output exactly ONE JSON object.';
+    final fullMenuField =
+        _useVisionV2 && scanMode == 'multi' ? 'fullMenu' : 'optional fullMenu';
+
+    return '''[OUTPUT PROTOCOL]
+$header
+- No RECOMMEND line
+- No markdown
+- No code fences
+- No extra text
+- Keep the JSON key order as: isMenu, userMessage, outputLanguage, selectedFoodStyle, selectedFoodStyleLabel, foodStyleApplied, foodStyleSummary, place, recommended, $fullMenuField
+''';
+  }
+
   static Future<String> _callAnalyzeVision({
     required String imageBase64,
     required String prompt,
@@ -92,6 +178,7 @@ class VisionService {
     required int maxOutputTokens,
     required String scanMode,
     required String responseMode,
+    required int sourceImageCount,
   }) async {
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
@@ -117,6 +204,7 @@ class VisionService {
         'maxOutputTokens': maxOutputTokens,
         'scanMode': scanMode,
         'responseMode': responseMode,
+        'sourceImageCount': sourceImageCount,
       });
 
       final data = Map<String, dynamic>.from(result.data as Map);
@@ -134,7 +222,14 @@ class VisionService {
       );
 
       if (vision is Map) {
-        return jsonEncode(Map<String, dynamic>.from(vision));
+        final visionMap = Map<String, dynamic>.from(vision);
+        debugPrint(
+          '[VisionV2 Client] itemsCount=${_countVisionList(visionMap['items'])} '
+          'recommendedCount=${_countVisionList(visionMap['recommended'])} '
+          'fullMenuCount=${_countVisionFullMenu(visionMap['fullMenu'])} '
+          'sourceCoverage=${_visionSourceCoverage(visionMap['recommended'], sourceImageCount)}',
+        );
+        return jsonEncode(visionMap);
       }
 
       final legacyResult = data['result']?.toString() ?? '';
@@ -376,6 +471,8 @@ If it doesn’t seem food-related, just say so.
     required String outputProtocol,
     required String? promptContext,
     required bool streamMode,
+    required String scanMode,
+    required int sourceImageCount,
   }) async {
     final presetId = await SettingsHelper.getPreset();
     final question = await SettingsHelper.getQuestionByPreset(presetId);
@@ -389,13 +486,20 @@ If it doesn’t seem food-related, just say so.
         .replaceAll('{promptContext}', _resolvePromptContext(promptContext))
         .replaceAll('{question}', question);
 
-    return '$outputProtocol\n$mergedPrompt';
+    final newline = String.fromCharCode(10);
+    final multiContract = _useVisionV2 && scanMode == 'multi'
+        ? newline +
+            newline +
+            _multiVisionV2Contract(sourceImageCount: sourceImageCount)
+        : '';
+    return outputProtocol + newline + mergedPrompt + multiContract;
   }
 
   static Future<String> analyzeImage(
     File imageFile, {
     String? promptContext,
     int maxOutputTokens = 3000,
+    int sourceImageCount = 1,
   }) async {
     try {
       final bytes = await imageFile.readAsBytes();
@@ -408,22 +512,19 @@ If it doesn’t seem food-related, just say so.
       debugPrint(
           '⏱️ [Vision] base64Encode ${DateTime.now().difference(tEncode0).inMilliseconds}ms');
 
-      const outputProtocol = '''[OUTPUT PROTOCOL]
-Output exactly ONE JSON object.
-- No RECOMMEND line
-- No markdown
-- No code fences
-- No extra text
-- Keep the JSON key order as: isMenu, userMessage, outputLanguage, selectedFoodStyle, selectedFoodStyleLabel, foodStyleApplied, foodStyleSummary, place, recommended, optional fullMenu
-''';
-
+      final scanMode = _resolveScanMode(maxOutputTokens);
+      final outputProtocol = _outputProtocol(
+        streamMode: false,
+        scanMode: scanMode,
+      );
       final mergedPromptWithProtocol = await _buildPrompt(
         outputProtocol: outputProtocol,
         promptContext: promptContext,
         streamMode: false,
+        scanMode: scanMode,
+        sourceImageCount: sourceImageCount,
       );
 
-      final scanMode = _resolveScanMode(maxOutputTokens);
       final tReq0 = DateTime.now();
 
       debugPrint(
@@ -440,6 +541,7 @@ Output exactly ONE JSON object.
               maxOutputTokens: maxOutputTokens,
               scanMode: scanMode,
               responseMode: 'normal',
+              sourceImageCount: sourceImageCount,
             )
           : _callAnalyzeVision(
               imageBase64: base64Image,
@@ -465,27 +567,25 @@ Output exactly ONE JSON object.
     File imageFile, {
     String? promptContext,
     int maxOutputTokens = 3000,
+    int sourceImageCount = 1,
   }) async* {
     try {
       final bytes = await imageFile.readAsBytes();
       final base64Image = base64Encode(bytes);
 
-      const outputProtocol = '''[OUTPUT PROTOCOL]
-Output exactly ONE JSON object using the existing app schema.
-- No RECOMMEND line
-- No markdown
-- No code fences
-- No extra text
-- Keep the JSON key order as: isMenu, userMessage, outputLanguage, selectedFoodStyle, selectedFoodStyleLabel, foodStyleApplied, foodStyleSummary, place, recommended, optional fullMenu
-''';
-
+      final scanMode = _resolveScanMode(maxOutputTokens);
+      final outputProtocol = _outputProtocol(
+        streamMode: true,
+        scanMode: scanMode,
+      );
       final mergedPromptWithProtocol = await _buildPrompt(
         outputProtocol: outputProtocol,
         promptContext: promptContext,
         streamMode: true,
+        scanMode: scanMode,
+        sourceImageCount: sourceImageCount,
       );
 
-      final scanMode = _resolveScanMode(maxOutputTokens);
       final tReq0 = DateTime.now();
 
       debugPrint(
@@ -502,6 +602,7 @@ Output exactly ONE JSON object using the existing app schema.
               maxOutputTokens: maxOutputTokens,
               scanMode: scanMode,
               responseMode: 'stream',
+              sourceImageCount: sourceImageCount,
             )
           : _callAnalyzeVision(
               imageBase64: base64Image,

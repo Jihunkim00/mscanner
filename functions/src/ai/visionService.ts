@@ -3,6 +3,7 @@ import OpenAI from "openai";
 
 import {ANALYSIS_MODEL} from "./aiConfig";
 import {
+  VISION_MULTI_RESPONSE_JSON_SCHEMA,
   VISION_RESPONSE_JSON_SCHEMA,
   VisionResponse,
   normalizeVisionResponse,
@@ -77,12 +78,51 @@ function safeOpenAiError(error: unknown): Record<string, unknown> {
 }
 
 function countFullMenuItems(vision: VisionResponse): number {
-  const items = vision.fullMenu?.items;
-  if (!items) return 0;
-  return Object.keys(items).reduce(
-    (count, category) => count + items[category].length,
-    0
-  );
+  const fullMenu = vision.fullMenu;
+  if (!isRecord(fullMenu) || !isRecord(fullMenu.items)) return 0;
+  return Object.keys(fullMenu.items).reduce((count, category) => {
+    const items = fullMenu.items[category];
+    return count + (Array.isArray(items) ? items.length : 0);
+  }, 0);
+}
+
+function fullMenuCounts(vision: VisionResponse): Record<string, number> {
+  const fullMenu = vision.fullMenu;
+  const counts: Record<string, number> = {};
+  if (!isRecord(fullMenu) || !isRecord(fullMenu.items)) return counts;
+
+  for (const category of Object.keys(fullMenu.items)) {
+    const items = fullMenu.items[category];
+    if (Array.isArray(items)) counts[category] = items.length;
+  }
+  return counts;
+}
+
+function normalizeSourceImageCount(value: unknown): number | null {
+  if (typeof value !== "number" ||
+      !Number.isInteger(value) ||
+      value < 1 ||
+      value > 20) {
+    return null;
+  }
+  return value;
+}
+
+function sourceCoverage(
+  vision: VisionResponse,
+  sourceImageCount: number | null
+): string {
+  const seen = new Set<number>();
+  for (const item of vision.recommended ?? []) {
+    for (const index of item.sourceImageIndexes ?? []) {
+      if (Number.isInteger(index) &&
+          index >= 1 &&
+          (sourceImageCount === null || index <= sourceImageCount)) {
+        seen.add(index);
+      }
+    }
+  }
+  return String(seen.size) + "/" + String(sourceImageCount ?? "?");
 }
 
 export async function handleAnalyzeVisionV2(
@@ -106,6 +146,7 @@ export async function handleAnalyzeVisionV2(
   const scanMode = normalizeScanMode(data.scanMode);
   const responseMode = normalizeResponseMode(data.responseMode);
   const maxOutputTokens = normalizeMaxOutputTokens(data.maxOutputTokens, scanMode);
+  const sourceImageCount = normalizeSourceImageCount(data.sourceImageCount);
   const openai = new OpenAI({apiKey});
   const startedAt = Date.now();
 
@@ -133,7 +174,9 @@ export async function handleAnalyzeVisionV2(
           name: "vision_menu_result",
           description: "A structured food-menu vision analysis result.",
           strict: false,
-          schema: VISION_RESPONSE_JSON_SCHEMA,
+          schema: scanMode === "multi" ?
+            VISION_MULTI_RESPONSE_JSON_SCHEMA :
+            VISION_RESPONSE_JSON_SCHEMA,
         },
       },
     } as any);
@@ -161,10 +204,12 @@ export async function handleAnalyzeVisionV2(
   }
 
   let vision: VisionResponse;
+  let fullMenuCount = 0;
   try {
     vision = normalizeVisionResponse(parsed);
-    if (scanMode === "multi" && vision.isMenu && vision.items.length === 0) {
-      throw new Error("multi menu response contained no menu items");
+    fullMenuCount = countFullMenuItems(vision);
+    if (scanMode === "multi" && vision.isMenu && fullMenuCount === 0) {
+      throw new Error("multi menu response contained no full menu items");
     }
   } catch (error) {
     console.error("[VisionV2] Structured response validation failed", {
@@ -173,13 +218,22 @@ export async function handleAnalyzeVisionV2(
     throw new HttpsError("internal", "Structured response validation failed.");
   }
 
-  const fullMenuCount = countFullMenuItems(vision);
+  const recommendedCount = vision.recommended?.length ?? 0;
+  console.log("[VisionV2] scanMode=%s", scanMode);
   console.log("[VisionV2] itemsCount=%d", vision.items.length);
   console.log(
     "[VisionV2] recommendedCount=%d",
-    vision.recommended?.length ?? 0
+    recommendedCount
+  );
+  console.log(
+    "[VisionV2] recommendedSourceCoverage=%s",
+    sourceCoverage(vision, sourceImageCount)
   );
   console.log("[VisionV2] fullMenuCount=%d", fullMenuCount);
+  console.log(
+    "[VisionV2] fullMenuByCategory=%s",
+    JSON.stringify(fullMenuCounts(vision))
+  );
   console.log(
     "[VisionV2] fullMenuSummaryPresent=%s",
     Boolean(vision.fullMenu?.summary?.trim())

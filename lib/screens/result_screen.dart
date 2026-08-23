@@ -358,21 +358,7 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   bool _hasUsableFullMenu() {
-    final j = _aiJson;
-    if (j == null) return false;
-
-    final rawFm = j['fullMenu'] ?? j['full_menu'] ?? j['menu'] ?? j['menus'];
-    if (rawFm is! Map) return false;
-
-    Map<String, dynamic>? itemsMap;
-
-    if (rawFm['items'] is Map) {
-      itemsMap = Map<String, dynamic>.from(rawFm['items'] as Map);
-    } else {
-      itemsMap = Map<String, dynamic>.from(rawFm);
-    }
-
-    return _hasAnyFullMenuItems(itemsMap);
+    return ResultParsingService.hasUsableFullMenu(_aiJson);
   }
 
   void _cancelAiStreamTimers() {

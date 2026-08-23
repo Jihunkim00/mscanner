@@ -115,7 +115,10 @@ const menuItemSchema = {
     dietaryWarnings: {type: "array", items: {type: "string"}},
     allergyHints: {type: "array", items: {type: "string"}},
     requiresStaffCheck: {type: "boolean"},
-    sourceImageIndexes: {type: "array", items: {type: "integer"}},
+    sourceImageIndexes: {
+      type: "array",
+      items: {type: "integer", minimum: 1},
+    },
   },
 };
 
@@ -200,6 +203,21 @@ export const VISION_RESPONSE_JSON_SCHEMA = {
   },
 };
 
+export const VISION_MULTI_RESPONSE_JSON_SCHEMA = {
+  ...VISION_RESPONSE_JSON_SCHEMA,
+  required: [
+    "isMenu",
+    "userMessage",
+    "outputLanguage",
+    "recommended",
+    "fullMenu",
+  ],
+  properties: {
+    ...VISION_RESPONSE_JSON_SCHEMA.properties,
+    fullMenu: {anyOf: [fullMenuSchema, {type: "null"}]},
+  },
+};
+
 type UnknownRecord = Record<string, unknown>;
 
 function isRecord(value: unknown): value is UnknownRecord {
@@ -235,11 +253,43 @@ function validateMenuItem(value: unknown): void {
   if (value.confidence !== null && typeof value.confidence !== "number") {
     throw new Error();
   }
+  if (value.sourceImageIndexes !== undefined &&
+      (!Array.isArray(value.sourceImageIndexes) ||
+       value.sourceImageIndexes.some((item) =>
+         !Number.isInteger(item) || (item as number) < 1))) {
+    throw new Error();
+  }
 }
 
 function validateItemList(value: unknown): void {
   if (!Array.isArray(value)) throw new Error();
   for (const item of value) validateMenuItem(item);
+}
+
+function validateFullMenu(value: unknown): void {
+  if (value === null) return;
+  if (!isRecord(value)) throw new Error();
+
+  const items = value.items;
+  if (items !== undefined) {
+    if (!isRecord(items)) throw new Error();
+    for (const category of [
+      "main",
+      "side",
+      "meal",
+      "drink",
+      "beverage",
+      "unknown",
+    ]) {
+      if (items[category] !== undefined) validateItemList(items[category]);
+    }
+  }
+  if (value.summary !== undefined && typeof value.summary !== "string") {
+    throw new Error();
+  }
+  if (value.truncated !== undefined && typeof value.truncated !== "boolean") {
+    throw new Error();
+  }
 }
 
 export function normalizeVisionResponse(value: unknown): VisionResponse {
@@ -257,6 +307,7 @@ export function normalizeVisionResponse(value: unknown): VisionResponse {
   if (!value.isMenu && (rawItems as unknown[]).length > 0) throw new Error();
   if (value.items !== undefined) validateItemList(value.items);
   if (value.recommended !== undefined) validateItemList(value.recommended);
+  if (value.fullMenu !== undefined) validateFullMenu(value.fullMenu);
 
   return {
     ...(value as unknown as VisionResponse),

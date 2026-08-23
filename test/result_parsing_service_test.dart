@@ -196,8 +196,7 @@ void main() {
           isFalse);
     });
 
-    test('builds a categorized full-menu fallback from multi-scan V2 items',
-        () {
+    test('does not promote multi-scan recommendations into full menu', () {
       final parsed = ResultParsingService.parseAiJson(
         responses: [
           jsonEncode({
@@ -227,13 +226,188 @@ void main() {
           Map<String, dynamic>.from(parsed.aiJson!['fullMenu'] as Map);
       final items = Map<String, dynamic>.from(fullMenu['items'] as Map);
 
-      expect((items['main'] as List), hasLength(1));
-      expect((items['side'] as List), hasLength(1));
+      expect((items['main'] as List), isEmpty);
+      expect((items['side'] as List), isEmpty);
       expect(fullMenu['summary'], isEmpty);
       expect(ResultParsingService.getRecommendedItems(parsed.aiJson),
           hasLength(2));
       expect(ResultParsingService.shouldShowDecisionSummary(parsed.aiJson),
           isTrue);
+    });
+
+    test('treats summary-only full menu as unusable', () {
+      final parsed = ResultParsingService.parseAiJson(
+        responses: [
+          jsonEncode({
+            'isMenu': true,
+            'userMessage': '',
+            'outputLanguage': 'en',
+            'recommended': [],
+            'fullMenu': {
+              'summary': 'A menu summary without item records.',
+              'truncated': true,
+            },
+          }),
+        ],
+        imageCount: 4,
+      );
+
+      expect(
+        ResultParsingService.hasUsableFullMenu(parsed.aiJson),
+        isFalse,
+      );
+    });
+
+    test('treats a full menu with item records as usable', () {
+      final parsed = ResultParsingService.parseAiJson(
+        responses: [
+          jsonEncode({
+            'isMenu': true,
+            'userMessage': '',
+            'outputLanguage': 'en',
+            'recommended': [],
+            'fullMenu': {
+              'items': {
+                'main': [
+                  {
+                    'nameOriginal': 'Bibimbap',
+                    'name': 'Bibimbap',
+                  },
+                ],
+              },
+              'summary': '',
+              'truncated': false,
+            },
+          }),
+        ],
+        imageCount: 4,
+      );
+
+      expect(
+        ResultParsingService.hasUsableFullMenu(parsed.aiJson),
+        isTrue,
+      );
+    });
+
+    test('preserves multi-scan recommendation source indexes', () {
+      final parsed = ResultParsingService.parseAiJson(
+        responses: [
+          jsonEncode({
+            'isMenu': true,
+            'userMessage': '',
+            'outputLanguage': 'en',
+            'recommended': [
+              {
+                'nameOriginal': 'Dish 1',
+                'name': 'Dish 1',
+                'sourceImageIndexes': [1],
+              },
+              {
+                'nameOriginal': 'Dish 2',
+                'name': 'Dish 2',
+                'sourceImageIndexes': [2],
+              },
+              {
+                'nameOriginal': 'Dish 3',
+                'name': 'Dish 3',
+                'sourceImageIndexes': [3],
+              },
+              {
+                'nameOriginal': 'Dish 4',
+                'name': 'Dish 4',
+                'sourceImageIndexes': [4],
+              },
+            ],
+            'fullMenu': {
+              'items': {
+                'main': [],
+                'side': [],
+                'meal': [],
+                'drink': [],
+                'beverage': [],
+                'unknown': [],
+              },
+              'summary': '',
+              'truncated': false,
+            },
+          }),
+        ],
+        imageCount: 4,
+      );
+
+      final items = ResultParsingService.getRecommendedItems(parsed.aiJson);
+      final coverage = items
+          .expand((item) => (item['sourceImageIndexes'] as List).cast<int>())
+          .toSet();
+
+      expect(items, hasLength(4));
+      expect(coverage, {1, 2, 3, 4});
+    });
+
+    test('merges source indexes when duplicate recommendations are deduped',
+        () {
+      final parsed = ResultParsingService.parseAiJson(
+        responses: [
+          jsonEncode({
+            'isMenu': true,
+            'userMessage': '',
+            'outputLanguage': 'en',
+            'recommended': [
+              {
+                'nameOriginal': 'Same dish',
+                'name': 'Same dish',
+                'sourceImageIndexes': [1],
+              },
+            ],
+            'fullMenu': {
+              'items': {
+                'main': [],
+              },
+            },
+          }),
+          jsonEncode({
+            'isMenu': true,
+            'userMessage': '',
+            'outputLanguage': 'en',
+            'recommended': [
+              {
+                'nameOriginal': 'Same dish',
+                'name': 'Same dish',
+                'sourceImageIndexes': [2],
+              },
+            ],
+            'fullMenu': {
+              'items': {
+                'main': [],
+              },
+            },
+          }),
+        ],
+        imageCount: 2,
+      );
+
+      final item =
+          ResultParsingService.getRecommendedItems(parsed.aiJson).single;
+      expect(item['sourceImageIndexes'], [1, 2]);
+    });
+
+    test('does not force recommendations for a non-menu multi scan', () {
+      final parsed = ResultParsingService.parseAiJson(
+        responses: [
+          jsonEncode({
+            'isMenu': false,
+            'userMessage': 'No readable food menu.',
+            'outputLanguage': 'en',
+            'recommended': [],
+            'fullMenu': null,
+          }),
+        ],
+        imageCount: 4,
+      );
+
+      expect(ResultParsingService.getRecommendedItems(parsed.aiJson), isEmpty);
+      expect(ResultParsingService.shouldShowDecisionSummary(parsed.aiJson),
+          isFalse);
     });
 
     test('keeps an existing multi-scan full menu separate from recommendations',
@@ -285,6 +459,59 @@ void main() {
             .single)['nameOriginal'],
         'Recommended dish',
       );
+    });
+
+    test('deduplicates full-menu items across categories and pages', () {
+      final item = {
+        'id': 'm1',
+        'nameOriginal': 'Bibimbap',
+        'name': 'Bibimbap',
+        'category': 'main',
+      };
+      final parsed = ResultParsingService.parseAiJson(
+        responses: [
+          jsonEncode({
+            'isMenu': true,
+            'userMessage': '',
+            'outputLanguage': 'en',
+            'recommended': [],
+            'fullMenu': {
+              'items': {
+                'main': [item],
+                'side': [],
+              },
+              'summary': '',
+              'truncated': false,
+            },
+          }),
+          jsonEncode({
+            'isMenu': true,
+            'userMessage': '',
+            'outputLanguage': 'en',
+            'recommended': [],
+            'fullMenu': {
+              'items': {
+                'main': [item],
+                'side': [
+                  Map<String, dynamic>.from(item)..['category'] = 'side'
+                ],
+              },
+              'summary': '',
+              'truncated': false,
+            },
+          }),
+        ],
+        imageCount: 4,
+      );
+
+      final fullMenu =
+          Map<String, dynamic>.from(parsed.aiJson!['fullMenu'] as Map);
+      final categories = Map<String, dynamic>.from(fullMenu['items'] as Map);
+      final itemCount = categories.values
+          .whereType<List>()
+          .fold<int>(0, (sum, items) => sum + items.length);
+
+      expect(itemCount, 1);
     });
   });
 }
