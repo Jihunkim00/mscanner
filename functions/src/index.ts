@@ -380,3 +380,125 @@ export const generateOrderPhrase = onCall(async (req) => {
     languageCode: originLanguageCode,
   };
 });
+
+function resolveVisionMaxOutputTokens(
+  value: unknown,
+  scanMode: string
+): number {
+  const fallback = scanMode === "multi" ? 9000 : 3000;
+  const serverMax = 9000;
+
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return fallback;
+  }
+
+  return Math.min(
+    Math.max(Math.floor(value), 1000),
+    serverMax
+  );
+}
+
+export const analyzeVision = onCall(
+  {
+    timeoutSeconds: 180,
+    memory: "1GiB",
+    secrets: [OPENAI_API_KEY],
+  },
+  async (req) => {
+    const auth = req.auth;
+
+    if (!auth) {
+      throw new HttpsError(
+        "unauthenticated",
+        "Login required."
+      );
+    }
+
+    const {
+      imageBase64,
+      prompt,
+      maxOutputTokens,
+      scanMode,
+      responseMode,
+    } = req.data || {};
+
+    if (!imageBase64 || typeof imageBase64 !== "string") {
+      throw new HttpsError(
+        "invalid-argument",
+        "imageBase64 required"
+      );
+    }
+
+    if (!prompt || typeof prompt !== "string") {
+      throw new HttpsError(
+        "invalid-argument",
+        "prompt required"
+      );
+    }
+
+    const safeScanMode =
+      scanMode === "multi" ? "multi" : "single";
+
+    const safeResponseMode =
+      responseMode === "stream" ? "stream" : "normal";
+
+    const safeMaxOutputTokens =
+      resolveVisionMaxOutputTokens(
+        maxOutputTokens,
+        safeScanMode
+      );
+
+    // 메뉴 분석·번역 모델
+    const model = "gpt-5.6-luna";
+
+    const openai = new OpenAI({
+      apiKey: OPENAI_API_KEY.value(),
+    });
+
+    const response =
+      await openai.chat.completions.create({
+        model,
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: prompt,
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url:
+                    `data:image/jpeg;base64,${imageBase64}`,
+                },
+              },
+            ],
+          },
+        ],
+        reasoning_effort: "low",
+        max_completion_tokens:
+          safeMaxOutputTokens,
+      } as any);
+
+    const content =
+      response.choices?.[0]?.message?.content ?? "";
+
+    if (!content.trim()) {
+      throw new HttpsError(
+        "internal",
+        "OpenAI returned an empty result."
+      );
+    }
+
+    return {
+      success: true,
+      result: content,
+      model,
+      scanMode: safeScanMode,
+      responseMode: safeResponseMode,
+      maxOutputTokens: safeMaxOutputTokens,
+      usage: response.usage ?? null,
+    };
+  }
+);
