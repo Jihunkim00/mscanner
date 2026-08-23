@@ -43,6 +43,7 @@ import 'package:mscanner/widgets/result/result_ui_copy.dart';
 import 'package:mscanner/widgets/menu_tag_registry.dart';
 import 'package:mscanner/screens/result/result_parsing_service.dart';
 import 'package:mscanner/screens/result/result_action_service.dart';
+import 'package:mscanner/screens/result/vision_stream_wait_policy.dart';
 import 'vision_service.dart';
 
 // NOTE: searched_menu 저장은 UI 흐름과 분리(비동기)해서 실행합니다.
@@ -160,7 +161,6 @@ class _ResultScreenState extends State<ResultScreen> {
   bool _analyticsViewedLogged = false;
   bool _priceCardEventLogged = false;
   bool _localInsightEventLogged = false;
-  Timer? _stuckUiTimer;
   bool _showStuckFallback = false;
   final ResultExitInterstitialPolicy _resultExitInterstitialPolicy =
       const ResultExitInterstitialPolicy();
@@ -220,10 +220,11 @@ class _ResultScreenState extends State<ResultScreen> {
   bool _aiStreamHadError = false;
   String? _aiStreamErrorMessage;
 
-  Timer? _aiFirstChunkTimer;
+  VisionStreamWaitPolicy? _aiFirstResponseWaitPolicy;
   Timer? _aiInactivityTimer;
   Timer? _aiHardTimeoutTimer;
   bool _aiGotFirstChunk = false;
+  DateTime? _aiStreamStartedAt;
 
   bool get _isWaitingFullMenu =>
       widget.responseStream != null && !_aiStreamDone;
@@ -329,6 +330,16 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   void _parseAiJson() {
+    if (VisionStreamWaitPolicy.shouldWaitForFirstResponse(
+      hasResponseStream: widget.responseStream != null,
+      streamDone: _aiStreamDone,
+      responses: widget.responses,
+    )) {
+      _aiJson = null;
+      _trace('waiting_for_first_response');
+      return;
+    }
+
     _trace('parse_start');
     try {
       final parsed = ResultParsingService.parseAiJson(
@@ -396,7 +407,7 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   void _cancelAiStreamTimers() {
-    _aiFirstChunkTimer?.cancel();
+    _aiFirstResponseWaitPolicy?.complete();
     _aiInactivityTimer?.cancel();
     _aiHardTimeoutTimer?.cancel();
   }
@@ -2610,6 +2621,7 @@ class _ResultScreenState extends State<ResultScreen> {
     _cancelAiStreamTimers();
 
     _aiStreamDone = true;
+    _showStuckFallback = false;
     _aiStreamHadError = hadError;
     _aiStreamErrorMessage = errorMessage;
     _trace('stream_complete hadError=$hadError');
@@ -2652,26 +2664,21 @@ class _ResultScreenState extends State<ResultScreen> {
 // ✅ 스트리밍이 있으면: Result에서 바로 받아서 RECOMMEND 먼저 반영
     if (widget.responseStream != null) {
       _aiGotFirstChunk = false;
-      _stuckUiTimer = Timer(const Duration(seconds: 25), () {
-        if (!mounted) return;
-        if (_aiStreamDone) return;
-        if (_fastRecommend.isEmpty && _getRecommendedItems().isEmpty) {
-          setState(() {
-            _showStuckFallback = true;
-          });
-        }
-      });
+      _aiStreamStartedAt = DateTime.now();
+      _aiFirstResponseWaitPolicy = VisionStreamWaitPolicy(
+        onFirstResponseSlow: () {
+          if (!mounted || _aiStreamDone || _aiGotFirstChunk) return;
 
-      _aiFirstChunkTimer = Timer(const Duration(seconds: 20), () {
-        if (_aiStreamDone || _aiGotFirstChunk) return;
-        _finishAiStreamNow(
-          hadError: true,
-          errorMessage:
-              AppLocalizations.of(context)?.result_aiTimeoutFirstChunk,
-        );
-      });
+          _trace(
+            'first_response_waiting '
+            'elapsedMs=${const Duration(seconds: 20).inMilliseconds}',
+          );
+          _trace('first_chunk_slow continue_waiting=true');
+          setState(() => _showStuckFallback = true);
+        },
+      )..start();
 
-      _aiHardTimeoutTimer = Timer(const Duration(seconds: 120), () {
+      _aiHardTimeoutTimer = Timer(const Duration(seconds: 180), () {
         if (_aiStreamDone) return;
         _finishAiStreamNow(
           hadError: !_hasPartialAiResult,
@@ -2687,7 +2694,15 @@ class _ResultScreenState extends State<ResultScreen> {
         (delta) {
           if (!_aiGotFirstChunk) {
             _aiGotFirstChunk = true;
-            _aiFirstChunkTimer?.cancel();
+            _aiFirstResponseWaitPolicy?.markFirstResponse();
+            final startedAt = _aiStreamStartedAt;
+            final elapsedMs = startedAt == null
+                ? null
+                : DateTime.now().difference(startedAt).inMilliseconds;
+            _trace('first_response_received elapsedMs=${elapsedMs ?? 0}');
+          }
+          if (_showStuckFallback) {
+            _showStuckFallback = false;
           }
 
           _armAiInactivityTimeout();
@@ -2723,7 +2738,7 @@ class _ResultScreenState extends State<ResultScreen> {
         onError: (e) {
           if (!mounted) return;
           _finishAiStreamNow(
-            hadError: !_hasPartialAiResult,
+            hadError: true,
             errorMessage: _hasPartialAiResult
                 ? null
                 : (e is TimeoutException
@@ -2788,7 +2803,11 @@ class _ResultScreenState extends State<ResultScreen> {
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_aiJson == null) {
-        _trace('render_error reason=no_parsed_result');
+        if (widget.responseStream != null && !_aiStreamDone) {
+          _trace('render_waiting reason=no_parsed_result');
+        } else {
+          _trace('render_error reason=no_parsed_result');
+        }
       } else {
         _trace('render_success');
       }
@@ -2971,9 +2990,7 @@ class _ResultScreenState extends State<ResultScreen> {
     _timer?.cancel();
     _aiStreamSub?.cancel();
     _revealTimer?.cancel();
-    _stuckUiTimer?.cancel();
     _cancelAiStreamTimers();
-    _stuckUiTimer?.cancel();
     _showStuckFallback = false;
     _storeNameController.dispose();
     _reviewController.dispose();
