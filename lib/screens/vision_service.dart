@@ -6,6 +6,51 @@ import 'package:cloud_functions/cloud_functions.dart';
 
 import '/helpers/settings_helper.dart';
 
+class VisionV2RequestContract {
+  static const int maxMultiImageCount = 4;
+
+  static Map<String, dynamic> single({
+    required String imageBase64,
+    required String prompt,
+    required int maxOutputTokens,
+    required String scanMode,
+    required String responseMode,
+    required int sourceImageCount,
+  }) {
+    return {
+      'imageBase64': imageBase64,
+      'prompt': prompt,
+      'maxOutputTokens': maxOutputTokens,
+      'scanMode': scanMode,
+      'responseMode': responseMode,
+      'sourceImageCount': sourceImageCount,
+    };
+  }
+
+  static Map<String, dynamic> multi({
+    required List<String> imagesBase64,
+    required String prompt,
+    required int maxOutputTokens,
+    required String scanMode,
+    required String responseMode,
+  }) {
+    if (imagesBase64.isEmpty ||
+        imagesBase64.length > maxMultiImageCount ||
+        imagesBase64.any((image) => image.trim().isEmpty)) {
+      throw ArgumentError('Invalid Vision V2 multi-image input');
+    }
+
+    return {
+      'imagesBase64': List<String>.of(imagesBase64),
+      'sourceImageCount': imagesBase64.length,
+      'prompt': prompt,
+      'maxOutputTokens': maxOutputTokens,
+      'scanMode': scanMode,
+      'responseMode': responseMode,
+    };
+  }
+}
+
 class VisionService {
   // Keep the released callable as the default until V2 is explicitly enabled.
   static const bool _useVisionV2 = false;
@@ -28,17 +73,13 @@ class VisionService {
     required int sourceImageCount,
   }) {
     final count = sourceImageCount < 2 ? 2 : sourceImageCount;
-    final layout = count == 2
-        ? 'The merged sheet has one column: source 1 is the top cell and source 2 is the bottom cell.'
-        : 'The merged sheet has two columns in row-major order: source 1 is top-left, source 2 top-right, source 3 next-left, source 4 next-right, and so on.';
-
     return '''
 
 [MULTI-SCAN V2 CONTRACT - HIGHEST PRIORITY]
-This is a multi-image food menu scan with $count source images.
-The source images were merged into one contact sheet before upload.
-$layout
-Analyze every visible source section/page, not only the first or most prominent cell.
+This request contains $count separate source images.
+The attached images are separate source menu pages, in the exact user selection order.
+The first attached image is source 1, the second is source 2, and so on.
+Analyze every attached source page independently before combining the result.
 
 RECOMMENDED:
 - Select at least one strong recommendation from each distinct source image/menu page when possible.
@@ -173,7 +214,8 @@ $header
   }
 
   static Future<String> _callAnalyzeVisionV2({
-    required String imageBase64,
+    String? imageBase64,
+    List<String>? imagesBase64,
     required String prompt,
     required int maxOutputTokens,
     required String scanMode,
@@ -189,7 +231,8 @@ $header
       debugPrint(
         '[Functions] analyzeVisionV2 call '
         'scanMode=$scanMode responseMode=$responseMode '
-        'maxTokens=$maxOutputTokens imageBase64Len=${imageBase64.length}',
+        'maxTokens=$maxOutputTokens '
+        'inputImageCount=${imagesBase64?.length ?? 1}',
       );
 
       final callable = _functions.httpsCallable(
@@ -198,14 +241,23 @@ $header
           timeout: const Duration(seconds: 180),
         ),
       );
-      final result = await callable.call({
-        'imageBase64': imageBase64,
-        'prompt': prompt,
-        'maxOutputTokens': maxOutputTokens,
-        'scanMode': scanMode,
-        'responseMode': responseMode,
-        'sourceImageCount': sourceImageCount,
-      });
+      final payload = imagesBase64 != null
+          ? VisionV2RequestContract.multi(
+              imagesBase64: imagesBase64,
+              prompt: prompt,
+              maxOutputTokens: maxOutputTokens,
+              scanMode: scanMode,
+              responseMode: responseMode,
+            )
+          : VisionV2RequestContract.single(
+              imageBase64: imageBase64!,
+              prompt: prompt,
+              maxOutputTokens: maxOutputTokens,
+              scanMode: scanMode,
+              responseMode: responseMode,
+              sourceImageCount: sourceImageCount,
+            );
+      final result = await callable.call(payload);
 
       final data = Map<String, dynamic>.from(result.data as Map);
       final meta = data['meta'] is Map
@@ -247,6 +299,75 @@ $header
       debugPrint('[Functions] analyzeVisionV2 unknown error=$e');
       rethrow;
     }
+  }
+
+  static Future<List<String>> _encodeSeparateImages(
+      List<File> sourceImages) async {
+    if (sourceImages.length < 2 ||
+        sourceImages.length > VisionV2RequestContract.maxMultiImageCount) {
+      throw ArgumentError(
+          'Vision V2 multi-image count must be between 2 and ${VisionV2RequestContract.maxMultiImageCount}');
+    }
+
+    final base64Images = <String>[];
+    final byteLengths = <int>[];
+    final base64Lengths = <int>[];
+    for (final sourceImage in sourceImages) {
+      final bytes = await sourceImage.readAsBytes();
+      final encoded = base64Encode(bytes);
+      base64Images.add(encoded);
+      byteLengths.add(bytes.length);
+      base64Lengths.add(encoded.length);
+    }
+
+    debugPrint('[VisionV2 Client] transport=separate_images');
+    debugPrint('[VisionV2 Client] sourceImageCount=${sourceImages.length}');
+    debugPrint('[VisionV2 Client] compressedBytes=$byteLengths');
+    debugPrint('[VisionV2 Client] base64Lengths=$base64Lengths');
+    debugPrint(
+      '[VisionV2 Client] totalCompressedBytes=${byteLengths.fold<int>(0, (sum, value) => sum + value)} '
+      'totalBase64Length=${base64Lengths.fold<int>(0, (sum, value) => sum + value)}',
+    );
+    debugPrint('[VisionV2 Client] callable=analyzeVisionV2');
+
+    return base64Images;
+  }
+
+  static Future<String> _analyzeVisionV2SeparateImages({
+    required List<File> sourceImages,
+    required String? promptContext,
+    required int maxOutputTokens,
+    required String responseMode,
+  }) async {
+    final sourceImageCount = sourceImages.length;
+    final imagesBase64 = await _encodeSeparateImages(sourceImages);
+    final scanMode = 'multi';
+    final outputProtocol = _outputProtocol(
+      streamMode: responseMode == 'stream',
+      scanMode: scanMode,
+    );
+    final prompt = await _buildPrompt(
+      outputProtocol: outputProtocol,
+      promptContext: promptContext,
+      streamMode: responseMode == 'stream',
+      scanMode: scanMode,
+      sourceImageCount: sourceImageCount,
+    );
+
+    final startedAt = DateTime.now();
+    final text = await _callAnalyzeVisionV2(
+      imagesBase64: imagesBase64,
+      prompt: prompt,
+      maxOutputTokens: maxOutputTokens,
+      scanMode: scanMode,
+      responseMode: responseMode,
+      sourceImageCount: sourceImageCount,
+    );
+    debugPrint(
+      '[VisionV2 Client] separate_images response '
+      'latencyMs=${DateTime.now().difference(startedAt).inMilliseconds} sourceImageCount=$sourceImageCount',
+    );
+    return text;
   }
 
   static Map<String, String> _fullPromptTemplates() {
@@ -500,8 +621,22 @@ If it doesn’t seem food-related, just say so.
     String? promptContext,
     int maxOutputTokens = 3000,
     int sourceImageCount = 1,
+    List<File>? sourceImages,
   }) async {
     try {
+      final scanMode = _resolveScanMode(maxOutputTokens);
+      if (_useVisionV2 &&
+          scanMode == 'multi' &&
+          sourceImages != null &&
+          sourceImages.length > 1) {
+        return await _analyzeVisionV2SeparateImages(
+          sourceImages: sourceImages,
+          promptContext: promptContext,
+          maxOutputTokens: maxOutputTokens,
+          responseMode: 'normal',
+        );
+      }
+
       final bytes = await imageFile.readAsBytes();
       final kb = bytes.length / 1024;
       debugPrint(
@@ -512,7 +647,6 @@ If it doesn’t seem food-related, just say so.
       debugPrint(
           '⏱️ [Vision] base64Encode ${DateTime.now().difference(tEncode0).inMilliseconds}ms');
 
-      final scanMode = _resolveScanMode(maxOutputTokens);
       final outputProtocol = _outputProtocol(
         streamMode: false,
         scanMode: scanMode,
@@ -568,12 +702,26 @@ If it doesn’t seem food-related, just say so.
     String? promptContext,
     int maxOutputTokens = 3000,
     int sourceImageCount = 1,
+    List<File>? sourceImages,
   }) async* {
     try {
+      final scanMode = _resolveScanMode(maxOutputTokens);
+      if (_useVisionV2 &&
+          scanMode == 'multi' &&
+          sourceImages != null &&
+          sourceImages.length > 1) {
+        yield await _analyzeVisionV2SeparateImages(
+          sourceImages: sourceImages,
+          promptContext: promptContext,
+          maxOutputTokens: maxOutputTokens,
+          responseMode: 'stream',
+        );
+        return;
+      }
+
       final bytes = await imageFile.readAsBytes();
       final base64Image = base64Encode(bytes);
 
-      final scanMode = _resolveScanMode(maxOutputTokens);
       final outputProtocol = _outputProtocol(
         streamMode: true,
         scanMode: scanMode,

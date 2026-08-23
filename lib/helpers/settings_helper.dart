@@ -287,7 +287,7 @@ Food style preset:
 - Set styleMatched=true only when visible text/OCR/image evidence supports the match.
 - styleFitScore must be 0.0 to 1.0 and reflect fit after caution/safety concerns.
 - Put concise evidence in matchedEvidence and concise risk text in cautionReason.
-- Use sourceImageIndexes when multiple images are provided; use zero-based indexes when knowable.
+    - Use sourceImageIndexes when multiple images are provided; use 1-based source-image indexes when knowable.
 
 Style-specific rules:
 ${_foodStyleRules(styleId)}

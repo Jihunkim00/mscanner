@@ -8,6 +8,10 @@ import {
   VisionResponse,
   normalizeVisionResponse,
 } from "./responseSchema";
+import {
+  buildVisionImageContent,
+  normalizeVisionImages,
+} from "./visionRequest";
 
 interface VisionCallableRequest {
   auth?: unknown;
@@ -98,16 +102,6 @@ function fullMenuCounts(vision: VisionResponse): Record<string, number> {
   return counts;
 }
 
-function normalizeSourceImageCount(value: unknown): number | null {
-  if (typeof value !== "number" ||
-      !Number.isInteger(value) ||
-      value < 1 ||
-      value > 20) {
-    return null;
-  }
-  return value;
-}
-
 function sourceCoverage(
   vision: VisionResponse,
   sourceImageCount: number | null
@@ -134,11 +128,7 @@ export async function handleAnalyzeVisionV2(
   }
 
   const data = isRecord(request.data) ? request.data : {};
-  const imageBase64 = data.imageBase64;
   const prompt = data.prompt;
-  if (typeof imageBase64 !== "string" || imageBase64.trim().length === 0) {
-    throw new HttpsError("invalid-argument", "imageBase64 required");
-  }
   if (typeof prompt !== "string" || prompt.trim().length === 0) {
     throw new HttpsError("invalid-argument", "prompt required");
   }
@@ -146,7 +136,20 @@ export async function handleAnalyzeVisionV2(
   const scanMode = normalizeScanMode(data.scanMode);
   const responseMode = normalizeResponseMode(data.responseMode);
   const maxOutputTokens = normalizeMaxOutputTokens(data.maxOutputTokens, scanMode);
-  const sourceImageCount = normalizeSourceImageCount(data.sourceImageCount);
+  let normalizedImages;
+  try {
+    normalizedImages = normalizeVisionImages(data, scanMode);
+  } catch (error) {
+    throw new HttpsError(
+      "invalid-argument",
+      error instanceof Error ? error.message : "Invalid vision image input"
+    );
+  }
+  const {
+    imagesBase64,
+    inputImageCount,
+    sourceImageCount,
+  } = normalizedImages;
   const openai = new OpenAI({apiKey});
   const startedAt = Date.now();
 
@@ -157,13 +160,7 @@ export async function handleAnalyzeVisionV2(
       messages: [
         {
           role: "user",
-          content: [
-            {type: "text", text: prompt},
-            {
-              type: "image_url",
-              image_url: {url: `data:image/jpeg;base64,${imageBase64}`},
-            },
-          ],
+          content: buildVisionImageContent(prompt, imagesBase64),
         },
       ],
       reasoning_effort: "low",
@@ -219,7 +216,12 @@ export async function handleAnalyzeVisionV2(
   }
 
   const recommendedCount = vision.recommended?.length ?? 0;
-  console.log("[VisionV2] scanMode=%s", scanMode);
+  console.log(
+    "[VisionV2] scanMode=%s inputImageCount=%d sourceImageCount=%s",
+    scanMode,
+    inputImageCount,
+    sourceImageCount ?? "unknown"
+  );
   console.log("[VisionV2] itemsCount=%d", vision.items.length);
   console.log(
     "[VisionV2] recommendedCount=%d",
@@ -240,6 +242,7 @@ export async function handleAnalyzeVisionV2(
   );
 
   const latencyMs = Date.now() - startedAt;
+  console.log("[VisionV2] latencyMs=%d", latencyMs);
   const usage = normalizeUsage(response.usage);
   const result = JSON.stringify(vision);
 

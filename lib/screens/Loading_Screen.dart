@@ -28,8 +28,9 @@ class _PreparedVisionInput {
   final File visionFile;
   final String promptContext;
   final int sourceImageCount;
-  _PreparedVisionInput(
-      this.visionFile, this.promptContext, this.sourceImageCount);
+  final List<File> sourceImages;
+  _PreparedVisionInput(this.visionFile, this.promptContext,
+      this.sourceImageCount, this.sourceImages);
 }
 
 class LoadingScreen extends StatefulWidget {
@@ -163,7 +164,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
           '🗜️ [Vision] send file size = ${(sz / 1024).toStringAsFixed(1)} KB');
     } catch (_) {}
 
-    return _PreparedVisionInput(visionFile, promptContext, files.length);
+    return _PreparedVisionInput(
+        visionFile, promptContext, files.length, List.unmodifiable(files));
   }
 
   /// 넉넉한 타임아웃 + 스트리밍 우선 + 단일 요청 fallback
@@ -183,6 +185,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
           promptContext: prepared.promptContext,
           maxOutputTokens: widget.maxOutputTokens,
           sourceImageCount: prepared.sourceImageCount,
+          sourceImages: prepared.sourceImages,
         );
 
         final stream = rawStream
@@ -224,6 +227,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
             promptContext: prepared.promptContext,
             maxOutputTokens: widget.maxOutputTokens,
             sourceImageCount: prepared.sourceImageCount,
+            sourceImages: prepared.sourceImages,
           ).timeout(_fallbackAnalyzeTimeout);
 
           if (!_hasNavigated && mounted) {
