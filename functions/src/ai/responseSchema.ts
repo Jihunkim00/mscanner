@@ -60,6 +60,45 @@ export interface VisionResponse {
   fullMenu?: VisionFullMenu | null;
 }
 
+export type VisionSourceStatus =
+  | "menu"
+  | "non_menu"
+  | "unreadable"
+  | "duplicate";
+
+export interface VisionInventoryItem {
+  id: string;
+  nameOriginal: string;
+  name: string;
+  originLanguageCode: string;
+  shortDesc: string;
+  price: VisionPrice;
+  category: string;
+  confidence?: number | null;
+}
+
+export interface VisionSourceAnalysis {
+  sourceImageIndex: number;
+  status: VisionSourceStatus;
+  recommended: VisionMenuItem[];
+  menuItems: VisionInventoryItem[];
+  truncated: boolean;
+}
+
+export interface VisionMultiAnalysis {
+  isMenu: boolean;
+  declaredIsMenu: boolean;
+  userMessage: string;
+  outputLanguage: string;
+  sources: VisionSourceAnalysis[];
+  selectedFoodStyle?: string;
+  selectedFoodStyleLabel?: string;
+  foodStyleApplied?: boolean;
+  foodStyleSummary?: Record<string, unknown>;
+  place?: VisionPlace;
+  reason?: string;
+}
+
 const priceSchema = {
   type: "object",
   additionalProperties: false,
@@ -203,18 +242,81 @@ export const VISION_RESPONSE_JSON_SCHEMA = {
   },
 };
 
-export const VISION_MULTI_RESPONSE_JSON_SCHEMA = {
-  ...VISION_RESPONSE_JSON_SCHEMA,
+const inventoryMenuItemSchema = {
+  type: "object",
+  additionalProperties: false,
   required: [
-    "isMenu",
-    "userMessage",
-    "outputLanguage",
-    "recommended",
-    "fullMenu",
+    "id",
+    "nameOriginal",
+    "name",
+    "originLanguageCode",
+    "shortDesc",
+    "price",
+    "category",
   ],
   properties: {
-    ...VISION_RESPONSE_JSON_SCHEMA.properties,
-    fullMenu: {anyOf: [fullMenuSchema, {type: "null"}]},
+    id: {type: "string"},
+    nameOriginal: {type: "string"},
+    name: {type: "string"},
+    originLanguageCode: {type: "string"},
+    shortDesc: {type: "string", maxLength: 120},
+    price: {type: ["number", "string", "null"]},
+    category: {
+      type: "string",
+      enum: ["main", "side", "meal", "drink", "beverage", "unknown"],
+    },
+    confidence: {type: ["number", "null"]},
+  },
+};
+
+const sourceRecommendedProperties: Record<string, unknown> = {
+  ...menuItemSchema.properties,
+};
+delete sourceRecommendedProperties.sourceImageIndexes;
+
+const sourceRecommendedItemSchema = {
+  ...menuItemSchema,
+  properties: sourceRecommendedProperties,
+};
+
+const sourceAnalysisSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "sourceImageIndex",
+    "status",
+    "recommended",
+    "menuItems",
+    "truncated",
+  ],
+  properties: {
+    sourceImageIndex: {type: "integer", minimum: 1},
+    status: {
+      type: "string",
+      enum: ["menu", "non_menu", "unreadable", "duplicate"],
+    },
+    recommended: {type: "array", items: sourceRecommendedItemSchema},
+    menuItems: {type: "array", items: inventoryMenuItemSchema},
+    truncated: {type: "boolean"},
+  },
+};
+
+export const VISION_MULTI_AI_RESPONSE_JSON_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["isMenu", "userMessage", "outputLanguage", "sources"],
+  properties: {
+    isMenu: VISION_RESPONSE_JSON_SCHEMA.properties.isMenu,
+    userMessage: VISION_RESPONSE_JSON_SCHEMA.properties.userMessage,
+    outputLanguage: VISION_RESPONSE_JSON_SCHEMA.properties.outputLanguage,
+    selectedFoodStyle: VISION_RESPONSE_JSON_SCHEMA.properties.selectedFoodStyle,
+    selectedFoodStyleLabel:
+      VISION_RESPONSE_JSON_SCHEMA.properties.selectedFoodStyleLabel,
+    foodStyleApplied: VISION_RESPONSE_JSON_SCHEMA.properties.foodStyleApplied,
+    foodStyleSummary: VISION_RESPONSE_JSON_SCHEMA.properties.foodStyleSummary,
+    place: VISION_RESPONSE_JSON_SCHEMA.properties.place,
+    reason: VISION_RESPONSE_JSON_SCHEMA.properties.reason,
+    sources: {type: "array", items: sourceAnalysisSchema},
   },
 };
 
@@ -264,6 +366,160 @@ function validateMenuItem(value: unknown): void {
 function validateItemList(value: unknown): void {
   if (!Array.isArray(value)) throw new Error();
   for (const item of value) validateMenuItem(item);
+}
+
+const SOURCE_STATUSES: VisionSourceStatus[] = [
+  "menu",
+  "non_menu",
+  "unreadable",
+  "duplicate",
+];
+
+function validateInventoryItem(value: unknown): VisionInventoryItem {
+  if (!isRecord(value)) throw new Error("inventory item");
+  for (const key of [
+    "id",
+    "nameOriginal",
+    "name",
+    "originLanguageCode",
+    "shortDesc",
+    "category",
+  ]) {
+    requireString(value, key);
+  }
+  if (!String(value.nameOriginal).trim() && !String(value.name).trim()) {
+    throw new Error("inventory item name");
+  }
+  if (value.price !== null &&
+      typeof value.price !== "string" &&
+      typeof value.price !== "number") {
+    throw new Error("inventory item price");
+  }
+  if (!["main", "side", "meal", "drink", "beverage", "unknown"].
+    includes(value.category as string)) {
+    throw new Error("inventory item category");
+  }
+  if (value.confidence !== undefined &&
+      value.confidence !== null &&
+      typeof value.confidence !== "number") {
+    throw new Error("inventory item confidence");
+  }
+  return value as unknown as VisionInventoryItem;
+}
+
+function validatePlace(value: unknown): VisionPlace {
+  if (!isRecord(value)) throw new Error("place");
+  for (const key of ["name", "address", "city"]) {
+    if (value[key] !== null && typeof value[key] !== "string") {
+      throw new Error("place");
+    }
+  }
+  return {
+    name: value.name as string | null,
+    address: value.address as string | null,
+    city: value.city as string | null,
+  };
+}
+
+export function normalizeVisionMultiResponse(
+  value: unknown,
+  inputImageCount: number
+): VisionMultiAnalysis {
+  if (!isRecord(value)) throw new Error("multi response");
+  if (!Number.isInteger(inputImageCount) || inputImageCount < 1) {
+    throw new Error("input image count");
+  }
+  if (typeof value.isMenu !== "boolean") throw new Error("isMenu");
+  const userMessage = requireString(value, "userMessage");
+  const outputLanguage = requireString(value, "outputLanguage");
+  if (!Array.isArray(value.sources) ||
+      value.sources.length !== inputImageCount) {
+    throw new Error("sources count");
+  }
+
+  const seenIndexes = new Set<number>();
+  const sources = value.sources.map(
+    (rawSource, position): VisionSourceAnalysis => {
+      if (!isRecord(rawSource)) throw new Error("source");
+      const sourceImageIndex = rawSource.sourceImageIndex;
+      if (!Number.isInteger(sourceImageIndex) ||
+        (sourceImageIndex as number) !== position + 1 ||
+        (sourceImageIndex as number) < 1 ||
+        (sourceImageIndex as number) > inputImageCount ||
+        seenIndexes.has(sourceImageIndex as number)) {
+        throw new Error("sourceImageIndex");
+      }
+      seenIndexes.add(sourceImageIndex as number);
+
+      const status = rawSource.status;
+      if (typeof status !== "string" ||
+        !SOURCE_STATUSES.includes(status as VisionSourceStatus)) {
+        throw new Error("source status");
+      }
+      if (!Array.isArray(rawSource.recommended) ||
+        !Array.isArray(rawSource.menuItems) ||
+        typeof rawSource.truncated !== "boolean") {
+        throw new Error("source fields");
+      }
+
+      validateItemList(rawSource.recommended);
+      const recommended = rawSource.recommended as VisionMenuItem[];
+      const menuItems = rawSource.menuItems.map(validateInventoryItem);
+      if (status === "menu") {
+        if (recommended.length < 1) {
+          throw new Error("menu source recommendation");
+        }
+        if (menuItems.length < 1) {
+          throw new Error("menu source inventory");
+        }
+      } else if (recommended.length > 0 || menuItems.length > 0) {
+        throw new Error("non-menu source items");
+      }
+
+      return {
+        sourceImageIndex: sourceImageIndex as number,
+        status: status as VisionSourceStatus,
+        recommended,
+        menuItems,
+        truncated: rawSource.truncated as boolean,
+      };
+    }
+  );
+
+  for (let index = 1; index <= inputImageCount; index++) {
+    if (!seenIndexes.has(index)) throw new Error("missing sourceImageIndex");
+  }
+
+  const normalized: VisionMultiAnalysis = {
+    isMenu: sources.some((source) => source.status === "menu"),
+    declaredIsMenu: value.isMenu,
+    userMessage,
+    outputLanguage,
+    sources,
+  };
+  if (value.selectedFoodStyle !== undefined) {
+    normalized.selectedFoodStyle = requireString(value, "selectedFoodStyle");
+  }
+  if (value.selectedFoodStyleLabel !== undefined) {
+    normalized.selectedFoodStyleLabel =
+      requireString(value, "selectedFoodStyleLabel");
+  }
+  if (value.foodStyleApplied !== undefined &&
+      typeof value.foodStyleApplied !== "boolean") {
+    throw new Error("foodStyleApplied");
+  }
+  if (value.foodStyleApplied !== undefined) {
+    normalized.foodStyleApplied = value.foodStyleApplied;
+  }
+  if (value.foodStyleSummary !== undefined) {
+    if (!isRecord(value.foodStyleSummary)) throw new Error("foodStyleSummary");
+    normalized.foodStyleSummary = value.foodStyleSummary;
+  }
+  if (value.place !== undefined) normalized.place = validatePlace(value.place);
+  if (value.reason !== undefined) {
+    normalized.reason = requireString(value, "reason");
+  }
+  return normalized;
 }
 
 function validateFullMenu(value: unknown): void {

@@ -513,5 +513,51 @@ void main() {
 
       expect(itemCount, 1);
     });
+
+    test('keeps server-aggregated full menu separate from recommendations', () {
+      final parsed = ResultParsingService.parseAiJson(
+        responses: [
+          jsonEncode({
+            'isMenu': true,
+            'userMessage': '',
+            'outputLanguage': 'en',
+            'recommended': [
+              {
+                'nameOriginal': 'Recommended dish',
+                'name': 'Recommended dish',
+                'sourceImageIndexes': [1],
+              },
+            ],
+            'fullMenu': {
+              'items': {
+                'main': [
+                  {
+                    'nameOriginal': 'Other dish',
+                    'name': 'Other dish',
+                    'sourceImageIndexes': [1],
+                  },
+                ],
+              },
+              'summary': '',
+              'truncated': false,
+            },
+          }),
+        ],
+        imageCount: 4,
+      );
+
+      final fullMenu =
+          Map<String, dynamic>.from(parsed.aiJson!['fullMenu'] as Map);
+      final categories = Map<String, dynamic>.from(fullMenu['items'] as Map);
+      final mainItems = categories['main'] as List;
+      expect(mainItems, hasLength(1));
+      expect((mainItems.single as Map)['nameOriginal'], 'Other dish');
+      expect(
+        ResultParsingService.getRecommendedItems(parsed.aiJson)
+            .single['nameOriginal'],
+        'Recommended dish',
+      );
+      expect(ResultParsingService.hasUsableFullMenu(parsed.aiJson), isTrue);
+    });
   });
 }

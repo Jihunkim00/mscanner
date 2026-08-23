@@ -75,27 +75,31 @@ class VisionService {
     final count = sourceImageCount < 2 ? 2 : sourceImageCount;
     return '''
 
-[MULTI-SCAN V2 CONTRACT - HIGHEST PRIORITY]
-This request contains $count separate source images.
-The attached images are separate source menu pages, in the exact user selection order.
-The first attached image is source 1, the second is source 2, and so on.
-Analyze every attached source page independently before combining the result.
+[MULTI-SCAN SOURCE ANALYSIS - HIGHEST PRIORITY]
+You are receiving $count separate menu images.
 
-RECOMMENDED:
-- Select at least one strong recommendation from each distinct source image/menu page when possible.
-- Do not select all recommendations from only one page when other pages contain valid readable food items.
-- Keep recommendations selective and do not invent items from unreadable or non-menu regions.
-- Use sourceImageIndexes only when the source cell is visually clear. Never guess an index.
-- sourceImageIndexes are 1-based: [1] means the first source image.
+Process EVERY attached image independently before combining any result.
+Return exactly one source object for every input image, in input order.
+sourceImageIndex is deterministic: first attached image=1, second=2, and so on.
 
-FULL MENU:
-- If isMenu=true, fullMenu is REQUIRED and must be an independent broad inventory from all readable source pages.
-- Extract as many clearly readable menu items as reasonably possible across all source pages.
-- fullMenu is NOT a copy of recommended, and recommended is NOT the full menu.
-- fullMenu may contain recommended items when they are also visible in the source menu.
-- Prioritize exact names, translated names, visible prices, then one short phrase or sentence for shortDesc.
-- Keep fullMenu descriptions concise and avoid recommendationReason unless genuinely needed.
-- If no readable food menu exists, return isMenu=false with recommended:[] and fullMenu:null rather than hallucinating.
+For every source:
+1. Set exactly one status: menu, non_menu, unreadable, or duplicate.
+2. If status=menu:
+   - Extract as many clearly readable menu items as possible into menuItems.
+   - menuItems is the complete readable inventory for THIS source.
+   - Select at least one strong recommendation from THIS source.
+   - Prefer one recommendation; use a second only when clearly useful.
+   - Do not use recommendations from another source to satisfy this source.
+   - Keep menuItems shortDesc very brief.
+3. If status=non_menu, unreadable, or duplicate:
+   - recommended must be [].
+   - menuItems must be [].
+   - Do not invent food items.
+
+Analyze every source before combining results.
+Do not stop after finding good recommendations in the first images.
+Do NOT return a final flat fullMenu. The server aggregates source menuItems.
+The server will inject deterministic 1-based sourceImageIndexes.
 
 Keep all user-facing text in the requested outputLanguage and return the existing JSON schema.
 ''';
@@ -138,8 +142,9 @@ Keep all user-facing text in the requested outputLanguage and return the existin
     final header = streamMode
         ? 'Output exactly ONE JSON object using the existing app schema.'
         : 'Output exactly ONE JSON object.';
-    final fullMenuField =
-        _useVisionV2 && scanMode == 'multi' ? 'fullMenu' : 'optional fullMenu';
+    final keyOrder = _useVisionV2 && scanMode == 'multi'
+        ? 'isMenu, userMessage, outputLanguage, selectedFoodStyle, selectedFoodStyleLabel, foodStyleApplied, foodStyleSummary, place, sources'
+        : 'isMenu, userMessage, outputLanguage, selectedFoodStyle, selectedFoodStyleLabel, foodStyleApplied, foodStyleSummary, place, recommended, optional fullMenu';
 
     return '''[OUTPUT PROTOCOL]
 $header
@@ -147,7 +152,7 @@ $header
 - No markdown
 - No code fences
 - No extra text
-- Keep the JSON key order as: isMenu, userMessage, outputLanguage, selectedFoodStyle, selectedFoodStyleLabel, foodStyleApplied, foodStyleSummary, place, recommended, $fullMenuField
+- Keep the JSON key order as: $keyOrder
 ''';
   }
 

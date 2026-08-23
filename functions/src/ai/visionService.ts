@@ -3,11 +3,16 @@ import OpenAI from "openai";
 
 import {ANALYSIS_MODEL} from "./aiConfig";
 import {
-  VISION_MULTI_RESPONSE_JSON_SCHEMA,
+  VISION_MULTI_AI_RESPONSE_JSON_SCHEMA,
   VISION_RESPONSE_JSON_SCHEMA,
   VisionResponse,
+  normalizeVisionMultiResponse,
   normalizeVisionResponse,
 } from "./responseSchema";
+import {
+  aggregateVisionMultiResponse,
+  VisionAggregationDiagnostics,
+} from "./visionAggregation";
 import {
   buildVisionImageContent,
   normalizeVisionImages,
@@ -172,7 +177,7 @@ export async function handleAnalyzeVisionV2(
           description: "A structured food-menu vision analysis result.",
           strict: false,
           schema: scanMode === "multi" ?
-            VISION_MULTI_RESPONSE_JSON_SCHEMA :
+            VISION_MULTI_AI_RESPONSE_JSON_SCHEMA :
             VISION_RESPONSE_JSON_SCHEMA,
         },
       },
@@ -202,12 +207,19 @@ export async function handleAnalyzeVisionV2(
 
   let vision: VisionResponse;
   let fullMenuCount = 0;
+  let aggregationDiagnostics: VisionAggregationDiagnostics | undefined;
+  let declaredIsMenuMismatch = false;
   try {
-    vision = normalizeVisionResponse(parsed);
-    fullMenuCount = countFullMenuItems(vision);
-    if (scanMode === "multi" && vision.isMenu && fullMenuCount === 0) {
-      throw new Error("multi menu response contained no full menu items");
+    if (scanMode === "multi") {
+      const analysis = normalizeVisionMultiResponse(parsed, inputImageCount);
+      declaredIsMenuMismatch = analysis.declaredIsMenu !== analysis.isMenu;
+      const aggregated = aggregateVisionMultiResponse(analysis);
+      vision = aggregated.vision;
+      aggregationDiagnostics = aggregated.diagnostics;
+    } else {
+      vision = normalizeVisionResponse(parsed);
     }
+    fullMenuCount = countFullMenuItems(vision);
   } catch (error) {
     console.error("[VisionV2] Structured response validation failed", {
       message: error instanceof Error ? error.message : String(error),
@@ -227,9 +239,25 @@ export async function handleAnalyzeVisionV2(
     "[VisionV2] recommendedCount=%d",
     recommendedCount
   );
+  if (aggregationDiagnostics !== undefined) {
+    console.log("[VisionV2] sourceCount=%d", inputImageCount);
+    console.log("[VisionV2] sourceStatuses=%s",
+      JSON.stringify(aggregationDiagnostics.sourceStatuses));
+    console.log("[VisionV2] perSourceRecommendedCounts=%s",
+      JSON.stringify(aggregationDiagnostics.perSourceRecommendedCounts));
+    console.log("[VisionV2] perSourceMenuItemCounts=%s",
+      JSON.stringify(aggregationDiagnostics.perSourceMenuItemCounts));
+    console.log("[VisionV2] rawInventoryCount=%d",
+      aggregationDiagnostics.rawInventoryCount);
+    console.log("[VisionV2] recommendedInventoryOverlapCount=%d",
+      aggregationDiagnostics.recommendedInventoryOverlapCount);
+    console.log("[VisionV2] finalFullMenuCount=%d",
+      aggregationDiagnostics.finalFullMenuCount);
+  }
   console.log(
     "[VisionV2] recommendedSourceCoverage=%s",
-    sourceCoverage(vision, sourceImageCount)
+    aggregationDiagnostics?.recommendedSourceCoverage ??
+      sourceCoverage(vision, inputImageCount)
   );
   console.log("[VisionV2] fullMenuCount=%d", fullMenuCount);
   console.log(
@@ -240,6 +268,9 @@ export async function handleAnalyzeVisionV2(
     "[VisionV2] fullMenuSummaryPresent=%s",
     Boolean(vision.fullMenu?.summary?.trim())
   );
+  if (declaredIsMenuMismatch) {
+    console.log("[VisionV2] declaredIsMenuMismatch=true");
+  }
 
   const latencyMs = Date.now() - startedAt;
   console.log("[VisionV2] latencyMs=%d", latencyMs);
