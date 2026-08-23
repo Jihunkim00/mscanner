@@ -248,7 +248,11 @@ export function normalizeVisionResponse(value: unknown): VisionResponse {
   requireString(value, "userMessage");
   requireString(value, "outputLanguage");
 
-  const rawItems = value.items ?? value.recommended ?? [];
+  const items = Array.isArray(value.items) ? value.items : [];
+  const recommended = Array.isArray(value.recommended) ?
+    value.recommended :
+    [];
+  const rawItems = items.length > 0 ? items : recommended;
   validateItemList(rawItems);
   if (!value.isMenu && (rawItems as unknown[]).length > 0) throw new Error();
   if (value.items !== undefined) validateItemList(value.items);

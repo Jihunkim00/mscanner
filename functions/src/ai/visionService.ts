@@ -76,6 +76,15 @@ function safeOpenAiError(error: unknown): Record<string, unknown> {
   return {};
 }
 
+function countFullMenuItems(vision: VisionResponse): number {
+  const items = vision.fullMenu?.items;
+  if (!items) return 0;
+  return Object.keys(items).reduce(
+    (count, category) => count + items[category].length,
+    0
+  );
+}
+
 export async function handleAnalyzeVisionV2(
   request: VisionCallableRequest,
   apiKey: string
@@ -154,12 +163,27 @@ export async function handleAnalyzeVisionV2(
   let vision: VisionResponse;
   try {
     vision = normalizeVisionResponse(parsed);
+    if (scanMode === "multi" && vision.isMenu && vision.items.length === 0) {
+      throw new Error("multi menu response contained no menu items");
+    }
   } catch (error) {
     console.error("[VisionV2] Structured response validation failed", {
       message: error instanceof Error ? error.message : String(error),
     });
     throw new HttpsError("internal", "Structured response validation failed.");
   }
+
+  const fullMenuCount = countFullMenuItems(vision);
+  console.log("[VisionV2] itemsCount=%d", vision.items.length);
+  console.log(
+    "[VisionV2] recommendedCount=%d",
+    vision.recommended?.length ?? 0
+  );
+  console.log("[VisionV2] fullMenuCount=%d", fullMenuCount);
+  console.log(
+    "[VisionV2] fullMenuSummaryPresent=%s",
+    Boolean(vision.fullMenu?.summary?.trim())
+  );
 
   const latencyMs = Date.now() - startedAt;
   const usage = normalizeUsage(response.usage);

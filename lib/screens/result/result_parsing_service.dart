@@ -151,6 +151,7 @@ class ResultParsingService {
       'beverage': <Map<String, dynamic>>[],
       'unknown': <Map<String, dynamic>>[],
     };
+    final List<Map<String, dynamic>> directItemsAll = [];
 
     bool hasDirectRecommended = false;
 
@@ -158,6 +159,9 @@ class ResultParsingService {
       hasDirectRecommended = hasDirectRecommended ||
           _hasValidMenuItems(_mapList(j['recommended'])) ||
           _hasValidMenuItems(_mapList(j['items']));
+      directItemsAll
+        ..addAll(_mapList(j['items']))
+        ..addAll(_mapList(j['recommended']));
       recommendedAll.addAll(_recommendedItemsFromJson(j));
 
       final fm = j['fullMenu'] ?? j['full_menu'] ?? j['menu'] ?? j['menus'];
@@ -177,17 +181,32 @@ class ResultParsingService {
       }
     }
 
+    final hasProvidedFullMenuItems = _hasAnyCategoryItems(fullMenuAll);
+    if (!hasProvidedFullMenuItems) {
+      _addItemsToFullMenuCategories(
+        fullMenuAll,
+        directItemsAll.where((item) => _hasValidMenuItems([item])).toList(),
+      );
+    }
+
+    final firstFullMenu = firstJson['fullMenu'] ??
+        firstJson['full_menu'] ??
+        firstJson['menu'] ??
+        firstJson['menus'];
+    final firstFullMenuMap =
+        firstFullMenu is Map ? Map<String, dynamic>.from(firstFullMenu) : null;
+
     merged[_directRecommendedMenuMarkerKey] = hasDirectRecommended;
     merged['recommended'] = _dedupList(recommendedAll);
     merged['fullMenu'] = {
       'items': {
         for (final k in fullMenuAll.keys) k: _dedupList(fullMenuAll[k]!)
       },
-      'summary': (firstJson['fullMenu'] is Map)
-          ? ((firstJson['fullMenu']['summary'] ?? '').toString())
+      'summary': hasProvidedFullMenuItems && firstFullMenuMap != null
+          ? ((firstFullMenuMap['summary'] ?? '').toString())
           : '',
-      'truncated': (firstJson['fullMenu'] is Map)
-          ? (firstJson['fullMenu']['truncated'] == true)
+      'truncated': hasProvidedFullMenuItems && firstFullMenuMap != null
+          ? (firstFullMenuMap['truncated'] == true)
           : false,
     };
 
@@ -363,6 +382,23 @@ class ResultParsingService {
       out.addAll(_mapList(source[k]));
     }
     return out;
+  }
+
+  static bool _hasAnyCategoryItems(
+      Map<String, List<Map<String, dynamic>>> categories) {
+    return categories.values.any((items) => items.isNotEmpty);
+  }
+
+  static void _addItemsToFullMenuCategories(
+      Map<String, List<Map<String, dynamic>>> categories,
+      List<Map<String, dynamic>> items) {
+    for (final item in items) {
+      final rawCategory =
+          (item['category'] ?? '').toString().trim().toLowerCase();
+      final category =
+          categories.containsKey(rawCategory) ? rawCategory : 'unknown';
+      categories[category]!.add(item);
+    }
   }
 
   static List<Map<String, dynamic>> _mapList(dynamic source) {

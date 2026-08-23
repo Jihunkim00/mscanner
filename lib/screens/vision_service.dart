@@ -428,7 +428,9 @@ Output exactly ONE JSON object.
 
       debugPrint(
         '🚀 [Vision] functions request start ${tReq0.toIso8601String()} '
-        'maxTokens=$maxOutputTokens model=gpt-5-mini scanMode=$scanMode rag=$_useRag',
+        'maxTokens=$maxOutputTokens model=gpt-5.6-luna '
+        'callable=${_useVisionV2 ? 'analyzeVisionV2' : 'analyzeVision'} '
+        'scanMode=$scanMode rag=$_useRag',
       );
 
       final text = await (_useVisionV2
@@ -488,7 +490,9 @@ Output exactly ONE JSON object using the existing app schema.
 
       debugPrint(
         '🚀 [VisionStream] functions request start ${tReq0.toIso8601String()} '
-        'maxTokens=$maxOutputTokens model=gpt-5.4-mini scanMode=$scanMode rag=$_useRag',
+        'maxTokens=$maxOutputTokens model=gpt-5.6-luna '
+        'callable=${_useVisionV2 ? 'analyzeVisionV2' : 'analyzeVision'} '
+        'scanMode=$scanMode rag=$_useRag',
       );
 
       final text = await (_useVisionV2

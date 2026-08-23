@@ -365,17 +365,14 @@ class _ResultScreenState extends State<ResultScreen> {
     if (rawFm is! Map) return false;
 
     Map<String, dynamic>? itemsMap;
-    String summary = '';
 
     if (rawFm['items'] is Map) {
       itemsMap = Map<String, dynamic>.from(rawFm['items'] as Map);
-      summary = (rawFm['summary'] ?? '').toString().trim();
     } else {
       itemsMap = Map<String, dynamic>.from(rawFm);
-      summary = (rawFm['summary'] ?? '').toString().trim();
     }
 
-    return _hasAnyFullMenuItems(itemsMap) || summary.isNotEmpty;
+    return _hasAnyFullMenuItems(itemsMap);
   }
 
   void _cancelAiStreamTimers() {

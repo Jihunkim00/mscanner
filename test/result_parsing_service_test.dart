@@ -195,5 +195,96 @@ void main() {
       expect(ResultParsingService.shouldShowDecisionSummary(parsed.aiJson),
           isFalse);
     });
+
+    test('builds a categorized full-menu fallback from multi-scan V2 items',
+        () {
+      final parsed = ResultParsingService.parseAiJson(
+        responses: [
+          jsonEncode({
+            'isMenu': true,
+            'userMessage': '',
+            'outputLanguage': 'en',
+            'items': [
+              {
+                'id': 'm1',
+                'nameOriginal': 'Bibimbap',
+                'name': 'Bibimbap',
+                'category': 'main',
+              },
+              {
+                'id': 's1',
+                'nameOriginal': 'Kimchi',
+                'name': 'Kimchi',
+                'category': 'side',
+              },
+            ],
+          }),
+        ],
+        imageCount: 4,
+      );
+
+      final fullMenu =
+          Map<String, dynamic>.from(parsed.aiJson!['fullMenu'] as Map);
+      final items = Map<String, dynamic>.from(fullMenu['items'] as Map);
+
+      expect((items['main'] as List), hasLength(1));
+      expect((items['side'] as List), hasLength(1));
+      expect(fullMenu['summary'], isEmpty);
+      expect(ResultParsingService.getRecommendedItems(parsed.aiJson),
+          hasLength(2));
+      expect(ResultParsingService.shouldShowDecisionSummary(parsed.aiJson),
+          isTrue);
+    });
+
+    test('keeps an existing multi-scan full menu separate from recommendations',
+        () {
+      final parsed = ResultParsingService.parseAiJson(
+        responses: [
+          jsonEncode({
+            'isMenu': true,
+            'userMessage': '',
+            'outputLanguage': 'en',
+            'items': [
+              {
+                'id': 'r1',
+                'nameOriginal': 'Recommended dish',
+                'name': 'Recommended dish',
+                'category': 'main',
+              },
+            ],
+            'fullMenu': {
+              'items': {
+                'main': [
+                  {
+                    'id': 'f1',
+                    'nameOriginal': 'Full menu dish',
+                    'name': 'Full menu dish',
+                    'category': 'main',
+                  },
+                ],
+              },
+              'summary': 'Complete menu',
+            },
+          }),
+        ],
+        imageCount: 4,
+      );
+
+      final fullMenu =
+          Map<String, dynamic>.from(parsed.aiJson!['fullMenu'] as Map);
+      final items = Map<String, dynamic>.from(fullMenu['items'] as Map);
+      final mainItems = items['main'] as List;
+
+      expect(mainItems, hasLength(1));
+      expect((mainItems.single as Map)['nameOriginal'], 'Full menu dish');
+      expect(fullMenu['summary'], 'Complete menu');
+      expect(ResultParsingService.getRecommendedItems(parsed.aiJson),
+          hasLength(1));
+      expect(
+        (ResultParsingService.getRecommendedItems(parsed.aiJson)
+            .single)['nameOriginal'],
+        'Recommended dish',
+      );
+    });
   });
 }
