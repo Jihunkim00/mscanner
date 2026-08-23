@@ -1,10 +1,43 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
 import '/helpers/settings_helper.dart';
+
+class VisionRequestTrace {
+  static final math.Random _random = math.Random.secure();
+  static final RegExp _safeRequestId = RegExp(r'^[A-Za-z0-9._:-]+$');
+
+  static String createRequestId() {
+    final timestamp =
+        DateTime.now().millisecondsSinceEpoch.toRadixString(36);
+    final suffix =
+        _random.nextInt(0xFFFFFF).toRadixString(36).padLeft(5, '0');
+    return 'v-$timestamp-$suffix';
+  }
+
+  static String? normalizeRequestId(String? value) {
+    final safe = value?.trim();
+    if (safe == null ||
+        safe.isEmpty ||
+        safe.length > 64 ||
+        !_safeRequestId.hasMatch(safe)) {
+      return null;
+    }
+    return safe;
+  }
+
+  static void log(String? requestId, String message) {
+    final safe = normalizeRequestId(requestId);
+    if (safe == null) return;
+    debugPrint('[Vision][$safe] $message');
+  }
+
+  static String errorReason(Object error) => error.runtimeType.toString();
+}
 
 class VisionV2RequestContract {
   static const int maxMultiImageCount = 4;
@@ -16,15 +49,21 @@ class VisionV2RequestContract {
     required String scanMode,
     required String responseMode,
     required int sourceImageCount,
+    String? requestId,
+    bool requestFullMenu = false,
   }) {
-    return {
+    final request = <String, dynamic>{
       'imageBase64': imageBase64,
       'prompt': prompt,
       'maxOutputTokens': maxOutputTokens,
       'scanMode': scanMode,
       'responseMode': responseMode,
       'sourceImageCount': sourceImageCount,
+      'requestFullMenu': requestFullMenu,
     };
+    final safeRequestId = VisionRequestTrace.normalizeRequestId(requestId);
+    if (safeRequestId != null) request['requestId'] = safeRequestId;
+    return request;
   }
 
   static Map<String, dynamic> multi({
@@ -33,6 +72,7 @@ class VisionV2RequestContract {
     required int maxOutputTokens,
     required String scanMode,
     required String responseMode,
+    String? requestId,
   }) {
     if (imagesBase64.isEmpty ||
         imagesBase64.length > maxMultiImageCount ||
@@ -40,7 +80,7 @@ class VisionV2RequestContract {
       throw ArgumentError('Invalid Vision V2 multi-image input');
     }
 
-    return {
+    final request = <String, dynamic>{
       'imagesBase64': List<String>.of(imagesBase64),
       'sourceImageCount': imagesBase64.length,
       'prompt': prompt,
@@ -48,6 +88,9 @@ class VisionV2RequestContract {
       'scanMode': scanMode,
       'responseMode': responseMode,
     };
+    final safeRequestId = VisionRequestTrace.normalizeRequestId(requestId);
+    if (safeRequestId != null) request['requestId'] = safeRequestId;
+    return request;
   }
 }
 
@@ -109,6 +152,19 @@ Keep all user-facing text in the requested outputLanguage and return the existin
 ''';
   }
 
+  static const String _singleFullMenuContract = '''
+
+[SINGLE FULL MENU CONTRACT - HIGHEST PRIORITY]
+This request contains exactly one menu image and the user selected ALL menus.
+Return normal recommended items in recommended.
+Also extract as many clearly readable items as possible from this same image into fullMenu.
+fullMenu is the readable inventory, not another recommendation list.
+Do not repeat any recommended item in fullMenu.
+Do not invent unreadable items.
+Keep fullMenu descriptions short and set fullMenu.truncated when needed.
+If isMenu=false, return recommended=[] and fullMenu=null.
+''';
+
   static int _countVisionList(dynamic value) {
     if (value is! List) return 0;
     return value.whereType<Map>().length;
@@ -166,6 +222,7 @@ $header
     required int maxOutputTokens,
     required String scanMode,
     required String responseMode,
+    String? requestId,
   }) async {
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
@@ -177,6 +234,11 @@ $header
         '🚀 [Functions] analyzeVision call '
         'scanMode=$scanMode responseMode=$responseMode '
         'maxTokens=$maxOutputTokens imageBase64Len=${imageBase64.length}',
+      );
+
+      VisionRequestTrace.log(
+        requestId,
+        'callable=analyzeVision scanMode=$scanMode responseMode=$responseMode',
       );
 
       final callable = _functions.httpsCallable(
@@ -230,6 +292,8 @@ $header
     required String scanMode,
     required String responseMode,
     required int sourceImageCount,
+    required String requestId,
+    bool requestFullMenu = false,
   }) async {
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
@@ -242,6 +306,12 @@ $header
         'scanMode=$scanMode responseMode=$responseMode '
         'maxTokens=$maxOutputTokens '
         'inputImageCount=${imagesBase64?.length ?? 1}',
+      );
+      VisionRequestTrace.log(
+        requestId,
+        'callable=analyzeVisionV2 scanMode=$scanMode '
+        'responseMode=$responseMode sourceImageCount=$sourceImageCount '
+        'requestFullMenu=$requestFullMenu',
       );
 
       final callable = _functions.httpsCallable(
@@ -257,6 +327,7 @@ $header
               maxOutputTokens: maxOutputTokens,
               scanMode: scanMode,
               responseMode: responseMode,
+              requestId: requestId,
             )
           : VisionV2RequestContract.single(
               imageBase64: imageBase64!,
@@ -265,14 +336,26 @@ $header
               scanMode: scanMode,
               responseMode: responseMode,
               sourceImageCount: sourceImageCount,
+              requestId: requestId,
+              requestFullMenu: requestFullMenu,
             );
       final result = await callable.call(payload);
+      VisionRequestTrace.log(requestId, 'callable_response_received');
 
       final data = Map<String, dynamic>.from(result.data as Map);
       final meta = data['meta'] is Map
           ? Map<String, dynamic>.from(data['meta'] as Map)
           : const <String, dynamic>{};
       final vision = data['vision'];
+      final serverRequestId =
+          meta['requestId'] is String ? meta['requestId'] as String : null;
+      if (serverRequestId != null && serverRequestId != requestId) {
+        VisionRequestTrace.log(requestId, 'server_request_id_mismatch');
+      }
+      VisionRequestTrace.log(
+        requestId,
+        'decode_start serverRequestId=${serverRequestId ?? 'none'}',
+      );
 
       debugPrint(
         '[Functions] analyzeVisionV2 success '
@@ -290,6 +373,11 @@ $header
           'fullMenuCount=${_countVisionFullMenu(visionMap['fullMenu'])} '
           'sourceCoverage=${_visionSourceCoverage(visionMap['recommended'], sourceImageCount)}',
         );
+        VisionRequestTrace.log(
+          requestId,
+          'decode_success recommendedCount=${_countVisionList(visionMap['recommended'])} '
+          'fullMenuCount=${_countVisionFullMenu(visionMap['fullMenu'])}',
+        );
         return jsonEncode(visionMap);
       }
 
@@ -297,14 +385,23 @@ $header
       if (legacyResult.trim().isEmpty) {
         throw const FormatException('Empty Vision V2 response');
       }
+      VisionRequestTrace.log(
+        requestId,
+        'decode_success responseLength=${legacyResult.trim().length}',
+      );
       return legacyResult;
     } on FirebaseFunctionsException catch (e) {
+      VisionRequestTrace.log(requestId, 'callable_error code=${e.code}');
       debugPrint(
         '[Functions] analyzeVisionV2 failed '
         'code=${e.code} message=${e.message}',
       );
       rethrow;
     } catch (e) {
+      VisionRequestTrace.log(
+        requestId,
+        'decode_error reason=${VisionRequestTrace.errorReason(e)}',
+      );
       debugPrint('[Functions] analyzeVisionV2 unknown error=$e');
       rethrow;
     }
@@ -347,6 +444,7 @@ $header
     required String? promptContext,
     required int maxOutputTokens,
     required String responseMode,
+    required String requestId,
   }) async {
     final sourceImageCount = sourceImages.length;
     final imagesBase64 = await _encodeSeparateImages(sourceImages);
@@ -371,6 +469,8 @@ $header
       scanMode: scanMode,
       responseMode: responseMode,
       sourceImageCount: sourceImageCount,
+      requestId: requestId,
+      requestFullMenu: false,
     );
     debugPrint(
       '[VisionV2 Client] separate_images response '
@@ -603,6 +703,7 @@ If it doesn’t seem food-related, just say so.
     required bool streamMode,
     required String scanMode,
     required int sourceImageCount,
+    bool requestFullMenu = false,
   }) async {
     final presetId = await SettingsHelper.getPreset();
     final question = await SettingsHelper.getQuestionByPreset(presetId);
@@ -622,7 +723,21 @@ If it doesn’t seem food-related, just say so.
             newline +
             _multiVisionV2Contract(sourceImageCount: sourceImageCount)
         : '';
-    return outputProtocol + newline + mergedPrompt + multiContract;
+    final singleFullMenuContract = _useVisionV2 &&
+            scanMode == 'single' &&
+            requestFullMenu
+        ? newline + newline + _singleFullMenuContract
+        : '';
+    return outputProtocol +
+        newline +
+        mergedPrompt +
+        multiContract +
+        singleFullMenuContract;
+  }
+
+  static Future<bool> _resolveRequestFullMenu(String scanMode) async {
+    if (!_useVisionV2 || scanMode != 'single') return false;
+    return SettingsHelper.shouldRequestFullMenu();
   }
 
   static Future<String> analyzeImage(
@@ -631,13 +746,23 @@ If it doesn’t seem food-related, just say so.
     int maxOutputTokens = 3000,
     int sourceImageCount = 1,
     List<File>? sourceImages,
+    String? requestId,
   }) async {
     try {
+      final resolvedRequestId =
+          VisionRequestTrace.normalizeRequestId(requestId) ??
+              VisionRequestTrace.createRequestId();
       final actualSourceImageCount =
           sourceImages != null && sourceImages.isNotEmpty
               ? sourceImages.length
               : 1;
       final scanMode = _resolveScanMode(actualSourceImageCount);
+      final requestFullMenu = await _resolveRequestFullMenu(scanMode);
+      VisionRequestTrace.log(
+        resolvedRequestId,
+        'request_start scanMode=$scanMode sourceImageCount=$actualSourceImageCount '
+        'requestFullMenu=$requestFullMenu responseMode=normal',
+      );
       if (_useVisionV2 &&
           scanMode == 'multi' &&
           sourceImages != null &&
@@ -647,6 +772,7 @@ If it doesn’t seem food-related, just say so.
           promptContext: promptContext,
           maxOutputTokens: maxOutputTokens,
           responseMode: 'normal',
+          requestId: resolvedRequestId,
         );
       }
 
@@ -670,6 +796,7 @@ If it doesn’t seem food-related, just say so.
         streamMode: false,
         scanMode: scanMode,
         sourceImageCount: actualSourceImageCount,
+        requestFullMenu: requestFullMenu,
       );
 
       final tReq0 = DateTime.now();
@@ -689,6 +816,8 @@ If it doesn’t seem food-related, just say so.
               scanMode: scanMode,
               responseMode: 'normal',
               sourceImageCount: actualSourceImageCount,
+              requestId: resolvedRequestId,
+              requestFullMenu: requestFullMenu,
             )
           : _callAnalyzeVision(
               imageBase64: base64Image,
@@ -696,6 +825,7 @@ If it doesn’t seem food-related, just say so.
               maxOutputTokens: maxOutputTokens,
               scanMode: scanMode,
               responseMode: 'normal',
+              requestId: resolvedRequestId,
             ));
 
       final reqMs = DateTime.now().difference(tReq0).inMilliseconds;
@@ -716,13 +846,23 @@ If it doesn’t seem food-related, just say so.
     int maxOutputTokens = 3000,
     int sourceImageCount = 1,
     List<File>? sourceImages,
+    String? requestId,
   }) async* {
     try {
+      final resolvedRequestId =
+          VisionRequestTrace.normalizeRequestId(requestId) ??
+              VisionRequestTrace.createRequestId();
       final actualSourceImageCount =
           sourceImages != null && sourceImages.isNotEmpty
               ? sourceImages.length
               : 1;
       final scanMode = _resolveScanMode(actualSourceImageCount);
+      final requestFullMenu = await _resolveRequestFullMenu(scanMode);
+      VisionRequestTrace.log(
+        resolvedRequestId,
+        'request_start scanMode=$scanMode sourceImageCount=$actualSourceImageCount '
+        'requestFullMenu=$requestFullMenu responseMode=stream',
+      );
       if (_useVisionV2 &&
           scanMode == 'multi' &&
           sourceImages != null &&
@@ -732,6 +872,7 @@ If it doesn’t seem food-related, just say so.
           promptContext: promptContext,
           maxOutputTokens: maxOutputTokens,
           responseMode: 'stream',
+          requestId: resolvedRequestId,
         );
         return;
       }
@@ -749,6 +890,7 @@ If it doesn’t seem food-related, just say so.
         streamMode: true,
         scanMode: scanMode,
         sourceImageCount: actualSourceImageCount,
+        requestFullMenu: requestFullMenu,
       );
 
       final tReq0 = DateTime.now();
@@ -768,6 +910,8 @@ If it doesn’t seem food-related, just say so.
               scanMode: scanMode,
               responseMode: 'stream',
               sourceImageCount: actualSourceImageCount,
+              requestId: resolvedRequestId,
+              requestFullMenu: requestFullMenu,
             )
           : _callAnalyzeVision(
               imageBase64: base64Image,
@@ -775,6 +919,7 @@ If it doesn’t seem food-related, just say so.
               maxOutputTokens: maxOutputTokens,
               scanMode: scanMode,
               responseMode: 'stream',
+              requestId: resolvedRequestId,
             ));
 
       final reqMs = DateTime.now().difference(tReq0).inMilliseconds;

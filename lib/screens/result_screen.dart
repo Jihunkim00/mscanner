@@ -43,6 +43,7 @@ import 'package:mscanner/widgets/result/result_ui_copy.dart';
 import 'package:mscanner/widgets/menu_tag_registry.dart';
 import 'package:mscanner/screens/result/result_parsing_service.dart';
 import 'package:mscanner/screens/result/result_action_service.dart';
+import 'vision_service.dart';
 
 // NOTE: searched_menu 저장은 UI 흐름과 분리(비동기)해서 실행합니다.
 
@@ -66,6 +67,8 @@ class ResultScreen extends StatefulWidget {
   final Stream<String>? responseStream; // ✅ 스트리밍 응답
   final List<String> initialFastRecommend; // ✅ 첫 추천칩 미리 표시용
 
+  final String? visionRequestId;
+
   const ResultScreen({
     super.key,
     required this.image,
@@ -81,6 +84,7 @@ class ResultScreen extends StatefulWidget {
     this.isTutorial = false, // ✅ 기본값 false
     this.responseStream,
     this.initialFastRecommend = const [],
+    this.visionRequestId,
   });
 
   @override
@@ -320,12 +324,42 @@ class _ResultScreenState extends State<ResultScreen> {
     return ResultParsingService.extractJsonObjectFromText(input);
   }
 
+  void _trace(String message) {
+    VisionRequestTrace.log(widget.visionRequestId, message);
+  }
+
   void _parseAiJson() {
-    final parsed = ResultParsingService.parseAiJson(
-      responses: widget.responses,
-      imageCount: widget.images?.length ?? 1,
+    _trace('parse_start');
+    try {
+      final parsed = ResultParsingService.parseAiJson(
+        responses: widget.responses,
+        imageCount: widget.images?.length ?? 1,
+      );
+      _aiJson = parsed.aiJson;
+      if (_aiJson == null) {
+        _trace('parse_failed reason=${parsed.aiJsonError ?? 'empty_response'}');
+      } else {
+        _trace(
+          'parse_success recommendedCount=${_getRecommendedItems().length} '
+          'fullMenuCount=${_countFullMenuItems(_aiJson)}',
+        );
+      }
+    } catch (_) {
+      _aiJson = null;
+      _trace('parse_failed reason=parser_exception');
+    }
+  }
+
+  int _countFullMenuItems(Map<String, dynamic>? aiJson) {
+    if (aiJson == null) return 0;
+    final rawFullMenu = aiJson['fullMenu'] ?? aiJson['full_menu'];
+    if (rawFullMenu is! Map) return 0;
+    final rawItems = rawFullMenu['items'];
+    final items = rawItems is Map ? rawItems : rawFullMenu;
+    return items.values.fold<int>(
+      0,
+      (total, value) => total + (value is List ? value.length : 0),
     );
-    _aiJson = parsed.aiJson;
   }
 
   // ✅ NEW: recommended list extractor
@@ -2578,6 +2612,7 @@ class _ResultScreenState extends State<ResultScreen> {
     _aiStreamDone = true;
     _aiStreamHadError = hadError;
     _aiStreamErrorMessage = errorMessage;
+    _trace('stream_complete hadError=$hadError');
 
     final full = _aiStreamBuffer.toString().trim();
     if (full.isNotEmpty && !widget.responses.contains(full)) {
@@ -2585,6 +2620,9 @@ class _ResultScreenState extends State<ResultScreen> {
     }
 
     _parseAiJson();
+    if (hadError && _aiJson == null) {
+      _trace('render_error reason=stream_failure');
+    }
     _kickoffRecommendedReveal();
 
     if (_pendingSearchedMenuSave) {
@@ -2747,6 +2785,13 @@ class _ResultScreenState extends State<ResultScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       debugPrint(
           "✅ [ResultScreen] first frame rendered at ${DateTime.now().toIso8601String()}");
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_aiJson == null) {
+        _trace('render_error reason=no_parsed_result');
+      } else {
+        _trace('render_success');
+      }
     });
     _trySendImpressions();
 

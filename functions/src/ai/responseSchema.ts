@@ -246,6 +246,22 @@ export const VISION_RESPONSE_JSON_SCHEMA = {
   },
 };
 
+export const VISION_SINGLE_FULL_MENU_RESPONSE_JSON_SCHEMA = {
+  ...VISION_RESPONSE_JSON_SCHEMA,
+  required: [
+    "isMenu",
+    "userMessage",
+    "outputLanguage",
+    "recommended",
+    "fullMenu",
+  ],
+  properties: {
+    ...VISION_RESPONSE_JSON_SCHEMA.properties,
+    recommended: {type: "array", items: menuItemSchema},
+    fullMenu: {anyOf: [fullMenuSchema, {type: "null"}]},
+  },
+};
+
 const inventoryMenuItemSchema = {
   type: "object",
   additionalProperties: false,
@@ -714,6 +730,40 @@ function validateFullMenu(value: unknown): void {
   }
 }
 
+function normalizedMenuItemKey(item: VisionMenuItem): string {
+  const original = item.nameOriginal.trim();
+  const translated = item.name.trim();
+  const name = original || translated;
+  return name.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+}
+
+function removeRecommendedOverlap(
+  value: unknown,
+  recommended: VisionMenuItem[]
+): VisionFullMenu | null | undefined {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  if (!isRecord(value)) throw new Error();
+
+  const rawItems = value.items;
+  if (!isRecord(rawItems)) return value as unknown as VisionFullMenu;
+
+  const recommendedKeys = new Set(recommended.map(normalizedMenuItemKey));
+  const items: Record<string, VisionMenuItem[]> = {};
+  for (const [category, rawCategoryItems] of Object.entries(rawItems)) {
+    if (!Array.isArray(rawCategoryItems)) continue;
+    validateItemList(rawCategoryItems);
+    items[category] = (rawCategoryItems as VisionMenuItem[]).filter(
+      (item) => !recommendedKeys.has(normalizedMenuItemKey(item))
+    );
+  }
+
+  return {
+    ...(value as unknown as VisionFullMenu),
+    items,
+  };
+}
+
 export function normalizeVisionResponse(value: unknown): VisionResponse {
   if (!isRecord(value)) throw new Error();
   if (typeof value.isMenu !== "boolean") throw new Error();
@@ -731,8 +781,16 @@ export function normalizeVisionResponse(value: unknown): VisionResponse {
   if (value.recommended !== undefined) validateItemList(value.recommended);
   if (value.fullMenu !== undefined) validateFullMenu(value.fullMenu);
 
+  const recommendationItems = (Array.isArray(value.recommended) &&
+    value.recommended.length > 0 ? value.recommended : rawItems) as VisionMenuItem[];
+  const normalizedFullMenu = removeRecommendedOverlap(
+    value.fullMenu,
+    recommendationItems,
+  );
+
   return {
     ...(value as unknown as VisionResponse),
     items: rawItems as VisionMenuItem[],
+    ...(value.fullMenu !== undefined ? {fullMenu: normalizedFullMenu} : {}),
   };
 }

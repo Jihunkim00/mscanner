@@ -165,6 +165,17 @@ class SettingsHelper {
     }
   }
 
+  static Future<String> getSelectedMenuNumber() async {
+    final prefs = await SharedPreferences.getInstance();
+    return normalizeMenuCountHint(
+      prefs.getString(selectedMenuNumberKey) ?? '1-5',
+    );
+  }
+
+  static Future<bool> shouldRequestFullMenu() async {
+    return (await getSelectedMenuNumber()) == 'all';
+  }
+
   static bool hasSavedPresetSettings(SharedPreferences prefs) {
     return prefs.containsKey(_presetKey) ||
         prefs.containsKey(_customPresetDescriptionKey) ||

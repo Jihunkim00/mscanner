@@ -94,8 +94,15 @@ class ResultParsingService {
 
     for (final r in responses) {
       final raw = r.trim();
+      if (raw.isEmpty) {
+        aiJsonError ??= 'empty_response';
+        continue;
+      }
       final s = extractJsonObjectFromText(raw);
-      if (s == null) continue;
+      if (s == null) {
+        aiJsonError ??= 'invalid_json';
+        continue;
+      }
 
       try {
         final decoded = jsonDecode(s);
@@ -103,10 +110,11 @@ class ResultParsingService {
           final m = Map<String, dynamic>.from(decoded);
           firstJson ??= m;
           jsonList.add(m);
+        } else {
+          aiJsonError ??= 'root_not_map';
         }
-      } catch (e) {
-        aiJsonError =
-            'jsonDecode failed: $e\nrawHead=${raw.substring(0, raw.length > 120 ? 120 : raw.length)}';
+      } catch (_) {
+        aiJsonError ??= 'invalid_json';
       }
     }
 
@@ -124,6 +132,16 @@ class ResultParsingService {
       final fallbackRecommended = _recommendedItemsFromJson(normalized);
       if (fallbackRecommended.isNotEmpty) {
         normalized['recommended'] = fallbackRecommended;
+      }
+      if (normalized.containsKey('fullMenu') ||
+          normalized.containsKey('full_menu')) {
+        final fullMenuKey = normalized.containsKey('fullMenu')
+            ? 'fullMenu'
+            : 'full_menu';
+        normalized[fullMenuKey] = _removeRecommendedOverlap(
+          normalized[fullMenuKey],
+          fallbackRecommended,
+        );
       }
       normalized[_directRecommendedMenuMarkerKey] = hasDirectRecommended;
       final inferredResultType =
@@ -345,10 +363,57 @@ class ResultParsingService {
 
   static String _menuItemKey(Map<String, dynamic> item) {
     final original =
-        (item['nameOriginal'] ?? '').toString().trim().toLowerCase();
-    final translated = (item['name'] ?? '').toString().trim().toLowerCase();
+        _stableMenuText((item['nameOriginal'] ?? '').toString());
+    final translated = _stableMenuText((item['name'] ?? '').toString());
     final name = original.isNotEmpty ? original : translated;
     return name.isNotEmpty ? name : item.toString();
+  }
+
+  static String _stableMenuText(String input) {
+    return input
+        .toLowerCase()
+        .trim()
+        .replaceAll(RegExp(r'[^\p{L}\p{N}]+', unicode: true), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
+  static Map<String, dynamic>? _removeRecommendedOverlap(
+    dynamic rawFullMenu,
+    List<Map<String, dynamic>> recommended,
+  ) {
+    if (rawFullMenu == null) return null;
+    if (rawFullMenu is! Map) return null;
+
+    final fullMenu = Map<String, dynamic>.from(rawFullMenu);
+    final recommendedKeys = recommended.map(_menuItemKey).toSet();
+    final rawItems = fullMenu['items'];
+    final source = rawItems is Map
+        ? Map<String, dynamic>.from(rawItems)
+        : Map<String, dynamic>.from(fullMenu);
+    final filtered = <String, dynamic>{};
+
+    for (final entry in source.entries) {
+      final value = entry.value;
+      if (value is! List) {
+        filtered[entry.key] = value;
+        continue;
+      }
+      filtered[entry.key] = value
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .where((item) => !recommendedKeys.contains(_menuItemKey(item)))
+          .toList();
+    }
+
+    if (rawItems is Map) {
+      fullMenu['items'] = filtered;
+    } else {
+      fullMenu
+        ..clear()
+        ..addAll(filtered);
+    }
+    return fullMenu;
   }
 
   static Map<String, List<Map<String, dynamic>>> _dedupCategoryMap(

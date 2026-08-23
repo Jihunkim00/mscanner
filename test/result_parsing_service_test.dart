@@ -559,5 +559,72 @@ void main() {
       );
       expect(ResultParsingService.hasUsableFullMenu(parsed.aiJson), isTrue);
     });
+    test('single full menu removes recommended overlap deterministically', () {
+      final parsed = ResultParsingService.parseAiJson(
+        responses: [
+          jsonEncode({
+            'isMenu': true,
+            'userMessage': '',
+            'outputLanguage': 'en',
+            'recommended': [
+              {'nameOriginal': 'A-B', 'name': 'A-B'},
+              {'nameOriginal': 'B', 'name': 'B'},
+            ],
+            'fullMenu': {
+              'items': {
+                'main': [
+                  {'nameOriginal': ' a b ', 'name': 'A B'},
+                  {'nameOriginal': 'B', 'name': 'B'},
+                  {'nameOriginal': 'C', 'name': 'C'},
+                ],
+              },
+              'summary': '',
+              'truncated': false,
+            },
+          }),
+        ],
+        imageCount: 1,
+      );
+
+      final fullMenu =
+          Map<String, dynamic>.from(parsed.aiJson!['fullMenu'] as Map);
+      final items = Map<String, dynamic>.from(fullMenu['items'] as Map);
+      final mainItems = items['main'] as List;
+
+      expect(mainItems, hasLength(1));
+      expect((mainItems.single as Map)['nameOriginal'], 'C');
+      expect(ResultParsingService.getRecommendedItems(parsed.aiJson),
+          hasLength(2));
+      expect(ResultParsingService.hasUsableFullMenu(parsed.aiJson), isTrue);
+    });
+
+    test('single response without fullMenu does not invent one', () {
+      final parsed = ResultParsingService.parseAiJson(
+        responses: [
+          jsonEncode({
+            'isMenu': true,
+            'userMessage': '',
+            'outputLanguage': 'en',
+            'recommended': [
+              {'nameOriginal': 'A', 'name': 'A'},
+            ],
+          }),
+        ],
+        imageCount: 1,
+      );
+
+      expect(parsed.aiJson!.containsKey('fullMenu'), isFalse);
+      expect(ResultParsingService.hasUsableFullMenu(parsed.aiJson), isFalse);
+    });
+
+    test('reports stable error reason for an invalid response', () {
+      final parsed = ResultParsingService.parseAiJson(
+        responses: const ['not json'],
+        imageCount: 1,
+      );
+
+      expect(parsed.aiJson, isNull);
+      expect(parsed.aiJsonError, 'invalid_json');
+    });
   });
 }

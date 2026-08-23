@@ -5,6 +5,7 @@ import {ANALYSIS_MODEL} from "./aiConfig";
 import {
   VISION_MULTI_AI_RESPONSE_JSON_SCHEMA,
   VISION_RESPONSE_JSON_SCHEMA,
+  VISION_SINGLE_FULL_MENU_RESPONSE_JSON_SCHEMA,
   VisionResponse,
   normalizeVisionMultiResponse,
   normalizeVisionResponse,
@@ -37,6 +38,8 @@ interface VisionV2Response {
     expectedSourceCount: number;
     validationWarningCount: number;
     validationWarnings: string[];
+    requestId: string | null;
+    requestFullMenu: boolean;
   };
   usage: Record<string, unknown>;
   result: string;
@@ -50,6 +53,19 @@ type RequestData = Record<string, unknown>;
 
 function isRecord(value: unknown): value is RequestData {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function normalizeRequestId(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const safe = value.trim();
+  if (!safe || safe.length > 64 || !/^[A-Za-z0-9._:-]+$/.test(safe)) {
+    return null;
+  }
+  return safe;
+}
+
+function visionLog(requestId: string | null, message: string): void {
+  console.log(`[VisionV2][${requestId ?? "no-request-id"}] ${message}`);
 }
 
 function normalizeResponseMode(value: unknown): "normal" | "stream" {
@@ -96,6 +112,15 @@ function countFullMenuItems(vision: VisionResponse): number {
   }, 0);
 }
 
+function countRawFullMenuItems(value: unknown): number {
+  if (!isRecord(value) || !isRecord(value.fullMenu)) return 0;
+  const items = value.fullMenu.items;
+  if (!isRecord(items)) return 0;
+  return Object.values(items).reduce<number>((count, category) => {
+    return count + (Array.isArray(category) ? category.length : 0);
+  }, 0);
+}
+
 function fullMenuCounts(vision: VisionResponse): Record<string, number> {
   const fullMenu = vision.fullMenu;
   const counts: Record<string, number> = {};
@@ -134,6 +159,7 @@ export async function handleAnalyzeVisionV2(
   }
 
   const data = isRecord(request.data) ? request.data : {};
+  const requestId = normalizeRequestId(data.requestId);
   const prompt = data.prompt;
   if (typeof prompt !== "string" || prompt.trim().length === 0) {
     throw new HttpsError("invalid-argument", "prompt required");
@@ -143,12 +169,14 @@ export async function handleAnalyzeVisionV2(
     Array.isArray(data.imagesBase64) && data.imagesBase64.length > 1 ?
       "multi" :
       "single";
+  const requestFullMenu = scanMode === "single" && data.requestFullMenu === true;
   const responseMode = normalizeResponseMode(data.responseMode);
   const maxOutputTokens = normalizeMaxOutputTokens(data.maxOutputTokens, scanMode);
   let normalizedImages;
   try {
     normalizedImages = normalizeVisionImages(data, scanMode);
   } catch (error) {
+    visionLog(requestId, "input_normalization_failed");
     throw new HttpsError(
       "invalid-argument",
       error instanceof Error ? error.message : "Invalid vision image input"
@@ -159,10 +187,16 @@ export async function handleAnalyzeVisionV2(
     inputImageCount,
     sourceImageCount,
   } = normalizedImages;
+  visionLog(
+    requestId,
+    `request_received scanMode=${scanMode} inputImageCount=${inputImageCount} ` +
+    `sourceImageCount=${sourceImageCount ?? "unknown"} requestFullMenu=${requestFullMenu}`
+  );
   const openai = new OpenAI({apiKey});
   const startedAt = Date.now();
 
   let response: any;
+  visionLog(requestId, `openai_start model=${ANALYSIS_MODEL}`);
   try {
     response = await openai.chat.completions.create({
       model: ANALYSIS_MODEL,
@@ -182,11 +216,15 @@ export async function handleAnalyzeVisionV2(
           strict: false,
           schema: scanMode === "multi" ?
             VISION_MULTI_AI_RESPONSE_JSON_SCHEMA :
-            VISION_RESPONSE_JSON_SCHEMA,
+            requestFullMenu ?
+              VISION_SINGLE_FULL_MENU_RESPONSE_JSON_SCHEMA :
+              VISION_RESPONSE_JSON_SCHEMA,
         },
       },
     } as any);
+    visionLog(requestId, `openai_success latencyMs=${Date.now() - startedAt}`);
   } catch (error) {
+    visionLog(requestId, "openai_failure");
     console.error("[VisionV2] OpenAI request failed", safeOpenAiError(error));
     throw new HttpsError("internal", "Vision analysis failed.");
   }
@@ -194,11 +232,13 @@ export async function handleAnalyzeVisionV2(
   const choice = response.choices?.[0];
   const refusal = choice?.message?.refusal;
   if (typeof refusal === "string" && refusal.trim()) {
+    visionLog(requestId, "openai_refusal");
     throw new HttpsError("internal", "Vision analysis was refused.");
   }
 
   const content = choice?.message?.content;
   if (typeof content !== "string" || content.trim().length === 0) {
+    visionLog(requestId, "openai_empty_response");
     throw new HttpsError("internal", "OpenAI returned an empty result.");
   }
 
@@ -206,8 +246,10 @@ export async function handleAnalyzeVisionV2(
   try {
     parsed = JSON.parse(content);
   } catch {
+    visionLog(requestId, "json_parse_failure");
     throw new HttpsError("internal", "Structured output parsing failed.");
   }
+  visionLog(requestId, "json_parse_success");
 
   let vision: VisionResponse;
   let fullMenuCount = 0;
@@ -217,6 +259,9 @@ export async function handleAnalyzeVisionV2(
   let validSourceCount = 1;
   const expectedSourceCount = inputImageCount;
   let validationWarnings: string[] = [];
+  let rawSingleFullMenuCount = 0;
+  let singleFullMenuOverlapCount = 0;
+  let validationStage = "normalization";
   try {
     if (scanMode === "multi") {
       const analysis = normalizeVisionMultiResponse(parsed, inputImageCount);
@@ -224,15 +269,29 @@ export async function handleAnalyzeVisionV2(
       partial = analysis.partial === true;
       validSourceCount = analysis.validSourceCount ?? analysis.sources.length;
       validationWarnings = [...(analysis.validationWarnings ?? [])];
+      validationStage = "aggregation";
       const aggregated = aggregateVisionMultiResponse(analysis);
       vision = aggregated.vision;
       aggregationDiagnostics = aggregated.diagnostics;
     } else {
+      if (requestFullMenu) rawSingleFullMenuCount = countRawFullMenuItems(parsed);
       vision = normalizeVisionResponse(parsed);
     }
     fullMenuCount = countFullMenuItems(vision);
+    if (requestFullMenu) {
+      singleFullMenuOverlapCount = Math.max(
+        rawSingleFullMenuCount - fullMenuCount,
+        0,
+      );
+    }
+    visionLog(
+      requestId,
+      `validation_success stage=${validationStage} recommendedCount=${vision.recommended?.length ?? 0} ` +
+      `fullMenuCount=${fullMenuCount}`
+    );
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
+    visionLog(requestId, `validation_failure stage=${validationStage}`);
     console.error("[VisionV2] Structured response validation failed", {
       message: reason,
     });
@@ -241,6 +300,11 @@ export async function handleAnalyzeVisionV2(
   }
 
   const recommendedCount = vision.recommended?.length ?? 0;
+  visionLog(
+    requestId,
+    `response_ready partial=${partial} recommendedCount=${recommendedCount} ` +
+    `fullMenuCount=${fullMenuCount}`
+  );
   console.log(
     "[VisionV2] scanMode=%s inputImageCount=%d sourceImageCount=%s",
     scanMode,
@@ -273,6 +337,13 @@ export async function handleAnalyzeVisionV2(
       sourceCoverage(vision, inputImageCount)
   );
   console.log("[VisionV2] fullMenuCount=%d", fullMenuCount);
+  if (requestFullMenu) {
+    visionLog(
+      requestId,
+      `single_full_menu rawCount=${rawSingleFullMenuCount} ` +
+      `recommendedOverlapCount=${singleFullMenuOverlapCount} finalCount=${fullMenuCount}`
+    );
+  }
   console.log(
     "[VisionV2] fullMenuByCategory=%s",
     JSON.stringify(fullMenuCounts(vision))
@@ -307,6 +378,8 @@ export async function handleAnalyzeVisionV2(
       expectedSourceCount,
       validationWarningCount: validationWarnings.length,
       validationWarnings,
+      requestId,
+      requestFullMenu,
     },
     usage,
     result,

@@ -16,6 +16,7 @@ void main() {
       maxOutputTokens: 9000,
       scanMode: 'multi',
       responseMode: 'stream',
+      requestId: 'v-test-multi',
     );
 
     expect(request['imageBase64'], isNull);
@@ -24,6 +25,7 @@ void main() {
     expect(request['sourceImageCount'], 4);
     expect(request['scanMode'], 'multi');
     expect(request['responseMode'], 'stream');
+    expect(request['requestId'], 'v-test-multi');
   });
 
   test('keeps the existing single-image V2 contract', () {
@@ -34,11 +36,37 @@ void main() {
       scanMode: 'single',
       responseMode: 'normal',
       sourceImageCount: 1,
+      requestId: 'v-test-single',
+      requestFullMenu: true,
     );
 
     expect(request['imageBase64'], 'single-image');
     expect(request['imagesBase64'], isNull);
     expect(request['sourceImageCount'], 1);
+    expect(request['scanMode'], 'single');
+    expect(request['requestFullMenu'], isTrue);
+    expect(request['requestId'], 'v-test-single');
+  });
+
+  test('rejects unsafe request ids without sending them', () {
+    final request = VisionV2RequestContract.single(
+      imageBase64: 'single-image',
+      prompt: 'prompt',
+      maxOutputTokens: 3000,
+      scanMode: 'single',
+      responseMode: 'normal',
+      sourceImageCount: 1,
+      requestId: 'bad request id',
+    );
+
+    expect(request['requestId'], isNull);
+  });
+
+  test('creates safe request ids for end-to-end tracing', () {
+    final requestId = VisionRequestTrace.createRequestId();
+
+    expect(requestId, matches(RegExp(r'^v-[A-Za-z0-9._:-]+$')));
+    expect(VisionRequestTrace.normalizeRequestId(requestId), requestId);
   });
 
   test('rejects more than the actual four-image app limit', () {
