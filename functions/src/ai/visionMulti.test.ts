@@ -110,60 +110,104 @@ const nonMenuAnalysis = normalizeVisionMultiResponse(
 assert.equal(nonMenuAnalysis.isMenu, false);
 assert.equal(nonMenuAnalysis.sources.length, 4);
 
+const missingSource = normalizeVisionMultiResponse(
+  rawResponse([
+    rawSource(1, "menu", [recommendation("a")], [inventory("a")]),
+    rawSource(2, "menu", [recommendation("b")], [inventory("b")]),
+    rawSource(4, "menu", [recommendation("d")], [inventory("d")]),
+  ]),
+  4,
+);
+assert.equal(missingSource.sources.length, 3);
+assert.equal(missingSource.partial, true);
+assert(missingSource.validationWarnings?.includes("source_3_missing"));
+const missingSourceResult = aggregateVisionMultiResponse(missingSource);
+assert.equal(missingSourceResult.diagnostics.recommendedSourceCoverage, "3/4");
+
+const duplicateSource = normalizeVisionMultiResponse(
+  rawResponse([
+    rawSource(1, "menu", [recommendation("a")], [inventory("a")]),
+    rawSource(2, "menu", [recommendation("b")], [inventory("b")]),
+    rawSource(2, "menu", [recommendation("c")], [inventory("c")]),
+    rawSource(4, "menu", [recommendation("d")], [inventory("d")]),
+  ]),
+  4,
+);
+assert.equal(duplicateSource.sources.length, 3);
+assert(duplicateSource.validationWarnings?.includes("duplicate_source_2"));
+assert(duplicateSource.validationWarnings?.includes("source_3_missing"));
+
+const outOfRangeSource = normalizeVisionMultiResponse(
+  rawResponse([
+    rawSource(1, "menu", [recommendation("a")], [inventory("a")]),
+    rawSource(2, "menu", [recommendation("b")], [inventory("b")]),
+    rawSource(3, "menu", [recommendation("c")], [inventory("c")]),
+    rawSource(5, "menu", [recommendation("d")], [inventory("d")]),
+  ]),
+  4,
+);
+assert.equal(outOfRangeSource.sources.length, 3);
+assert(outOfRangeSource.validationWarnings?.includes("source_5_out_of_range"));
+assert(outOfRangeSource.validationWarnings?.includes("source_4_missing"));
+
+const missingRecommendation = normalizeVisionMultiResponse(
+  rawResponse([
+    rawSource(1, "menu", [], [inventory("a")]),
+    rawSource(2, "menu", [recommendation("b")], [inventory("b")]),
+    rawSource(3, "menu", [recommendation("c")], [inventory("c")]),
+    rawSource(4, "menu", [recommendation("d")], [inventory("d")]),
+  ]),
+  4,
+);
+assert.equal(missingRecommendation.sources.length, 4);
+assert(missingRecommendation.validationWarnings?.includes(
+  "source_1_missing_recommendation",
+));
+
+const missingInventory = normalizeVisionMultiResponse(
+  rawResponse([
+    rawSource(1, "menu", [recommendation("a")], []),
+    rawSource(2, "menu", [recommendation("b")], [inventory("b")]),
+    rawSource(3, "menu", [recommendation("c")], [inventory("c")]),
+    rawSource(4, "menu", [recommendation("d")], [inventory("d")]),
+  ]),
+  4,
+);
+assert.equal(missingInventory.sources.length, 4);
+assert(missingInventory.validationWarnings?.includes(
+  "source_1_missing_inventory",
+));
+
+const malformedRecommendation = {
+  ...recommendation("malformed"),
+} as Record<string, unknown>;
+delete malformedRecommendation.prices;
+const itemValidation = normalizeVisionMultiResponse(
+  rawResponse([
+    rawSource(
+      1,
+      "menu",
+      [malformedRecommendation as unknown as VisionMenuItem],
+      [inventory("valid-inventory")],
+    ),
+  ]),
+  1,
+);
+assert.equal(itemValidation.sources[0].recommended.length, 0);
+assert(itemValidation.validationWarnings?.includes(
+  "source_1_invalid_recommendation_item",
+));
+
 assert.throws(
   () => normalizeVisionMultiResponse(
-    rawResponse([rawSource(1, "menu"), rawSource(2, "menu"), rawSource(4, "menu")]),
+    {...rawResponse(fourEmptyNonMenu), sources: "bad"},
     4,
   ),
-  /sources count/,
+  /sources_not_array/,
 );
 assert.throws(
-  () => normalizeVisionMultiResponse(
-    rawResponse([
-      rawSource(1, "menu", [recommendation("a")], [inventory("a")]),
-      rawSource(2, "menu", [recommendation("b")], [inventory("b")]),
-      rawSource(2, "menu", [recommendation("c")], [inventory("c")]),
-      rawSource(4, "menu", [recommendation("d")], [inventory("d")]),
-    ]),
-    4,
-  ),
-  /sourceImageIndex/,
-);
-assert.throws(
-  () => normalizeVisionMultiResponse(
-    rawResponse([
-      rawSource(1, "menu", [recommendation("a")], [inventory("a")]),
-      rawSource(2, "menu", [recommendation("b")], [inventory("b")]),
-      rawSource(3, "menu", [recommendation("c")], [inventory("c")]),
-      rawSource(5, "menu", [recommendation("d")], [inventory("d")]),
-    ]),
-    4,
-  ),
-  /sourceImageIndex/,
-);
-assert.throws(
-  () => normalizeVisionMultiResponse(
-    rawResponse([
-      rawSource(1, "menu", [], [inventory("a")]),
-      rawSource(2, "menu", [recommendation("b")], [inventory("b")]),
-      rawSource(3, "menu", [recommendation("c")], [inventory("c")]),
-      rawSource(4, "menu", [recommendation("d")], [inventory("d")]),
-    ]),
-    4,
-  ),
-  /menu source recommendation/,
-);
-assert.throws(
-  () => normalizeVisionMultiResponse(
-    rawResponse([
-      rawSource(1, "menu", [recommendation("a")], []),
-      rawSource(2, "menu", [recommendation("b")], [inventory("b")]),
-      rawSource(3, "menu", [recommendation("c")], [inventory("c")]),
-      rawSource(4, "menu", [recommendation("d")], [inventory("d")]),
-    ]),
-    4,
-  ),
-  /menu source inventory/,
+  () => normalizeVisionMultiResponse(rawResponse([]), 4),
+  /sources_empty/,
 );
 
 const fourMenuSources = [1, 2, 3, 4].map((index) =>

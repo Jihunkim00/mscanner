@@ -53,7 +53,7 @@ class VisionV2RequestContract {
 
 class VisionService {
   // Keep the released callable as the default until V2 is explicitly enabled.
-  static const bool _useVisionV2 = false;
+  static const bool _useVisionV2 = true;
   static const bool _useRag = false;
 
   static final FirebaseFunctions _functions =
@@ -65,8 +65,12 @@ class VisionService {
     return safe.length > 3000 ? safe.substring(0, 3000) : safe;
   }
 
-  static String _resolveScanMode(int maxOutputTokens) {
-    return maxOutputTokens >= 9000 ? 'multi' : 'single';
+  static String resolveScanModeForSourceImageCount(int sourceImageCount) {
+    return sourceImageCount > 1 ? 'multi' : 'single';
+  }
+
+  static String _resolveScanMode(int sourceImageCount) {
+    return resolveScanModeForSourceImageCount(sourceImageCount);
   }
 
   static String _multiVisionV2Contract({
@@ -629,7 +633,11 @@ If it doesn’t seem food-related, just say so.
     List<File>? sourceImages,
   }) async {
     try {
-      final scanMode = _resolveScanMode(maxOutputTokens);
+      final actualSourceImageCount =
+          sourceImages != null && sourceImages.isNotEmpty
+              ? sourceImages.length
+              : 1;
+      final scanMode = _resolveScanMode(actualSourceImageCount);
       if (_useVisionV2 &&
           scanMode == 'multi' &&
           sourceImages != null &&
@@ -661,7 +669,7 @@ If it doesn’t seem food-related, just say so.
         promptContext: promptContext,
         streamMode: false,
         scanMode: scanMode,
-        sourceImageCount: sourceImageCount,
+        sourceImageCount: actualSourceImageCount,
       );
 
       final tReq0 = DateTime.now();
@@ -680,7 +688,7 @@ If it doesn’t seem food-related, just say so.
               maxOutputTokens: maxOutputTokens,
               scanMode: scanMode,
               responseMode: 'normal',
-              sourceImageCount: sourceImageCount,
+              sourceImageCount: actualSourceImageCount,
             )
           : _callAnalyzeVision(
               imageBase64: base64Image,
@@ -710,7 +718,11 @@ If it doesn’t seem food-related, just say so.
     List<File>? sourceImages,
   }) async* {
     try {
-      final scanMode = _resolveScanMode(maxOutputTokens);
+      final actualSourceImageCount =
+          sourceImages != null && sourceImages.isNotEmpty
+              ? sourceImages.length
+              : 1;
+      final scanMode = _resolveScanMode(actualSourceImageCount);
       if (_useVisionV2 &&
           scanMode == 'multi' &&
           sourceImages != null &&
@@ -736,7 +748,7 @@ If it doesn’t seem food-related, just say so.
         promptContext: promptContext,
         streamMode: true,
         scanMode: scanMode,
-        sourceImageCount: sourceImageCount,
+        sourceImageCount: actualSourceImageCount,
       );
 
       final tReq0 = DateTime.now();
@@ -755,7 +767,7 @@ If it doesn’t seem food-related, just say so.
               maxOutputTokens: maxOutputTokens,
               scanMode: scanMode,
               responseMode: 'stream',
-              sourceImageCount: sourceImageCount,
+              sourceImageCount: actualSourceImageCount,
             )
           : _callAnalyzeVision(
               imageBase64: base64Image,

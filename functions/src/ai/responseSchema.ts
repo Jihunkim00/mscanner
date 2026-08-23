@@ -91,6 +91,10 @@ export interface VisionMultiAnalysis {
   userMessage: string;
   outputLanguage: string;
   sources: VisionSourceAnalysis[];
+  expectedSourceCount?: number;
+  validSourceCount?: number;
+  partial?: boolean;
+  validationWarnings?: string[];
   selectedFoodStyle?: string;
   selectedFoodStyleLabel?: string;
   foodStyleApplied?: boolean;
@@ -347,7 +351,27 @@ function validateMenuItem(value: unknown): void {
   if (!String(value.nameOriginal).trim() && !String(value.name).trim()) {
     throw new Error();
   }
+  if (!Object.prototype.hasOwnProperty.call(value, "prices")) throw new Error();
   if (value.prices !== null && !isRecord(value.prices)) throw new Error();
+  if (isRecord(value.prices)) {
+    for (const key of ["small", "medium", "large", "single", "currency"]) {
+      if (!Object.prototype.hasOwnProperty.call(value.prices, key)) {
+        throw new Error();
+      }
+    }
+    for (const key of ["small", "medium", "large", "single"]) {
+      const price = value.prices[key];
+      if (price !== null &&
+          typeof price !== "number" &&
+          typeof price !== "string") {
+        throw new Error();
+      }
+    }
+    if (value.prices.currency !== null &&
+        typeof value.prices.currency !== "string") {
+      throw new Error();
+    }
+  }
   if (!Array.isArray(value.tags) ||
       value.tags.some((item) => typeof item !== "string")) {
     throw new Error();
@@ -366,6 +390,11 @@ function validateMenuItem(value: unknown): void {
 function validateItemList(value: unknown): void {
   if (!Array.isArray(value)) throw new Error();
   for (const item of value) validateMenuItem(item);
+}
+
+interface NormalizedVisionSource {
+  source: VisionSourceAnalysis | null;
+  warnings: string[];
 }
 
 const SOURCE_STATUSES: VisionSourceStatus[] = [
@@ -389,6 +418,9 @@ function validateInventoryItem(value: unknown): VisionInventoryItem {
   }
   if (!String(value.nameOriginal).trim() && !String(value.name).trim()) {
     throw new Error("inventory item name");
+  }
+  if (!Object.prototype.hasOwnProperty.call(value, "price")) {
+    throw new Error("inventory item price");
   }
   if (value.price !== null &&
       typeof value.price !== "string" &&
@@ -421,6 +453,137 @@ function validatePlace(value: unknown): VisionPlace {
   };
 }
 
+function normalizeVisionSource(
+  value: unknown,
+  position: number,
+  inputImageCount: number,
+  seenIndexes: Set<number>
+): NormalizedVisionSource {
+  const warnings: string[] = [];
+  const positionLabel = String(position + 1);
+  if (!isRecord(value)) {
+    return {
+      source: null,
+      warnings: ["source_" + positionLabel + "_invalid"],
+    };
+  }
+
+  const rawIndex = value.sourceImageIndex;
+  if (!Number.isInteger(rawIndex)) {
+    return {
+      source: null,
+      warnings: ["source_" + positionLabel + "_invalid_source_index"],
+    };
+  }
+  const sourceImageIndex = rawIndex as number;
+  if (sourceImageIndex < 1 || sourceImageIndex > inputImageCount) {
+    return {
+      source: null,
+      warnings: ["source_" + String(sourceImageIndex) + "_out_of_range"],
+    };
+  }
+  if (seenIndexes.has(sourceImageIndex)) {
+    return {
+      source: null,
+      warnings: ["duplicate_source_" + String(sourceImageIndex)],
+    };
+  }
+  seenIndexes.add(sourceImageIndex);
+  if (sourceImageIndex !== position + 1) {
+    warnings.push("source_" + String(sourceImageIndex) + "_position_mismatch");
+  }
+
+  const rawStatus = value.status;
+  if (typeof rawStatus !== "string" ||
+      !SOURCE_STATUSES.includes(rawStatus as VisionSourceStatus)) {
+    return {
+      source: null,
+      warnings: warnings.concat(
+        "source_" + String(sourceImageIndex) + "_invalid_status"
+      ),
+    };
+  }
+  const status = rawStatus as VisionSourceStatus;
+
+  const recommended: VisionMenuItem[] = [];
+  const rawRecommended = value.recommended;
+  if (rawRecommended === undefined) {
+    warnings.push(
+      "source_" + String(sourceImageIndex) + "_missing_recommendation"
+    );
+  } else if (!Array.isArray(rawRecommended)) {
+    warnings.push(
+      "source_" + String(sourceImageIndex) + "_invalid_recommendation"
+    );
+  } else {
+    for (const item of rawRecommended) {
+      try {
+        validateMenuItem(item);
+        recommended.push(item as VisionMenuItem);
+      } catch {
+        warnings.push(
+          "source_" + String(sourceImageIndex) + "_invalid_recommendation_item"
+        );
+      }
+    }
+  }
+
+  const menuItems: VisionInventoryItem[] = [];
+  const rawMenuItems = value.menuItems;
+  if (rawMenuItems === undefined) {
+    warnings.push("source_" + String(sourceImageIndex) + "_missing_inventory");
+  } else if (!Array.isArray(rawMenuItems)) {
+    warnings.push("source_" + String(sourceImageIndex) + "_invalid_inventory");
+  } else {
+    for (const item of rawMenuItems) {
+      try {
+        menuItems.push(validateInventoryItem(item));
+      } catch {
+        warnings.push(
+          "source_" + String(sourceImageIndex) + "_invalid_inventory_item"
+        );
+      }
+    }
+  }
+
+  if (value.truncated !== undefined && typeof value.truncated !== "boolean") {
+    warnings.push("source_" + String(sourceImageIndex) + "_invalid_truncated");
+  }
+  const truncated = value.truncated === true;
+
+  if (status === "menu") {
+    if (recommended.length === 0 &&
+        !warnings.includes(
+          "source_" + String(sourceImageIndex) + "_missing_recommendation"
+        )) {
+      warnings.push(
+        "source_" + String(sourceImageIndex) + "_missing_recommendation"
+      );
+    }
+    if (menuItems.length === 0 &&
+        !warnings.includes(
+          "source_" + String(sourceImageIndex) + "_missing_inventory"
+        )) {
+      warnings.push(
+        "source_" + String(sourceImageIndex) + "_missing_inventory"
+      );
+    }
+  } else if (recommended.length > 0 || menuItems.length > 0) {
+    warnings.push("source_" + String(sourceImageIndex) + "_items_ignored");
+  }
+
+  return {
+    source: {
+      sourceImageIndex,
+      status,
+      recommended: status === "menu" ? recommended : [],
+      menuItems: status === "menu" ? menuItems : [],
+      truncated,
+    },
+    warnings,
+  };
+}
+
 export function normalizeVisionMultiResponse(
   value: unknown,
   inputImageCount: number
@@ -432,93 +595,96 @@ export function normalizeVisionMultiResponse(
   if (typeof value.isMenu !== "boolean") throw new Error("isMenu");
   const userMessage = requireString(value, "userMessage");
   const outputLanguage = requireString(value, "outputLanguage");
-  if (!Array.isArray(value.sources) ||
-      value.sources.length !== inputImageCount) {
-    throw new Error("sources count");
+  if (!Array.isArray(value.sources)) {
+    throw new Error("sources_not_array");
+  }
+  if (value.sources.length === 0) {
+    throw new Error("sources_empty");
   }
 
   const seenIndexes = new Set<number>();
-  const sources = value.sources.map(
-    (rawSource, position): VisionSourceAnalysis => {
-      if (!isRecord(rawSource)) throw new Error("source");
-      const sourceImageIndex = rawSource.sourceImageIndex;
-      if (!Number.isInteger(sourceImageIndex) ||
-        (sourceImageIndex as number) !== position + 1 ||
-        (sourceImageIndex as number) < 1 ||
-        (sourceImageIndex as number) > inputImageCount ||
-        seenIndexes.has(sourceImageIndex as number)) {
-        throw new Error("sourceImageIndex");
-      }
-      seenIndexes.add(sourceImageIndex as number);
-
-      const status = rawSource.status;
-      if (typeof status !== "string" ||
-        !SOURCE_STATUSES.includes(status as VisionSourceStatus)) {
-        throw new Error("source status");
-      }
-      if (!Array.isArray(rawSource.recommended) ||
-        !Array.isArray(rawSource.menuItems) ||
-        typeof rawSource.truncated !== "boolean") {
-        throw new Error("source fields");
-      }
-
-      validateItemList(rawSource.recommended);
-      const recommended = rawSource.recommended as VisionMenuItem[];
-      const menuItems = rawSource.menuItems.map(validateInventoryItem);
-      if (status === "menu") {
-        if (recommended.length < 1) {
-          throw new Error("menu source recommendation");
-        }
-        if (menuItems.length < 1) {
-          throw new Error("menu source inventory");
-        }
-      } else if (recommended.length > 0 || menuItems.length > 0) {
-        throw new Error("non-menu source items");
-      }
-
-      return {
-        sourceImageIndex: sourceImageIndex as number,
-        status: status as VisionSourceStatus,
-        recommended,
-        menuItems,
-        truncated: rawSource.truncated as boolean,
-      };
+  const sources: VisionSourceAnalysis[] = [];
+  const validationWarnings: string[] = [];
+  for (let position = 0; position < value.sources.length; position++) {
+    const normalizedSource = normalizeVisionSource(
+      value.sources[position],
+      position,
+      inputImageCount,
+      seenIndexes
+    );
+    if (normalizedSource.source !== null) {
+      sources.push(normalizedSource.source);
     }
-  );
+    validationWarnings.push(...normalizedSource.warnings);
+  }
 
   for (let index = 1; index <= inputImageCount; index++) {
-    if (!seenIndexes.has(index)) throw new Error("missing sourceImageIndex");
+    if (!seenIndexes.has(index)) {
+      validationWarnings.push("source_" + String(index) + "_missing");
+    }
+  }
+  if (sources.length === 0) {
+    throw new Error("no_usable_sources");
+  }
+
+  const isMenu = sources.some((source) => source.status === "menu");
+  if (value.isMenu !== isMenu) {
+    validationWarnings.push("declared_is_menu_mismatch");
   }
 
   const normalized: VisionMultiAnalysis = {
-    isMenu: sources.some((source) => source.status === "menu"),
+    isMenu,
     declaredIsMenu: value.isMenu,
     userMessage,
     outputLanguage,
     sources,
+    expectedSourceCount: inputImageCount,
+    validSourceCount: sources.length,
+    partial: validationWarnings.length > 0,
+    validationWarnings,
   };
   if (value.selectedFoodStyle !== undefined) {
-    normalized.selectedFoodStyle = requireString(value, "selectedFoodStyle");
+    if (typeof value.selectedFoodStyle === "string") {
+      normalized.selectedFoodStyle = value.selectedFoodStyle;
+    } else {
+      validationWarnings.push("selected_food_style_invalid");
+    }
   }
   if (value.selectedFoodStyleLabel !== undefined) {
-    normalized.selectedFoodStyleLabel =
-      requireString(value, "selectedFoodStyleLabel");
+    if (typeof value.selectedFoodStyleLabel === "string") {
+      normalized.selectedFoodStyleLabel = value.selectedFoodStyleLabel;
+    } else {
+      validationWarnings.push("selected_food_style_label_invalid");
+    }
   }
   if (value.foodStyleApplied !== undefined &&
       typeof value.foodStyleApplied !== "boolean") {
-    throw new Error("foodStyleApplied");
-  }
-  if (value.foodStyleApplied !== undefined) {
+    validationWarnings.push("food_style_applied_invalid");
+  } else if (value.foodStyleApplied !== undefined) {
     normalized.foodStyleApplied = value.foodStyleApplied;
   }
   if (value.foodStyleSummary !== undefined) {
-    if (!isRecord(value.foodStyleSummary)) throw new Error("foodStyleSummary");
-    normalized.foodStyleSummary = value.foodStyleSummary;
+    if (isRecord(value.foodStyleSummary)) {
+      normalized.foodStyleSummary = value.foodStyleSummary;
+    } else {
+      validationWarnings.push("food_style_summary_invalid");
+    }
   }
-  if (value.place !== undefined) normalized.place = validatePlace(value.place);
+  if (value.place !== undefined) {
+    try {
+      normalized.place = validatePlace(value.place);
+    } catch {
+      validationWarnings.push("place_invalid");
+    }
+  }
   if (value.reason !== undefined) {
-    normalized.reason = requireString(value, "reason");
+    if (typeof value.reason === "string") {
+      normalized.reason = value.reason;
+    } else {
+      validationWarnings.push("reason_invalid");
+    }
   }
+  normalized.partial = validationWarnings.length > 0;
   return normalized;
 }
 

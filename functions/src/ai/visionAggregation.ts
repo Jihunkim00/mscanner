@@ -146,6 +146,7 @@ export function aggregateVisionMultiResponse(
   const sources = [...analysis.sources].sort(
     (a, b) => a.sourceImageIndex - b.sourceImageIndex
   );
+  const expectedSourceCount = analysis.expectedSourceCount ?? sources.length;
   const recommendedItems: VisionMenuItem[] = [];
   const recommendedKeys = new Set<string>();
   const perSourceRecommendedCounts: Record<string, number> = {};
@@ -234,7 +235,7 @@ export function aggregateVisionMultiResponse(
       recommendedInventoryOverlapCount,
       recommendedCount: recommended.length,
       recommendedSourceCoverage:
-        recommendedSourceIndexes.size + "/" + sources.length,
+        recommendedSourceIndexes.size + "/" + expectedSourceCount,
       finalFullMenuCount: fullMenuItems.length,
     },
   };

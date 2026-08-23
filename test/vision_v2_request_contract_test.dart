@@ -2,6 +2,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mscanner/screens/vision_service.dart';
 
 void main() {
+  test('resolves scan mode from actual source image count', () {
+    expect(VisionService.resolveScanModeForSourceImageCount(1), 'single');
+    expect(VisionService.resolveScanModeForSourceImageCount(2), 'multi');
+    expect(VisionService.resolveScanModeForSourceImageCount(3), 'multi');
+    expect(VisionService.resolveScanModeForSourceImageCount(4), 'multi');
+  });
+
   test('builds ordered separate-image V2 payload for four sources', () {
     final request = VisionV2RequestContract.multi(
       imagesBase64: const ['image-1', 'image-2', 'image-3', 'image-4'],

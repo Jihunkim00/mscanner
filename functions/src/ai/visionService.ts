@@ -32,6 +32,11 @@ interface VisionV2Response {
     responseMode: "normal" | "stream";
     maxOutputTokens: number;
     latencyMs: number;
+    partial: boolean;
+    validSourceCount: number;
+    expectedSourceCount: number;
+    validationWarningCount: number;
+    validationWarnings: string[];
   };
   usage: Record<string, unknown>;
   result: string;
@@ -45,10 +50,6 @@ type RequestData = Record<string, unknown>;
 
 function isRecord(value: unknown): value is RequestData {
   return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function normalizeScanMode(value: unknown): "single" | "multi" {
-  return value === "multi" ? "multi" : "single";
 }
 
 function normalizeResponseMode(value: unknown): "normal" | "stream" {
@@ -138,7 +139,10 @@ export async function handleAnalyzeVisionV2(
     throw new HttpsError("invalid-argument", "prompt required");
   }
 
-  const scanMode = normalizeScanMode(data.scanMode);
+  const scanMode: "single" | "multi" =
+    Array.isArray(data.imagesBase64) && data.imagesBase64.length > 1 ?
+      "multi" :
+      "single";
   const responseMode = normalizeResponseMode(data.responseMode);
   const maxOutputTokens = normalizeMaxOutputTokens(data.maxOutputTokens, scanMode);
   let normalizedImages;
@@ -209,10 +213,17 @@ export async function handleAnalyzeVisionV2(
   let fullMenuCount = 0;
   let aggregationDiagnostics: VisionAggregationDiagnostics | undefined;
   let declaredIsMenuMismatch = false;
+  let partial = false;
+  let validSourceCount = 1;
+  const expectedSourceCount = inputImageCount;
+  let validationWarnings: string[] = [];
   try {
     if (scanMode === "multi") {
       const analysis = normalizeVisionMultiResponse(parsed, inputImageCount);
       declaredIsMenuMismatch = analysis.declaredIsMenu !== analysis.isMenu;
+      partial = analysis.partial === true;
+      validSourceCount = analysis.validSourceCount ?? analysis.sources.length;
+      validationWarnings = [...(analysis.validationWarnings ?? [])];
       const aggregated = aggregateVisionMultiResponse(analysis);
       vision = aggregated.vision;
       aggregationDiagnostics = aggregated.diagnostics;
@@ -221,9 +232,11 @@ export async function handleAnalyzeVisionV2(
     }
     fullMenuCount = countFullMenuItems(vision);
   } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
     console.error("[VisionV2] Structured response validation failed", {
-      message: error instanceof Error ? error.message : String(error),
+      message: reason,
     });
+    console.error("[VisionV2] validationHardFailureReason=%s", reason);
     throw new HttpsError("internal", "Structured response validation failed.");
   }
 
@@ -271,6 +284,9 @@ export async function handleAnalyzeVisionV2(
   if (declaredIsMenuMismatch) {
     console.log("[VisionV2] declaredIsMenuMismatch=true");
   }
+  for (const warning of validationWarnings) {
+    console.log("[VisionV2] multiValidationWarning=%s", warning);
+  }
 
   const latencyMs = Date.now() - startedAt;
   console.log("[VisionV2] latencyMs=%d", latencyMs);
@@ -286,6 +302,11 @@ export async function handleAnalyzeVisionV2(
       responseMode,
       maxOutputTokens,
       latencyMs,
+      partial,
+      validSourceCount,
+      expectedSourceCount,
+      validationWarningCount: validationWarnings.length,
+      validationWarnings,
     },
     usage,
     result,
