@@ -7,6 +7,8 @@ import * as admin from "firebase-admin";
 import OpenAI from "openai";
 import { randomUUID } from "crypto";
 import sharp from "sharp";
+import {IMAGE_MODEL} from "./ai/aiConfig";
+import {handleAnalyzeVisionV2} from "./ai/visionService";
 
 if (admin.apps.length === 0) {
   admin.initializeApp();
@@ -72,7 +74,7 @@ export const generateMenuImage = onCall(
 
     // GPT Image 모델은 base64 반환이 기본
     const result = await openai.images.generate({
-      model: "gpt-image-1-mini",
+      model: IMAGE_MODEL,
       prompt,
       size: "1024x1024",
       quality: "low",
@@ -121,7 +123,7 @@ export const generateMenuImage = onCall(
         status: "ready",
         full_url: fullUrl,
         thumb_url: thumbUrl,
-        model: "gpt-image-1-mini",
+        model: IMAGE_MODEL,
         updated_at: admin.firestore.FieldValue.serverTimestamp(),
       },
       { merge: true }
@@ -501,4 +503,13 @@ export const analyzeVision = onCall(
       usage: response.usage ?? null,
     };
   }
+);
+
+export const analyzeVisionV2 = onCall(
+  {
+    timeoutSeconds: 180,
+    memory: "1GiB",
+    secrets: [OPENAI_API_KEY],
+  },
+  async (req) => handleAnalyzeVisionV2(req, OPENAI_API_KEY.value())
 );

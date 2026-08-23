@@ -148,5 +148,52 @@ void main() {
       expect(ResultParsingService.shouldShowDecisionSummary(parsed.aiJson),
           isFalse);
     });
+
+    test('maps structured V2 items to the existing recommendation UI shape',
+        () {
+      final parsed = ResultParsingService.parseAiJson(
+        responses: [
+          jsonEncode({
+            'isMenu': true,
+            'userMessage': '',
+            'outputLanguage': 'en',
+            'items': [
+              {
+                'id': 'm1',
+                'nameOriginal': 'Bibimbap',
+                'name': 'Bibimbap',
+                'shortDesc': 'Rice with vegetables.',
+                'prices': {'single': 12, 'currency': 'USD'},
+                'tags': ['rice'],
+              },
+            ],
+          }),
+        ],
+        imageCount: 1,
+      );
+
+      expect(ResultParsingService.getRecommendedItems(parsed.aiJson),
+          hasLength(1));
+      expect(ResultParsingService.shouldShowDecisionSummary(parsed.aiJson),
+          isTrue);
+    });
+
+    test('infers non-menu result type from structured V2 isMenu=false', () {
+      final parsed = ResultParsingService.parseAiJson(
+        responses: [
+          jsonEncode({
+            'isMenu': false,
+            'userMessage': 'This is not a menu.',
+            'outputLanguage': 'en',
+            'items': [],
+          }),
+        ],
+        imageCount: 1,
+      );
+
+      expect(ResultParsingService.aiResultType(parsed.aiJson), 'not_menu');
+      expect(ResultParsingService.shouldShowDecisionSummary(parsed.aiJson),
+          isFalse);
+    });
   });
 }

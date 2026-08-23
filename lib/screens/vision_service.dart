@@ -7,6 +7,8 @@ import 'package:cloud_functions/cloud_functions.dart';
 import '/helpers/settings_helper.dart';
 
 class VisionService {
+  // Keep the released callable as the default until V2 is explicitly enabled.
+  static const bool _useVisionV2 = false;
   static const bool _useRag = false;
 
   static final FirebaseFunctions _functions =
@@ -80,6 +82,74 @@ class VisionService {
       rethrow;
     } catch (e) {
       debugPrint('❌ [Functions] analyzeVision unknown error=$e');
+      rethrow;
+    }
+  }
+
+  static Future<String> _callAnalyzeVisionV2({
+    required String imageBase64,
+    required String prompt,
+    required int maxOutputTokens,
+    required String scanMode,
+    required String responseMode,
+  }) async {
+    try {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        await FirebaseAuth.instance.signInAnonymously();
+      }
+
+      debugPrint(
+        '[Functions] analyzeVisionV2 call '
+        'scanMode=$scanMode responseMode=$responseMode '
+        'maxTokens=$maxOutputTokens imageBase64Len=${imageBase64.length}',
+      );
+
+      final callable = _functions.httpsCallable(
+        'analyzeVisionV2',
+        options: HttpsCallableOptions(
+          timeout: const Duration(seconds: 180),
+        ),
+      );
+      final result = await callable.call({
+        'imageBase64': imageBase64,
+        'prompt': prompt,
+        'maxOutputTokens': maxOutputTokens,
+        'scanMode': scanMode,
+        'responseMode': responseMode,
+      });
+
+      final data = Map<String, dynamic>.from(result.data as Map);
+      final meta = data['meta'] is Map
+          ? Map<String, dynamic>.from(data['meta'] as Map)
+          : const <String, dynamic>{};
+      final vision = data['vision'];
+
+      debugPrint(
+        '[Functions] analyzeVisionV2 success '
+        'model=${meta['model'] ?? data['model']} '
+        'scanMode=${meta['scanMode'] ?? data['scanMode']} '
+        'responseMode=${meta['responseMode'] ?? data['responseMode']} '
+        'latencyMs=${meta['latencyMs']}',
+      );
+
+      if (vision is Map) {
+        return jsonEncode(Map<String, dynamic>.from(vision));
+      }
+
+      final legacyResult = data['result']?.toString() ?? '';
+      if (legacyResult.trim().isEmpty) {
+        throw const FormatException('Empty Vision V2 response');
+      }
+      return legacyResult;
+    } on FirebaseFunctionsException catch (e) {
+      debugPrint(
+        '[Functions] analyzeVisionV2 failed '
+        'code=${e.code} message=${e.message}',
+      );
+      rethrow;
+    } catch (e) {
+      debugPrint('[Functions] analyzeVisionV2 unknown error=$e');
       rethrow;
     }
   }
@@ -361,13 +431,21 @@ Output exactly ONE JSON object.
         'maxTokens=$maxOutputTokens model=gpt-5-mini scanMode=$scanMode rag=$_useRag',
       );
 
-      final text = await _callAnalyzeVision(
-        imageBase64: base64Image,
-        prompt: mergedPromptWithProtocol,
-        maxOutputTokens: maxOutputTokens,
-        scanMode: scanMode,
-        responseMode: 'normal',
-      );
+      final text = await (_useVisionV2
+          ? _callAnalyzeVisionV2(
+              imageBase64: base64Image,
+              prompt: mergedPromptWithProtocol,
+              maxOutputTokens: maxOutputTokens,
+              scanMode: scanMode,
+              responseMode: 'normal',
+            )
+          : _callAnalyzeVision(
+              imageBase64: base64Image,
+              prompt: mergedPromptWithProtocol,
+              maxOutputTokens: maxOutputTokens,
+              scanMode: scanMode,
+              responseMode: 'normal',
+            ));
 
       final reqMs = DateTime.now().difference(tReq0).inMilliseconds;
       debugPrint('⏱️ [Vision] functions response in ${reqMs}ms');
@@ -413,13 +491,21 @@ Output exactly ONE JSON object using the existing app schema.
         'maxTokens=$maxOutputTokens model=gpt-5.4-mini scanMode=$scanMode rag=$_useRag',
       );
 
-      final text = await _callAnalyzeVision(
-        imageBase64: base64Image,
-        prompt: mergedPromptWithProtocol,
-        maxOutputTokens: maxOutputTokens,
-        scanMode: scanMode,
-        responseMode: 'stream',
-      );
+      final text = await (_useVisionV2
+          ? _callAnalyzeVisionV2(
+              imageBase64: base64Image,
+              prompt: mergedPromptWithProtocol,
+              maxOutputTokens: maxOutputTokens,
+              scanMode: scanMode,
+              responseMode: 'stream',
+            )
+          : _callAnalyzeVision(
+              imageBase64: base64Image,
+              prompt: mergedPromptWithProtocol,
+              maxOutputTokens: maxOutputTokens,
+              scanMode: scanMode,
+              responseMode: 'stream',
+            ));
 
       final reqMs = DateTime.now().difference(tReq0).inMilliseconds;
       debugPrint('⏱️ [VisionStream] functions response in ${reqMs}ms');

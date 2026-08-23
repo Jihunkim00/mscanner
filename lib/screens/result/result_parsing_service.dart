@@ -119,14 +119,19 @@ class ResultParsingService {
     if (!isMulti) {
       final normalized = Map<String, dynamic>.from(firstJson);
       final hasDirectRecommended =
-          _hasValidMenuItems(_mapList(normalized['recommended']));
+          _hasValidMenuItems(_mapList(normalized['recommended'])) ||
+              _hasValidMenuItems(_mapList(normalized['items']));
       final fallbackRecommended = _recommendedItemsFromJson(normalized);
       if (fallbackRecommended.isNotEmpty) {
         normalized['recommended'] = fallbackRecommended;
       }
       normalized[_directRecommendedMenuMarkerKey] = hasDirectRecommended;
+      final inferredResultType =
+          normalized['isMenu'] == false ? 'not_menu' : 'menu';
       normalized['result_type'] = normalizeResultType(
-        (normalized['result_type'] ?? normalized['resultType'] ?? 'menu')
+        (normalized['result_type'] ??
+                normalized['resultType'] ??
+                inferredResultType)
             .toString(),
       );
       normalized['user_message'] =
@@ -151,7 +156,8 @@ class ResultParsingService {
 
     for (final j in jsonList) {
       hasDirectRecommended = hasDirectRecommended ||
-          _hasValidMenuItems(_mapList(j['recommended']));
+          _hasValidMenuItems(_mapList(j['recommended'])) ||
+          _hasValidMenuItems(_mapList(j['items']));
       recommendedAll.addAll(_recommendedItemsFromJson(j));
 
       final fm = j['fullMenu'] ?? j['full_menu'] ?? j['menu'] ?? j['menus'];
@@ -185,8 +191,10 @@ class ResultParsingService {
           : false,
     };
 
+    final inferredResultType = merged['isMenu'] == false ? 'not_menu' : 'menu';
     merged['result_type'] = normalizeResultType(
-      (merged['result_type'] ?? merged['resultType'] ?? 'menu').toString(),
+      (merged['result_type'] ?? merged['resultType'] ?? inferredResultType)
+          .toString(),
     );
     merged['user_message'] =
         (merged['user_message'] ?? merged['userMessage'] ?? '')
