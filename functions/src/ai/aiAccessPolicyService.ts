@@ -87,6 +87,13 @@ export async function resolveAndReserveAiAccess(
   }
 ): Promise<AiAccessDecision> {
   const entitlement = await dependencies.resolveEntitlement(context.uid);
+  const label = context.requestId ?? "no-request-id";
+  console.log(
+    "[AI Access][" + label + "] entitlementTrust=" + entitlement.trust +
+    " tier=" + entitlement.tier +
+    " source=" + entitlement.source
+  );
+
   const quota = await dependencies.reserveQuota(
     context.uid,
     entitlement.tier,
