@@ -48,6 +48,33 @@ void main() {
     expect(request['requestId'], 'v-test-single');
   });
 
+  test('builds an ordered Storage-path multi-image V2 payload', () {
+    final request = VisionV2RequestContract.multi(
+      storagePaths: const [
+        'temp_scan/uid-123/v-test-storage/1.jpg',
+        'temp_scan/uid-123/v-test-storage/2.jpg',
+        'temp_scan/uid-123/v-test-storage/3.jpg',
+      ],
+      prompt: 'prompt',
+      maxOutputTokens: 9000,
+      scanMode: 'multi',
+      responseMode: 'stream',
+      requestId: 'v-test-storage',
+    );
+
+    expect(request['imageBase64'], isNull);
+    expect(request['imagesBase64'], isNull);
+    expect(
+        request['storagePaths'],
+        equals(<String>[
+          'temp_scan/uid-123/v-test-storage/1.jpg',
+          'temp_scan/uid-123/v-test-storage/2.jpg',
+          'temp_scan/uid-123/v-test-storage/3.jpg',
+        ]));
+    expect(request['sourceImageCount'], 3);
+    expect(request['scanMode'], 'multi');
+  });
+
   test('rejects unsafe request ids without sending them', () {
     final request = VisionV2RequestContract.single(
       imageBase64: 'single-image',
