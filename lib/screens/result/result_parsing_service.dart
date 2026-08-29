@@ -94,8 +94,15 @@ class ResultParsingService {
 
     for (final r in responses) {
       final raw = r.trim();
+      if (raw.isEmpty) {
+        aiJsonError ??= 'empty_response';
+        continue;
+      }
       final s = extractJsonObjectFromText(raw);
-      if (s == null) continue;
+      if (s == null) {
+        aiJsonError ??= 'invalid_json';
+        continue;
+      }
 
       try {
         final decoded = jsonDecode(s);
@@ -103,10 +110,11 @@ class ResultParsingService {
           final m = Map<String, dynamic>.from(decoded);
           firstJson ??= m;
           jsonList.add(m);
+        } else {
+          aiJsonError ??= 'root_not_map';
         }
-      } catch (e) {
-        aiJsonError =
-            'jsonDecode failed: $e\nrawHead=${raw.substring(0, raw.length > 120 ? 120 : raw.length)}';
+      } catch (_) {
+        aiJsonError ??= 'invalid_json';
       }
     }
 
@@ -119,14 +127,29 @@ class ResultParsingService {
     if (!isMulti) {
       final normalized = Map<String, dynamic>.from(firstJson);
       final hasDirectRecommended =
-          _hasValidMenuItems(_mapList(normalized['recommended']));
+          _hasValidMenuItems(_mapList(normalized['recommended'])) ||
+              _hasValidMenuItems(_mapList(normalized['items']));
       final fallbackRecommended = _recommendedItemsFromJson(normalized);
       if (fallbackRecommended.isNotEmpty) {
         normalized['recommended'] = fallbackRecommended;
       }
+      if (normalized.containsKey('fullMenu') ||
+          normalized.containsKey('full_menu')) {
+        final fullMenuKey = normalized.containsKey('fullMenu')
+            ? 'fullMenu'
+            : 'full_menu';
+        normalized[fullMenuKey] = _removeRecommendedOverlap(
+          normalized[fullMenuKey],
+          fallbackRecommended,
+        );
+      }
       normalized[_directRecommendedMenuMarkerKey] = hasDirectRecommended;
+      final inferredResultType =
+          normalized['isMenu'] == false ? 'not_menu' : 'menu';
       normalized['result_type'] = normalizeResultType(
-        (normalized['result_type'] ?? normalized['resultType'] ?? 'menu')
+        (normalized['result_type'] ??
+                normalized['resultType'] ??
+                inferredResultType)
             .toString(),
       );
       normalized['user_message'] =
@@ -151,8 +174,9 @@ class ResultParsingService {
 
     for (final j in jsonList) {
       hasDirectRecommended = hasDirectRecommended ||
-          _hasValidMenuItems(_mapList(j['recommended']));
-      recommendedAll.addAll(_recommendedItemsFromJson(j));
+          _hasValidMenuItems(_mapList(j['recommended'])) ||
+          _hasValidMenuItems(_mapList(j['items']));
+      recommendedAll.addAll(_directRecommendedItemsFromJson(j));
 
       final fm = j['fullMenu'] ?? j['full_menu'] ?? j['menu'] ?? j['menus'];
       if (fm is Map) {
@@ -171,22 +195,29 @@ class ResultParsingService {
       }
     }
 
+    final firstFullMenu = firstJson['fullMenu'] ??
+        firstJson['full_menu'] ??
+        firstJson['menu'] ??
+        firstJson['menus'];
+    final firstFullMenuMap =
+        firstFullMenu is Map ? Map<String, dynamic>.from(firstFullMenu) : null;
+
     merged[_directRecommendedMenuMarkerKey] = hasDirectRecommended;
     merged['recommended'] = _dedupList(recommendedAll);
     merged['fullMenu'] = {
-      'items': {
-        for (final k in fullMenuAll.keys) k: _dedupList(fullMenuAll[k]!)
-      },
-      'summary': (firstJson['fullMenu'] is Map)
-          ? ((firstJson['fullMenu']['summary'] ?? '').toString())
+      'items': _dedupCategoryMap(fullMenuAll),
+      'summary': firstFullMenuMap != null
+          ? ((firstFullMenuMap['summary'] ?? '').toString())
           : '',
-      'truncated': (firstJson['fullMenu'] is Map)
-          ? (firstJson['fullMenu']['truncated'] == true)
+      'truncated': firstFullMenuMap != null
+          ? (firstFullMenuMap['truncated'] == true)
           : false,
     };
 
+    final inferredResultType = merged['isMenu'] == false ? 'not_menu' : 'menu';
     merged['result_type'] = normalizeResultType(
-      (merged['result_type'] ?? merged['resultType'] ?? 'menu').toString(),
+      (merged['result_type'] ?? merged['resultType'] ?? inferredResultType)
+          .toString(),
     );
     merged['user_message'] =
         (merged['user_message'] ?? merged['userMessage'] ?? '')
@@ -234,6 +265,20 @@ class ResultParsingService {
     if (aiJson == null) return false;
     if (isNonMenuResultType(aiResultType(aiJson))) return false;
     return hasValidRecommendedMenu(aiJson);
+  }
+
+  static bool hasUsableFullMenu(Map<String, dynamic>? aiJson) {
+    if (aiJson == null) return false;
+
+    final rawFullMenu = aiJson['fullMenu'] ??
+        aiJson['full_menu'] ??
+        aiJson['menu'] ??
+        aiJson['menus'];
+    if (rawFullMenu is! Map) return false;
+
+    final items = rawFullMenu['items'];
+    final itemsMap = items is Map ? items : rawFullMenu;
+    return itemsMap.values.any((value) => value is List && value.isNotEmpty);
   }
 
   static String aiUserMessage(Map<String, dynamic>? aiJson) {
@@ -301,16 +346,117 @@ class ResultParsingService {
 
   static List<Map<String, dynamic>> _dedupList(
       List<Map<String, dynamic>> items) {
-    final seen = <String>{};
+    final indexesByKey = <String, int>{};
     final out = <Map<String, dynamic>>[];
     for (final it in items) {
-      final no = (it['nameOriginal'] ?? '').toString().trim().toLowerCase();
-      final nt = (it['name'] ?? '').toString().trim().toLowerCase();
-      final key = (no.isNotEmpty ? no : nt).trim();
-      final dedupKey = key.isNotEmpty ? key : it.toString();
-      if (seen.add(dedupKey)) out.add(it);
+      final key = _menuItemKey(it);
+      final existingIndex = indexesByKey[key];
+      if (existingIndex == null) {
+        indexesByKey[key] = out.length;
+        out.add(it);
+      } else {
+        _mergeSourceImageIndexes(out[existingIndex], it);
+      }
     }
     return out;
+  }
+
+  static String _menuItemKey(Map<String, dynamic> item) {
+    final original =
+        _stableMenuText((item['nameOriginal'] ?? '').toString());
+    final translated = _stableMenuText((item['name'] ?? '').toString());
+    final name = original.isNotEmpty ? original : translated;
+    return name.isNotEmpty ? name : item.toString();
+  }
+
+  static String _stableMenuText(String input) {
+    return input
+        .toLowerCase()
+        .trim()
+        .replaceAll(RegExp(r'[^\p{L}\p{N}]+', unicode: true), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
+  static Map<String, dynamic>? _removeRecommendedOverlap(
+    dynamic rawFullMenu,
+    List<Map<String, dynamic>> recommended,
+  ) {
+    if (rawFullMenu == null) return null;
+    if (rawFullMenu is! Map) return null;
+
+    final fullMenu = Map<String, dynamic>.from(rawFullMenu);
+    final recommendedKeys = recommended.map(_menuItemKey).toSet();
+    final rawItems = fullMenu['items'];
+    final source = rawItems is Map
+        ? Map<String, dynamic>.from(rawItems)
+        : Map<String, dynamic>.from(fullMenu);
+    final filtered = <String, dynamic>{};
+
+    for (final entry in source.entries) {
+      final value = entry.value;
+      if (value is! List) {
+        filtered[entry.key] = value;
+        continue;
+      }
+      filtered[entry.key] = value
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .where((item) => !recommendedKeys.contains(_menuItemKey(item)))
+          .toList();
+    }
+
+    if (rawItems is Map) {
+      fullMenu['items'] = filtered;
+    } else {
+      fullMenu
+        ..clear()
+        ..addAll(filtered);
+    }
+    return fullMenu;
+  }
+
+  static Map<String, List<Map<String, dynamic>>> _dedupCategoryMap(
+      Map<String, List<Map<String, dynamic>>> categories) {
+    final indexesByKey = <String, Map<String, dynamic>>{};
+    final output = <String, List<Map<String, dynamic>>>{
+      for (final key in categories.keys) key: <Map<String, dynamic>>[],
+    };
+
+    for (final key in categories.keys) {
+      for (final item in categories[key]!) {
+        final itemKey = _menuItemKey(item);
+        final existing = indexesByKey[itemKey];
+        if (existing == null) {
+          indexesByKey[itemKey] = item;
+          output[key]!.add(item);
+        } else {
+          _mergeSourceImageIndexes(existing, item);
+        }
+      }
+    }
+    return output;
+  }
+
+  static void _mergeSourceImageIndexes(
+      Map<String, dynamic> target, Map<String, dynamic> source) {
+    final merged = <int>{};
+    for (final item in [target, source]) {
+      final indexes = item['sourceImageIndexes'];
+      if (indexes is List) {
+        merged.addAll(indexes.whereType<int>().where((index) => index >= 1));
+      }
+    }
+    if (merged.isNotEmpty) {
+      target['sourceImageIndexes'] = merged.toList()..sort();
+    }
+  }
+
+  static List<Map<String, dynamic>> _directRecommendedItemsFromJson(
+      Map<String, dynamic> aiJson) {
+    final recommended = _mapList(aiJson['recommended']);
+    if (recommended.isNotEmpty) return _dedupList(recommended);
+    return _dedupList(_mapList(aiJson['items']));
   }
 
   static List<Map<String, dynamic>> _recommendedItemsFromJson(

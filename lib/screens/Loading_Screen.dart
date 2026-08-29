@@ -27,7 +27,10 @@ Future<Uint8List> mergeImages(List<Uint8List> bytesList) async {
 class _PreparedVisionInput {
   final File visionFile;
   final String promptContext;
-  _PreparedVisionInput(this.visionFile, this.promptContext);
+  final int sourceImageCount;
+  final List<File> sourceImages;
+  _PreparedVisionInput(this.visionFile, this.promptContext,
+      this.sourceImageCount, this.sourceImages);
 }
 
 class LoadingScreen extends StatefulWidget {
@@ -61,6 +64,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
   bool _hasNavigated = false;
   final AsyncRequestGate _gptRequestGate = AsyncRequestGate();
   Timer? _loadingWatchdog;
+  late final String _visionRequestId = VisionRequestTrace.createRequestId();
 
   /// GPT 분석 Future는 initState 에서 바로 시작
   late Future<_PreparedVisionInput> _preparedFuture;
@@ -72,11 +76,20 @@ class _LoadingScreenState extends State<LoadingScreen> {
   @override
   void initState() {
     super.initState();
+    final sourceImageCount =
+        widget.images != null && widget.images!.isNotEmpty
+            ? widget.images!.length
+            : 1;
+    VisionRequestTrace.log(
+      _visionRequestId,
+      'capture_received sourceImageCount=$sourceImageCount '
+      'scanMode=${VisionService.resolveScanModeForSourceImageCount(sourceImageCount)}',
+    );
     // 위치 기반 RAG 컨텍스트를 포함한 분석 준비
     _preparedFuture = _prepareVisionInput();
     _loadingWatchdog = Timer(const Duration(seconds: 40), () {
       if (!mounted || _hasNavigated || _isLoadingError) return;
-      _showErrorUI();
+      _showErrorUI(stage: 'loading_watchdog', reason: 'timeout');
     });
     _handleGptResult();
   }
@@ -161,7 +174,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
           '🗜️ [Vision] send file size = ${(sz / 1024).toStringAsFixed(1)} KB');
     } catch (_) {}
 
-    return _PreparedVisionInput(visionFile, promptContext);
+    return _PreparedVisionInput(
+        visionFile, promptContext, files.length, List.unmodifiable(files));
   }
 
   /// 넉넉한 타임아웃 + 스트리밍 우선 + 단일 요청 fallback
@@ -169,6 +183,10 @@ class _LoadingScreenState extends State<LoadingScreen> {
     await _gptRequestGate.run(() async {
       try {
         final prepared = await _preparedFuture.timeout(_prepareInputTimeout);
+        VisionRequestTrace.log(
+          _visionRequestId,
+          'path=primary_stream prepared sourceImageCount=${prepared.sourceImageCount}',
+        );
 
         // ✅ 미리보기용 첫 이미지 (ResultScreen에 보여줄 썸네일)
         final File firstImage =
@@ -180,6 +198,9 @@ class _LoadingScreenState extends State<LoadingScreen> {
           prepared.visionFile,
           promptContext: prepared.promptContext,
           maxOutputTokens: widget.maxOutputTokens,
+          sourceImageCount: prepared.sourceImageCount,
+          sourceImages: prepared.sourceImages,
+          requestId: _visionRequestId,
         );
 
         final stream = rawStream
@@ -197,6 +218,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
           );
 
           if (!mounted) return;
+          VisionRequestTrace.log(_visionRequestId, 'navigation=result path=primary_stream');
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (_) => ResultScreen(
@@ -208,6 +230,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
                 position: widget.position,
                 captureTime: widget.captureTime,
                 isTutorial: widget.isTutorial,
+                visionRequestId: _visionRequestId,
               ),
             ),
           );
@@ -216,14 +239,20 @@ class _LoadingScreenState extends State<LoadingScreen> {
         // ✅ 스트리밍 실패 시: 기존 Future 방식 fallback
         try {
           final prepared = await _preparedFuture.timeout(_prepareInputTimeout);
+          VisionRequestTrace.log(
+            _visionRequestId,
+            'fallback_triggered reason=${VisionRequestTrace.errorReason(e)}',
+          );
           final resp = await VisionService.analyzeImage(
             prepared.visionFile,
             promptContext: prepared.promptContext,
             maxOutputTokens: widget.maxOutputTokens,
+            sourceImageCount: prepared.sourceImageCount,
+            sourceImages: prepared.sourceImages,
+            requestId: _visionRequestId,
           ).timeout(_fallbackAnalyzeTimeout);
 
           if (!_hasNavigated && mounted) {
-            _hasNavigated = true;
             await LogService().logScanCompleted();
             await AnalyticsService.instance.logScanSuccess(
               scanMode: ((widget.images?.length ?? 0) > 1) ? 'multi' : 'single',
@@ -231,34 +260,56 @@ class _LoadingScreenState extends State<LoadingScreen> {
               latencyMs:
                   DateTime.now().difference(widget.captureTime).inMilliseconds,
             );
+            VisionRequestTrace.log(_visionRequestId, 'navigation=result path=fallback');
             _navigateToResultScreen([resp], previewImage: prepared.visionFile);
           }
-        } catch (_) {
-          _showErrorUI();
+        } catch (fallbackError) {
+          _showErrorUI(
+            stage: 'fallback',
+            reason: VisionRequestTrace.errorReason(fallbackError),
+          );
         }
       }
     });
   }
 
   /// 에러 UI 표시 후 5초 대기 -> 홈 복귀
-  void _showErrorUI() {
+  void _showErrorUI({
+    String stage = 'loading_screen',
+    String reason = 'analysis_failed',
+  }) {
+    VisionRequestTrace.log(
+      _visionRequestId,
+      'show_analysis_failed stage=$stage reason=$reason',
+    );
     unawaited(AnalyticsService.instance.logScanFailed(
       scanMode: ((widget.images?.length ?? 0) > 1) ? 'multi' : 'single',
       stage: 'loading_screen',
       errorCode: 'analysis_failed',
     ));
-    if (!mounted || _hasNavigated) return;
+    if (!mounted) {
+      VisionRequestTrace.log(_visionRequestId, 'mounted_false_skip_error_ui');
+      return;
+    }
+    if (_hasNavigated) {
+      VisionRequestTrace.log(_visionRequestId, 'already_navigated_skip_error_ui');
+      return;
+    }
     setState(() => _isLoadingError = true);
     Future.delayed(Duration(seconds: 5), () {
       if (mounted && !_hasNavigated) {
         _hasNavigated = true;
+        VisionRequestTrace.log(_visionRequestId, 'navigation=home after_analysis_failed');
         Navigator.of(context).pushReplacementNamed('/home');
       }
     });
   }
 
   void _navigateToResultScreen(List<String> responses, {File? previewImage}) {
-    if (_hasNavigated) return;
+    if (_hasNavigated) {
+      VisionRequestTrace.log(_visionRequestId, 'already_navigated_skip_result');
+      return;
+    }
     _hasNavigated = true;
     final File firstImage = (widget.images != null && widget.images!.isNotEmpty)
         ? widget.images!.first
@@ -273,6 +324,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
           position: widget.position,
           captureTime: widget.captureTime,
           isTutorial: widget.isTutorial,
+          visionRequestId: _visionRequestId,
         ),
       ),
     );

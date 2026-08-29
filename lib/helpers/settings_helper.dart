@@ -165,6 +165,17 @@ class SettingsHelper {
     }
   }
 
+  static Future<String> getSelectedMenuNumber() async {
+    final prefs = await SharedPreferences.getInstance();
+    return normalizeMenuCountHint(
+      prefs.getString(selectedMenuNumberKey) ?? '1-5',
+    );
+  }
+
+  static Future<bool> shouldRequestFullMenu() async {
+    return (await getSelectedMenuNumber()) == 'all';
+  }
+
   static bool hasSavedPresetSettings(SharedPreferences prefs) {
     return prefs.containsKey(_presetKey) ||
         prefs.containsKey(_customPresetDescriptionKey) ||
@@ -287,7 +298,7 @@ Food style preset:
 - Set styleMatched=true only when visible text/OCR/image evidence supports the match.
 - styleFitScore must be 0.0 to 1.0 and reflect fit after caution/safety concerns.
 - Put concise evidence in matchedEvidence and concise risk text in cautionReason.
-- Use sourceImageIndexes when multiple images are provided; use zero-based indexes when knowable.
+    - Use sourceImageIndexes when multiple images are provided; use 1-based source-image indexes when knowable.
 
 Style-specific rules:
 ${_foodStyleRules(styleId)}
@@ -336,7 +347,7 @@ Safety wording:
       "dietaryWarnings": ["string"],
       "allergyHints": ["string"],
       "requiresStaffCheck": false,
-      "sourceImageIndexes": [0]''';
+      "sourceImageIndexes": [1]''';
   }
 
   static String _fullMenuSchemaFor(String menuCountHint) {
