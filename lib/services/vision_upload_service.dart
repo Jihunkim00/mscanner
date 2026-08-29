@@ -61,6 +61,34 @@ class VisionUploadResult {
   final List<VisionImageDimensions?> imageDimensions;
 }
 
+class _VisionUploadTaskResult {
+  const _VisionUploadTaskResult.success({
+    required this.index,
+    required this.path,
+    required this.bytes,
+    required this.latencyMs,
+  })  : succeeded = true,
+        error = null,
+        stackTrace = null;
+
+  const _VisionUploadTaskResult.failure({
+    required this.index,
+    required this.path,
+    required this.bytes,
+    required this.latencyMs,
+    required this.error,
+    required this.stackTrace,
+  }) : succeeded = false;
+
+  final int index;
+  final String path;
+  final int bytes;
+  final int latencyMs;
+  final bool succeeded;
+  final Object? error;
+  final StackTrace? stackTrace;
+}
+
 class VisionUploadService {
   VisionUploadService({
     VisionStorageGateway? storage,
@@ -127,22 +155,35 @@ class VisionUploadService {
     debugPrint('[VisionUpload] scanId=$scanId');
     debugPrint('[VisionUpload] upload_start');
 
-    final uploadedPaths = <String>[];
-    try {
-      for (var index = 0; index < inputBytes.length; index++) {
-        final imageUploadStartedAt = DateTime.now();
-        await _storage.upload(paths[index], inputBytes[index]);
-        uploadedPaths.add(paths[index]);
-        debugPrint(
-          '[VisionUpload] upload_image index=${index + 1} '
-          'bytes=${inputBytes[index].length} '
-          'latencyMs=${DateTime.now().difference(imageUploadStartedAt).inMilliseconds}',
-        );
+    final uploadResults = await Future.wait(
+      List<_VisionUploadTaskResult>.generate(
+        inputBytes.length,
+        (index) => _uploadOne(
+          index: index,
+          path: paths[index],
+          bytes: inputBytes[index],
+        ),
+      ),
+    );
+    final failedUploads =
+        uploadResults.where((result) => !result.succeeded).toList();
+    if (failedUploads.isNotEmpty) {
+      final successfulPaths = uploadResults
+          .where((result) => result.succeeded)
+          .map((result) => result.path)
+          .toList();
+      await _bestEffortDelete(successfulPaths);
+      final firstFailure = failedUploads.first;
+      debugPrint(
+        '[VisionUpload] upload_failed count=${failedUploads.length} '
+        'firstIndex=${firstFailure.index + 1}',
+      );
+      final error = firstFailure.error;
+      final stackTrace = firstFailure.stackTrace;
+      if (error != null && stackTrace != null) {
+        Error.throwWithStackTrace(error, stackTrace);
       }
-    } catch (error) {
-      await _bestEffortDelete(uploadedPaths);
-      debugPrint('[VisionUpload] upload_failed reason=${error.runtimeType}');
-      rethrow;
+      throw StateError('Vision image upload failed');
     }
 
     final perImageBytes = inputBytes.map((bytes) => bytes.length).toList();
@@ -161,6 +202,43 @@ class VisionUploadService {
       totalBytes: totalBytes,
       imageDimensions: List.unmodifiable(imageDimensions),
     );
+  }
+
+  Future<_VisionUploadTaskResult> _uploadOne({
+    required int index,
+    required String path,
+    required Uint8List bytes,
+  }) async {
+    final startedAt = DateTime.now();
+    try {
+      await _storage.upload(path, bytes);
+      final latencyMs = DateTime.now().difference(startedAt).inMilliseconds;
+      debugPrint(
+        '[VisionUpload] upload_image index=${index + 1} '
+        'bytes=${bytes.length} latencyMs=$latencyMs status=success',
+      );
+      return _VisionUploadTaskResult.success(
+        index: index,
+        path: path,
+        bytes: bytes.length,
+        latencyMs: latencyMs,
+      );
+    } catch (error, stackTrace) {
+      final latencyMs = DateTime.now().difference(startedAt).inMilliseconds;
+      debugPrint(
+        '[VisionUpload] upload_image index=${index + 1} '
+        'bytes=${bytes.length} latencyMs=$latencyMs '
+        'status=failure reason=${error.runtimeType}',
+      );
+      return _VisionUploadTaskResult.failure(
+        index: index,
+        path: path,
+        bytes: bytes.length,
+        latencyMs: latencyMs,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   static VisionImageDimensions? _decodeDimensions(Uint8List bytes) {
