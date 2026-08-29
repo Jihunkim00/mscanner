@@ -12,10 +12,8 @@ class VisionRequestTrace {
   static final RegExp _safeRequestId = RegExp(r'^[A-Za-z0-9._:-]+$');
 
   static String createRequestId() {
-    final timestamp =
-        DateTime.now().millisecondsSinceEpoch.toRadixString(36);
-    final suffix =
-        _random.nextInt(0xFFFFFF).toRadixString(36).padLeft(5, '0');
+    final timestamp = DateTime.now().millisecondsSinceEpoch.toRadixString(36);
+    final suffix = _random.nextInt(0xFFFFFF).toRadixString(36).padLeft(5, '0');
     return 'v-$timestamp-$suffix';
   }
 
@@ -74,9 +72,9 @@ class VisionV2RequestContract {
     required String responseMode,
     String? requestId,
   }) {
-    if (imagesBase64.isEmpty ||
+    if (imagesBase64.length < 2 ||
         imagesBase64.length > maxMultiImageCount ||
-        imagesBase64.any((image) => image.trim().isEmpty)) {
+        imagesBase64.any((value) => value.trim().isEmpty)) {
       throw ArgumentError('Invalid Vision V2 multi-image input');
     }
 
@@ -305,7 +303,8 @@ $header
         '[Functions] analyzeVisionV2 call '
         'scanMode=$scanMode responseMode=$responseMode '
         'maxTokens=$maxOutputTokens '
-        'inputImageCount=${imagesBase64?.length ?? 1}',
+        'inputImageCount=${imagesBase64?.length ?? 1} '
+        'inputMode=base64',
       );
       VisionRequestTrace.log(
         requestId,
@@ -415,28 +414,38 @@ $header
           'Vision V2 multi-image count must be between 2 and ${VisionV2RequestContract.maxMultiImageCount}');
     }
 
-    final base64Images = <String>[];
-    final byteLengths = <int>[];
-    final base64Lengths = <int>[];
-    for (final sourceImage in sourceImages) {
-      final bytes = await sourceImage.readAsBytes();
+    final inputBytes = await Future.wait(
+      sourceImages.map((sourceImage) => sourceImage.readAsBytes()),
+    );
+    final encodeStartedAt = DateTime.now();
+    final imagesBase64 = <String>[];
+    var totalCompressedBytes = 0;
+    var totalBase64Length = 0;
+    for (var index = 0; index < inputBytes.length; index++) {
+      final bytes = inputBytes[index];
       final encoded = base64Encode(bytes);
-      base64Images.add(encoded);
-      byteLengths.add(bytes.length);
-      base64Lengths.add(encoded.length);
+      imagesBase64.add(encoded);
+      totalCompressedBytes += bytes.length;
+      totalBase64Length += encoded.length;
+      debugPrint(
+        '[VisionV2 Client] image=${index + 1} '
+        'bytes=${bytes.length} base64Length=${encoded.length}',
+      );
     }
 
     debugPrint('[VisionV2 Client] transport=separate_images');
     debugPrint('[VisionV2 Client] sourceImageCount=${sourceImages.length}');
-    debugPrint('[VisionV2 Client] compressedBytes=$byteLengths');
-    debugPrint('[VisionV2 Client] base64Lengths=$base64Lengths');
     debugPrint(
-      '[VisionV2 Client] totalCompressedBytes=${byteLengths.fold<int>(0, (sum, value) => sum + value)} '
-      'totalBase64Length=${base64Lengths.fold<int>(0, (sum, value) => sum + value)}',
+      '[VisionV2 Client] totalCompressedBytes=$totalCompressedBytes '
+      'totalBase64Length=$totalBase64Length',
+    );
+    debugPrint(
+      '[VisionV2 Client] base64EncodeLatencyMs='
+      '${DateTime.now().difference(encodeStartedAt).inMilliseconds}',
     );
     debugPrint('[VisionV2 Client] callable=analyzeVisionV2');
 
-    return base64Images;
+    return imagesBase64;
   }
 
   static Future<String> _analyzeVisionV2SeparateImages({
@@ -474,7 +483,8 @@ $header
     );
     debugPrint(
       '[VisionV2 Client] separate_images response '
-      'latencyMs=${DateTime.now().difference(startedAt).inMilliseconds} sourceImageCount=$sourceImageCount',
+      'latencyMs=${DateTime.now().difference(startedAt).inMilliseconds} '
+      'sourceImageCount=$sourceImageCount',
     );
     return text;
   }
@@ -723,11 +733,10 @@ If it doesn’t seem food-related, just say so.
             newline +
             _multiVisionV2Contract(sourceImageCount: sourceImageCount)
         : '';
-    final singleFullMenuContract = _useVisionV2 &&
-            scanMode == 'single' &&
-            requestFullMenu
-        ? newline + newline + _singleFullMenuContract
-        : '';
+    final singleFullMenuContract =
+        _useVisionV2 && scanMode == 'single' && requestFullMenu
+            ? newline + newline + _singleFullMenuContract
+            : '';
     return outputProtocol +
         newline +
         mergedPrompt +

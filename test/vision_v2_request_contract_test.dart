@@ -20,12 +20,28 @@ void main() {
     );
 
     expect(request['imageBase64'], isNull);
+    expect(request['storagePaths'], isNull);
     expect(request['imagesBase64'],
         equals(['image-1', 'image-2', 'image-3', 'image-4']));
     expect(request['sourceImageCount'], 4);
     expect(request['scanMode'], 'multi');
     expect(request['responseMode'], 'stream');
     expect(request['requestId'], 'v-test-multi');
+  });
+
+  test('builds direct Base64 payload for two sources', () {
+    final request = VisionV2RequestContract.multi(
+      imagesBase64: const ['image-1', 'image-2'],
+      prompt: 'prompt',
+      maxOutputTokens: 9000,
+      scanMode: 'multi',
+      responseMode: 'normal',
+    );
+
+    expect(request['imagesBase64'], equals(['image-1', 'image-2']));
+    expect(request['sourceImageCount'], 2);
+    expect(request['storagePaths'], isNull);
+    expect(request['scanMode'], 'multi');
   });
 
   test('keeps the existing single-image V2 contract', () {
