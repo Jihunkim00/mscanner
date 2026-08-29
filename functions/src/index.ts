@@ -8,6 +8,12 @@ import OpenAI from "openai";
 import { randomUUID } from "crypto";
 import sharp from "sharp";
 import {IMAGE_MODEL} from "./ai/aiConfig";
+import {resolveAiEntitlement} from "./ai/aiEntitlementService";
+import {reserveAiQuota} from "./ai/aiQuotaService";
+import {
+  beginAiAccessObservation,
+  resolveAndReserveAiAccess,
+} from "./ai/aiAccessPolicyService";
 import {handleAnalyzeVisionV2} from "./ai/visionService";
 
 if (admin.apps.length === 0) {
@@ -20,8 +26,9 @@ const OPENAI_API_KEY = defineSecret("OPENAI_API_KEY");
 export const generateMenuImage = onCall(
   { timeoutSeconds: 120, memory: "1GiB", secrets: [OPENAI_API_KEY] },
   async (req) => {
-    const auth = req.auth;
-    if (!auth) throw new HttpsError("unauthenticated", "Login required.");
+    // Cost endpoint audit: observe App Check, but do not change image access
+    // or combine this endpoint with the Vision quota in PR12.
+    beginAiAccessObservation(req);
 
     const { menuKey, menu, shortDesc, tags, searchedMenuDocId } = req.data || {};
     if (!menuKey || typeof menuKey !== "string") {
@@ -407,14 +414,7 @@ export const analyzeVision = onCall(
     secrets: [OPENAI_API_KEY],
   },
   async (req) => {
-    const auth = req.auth;
-
-    if (!auth) {
-      throw new HttpsError(
-        "unauthenticated",
-        "Login required."
-      );
-    }
+    const accessContext = beginAiAccessObservation(req);
 
     const {
       imageBase64,
@@ -449,6 +449,15 @@ export const analyzeVision = onCall(
         maxOutputTokens,
         safeScanMode
       );
+
+    await resolveAndReserveAiAccess(
+      accessContext,
+      safeScanMode,
+      {
+        resolveEntitlement: resolveAiEntitlement,
+        reserveQuota: reserveAiQuota,
+      }
+    );
 
     // 메뉴 분석·번역 모델
     const model = "gpt-5.6-luna";

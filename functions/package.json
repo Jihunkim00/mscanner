@@ -4,6 +4,7 @@
     "lint": "eslint --ext .js,.ts .",
     "build": "tsc",
     "test:vision-request": "npm run build && node lib/ai/visionRequest.test.js && node lib/ai/visionMulti.test.js && node lib/ai/visionSingle.test.js",
+    "test:ai-access": "npm run build && node lib/ai/aiEntitlementService.test.js && node lib/ai/aiQuotaService.test.js && node lib/ai/aiAccessPolicyService.test.js",
     "build:watch": "tsc --watch",
     "serve": "npm run build && firebase emulators:start --only functions",
     "shell": "npm run build && firebase functions:shell",
