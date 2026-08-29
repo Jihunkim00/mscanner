@@ -23,7 +23,7 @@ class FakeVisionStorage implements VisionStorageGateway {
 }
 
 void main() {
-  test('uploads ordered multi images with deterministic Storage paths',
+  test('uploads upstream-compressed bytes unchanged with deterministic paths',
       () async {
     final tempDirectory =
         await Directory.systemTemp.createTemp('vision-upload-test-');
@@ -39,10 +39,6 @@ void main() {
       final service = VisionUploadService(
         storage: storage,
         uidProvider: () async => 'uid-123',
-        imageProcessor: VisionImageProcessor(
-          compressor: (bytes) async =>
-              Uint8List.fromList(<int>[...bytes, 80, 81]),
-        ),
       );
 
       final result = await service.uploadMultiScan(
@@ -57,11 +53,26 @@ void main() {
         'temp_scan/uid-123/v-scan-123/4.jpg',
       ]);
       expect(result.sourceImageCount, 4);
-      expect(result.perImageBytes, <int>[4, 4, 4, 4]);
-      expect(result.totalBytes, 16);
+      expect(result.perImageBytes, <int>[2, 2, 2, 2]);
+      expect(result.totalBytes, 8);
       expect(storage.uploaded.keys.toList(), result.uploadedPaths);
-      expect(result.originalDimensions, hasLength(4));
-      expect(result.resizedDimensions, hasLength(4));
+      expect(
+        storage.uploaded[result.uploadedPaths[0]],
+        orderedEquals(<int>[1, 2]),
+      );
+      expect(
+        storage.uploaded[result.uploadedPaths[1]],
+        orderedEquals(<int>[2, 3]),
+      );
+      expect(
+        storage.uploaded[result.uploadedPaths[2]],
+        orderedEquals(<int>[3, 4]),
+      );
+      expect(
+        storage.uploaded[result.uploadedPaths[3]],
+        orderedEquals(<int>[4, 5]),
+      );
+      expect(result.imageDimensions, hasLength(4));
     } finally {
       await tempDirectory.delete(recursive: true);
     }
@@ -83,9 +94,6 @@ void main() {
       final service = VisionUploadService(
         storage: storage,
         uidProvider: () async => 'uid-123',
-        imageProcessor: VisionImageProcessor(
-          compressor: (bytes) async => bytes,
-        ),
       );
 
       await expectLater(
