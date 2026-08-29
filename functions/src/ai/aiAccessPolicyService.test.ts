@@ -31,7 +31,8 @@ void (async () => {
       resolveEntitlement: async () => ({
         tier: "free",
         premiumActive: false,
-        source: "missing_user_points",
+        trust: "none",
+        source: "none",
       }),
       reserveQuota: async (_uid, tier, scanMode) => ({
         allowed: true,
@@ -45,6 +46,7 @@ void (async () => {
     }
   );
   assert.equal(allowed.entitlement.tier, "free");
+  assert.equal(allowed.entitlement.trust, "none");
   assert.equal(allowed.quota.allowed, true);
 
   await assert.rejects(
@@ -55,7 +57,8 @@ void (async () => {
         resolveEntitlement: async () => ({
           tier: "premium",
           premiumActive: true,
-          source: "user_points.premium",
+          trust: "trusted",
+          source: "apple",
         }),
         reserveQuota: async (_uid, tier, scanMode) => ({
           allowed: false,
