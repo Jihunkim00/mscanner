@@ -20,12 +20,28 @@ void main() {
     );
 
     expect(request['imageBase64'], isNull);
+    expect(request['storagePaths'], isNull);
     expect(request['imagesBase64'],
         equals(['image-1', 'image-2', 'image-3', 'image-4']));
     expect(request['sourceImageCount'], 4);
     expect(request['scanMode'], 'multi');
     expect(request['responseMode'], 'stream');
     expect(request['requestId'], 'v-test-multi');
+  });
+
+  test('builds direct Base64 payload for two sources', () {
+    final request = VisionV2RequestContract.multi(
+      imagesBase64: const ['image-1', 'image-2'],
+      prompt: 'prompt',
+      maxOutputTokens: 9000,
+      scanMode: 'multi',
+      responseMode: 'normal',
+    );
+
+    expect(request['imagesBase64'], equals(['image-1', 'image-2']));
+    expect(request['sourceImageCount'], 2);
+    expect(request['storagePaths'], isNull);
+    expect(request['scanMode'], 'multi');
   });
 
   test('keeps the existing single-image V2 contract', () {
@@ -46,33 +62,6 @@ void main() {
     expect(request['scanMode'], 'single');
     expect(request['requestFullMenu'], isTrue);
     expect(request['requestId'], 'v-test-single');
-  });
-
-  test('builds an ordered Storage-path multi-image V2 payload', () {
-    final request = VisionV2RequestContract.multi(
-      storagePaths: const [
-        'temp_scan/uid-123/v-test-storage/1.jpg',
-        'temp_scan/uid-123/v-test-storage/2.jpg',
-        'temp_scan/uid-123/v-test-storage/3.jpg',
-      ],
-      prompt: 'prompt',
-      maxOutputTokens: 9000,
-      scanMode: 'multi',
-      responseMode: 'stream',
-      requestId: 'v-test-storage',
-    );
-
-    expect(request['imageBase64'], isNull);
-    expect(request['imagesBase64'], isNull);
-    expect(
-        request['storagePaths'],
-        equals(<String>[
-          'temp_scan/uid-123/v-test-storage/1.jpg',
-          'temp_scan/uid-123/v-test-storage/2.jpg',
-          'temp_scan/uid-123/v-test-storage/3.jpg',
-        ]));
-    expect(request['sourceImageCount'], 3);
-    expect(request['scanMode'], 'multi');
   });
 
   test('rejects unsafe request ids without sending them', () {

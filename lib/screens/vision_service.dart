@@ -6,17 +6,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
 import '/helpers/settings_helper.dart';
-import '/services/vision_upload_service.dart';
 
 class VisionRequestTrace {
   static final math.Random _random = math.Random.secure();
   static final RegExp _safeRequestId = RegExp(r'^[A-Za-z0-9._:-]+$');
 
   static String createRequestId() {
-    final timestamp =
-        DateTime.now().millisecondsSinceEpoch.toRadixString(36);
-    final suffix =
-        _random.nextInt(0xFFFFFF).toRadixString(36).padLeft(5, '0');
+    final timestamp = DateTime.now().millisecondsSinceEpoch.toRadixString(36);
+    final suffix = _random.nextInt(0xFFFFFF).toRadixString(36).padLeft(5, '0');
     return 'v-$timestamp-$suffix';
   }
 
@@ -68,41 +65,27 @@ class VisionV2RequestContract {
   }
 
   static Map<String, dynamic> multi({
-    List<String>? imagesBase64,
-    List<String>? storagePaths,
+    required List<String> imagesBase64,
     required String prompt,
     required int maxOutputTokens,
     required String scanMode,
     required String responseMode,
     String? requestId,
   }) {
-    final hasImagesBase64 = imagesBase64 != null;
-    final hasStoragePaths = storagePaths != null;
-    if (hasImagesBase64 == hasStoragePaths) {
-      throw ArgumentError(
-        'Vision V2 multi-image input must provide exactly one transport',
-      );
-    }
-    final values = imagesBase64 ?? storagePaths ?? const <String>[];
-    if (values.length < 2 ||
-        values.length > maxMultiImageCount ||
-        values.any((value) => value.trim().isEmpty)) {
+    if (imagesBase64.length < 2 ||
+        imagesBase64.length > maxMultiImageCount ||
+        imagesBase64.any((value) => value.trim().isEmpty)) {
       throw ArgumentError('Invalid Vision V2 multi-image input');
     }
 
     final request = <String, dynamic>{
-      'sourceImageCount': values.length,
+      'imagesBase64': List<String>.of(imagesBase64),
+      'sourceImageCount': imagesBase64.length,
       'prompt': prompt,
       'maxOutputTokens': maxOutputTokens,
       'scanMode': scanMode,
       'responseMode': responseMode,
     };
-    if (hasStoragePaths) {
-      request['storagePaths'] = List<String>.of(storagePaths);
-    } else {
-      request['imagesBase64'] =
-          List<String>.of(imagesBase64 ?? const <String>[]);
-    }
     final safeRequestId = VisionRequestTrace.normalizeRequestId(requestId);
     if (safeRequestId != null) request['requestId'] = safeRequestId;
     return request;
@@ -302,7 +285,6 @@ $header
   static Future<String> _callAnalyzeVisionV2({
     String? imageBase64,
     List<String>? imagesBase64,
-    List<String>? storagePaths,
     required String prompt,
     required int maxOutputTokens,
     required String scanMode,
@@ -321,8 +303,8 @@ $header
         '[Functions] analyzeVisionV2 call '
         'scanMode=$scanMode responseMode=$responseMode '
         'maxTokens=$maxOutputTokens '
-        'inputImageCount=${storagePaths?.length ?? imagesBase64?.length ?? 1} '
-        'inputMode=${storagePaths != null ? 'storage_paths' : 'base64'}',
+        'inputImageCount=${imagesBase64?.length ?? 1} '
+        'inputMode=base64',
       );
       VisionRequestTrace.log(
         requestId,
@@ -337,34 +319,25 @@ $header
           timeout: const Duration(seconds: 180),
         ),
       );
-      final payload = storagePaths != null
+      final payload = imagesBase64 != null
           ? VisionV2RequestContract.multi(
-              storagePaths: storagePaths,
+              imagesBase64: imagesBase64,
               prompt: prompt,
               maxOutputTokens: maxOutputTokens,
               scanMode: scanMode,
               responseMode: responseMode,
               requestId: requestId,
             )
-          : imagesBase64 != null
-              ? VisionV2RequestContract.multi(
-                  imagesBase64: imagesBase64,
-                  prompt: prompt,
-                  maxOutputTokens: maxOutputTokens,
-                  scanMode: scanMode,
-                  responseMode: responseMode,
-                  requestId: requestId,
-                )
-              : VisionV2RequestContract.single(
-                  imageBase64: imageBase64!,
-                  prompt: prompt,
-                  maxOutputTokens: maxOutputTokens,
-                  scanMode: scanMode,
-                  responseMode: responseMode,
-                  sourceImageCount: sourceImageCount,
-                  requestId: requestId,
-                  requestFullMenu: requestFullMenu,
-                );
+          : VisionV2RequestContract.single(
+              imageBase64: imageBase64!,
+              prompt: prompt,
+              maxOutputTokens: maxOutputTokens,
+              scanMode: scanMode,
+              responseMode: responseMode,
+              sourceImageCount: sourceImageCount,
+              requestId: requestId,
+              requestFullMenu: requestFullMenu,
+            );
       final result = await callable.call(payload);
       VisionRequestTrace.log(requestId, 'callable_response_received');
 
@@ -433,6 +406,48 @@ $header
     }
   }
 
+  static Future<List<String>> _encodeSeparateImages(
+      List<File> sourceImages) async {
+    if (sourceImages.length < 2 ||
+        sourceImages.length > VisionV2RequestContract.maxMultiImageCount) {
+      throw ArgumentError(
+          'Vision V2 multi-image count must be between 2 and ${VisionV2RequestContract.maxMultiImageCount}');
+    }
+
+    final inputBytes = await Future.wait(
+      sourceImages.map((sourceImage) => sourceImage.readAsBytes()),
+    );
+    final encodeStartedAt = DateTime.now();
+    final imagesBase64 = <String>[];
+    var totalCompressedBytes = 0;
+    var totalBase64Length = 0;
+    for (var index = 0; index < inputBytes.length; index++) {
+      final bytes = inputBytes[index];
+      final encoded = base64Encode(bytes);
+      imagesBase64.add(encoded);
+      totalCompressedBytes += bytes.length;
+      totalBase64Length += encoded.length;
+      debugPrint(
+        '[VisionV2 Client] image=${index + 1} '
+        'bytes=${bytes.length} base64Length=${encoded.length}',
+      );
+    }
+
+    debugPrint('[VisionV2 Client] transport=separate_images');
+    debugPrint('[VisionV2 Client] sourceImageCount=${sourceImages.length}');
+    debugPrint(
+      '[VisionV2 Client] totalCompressedBytes=$totalCompressedBytes '
+      'totalBase64Length=$totalBase64Length',
+    );
+    debugPrint(
+      '[VisionV2 Client] base64EncodeLatencyMs='
+      '${DateTime.now().difference(encodeStartedAt).inMilliseconds}',
+    );
+    debugPrint('[VisionV2 Client] callable=analyzeVisionV2');
+
+    return imagesBase64;
+  }
+
   static Future<String> _analyzeVisionV2SeparateImages({
     required List<File> sourceImages,
     required String? promptContext,
@@ -441,10 +456,7 @@ $header
     required String requestId,
   }) async {
     final sourceImageCount = sourceImages.length;
-    final upload = await VisionUploadService().uploadMultiScan(
-      sourceImages: sourceImages,
-      scanId: requestId,
-    );
+    final imagesBase64 = await _encodeSeparateImages(sourceImages);
     final scanMode = 'multi';
     final outputProtocol = _outputProtocol(
       streamMode: responseMode == 'stream',
@@ -460,7 +472,7 @@ $header
 
     final startedAt = DateTime.now();
     final text = await _callAnalyzeVisionV2(
-      storagePaths: upload.uploadedPaths,
+      imagesBase64: imagesBase64,
       prompt: prompt,
       maxOutputTokens: maxOutputTokens,
       scanMode: scanMode,
@@ -470,9 +482,9 @@ $header
       requestFullMenu: false,
     );
     debugPrint(
-      '[VisionV2 Client] storage_paths response '
+      '[VisionV2 Client] separate_images response '
       'latencyMs=${DateTime.now().difference(startedAt).inMilliseconds} '
-      'sourceImageCount=$sourceImageCount uploadedBytes=${upload.totalBytes}',
+      'sourceImageCount=$sourceImageCount',
     );
     return text;
   }
@@ -721,11 +733,10 @@ If it doesn’t seem food-related, just say so.
             newline +
             _multiVisionV2Contract(sourceImageCount: sourceImageCount)
         : '';
-    final singleFullMenuContract = _useVisionV2 &&
-            scanMode == 'single' &&
-            requestFullMenu
-        ? newline + newline + _singleFullMenuContract
-        : '';
+    final singleFullMenuContract =
+        _useVisionV2 && scanMode == 'single' && requestFullMenu
+            ? newline + newline + _singleFullMenuContract
+            : '';
     return outputProtocol +
         newline +
         mergedPrompt +
