@@ -18,11 +18,15 @@ import {
   buildVisionImageContent,
   normalizeVisionImages,
 } from "./visionRequest";
+import {resolveAiEntitlement} from "./aiEntitlementService";
+import {reserveAiQuota} from "./aiQuotaService";
+import {
+  AiCallableRequest,
+  beginAiAccessObservation,
+  resolveAndReserveAiAccess,
+} from "./aiAccessPolicyService";
 
-interface VisionCallableRequest {
-  auth?: unknown;
-  data?: unknown;
-}
+type VisionCallableRequest = AiCallableRequest;
 
 interface VisionV2Response {
   success: true;
@@ -154,9 +158,7 @@ export async function handleAnalyzeVisionV2(
   request: VisionCallableRequest,
   apiKey: string
 ): Promise<VisionV2Response> {
-  if (!request.auth) {
-    throw new HttpsError("unauthenticated", "Login required.");
-  }
+  const accessContext = beginAiAccessObservation(request);
 
   const data = isRecord(request.data) ? request.data : {};
   const requestId = normalizeRequestId(data.requestId);
@@ -192,6 +194,15 @@ export async function handleAnalyzeVisionV2(
     `request_received scanMode=${scanMode} inputImageCount=${inputImageCount} ` +
     `sourceImageCount=${sourceImageCount ?? "unknown"} requestFullMenu=${requestFullMenu}`
   );
+  await resolveAndReserveAiAccess(
+    accessContext,
+    scanMode,
+    {
+      resolveEntitlement: resolveAiEntitlement,
+      reserveQuota: reserveAiQuota,
+    }
+  );
+
   const openai = new OpenAI({apiKey});
   const startedAt = Date.now();
 

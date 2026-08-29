@@ -30,6 +30,7 @@ import 'package:provider/provider.dart';
 import 'ad_remove_provider.dart';
 import 'analytics_service.dart';
 import 'helpers/preset_update_review_service.dart';
+import 'services/firebase_app_check_service.dart';
 import 'services/interstitial_ad_service.dart';
 
 enum GuestWelcomeAction {
@@ -44,6 +45,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await _activateFirebaseAppCheck();
   await MobileAds.instance.initialize();
 
   final savedThemeMode = await AdaptiveTheme.getThemeMode();
@@ -61,6 +63,16 @@ void main() async {
   );
 
   unawaited(_initializeAfterLaunch());
+}
+
+Future<void> _activateFirebaseAppCheck() async {
+  try {
+    await FirebaseAppCheckService.activate();
+  } catch (error) {
+    // PR12 is observation-only. A provider setup issue must not block launch.
+    final errorType = error.runtimeType;
+    debugPrint('[AppCheck] activation failed: $errorType');
+  }
 }
 
 Future<void> _initializeAfterLaunch() async {
