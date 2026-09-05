@@ -34,6 +34,7 @@ import '/analytics_service.dart';
 import '/helpers/account_upgrade_helper.dart';
 import '/services/premium_auto_prompt_policy.dart';
 import '/services/result_exit_interstitial_policy.dart';
+import '/services/history_retention_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -946,19 +947,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
       _lastMultiScanTap = now;
-      if (!context.read<AdRemoveProvider>().isSubscribed) {
-        await AnalyticsService.instance.logPaywallView(
-          source: 'multi_scan_tab',
-          trigger: 'premium_gate',
-        );
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content:
-                  Text(AppLocalizations.of(context)!.premiumFunctionMessage)),
-        );
-        return;
-      }
+
       await LogService()
           .logCameraOpen(reason: 'multi_scan_tab'); // ① 변형(멀티스캔 진입 의도)
       if (!mounted) return;
@@ -966,7 +955,7 @@ class _HomeScreenState extends State<HomeScreen> {
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (ctx) => CameraScreen(
-            isPremium: true,
+            isMulti: true,
             onCancel: () {
               Navigator.of(ctx).pop();
               setState(() => _selectedIndex = 0);
@@ -1338,10 +1327,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     label: localizations?.camera ?? 'Camera',
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(
-                      Icons.photo_library,
-                      color: isSubscribed ? null : Colors.grey,
-                    ),
+                    icon: Icon(Icons.photo_library),
                     label: localizations?.multiScan ?? 'Multi scan',
                   ),
                   BottomNavigationBarItem(
@@ -1480,7 +1466,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   List<Widget> _getWidgetOptions() {
-    final isSubscribed = context.watch<AdRemoveProvider>().isSubscribed;
     return <Widget>[
       // 홈
       HomeContent(
@@ -1502,7 +1487,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       CameraScreen(
         onCancel: () => _onItemTapped(0),
-        isPremium: isSubscribed,
+        isMulti: true,
       ),
 
       // 히스토리
@@ -2370,6 +2355,8 @@ class _HomeContentState extends State<HomeContent> {
     final localizations = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final User? user = FirebaseAuth.instance.currentUser;
+    final entitlement = context.read<AdRemoveProvider>();
+    final isPremium = entitlement.isSubscribed;
 
     try {
       if (user != null) {
@@ -2459,6 +2446,16 @@ class _HomeContentState extends State<HomeContent> {
 
           // 🔥 모든 변경 사항을 한 번에 커밋
           await batch.commit();
+
+          if (entitlement.isEntitlementLoaded) {
+            await const HistoryRetentionService().enforce(
+              historyCollection: firestore
+                  .collection('user_rating')
+                  .doc(user.uid)
+                  .collection('data'),
+              isPremium: isPremium,
+            );
+          }
 
           // ✅ 저장 완료 메시지
           messenger

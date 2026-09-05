@@ -9,14 +9,18 @@ import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import '/widgets/photo_capture_widget.dart';
 import '/screens/log_service.dart';
 import '/analytics_service.dart';
+import 'package:provider/provider.dart';
+import '/ad_remove_provider.dart';
+import '/services/interstitial_ad_service.dart';
+import '/services/multi_scan_usage.dart';
 
 class CameraScreen extends StatefulWidget {
   final VoidCallback onCancel;
-  final bool isPremium; // (하위 호환 유지용) 상위에서 넘기면 우선 사용, 없으면 Provider 사용
+  final bool isMulti;
   const CameraScreen({
     super.key,
     required this.onCancel,
-    this.isPremium = false, // 기본값 false
+    this.isMulti = false,
   });
 
   @override
@@ -54,16 +58,12 @@ class _CameraScreenState extends State<CameraScreen> {
     try {
       // 프리미엄이 아니면 1장만 허용(혹시 위젯 변경/플랫폼 버그 등으로 여러 장 올 경우 대비)
       // 멀티스캔 탭에서만 여러 장 허용: 네비게이션에서 넘긴 flag만 사용
-      final isMultiMode = widget.isPremium; // (이름 그대로: 멀티스캔 여부)
+      final isMultiMode = widget.isMulti; // (이름 그대로: 멀티스캔 여부)
       final incoming = isMultiMode
           ? rawFiles
           : (rawFiles.isNotEmpty ? [rawFiles.first] : rawFiles);
 
-      await AnalyticsService.instance.logScanStarted(
-        scanMode: isMultiMode ? 'multi' : 'single',
-        entryPoint: isMultiMode ? 'multi_scan_tab' : 'camera_tab',
-        imageCount: incoming.length,
-      );
+
 
       // 🔹 [LOG] ② 멀티 스캔: 사진 선택 후 전송
       if (isMultiMode && incoming.isNotEmpty) {
@@ -86,6 +86,24 @@ class _CameraScreenState extends State<CameraScreen> {
       debugPrint('📸 네비게이션 전, mounted=$mounted');
 
       // 3) 다음 화면으로 안전하게 네비게이션
+      // Multi Scan ads are shown immediately before the Vision request starts.
+      if (isMultiMode) {
+        await _prepareMultiScanStart();
+        if (_isCancelled || !mounted) return;
+        await _logAnalyticsSafely(
+          AnalyticsService.instance.logMultiScanStarted(
+            imageCount: incoming.length,
+          ),
+        );
+      } else {
+        await _logAnalyticsSafely(
+          AnalyticsService.instance.logScanStarted(
+            scanMode: 'single',
+            entryPoint: 'camera_tab',
+            imageCount: incoming.length,
+          ),
+        );
+      }
       WidgetsBinding.instance.addPostFrameCallback((_) {
         debugPrint('📸 Navigator.push 실행');
         if (!mounted) return;
@@ -103,7 +121,7 @@ class _CameraScreenState extends State<CameraScreen> {
       });
     } catch (e) {
       await AnalyticsService.instance.logScanFailed(
-        scanMode: widget.isPremium ? 'multi' : 'single',
+        scanMode: widget.isMulti ? 'multi' : 'single',
         stage: 'camera_capture',
         errorCode: e.toString(),
       );
@@ -120,6 +138,66 @@ class _CameraScreenState extends State<CameraScreen> {
     } finally {
       // 처리 종료 플래그 해제 (UI 갱신)
       if (mounted) setState(() => _isProcessing = false);
+    }
+  }
+
+  Future<void> _prepareMultiScanStart() async {
+    final provider = context.read<AdRemoveProvider>();
+    if (!provider.isEntitlementLoaded) {
+      // Fail open while entitlement state is unresolved; never show an ad to
+      // a Premium user based on the provider's temporary free default.
+      debugPrint('Multi Scan start gate skipped while entitlement loads');
+      return;
+    }
+    final coordinator = MultiScanStartCoordinator(
+      usage: MultiScanUsageService(),
+      showInterstitial: InterstitialAdService.instance.show,
+    );
+    MultiScanStartResult result;
+    try {
+      result = await coordinator.start(
+        isPremium: provider.isSubscribed,
+        isAdRemoved: provider.isAdRemoved,
+        canContinue: () => !_isCancelled && mounted,
+      );
+    } catch (error) {
+      // Local usage persistence must remain fail-open for the scan itself.
+      debugPrint('Multi Scan start gate failed: $error');
+      return;
+    }
+
+    if (result.recordedCount == null && result.decision.shouldRecordUsage) {
+      // A cancelled flow must not emit a successful gate event or increment
+      // the daily allowance.
+      return;
+    }
+
+    if (result.interstitialAttempted) {
+      if (result.interstitialShown) {
+        await _logAnalyticsSafely(
+          AnalyticsService.instance.logMultiScanInterstitialShown(
+            dailyCount: result.decision.dailyCount,
+          ),
+        );
+      } else {
+        await _logAnalyticsSafely(
+          AnalyticsService.instance.logMultiScanInterstitialFailed(
+            reason: 'unavailable_or_show_failed',
+          ),
+        );
+      }
+    } else if (result.decision.reason == MultiScanAdReason.firstDailyScan) {
+      await _logAnalyticsSafely(
+        AnalyticsService.instance.logMultiScanInterstitialSkippedFirstDaily(),
+      );
+    }
+  }
+
+  Future<void> _logAnalyticsSafely(Future<void> event) async {
+    try {
+      await event;
+    } catch (error) {
+      debugPrint('Analytics event failed: $error');
     }
   }
 
@@ -317,7 +395,7 @@ class _CameraScreenState extends State<CameraScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     // Provider 기준으로 최신 구독 상태를 읽고, 상위에서 명시적으로 넘긴 값이 true면 그걸 우선.
 // 네비게이션에서 넘긴 값으로만 멀티/싱글 결정
-    final isMultiMode = widget.isPremium;
+    final isMultiMode = widget.isMulti;
     final maxCount = isMultiMode ? 4 : 1;
     return PopScope(
       canPop: false,

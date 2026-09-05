@@ -103,6 +103,8 @@
   "all": "All",
   "favorite": "Favorite",
   "noHistoryFound": "No History Found",
+  "historyFreeLimitNotice": "Free and guest accounts keep the 20 most recent history entries.",
+  "historyUnlimitedNotice": "Premium accounts can keep unlimited history.",
   "aiScanning": "AI Scanning...",
   "aiLoadingMessage": "AI can make mistakes. The loading time typically takes around 5-10 seconds, but it may vary depending on your internet connection and smartphone device.",
   "introductionTitle1": "Mscanner",

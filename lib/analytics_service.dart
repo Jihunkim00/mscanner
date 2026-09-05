@@ -114,6 +114,23 @@ class AnalyticsService {
         'image_count': imageCount,
       });
 
+  Future<void> logMultiScanStarted({required int imageCount}) =>
+      logEvent('multi_scan_started', params: {
+        'image_count': imageCount,
+      });
+
+  Future<void> logMultiScanInterstitialShown({required int dailyCount}) =>
+      logEvent('multi_scan_interstitial_shown', params: {
+        'daily_count': dailyCount,
+      });
+
+  Future<void> logMultiScanInterstitialSkippedFirstDaily() =>
+      logEvent('multi_scan_interstitial_skipped_first_daily');
+
+  Future<void> logMultiScanInterstitialFailed({String? reason}) =>
+      logEvent('multi_scan_interstitial_failed', params: {
+        'reason': reason ?? 'unknown',
+      });
   Future<void> logScanSuccess({
     required String scanMode,
     required int imageCount,

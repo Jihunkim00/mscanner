@@ -753,6 +753,18 @@ abstract class AppLocalizations {
   /// **'No History Found'**
   String get noHistoryFound;
 
+  /// No description provided for @historyFreeLimitNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Free and guest accounts keep the 20 most recent history entries.'**
+  String get historyFreeLimitNotice;
+
+  /// No description provided for @historyUnlimitedNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium accounts can keep unlimited history.'**
+  String get historyUnlimitedNotice;
+
   /// No description provided for @aiScanning.
   ///
   /// In en, this message translates to:

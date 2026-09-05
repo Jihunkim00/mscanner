@@ -12,6 +12,9 @@ import 'package:mscanner/screens/animated_map_screen.dart'; // ← 추가
 import '../models/place_data.dart'; // ← 추가
 import '/screens/log_service.dart';
 import 'package:mscanner/widgets/mscanner_search_ui.dart';
+import 'package:provider/provider.dart';
+import '/ad_remove_provider.dart';
+import '/services/history_retention_service.dart';
 
 class FavoriteListScreen extends StatefulWidget {
   const FavoriteListScreen({super.key});
@@ -29,11 +32,29 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
   String _currentSort = 'latest'; // 기본 정렬: 최신순
   String _searchText = '';
   final TextEditingController _searchController = TextEditingController();
+  bool? _loadedForPremium;
+  bool? _loadedForEntitlement;
+  int _loadRequest = 0;
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final entitlement = context.watch<AdRemoveProvider>();
+    final isPremium = entitlement.isSubscribed;
+    final isEntitlementLoaded = entitlement.isEntitlementLoaded;
+    if (_loadedForPremium == isPremium &&
+        _loadedForEntitlement == isEntitlementLoaded) {
+      return;
+    }
+    _loadedForPremium = isPremium;
+    _loadedForEntitlement = isEntitlementLoaded;
+    _loadFavoriteResults();
   }
 
   // ✅ 상단 필터(예: All / Recent / Top Rated)
@@ -239,12 +260,25 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
     return groups;
   }
 
-  Widget _buildTopControls(Color backgroundColor, Color textColor) {
+  Widget _buildTopControls(
+      Color backgroundColor, Color textColor, bool isPremium) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: Text(
+            isPremium
+                ? AppLocalizations.of(context)!.historyUnlimitedNotice
+                : AppLocalizations.of(context)!.historyFreeLimitNotice,
+            style: TextStyle(
+              color: textColor.withValues(alpha: 0.62),
+              fontSize: 12,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
           child: MScannerSearchField(
             controller: _searchController,
             placeholder:
@@ -487,7 +521,6 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
   void initState() {
     super.initState();
     _checkDarkMode();
-    _loadFavoriteResults();
   }
 
   Future<void> _checkDarkMode() async {
@@ -498,32 +531,63 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
   }
 
   Future<void> _loadFavoriteResults() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    final user = FirebaseAuth.instance.currentUser;
+    final request = ++_loadRequest;
+    if (user == null) {
+      if (mounted) setState(() => _favoriteResults = []);
+      return;
+    }
 
-    QuerySnapshot querySnapshot;
+    final entitlement = context.read<AdRemoveProvider>();
+    if (!entitlement.isEntitlementLoaded) return;
+    final isPremium = entitlement.isSubscribed;
+    final historyCollection = FirebaseFirestore.instance
+        .collection('user_rating')
+        .doc(user.uid)
+        .collection('data');
 
-    if (_currentSort == 'latest') {
-      querySnapshot = await FirebaseFirestore.instance
-          .collection('user_rating')
-          .doc(user.uid)
-          .collection('data')
-          .orderBy('timestamp', descending: true)
-          .limit(500)
-          .get();
+    await const HistoryRetentionService().enforce(
+      historyCollection: historyCollection,
+      isPremium: isPremium,
+    );
+    if (!mounted || request != _loadRequest) return;
+
+    QuerySnapshot<Map<String, dynamic>> querySnapshot;
+    if (_currentSort == 'latest' || !isPremium) {
+      Query<Map<String, dynamic>> query =
+          historyCollection.orderBy('timestamp', descending: true);
+      // Free/Guest retention is always the newest 20 entries. Country sort
+      // is applied locally after selecting that same newest window.
+      if (!isPremium) {
+        query = query.limit(HistoryRetentionPolicy.freeHistoryLimit);
+      }
+      querySnapshot = await query.get();
     } else {
-      querySnapshot = await FirebaseFirestore.instance
-          .collection('user_rating')
-          .doc(user.uid)
-          .collection('data')
+      // Premium has no storage-retention cap. This remains a UI query, not a
+      // deletion policy; a future paginated UI can add a page size here.
+      querySnapshot = await historyCollection
           .orderBy('country', descending: false)
           .orderBy('timestamp', descending: true)
-          .limit(500)
           .get();
     }
 
+    var docs = querySnapshot.docs.toList();
+    if (!isPremium && _currentSort == 'country') {
+      docs.sort((a, b) {
+        final countryCompare =
+            (a.data()['country'] ?? '').toString().compareTo(
+                  (b.data()['country'] ?? '').toString(),
+                );
+        if (countryCompare != 0) return countryCompare;
+        return (b.data()['timestamp'] ?? '').toString().compareTo(
+              (a.data()['timestamp'] ?? '').toString(),
+            );
+      });
+    }
+
+    if (!mounted || request != _loadRequest) return;
     setState(() {
-      _favoriteResults = querySnapshot.docs;
+      _favoriteResults = docs;
       _selectedIds.clear(); // 새로 로드 시 선택 초기화
     });
   }
@@ -570,6 +634,7 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
     final textColor = _isDarkMode ? Colors.white : Colors.black;
 
     final loc = AppLocalizations.of(context)!; // ← 추가
+    final isPremium = context.watch<AdRemoveProvider>().isSubscribed;
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -579,7 +644,7 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
             // ✅ NEW: 상단 필터 + 섹션 리스트
             Column(
               children: [
-                _buildTopControls(backgroundColor, textColor),
+                _buildTopControls(backgroundColor, textColor, isPremium),
                 Expanded(
                   child: _favoriteResults.isEmpty
                       ? Center(

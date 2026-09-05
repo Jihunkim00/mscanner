@@ -318,6 +318,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get noHistoryFound => '未找到历史记录';
+  @override
+  String get historyFreeLimitNotice =>
+      'Free and guest accounts keep the 20 most recent history entries.';
+
+  @override
+  String get historyUnlimitedNotice =>
+      'Premium accounts can keep unlimited history.';
 
   @override
   String get aiScanning => 'AI扫描中...';
@@ -1414,6 +1421,13 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get noHistoryFound => '未找到历史记录';
+  @override
+  String get historyFreeLimitNotice =>
+      'Free and guest accounts keep the 20 most recent history entries.';
+
+  @override
+  String get historyUnlimitedNotice =>
+      'Premium accounts can keep unlimited history.';
 
   @override
   String get aiScanning => 'AI扫描中...';
@@ -2510,6 +2524,13 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get noHistoryFound => '未找到歷史記錄';
+  @override
+  String get historyFreeLimitNotice =>
+      'Free and guest accounts keep the 20 most recent history entries.';
+
+  @override
+  String get historyUnlimitedNotice =>
+      'Premium accounts can keep unlimited history.';
 
   @override
   String get aiScanning => 'AI掃描中...';

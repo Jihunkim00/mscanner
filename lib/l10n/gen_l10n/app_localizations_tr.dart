@@ -324,6 +324,13 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get noHistoryFound => 'Geçmiş bulunamadı';
+  @override
+  String get historyFreeLimitNotice =>
+      'Free and guest accounts keep the 20 most recent history entries.';
+
+  @override
+  String get historyUnlimitedNotice =>
+      'Premium accounts can keep unlimited history.';
 
   @override
   String get aiScanning => 'AI Tarama...';

@@ -324,6 +324,13 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get noHistoryFound => 'কোনো ইতিহাস পাওয়া যায়নি';
+  @override
+  String get historyFreeLimitNotice =>
+      'Free and guest accounts keep the 20 most recent history entries.';
+
+  @override
+  String get historyUnlimitedNotice =>
+      'Premium accounts can keep unlimited history.';
 
   @override
   String get aiScanning => 'এআই স্ক্যানিং...';

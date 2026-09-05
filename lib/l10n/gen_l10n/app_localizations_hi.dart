@@ -324,6 +324,13 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get noHistoryFound => 'कोई इतिहास नहीं मिला';
+  @override
+  String get historyFreeLimitNotice =>
+      'Free and guest accounts keep the 20 most recent history entries.';
+
+  @override
+  String get historyUnlimitedNotice =>
+      'Premium accounts can keep unlimited history.';
 
   @override
   String get aiScanning => 'एआई स्कैनिंग...';
