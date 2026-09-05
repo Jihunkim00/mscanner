@@ -26,7 +26,7 @@ if (flutterVersionName == null) {
 android {
     namespace "com.thj.mscanner"
     compileSdk 36 // ✅ 직접 설정하여 명확히 표시
-    ndkVersion "28.0.12674087"   // ✅ r28 명시 고정
+    ndkVersion "28.2.13676358"   // ✅ r28 명시 고정
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17 // ✅ Java 17로 변경
@@ -82,6 +82,9 @@ flutter {
 
 dependencies {
     implementation 'androidx.core:core:1.18.0'
+
+    implementation "androidx.work:work-runtime:2.11.2"
+    
     implementation 'com.android.billingclient:billing:6.1.0' // 최신 버전
     implementation "com.android.billingclient:billing-ktx:6.1.0"
 }
