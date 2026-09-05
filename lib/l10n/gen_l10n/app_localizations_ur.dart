@@ -325,14 +325,6 @@ class AppLocalizationsUr extends AppLocalizations {
   @override
   String get noHistoryFound => 'کوئی تاریخ نہیں ملی';
   @override
-  String get historyFreeLimitNotice =>
-      'Free and guest accounts keep the 20 most recent history entries.';
-
-  @override
-  String get historyUnlimitedNotice =>
-      'Premium accounts can keep unlimited history.';
-
-  @override
   String get aiScanning => 'اے آئی اسکیننگ...';
 
   @override
@@ -1160,4 +1152,12 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get historyLimitReachedTitle => 'اسکین ہسٹری اسٹوریج کا نوٹس';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return 'حالیہ اسکین ہسٹری میں زیادہ سے زیادہ $limit اندراجات محفوظ رہتے ہیں۔ اس حد سے زیادہ نیا اندراج محفوظ ہونے پر سب سے پرانا اندراج خودکار طور پر حذف ہو جاتا ہے۔ Premium صارفین اسکین ہسٹری لامحدود محفوظ رکھ سکتے ہیں۔';
+  }
 }

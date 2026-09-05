@@ -377,5 +377,7 @@
   "premiumStartCta": "Start Premium",
   "premiumGuestSectionTitle": "Connect your account before purchasing Premium in guest mode",
   "premiumGuestSectionMessage": "Premium subscriptions are linked to your account so purchases can be restored and used across devices.",
-  "premiumGuestConvertButton": "Convert account to continue"
+  "premiumGuestConvertButton": "Convert account to continue",
+  "historyLimitReachedTitle": "Thông báo lưu trữ lịch sử quét",
+  "historyLimitReachedMessage": "Lịch sử quét gần đây được lưu tối đa {limit} mục. Khi lưu mục mới vượt quá giới hạn này, mục cũ nhất sẽ tự động bị xóa. Người dùng Premium có thể lưu lịch sử quét không giới hạn."
 }

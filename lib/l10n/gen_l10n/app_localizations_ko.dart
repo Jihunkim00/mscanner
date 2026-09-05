@@ -319,14 +319,6 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get noHistoryFound => '기록이 없습니다';
   @override
-  String get historyFreeLimitNotice =>
-      'Free and guest accounts keep the 20 most recent history entries.';
-
-  @override
-  String get historyUnlimitedNotice =>
-      'Premium accounts can keep unlimited history.';
-
-  @override
   String get aiScanning => 'AI 스캐닝 중...';
 
   @override
@@ -1116,4 +1108,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => '계정 전환 후 계속';
+
+  @override
+  String get historyLimitReachedTitle => '스캔 기록 보관 안내';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return '최근 스캔 기록은 최대 $limit개까지 저장됩니다. 새 기록이 저장되면 가장 오래된 기록이 자동으로 삭제됩니다. Premium에서는 스캔 기록을 제한 없이 보관할 수 있습니다.';
+  }
 }

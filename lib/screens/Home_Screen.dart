@@ -2345,6 +2345,26 @@ class _HomeContentState extends State<HomeContent> {
     });
   }
 
+  Future<void> _showHistoryLimitReachedDialog({required int limit}) async {
+    if (!mounted) return;
+    final localizations = AppLocalizations.of(context);
+    if (localizations == null) return;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(localizations.historyLimitReachedTitle),
+        content: Text(localizations.historyLimitReachedMessage(limit)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(localizations.confirm),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _performSave(bool isSkip) async {
     await LogService().logRatingPrompt(
       action: isSkip ? 'skip' : 'save',
@@ -2447,14 +2467,25 @@ class _HomeContentState extends State<HomeContent> {
           // 🔥 모든 변경 사항을 한 번에 커밋
           await batch.commit();
 
+          var retentionResult = const HistoryRetentionResult.none();
           if (entitlement.isEntitlementLoaded) {
-            await const HistoryRetentionService().enforce(
+            retentionResult = await const HistoryRetentionService().enforce(
               historyCollection: firestore
                   .collection('user_rating')
                   .doc(user.uid)
                   .collection('data'),
               isPremium: isPremium,
             );
+          }
+
+          if (!isPremium && retentionResult.oldestHistoryRemoved && mounted) {
+            final shouldShowNotice =
+                await HistoryLimitNoticeService().claimForToday();
+            if (shouldShowNotice && mounted) {
+              await _showHistoryLimitReachedDialog(
+                limit: HistoryRetentionPolicy.freeHistoryLimit,
+              );
+            }
           }
 
           // ✅ 저장 완료 메시지

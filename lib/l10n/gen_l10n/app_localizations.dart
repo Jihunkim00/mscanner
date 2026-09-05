@@ -753,18 +753,6 @@ abstract class AppLocalizations {
   /// **'No History Found'**
   String get noHistoryFound;
 
-  /// No description provided for @historyFreeLimitNotice.
-  ///
-  /// In en, this message translates to:
-  /// **'Free and guest accounts keep the 20 most recent history entries.'**
-  String get historyFreeLimitNotice;
-
-  /// No description provided for @historyUnlimitedNotice.
-  ///
-  /// In en, this message translates to:
-  /// **'Premium accounts can keep unlimited history.'**
-  String get historyUnlimitedNotice;
-
   /// No description provided for @aiScanning.
   ///
   /// In en, this message translates to:
@@ -2282,6 +2270,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Convert account to continue'**
   String get premiumGuestConvertButton;
+
+  /// No description provided for @historyLimitReachedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan history storage notice'**
+  String get historyLimitReachedTitle;
+
+  /// Explains history retention after an older entry is removed.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent scan history is stored up to {limit} entries. When a new history entry is saved beyond this limit, the oldest entry is automatically removed. Premium users can store unlimited history.'**
+  String historyLimitReachedMessage(int limit);
 }
 
 class _AppLocalizationsDelegate

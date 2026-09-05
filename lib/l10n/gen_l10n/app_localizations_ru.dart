@@ -326,14 +326,6 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get noHistoryFound => 'История не найдена';
   @override
-  String get historyFreeLimitNotice =>
-      'Free and guest accounts keep the 20 most recent history entries.';
-
-  @override
-  String get historyUnlimitedNotice =>
-      'Premium accounts can keep unlimited history.';
-
-  @override
   String get aiScanning => 'Сканирование ИИ...';
 
   @override
@@ -1157,4 +1149,12 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get historyLimitReachedTitle => 'Уведомление о хранении истории сканирования';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return 'В истории недавних сканирований хранится не более $limit записей. При сохранении новой записи сверх этого лимита самая старая запись удаляется автоматически. Пользователи Premium могут хранить историю сканирования без ограничений.';
+  }
 }

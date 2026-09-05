@@ -103,8 +103,6 @@
   "all": "All",
   "favorite": "Favorite",
   "noHistoryFound": "No History Found",
-  "historyFreeLimitNotice": "Free and guest accounts keep the 20 most recent history entries.",
-  "historyUnlimitedNotice": "Premium accounts can keep unlimited history.",
   "aiScanning": "AI Scanning...",
   "aiLoadingMessage": "AI can make mistakes. The loading time typically takes around 5-10 seconds, but it may vary depending on your internet connection and smartphone device.",
   "introductionTitle1": "Mscanner",
@@ -379,5 +377,15 @@
   "premiumStartCta": "Start Premium",
   "premiumGuestSectionTitle": "Connect your account before purchasing Premium in guest mode",
   "premiumGuestSectionMessage": "Premium subscriptions are linked to your account so purchases can be restored and used across devices.",
-  "premiumGuestConvertButton": "Convert account to continue"
+  "premiumGuestConvertButton": "Convert account to continue",
+  "historyLimitReachedTitle": "Scan history storage notice",
+  "historyLimitReachedMessage": "Recent scan history is stored up to {limit} entries. When a new history entry is saved beyond this limit, the oldest entry is automatically removed. Premium users can store unlimited history.",
+  "@historyLimitReachedMessage": {
+    "description": "Explains history retention after an older entry is removed.",
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  }
 }

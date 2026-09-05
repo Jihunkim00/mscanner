@@ -377,5 +377,7 @@
   "premiumStartCta": "Start Premium",
   "premiumGuestSectionTitle": "Connect your account before purchasing Premium in guest mode",
   "premiumGuestSectionMessage": "Premium subscriptions are linked to your account so purchases can be restored and used across devices.",
-  "premiumGuestConvertButton": "Convert account to continue"
+  "premiumGuestConvertButton": "Convert account to continue",
+  "historyLimitReachedTitle": "స్కాన్ చరిత్ర నిల్వ సమాచారం",
+  "historyLimitReachedMessage": "ఇటీవలి స్కాన్ చరిత్రలో గరిష్ఠంగా {limit} ఎంట్రీలు ఉంచబడతాయి. ఈ పరిమితిని మించి కొత్త ఎంట్రీని సేవ్ చేసినప్పుడు, అతి పాత ఎంట్రీ స్వయంచాలకంగా తొలగించబడుతుంది. Premium వినియోగదారులు అపరిమిత స్కాన్ చరిత్రను ఉంచుకోవచ్చు."
 }

@@ -377,5 +377,7 @@
   "premiumStartCta": "Start Premium",
   "premiumGuestSectionTitle": "Connect your account before purchasing Premium in guest mode",
   "premiumGuestSectionMessage": "Premium subscriptions are linked to your account so purchases can be restored and used across devices.",
-  "premiumGuestConvertButton": "Convert account to continue"
+  "premiumGuestConvertButton": "Convert account to continue",
+  "historyLimitReachedTitle": "Tarama geçmişi depolama bildirimi",
+  "historyLimitReachedMessage": "Son tarama geçmişinde en fazla {limit} kayıt tutulur. Bu sınırı aşan yeni bir kayıt kaydedildiğinde en eski kayıt otomatik olarak silinir. Premium kullanıcıları sınırsız tarama geçmişi saklayabilir."
 }

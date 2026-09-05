@@ -377,5 +377,7 @@
   "premiumStartCta": "Start Premium",
   "premiumGuestSectionTitle": "Connect your account before purchasing Premium in guest mode",
   "premiumGuestSectionMessage": "Premium subscriptions are linked to your account so purchases can be restored and used across devices.",
-  "premiumGuestConvertButton": "Convert account to continue"
+  "premiumGuestConvertButton": "Convert account to continue",
+  "historyLimitReachedTitle": "Information sur le stockage de l’historique des scans",
+  "historyLimitReachedMessage": "L’historique des scans récents conserve jusqu’à {limit} entrées. Lorsqu’une nouvelle entrée dépasse cette limite, la plus ancienne est automatiquement supprimée. Les utilisateurs Premium peuvent conserver un historique illimité."
 }

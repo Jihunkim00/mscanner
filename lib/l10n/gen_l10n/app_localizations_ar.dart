@@ -324,14 +324,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get noHistoryFound => 'لا يوجد تاريخ';
   @override
-  String get historyFreeLimitNotice =>
-      'Free and guest accounts keep the 20 most recent history entries.';
-
-  @override
-  String get historyUnlimitedNotice =>
-      'Premium accounts can keep unlimited history.';
-
-  @override
   String get aiScanning => 'جاري فحص الذكاء الاصطناعي...';
 
   @override
@@ -1147,4 +1139,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get historyLimitReachedTitle => 'إشعار تخزين سجل عمليات المسح';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return 'يتم الاحتفاظ بما يصل إلى $limit من أحدث سجلات المسح. عند حفظ سجل جديد يتجاوز هذا الحد، يتم حذف أقدم سجل تلقائيًا. يمكن لمستخدمي Premium الاحتفاظ بسجل مسح غير محدود.';
+  }
 }

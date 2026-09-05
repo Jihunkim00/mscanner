@@ -323,14 +323,6 @@ class AppLocalizationsTh extends AppLocalizations {
   @override
   String get noHistoryFound => 'ไม่พบประวัติ';
   @override
-  String get historyFreeLimitNotice =>
-      'Free and guest accounts keep the 20 most recent history entries.';
-
-  @override
-  String get historyUnlimitedNotice =>
-      'Premium accounts can keep unlimited history.';
-
-  @override
   String get aiScanning => 'กำลังสแกน AI...';
 
   @override
@@ -1148,4 +1140,12 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get historyLimitReachedTitle => 'แจ้งเตือนการจัดเก็บประวัติการสแกน';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return 'ประวัติการสแกนล่าสุดจะเก็บไว้ได้สูงสุด $limit รายการ เมื่อบันทึกรายการใหม่เกินขีดจำกัดนี้ รายการที่เก่าที่สุดจะถูกลบโดยอัตโนมัติ ผู้ใช้ Premium สามารถเก็บประวัติการสแกนได้ไม่จำกัด';
+  }
 }

@@ -377,5 +377,7 @@
   "premiumStartCta": "Start Premium",
   "premiumGuestSectionTitle": "Connect your account before purchasing Premium in guest mode",
   "premiumGuestSectionMessage": "Premium subscriptions are linked to your account so purchases can be restored and used across devices.",
-  "premiumGuestConvertButton": "Convert account to continue"
+  "premiumGuestConvertButton": "Convert account to continue",
+  "historyLimitReachedTitle": "スキャン履歴の保存について",
+  "historyLimitReachedMessage": "最近のスキャン履歴は最大{limit}件まで保存されます。新しい履歴がこの上限を超えて保存されると、最も古い履歴が自動的に削除されます。Premiumではスキャン履歴を無制限に保存できます。"
 }

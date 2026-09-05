@@ -325,14 +325,6 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get noHistoryFound => 'Không tìm thấy lịch sử';
   @override
-  String get historyFreeLimitNotice =>
-      'Free and guest accounts keep the 20 most recent history entries.';
-
-  @override
-  String get historyUnlimitedNotice =>
-      'Premium accounts can keep unlimited history.';
-
-  @override
   String get aiScanning => 'Đang quét AI...';
 
   @override
@@ -1156,4 +1148,12 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get historyLimitReachedTitle => 'Thông báo lưu trữ lịch sử quét';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return 'Lịch sử quét gần đây được lưu tối đa $limit mục. Khi lưu mục mới vượt quá giới hạn này, mục cũ nhất sẽ tự động bị xóa. Người dùng Premium có thể lưu lịch sử quét không giới hạn.';
+  }
 }

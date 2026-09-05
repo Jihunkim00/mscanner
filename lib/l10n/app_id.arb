@@ -377,5 +377,7 @@
   "premiumStartCta": "Start Premium",
   "premiumGuestSectionTitle": "Connect your account before purchasing Premium in guest mode",
   "premiumGuestSectionMessage": "Premium subscriptions are linked to your account so purchases can be restored and used across devices.",
-  "premiumGuestConvertButton": "Convert account to continue"
+  "premiumGuestConvertButton": "Convert account to continue",
+  "historyLimitReachedTitle": "Informasi penyimpanan riwayat pemindaian",
+  "historyLimitReachedMessage": "Riwayat pemindaian terbaru menyimpan hingga {limit} entri. Saat entri baru disimpan melebihi batas ini, entri yang paling lama akan dihapus otomatis. Pengguna Premium dapat menyimpan riwayat pemindaian tanpa batas."
 }

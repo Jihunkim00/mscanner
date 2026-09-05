@@ -319,14 +319,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get noHistoryFound => '未找到历史记录';
   @override
-  String get historyFreeLimitNotice =>
-      'Free and guest accounts keep the 20 most recent history entries.';
-
-  @override
-  String get historyUnlimitedNotice =>
-      'Premium accounts can keep unlimited history.';
-
-  @override
   String get aiScanning => 'AI扫描中...';
 
   @override
@@ -1105,6 +1097,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get historyLimitReachedTitle => '扫描记录存储说明';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return '最近的扫描记录最多保存$limit条。超过此上限保存新记录时，系统会自动删除最早的记录。Premium用户可以无限保存扫描记录。';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -1421,14 +1421,6 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get noHistoryFound => '未找到历史记录';
-  @override
-  String get historyFreeLimitNotice =>
-      'Free and guest accounts keep the 20 most recent history entries.';
-
-  @override
-  String get historyUnlimitedNotice =>
-      'Premium accounts can keep unlimited history.';
-
   @override
   String get aiScanning => 'AI扫描中...';
 
@@ -2208,6 +2200,14 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get historyLimitReachedTitle => '扫描记录存储说明';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return '最近的扫描记录最多保存$limit条。超过此上限保存新记录时，系统会自动删除最早的记录。Premium用户可以无限保存扫描记录。';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -2524,14 +2524,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get noHistoryFound => '未找到歷史記錄';
-  @override
-  String get historyFreeLimitNotice =>
-      'Free and guest accounts keep the 20 most recent history entries.';
-
-  @override
-  String get historyUnlimitedNotice =>
-      'Premium accounts can keep unlimited history.';
-
   @override
   String get aiScanning => 'AI掃描中...';
 
@@ -3310,4 +3302,12 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get historyLimitReachedTitle => '掃描記錄儲存說明';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return '最近的掃描記錄最多儲存$limit筆。超過此上限儲存新記錄時，系統會自動刪除最早的記錄。Premium 使用者可以無限儲存掃描記錄。';
+  }
 }

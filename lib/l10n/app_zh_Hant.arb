@@ -377,5 +377,7 @@
   "premiumStartCta": "Start Premium",
   "premiumGuestSectionTitle": "Connect your account before purchasing Premium in guest mode",
   "premiumGuestSectionMessage": "Premium subscriptions are linked to your account so purchases can be restored and used across devices.",
-  "premiumGuestConvertButton": "Convert account to continue"
+  "premiumGuestConvertButton": "Convert account to continue",
+  "historyLimitReachedTitle": "掃描記錄儲存說明",
+  "historyLimitReachedMessage": "最近的掃描記錄最多儲存{limit}筆。超過此上限儲存新記錄時，系統會自動刪除最早的記錄。Premium 使用者可以無限儲存掃描記錄。"
 }

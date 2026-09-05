@@ -325,14 +325,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get noHistoryFound => 'Nenhum histórico encontrado';
   @override
-  String get historyFreeLimitNotice =>
-      'Free and guest accounts keep the 20 most recent history entries.';
-
-  @override
-  String get historyUnlimitedNotice =>
-      'Premium accounts can keep unlimited history.';
-
-  @override
   String get aiScanning => 'Analisando IA...';
 
   @override
@@ -1162,6 +1154,14 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get historyLimitReachedTitle => 'Aviso sobre o armazenamento do histórico de digitalizações';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return 'O histórico de digitalizações recentes mantém até $limit registros. Quando um novo registro é salvo além desse limite, o mais antigo é removido automaticamente. Usuários Premium podem manter um histórico ilimitado.';
+  }
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -1484,14 +1484,6 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get noHistoryFound => 'Nenhum histórico encontrado';
-  @override
-  String get historyFreeLimitNotice =>
-      'Free and guest accounts keep the 20 most recent history entries.';
-
-  @override
-  String get historyUnlimitedNotice =>
-      'Premium accounts can keep unlimited history.';
-
   @override
   String get aiScanning => 'Analisando IA...';
 
@@ -2322,4 +2314,12 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get historyLimitReachedTitle => 'Aviso sobre o armazenamento do histórico de digitalizações';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return 'O histórico de digitalizações recentes mantém até $limit registros. Quando um novo registro é salvo além desse limite, o mais antigo é removido automaticamente. Usuários Premium podem manter um histórico ilimitado.';
+  }
 }

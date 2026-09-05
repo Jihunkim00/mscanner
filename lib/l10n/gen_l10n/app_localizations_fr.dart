@@ -325,14 +325,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get noHistoryFound => 'Aucun historique trouvé';
   @override
-  String get historyFreeLimitNotice =>
-      'Free and guest accounts keep the 20 most recent history entries.';
-
-  @override
-  String get historyUnlimitedNotice =>
-      'Premium accounts can keep unlimited history.';
-
-  @override
   String get aiScanning => 'Analyse de l\'IA...';
 
   @override
@@ -1166,4 +1158,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get historyLimitReachedTitle => 'Information sur le stockage de l’historique des scans';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return 'L’historique des scans récents conserve jusqu’à $limit entrées. Lorsqu’une nouvelle entrée dépasse cette limite, la plus ancienne est automatiquement supprimée. Les utilisateurs Premium peuvent conserver un historique illimité.';
+  }
 }

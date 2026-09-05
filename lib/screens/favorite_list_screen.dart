@@ -260,25 +260,12 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
     return groups;
   }
 
-  Widget _buildTopControls(
-      Color backgroundColor, Color textColor, bool isPremium) {
+  Widget _buildTopControls(Color backgroundColor, Color textColor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-          child: Text(
-            isPremium
-                ? AppLocalizations.of(context)!.historyUnlimitedNotice
-                : AppLocalizations.of(context)!.historyFreeLimitNotice,
-            style: TextStyle(
-              color: textColor.withValues(alpha: 0.62),
-              fontSize: 12,
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
           child: MScannerSearchField(
             controller: _searchController,
             placeholder:
@@ -634,7 +621,6 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
     final textColor = _isDarkMode ? Colors.white : Colors.black;
 
     final loc = AppLocalizations.of(context)!; // ← 추가
-    final isPremium = context.watch<AdRemoveProvider>().isSubscribed;
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -644,7 +630,7 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
             // ✅ NEW: 상단 필터 + 섹션 리스트
             Column(
               children: [
-                _buildTopControls(backgroundColor, textColor, isPremium),
+                _buildTopControls(backgroundColor, textColor),
                 Expanded(
                   child: _favoriteResults.isEmpty
                       ? Center(

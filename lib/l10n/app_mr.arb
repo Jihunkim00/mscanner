@@ -377,5 +377,7 @@
   "premiumStartCta": "Start Premium",
   "premiumGuestSectionTitle": "Connect your account before purchasing Premium in guest mode",
   "premiumGuestSectionMessage": "Premium subscriptions are linked to your account so purchases can be restored and used across devices.",
-  "premiumGuestConvertButton": "Convert account to continue"
+  "premiumGuestConvertButton": "Convert account to continue",
+  "historyLimitReachedTitle": "स्कॅन इतिहास संचयन सूचना",
+  "historyLimitReachedMessage": "अलीकडील स्कॅन इतिहासात जास्तीत जास्त {limit} नोंदी ठेवल्या जातात. या मर्यादेपेक्षा जास्त नवीन नोंद जतन केल्यास सर्वात जुनी नोंद आपोआप हटवली जाते. Premium वापरकर्ते अमर्यादित स्कॅन इतिहास ठेवू शकतात."
 }

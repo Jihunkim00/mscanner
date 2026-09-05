@@ -325,14 +325,6 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get noHistoryFound => 'কোনো ইতিহাস পাওয়া যায়নি';
   @override
-  String get historyFreeLimitNotice =>
-      'Free and guest accounts keep the 20 most recent history entries.';
-
-  @override
-  String get historyUnlimitedNotice =>
-      'Premium accounts can keep unlimited history.';
-
-  @override
   String get aiScanning => 'এআই স্ক্যানিং...';
 
   @override
@@ -1158,4 +1150,12 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get historyLimitReachedTitle => 'স্ক্যান ইতিহাস সংরক্ষণ সংক্রান্ত বিজ্ঞপ্তি';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return 'সাম্প্রতিক স্ক্যান ইতিহাসে সর্বাধিক $limitটি এন্ট্রি রাখা হয়। এই সীমার বেশি নতুন এন্ট্রি সংরক্ষণ করলে সবচেয়ে পুরোনো এন্ট্রিটি স্বয়ংক্রিয়ভাবে মুছে যায়। Premium ব্যবহারকারীরা সীমাহীন স্ক্যান ইতিহাস রাখতে পারেন।';
+  }
 }

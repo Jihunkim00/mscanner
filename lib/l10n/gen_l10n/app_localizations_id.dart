@@ -324,14 +324,6 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get noHistoryFound => 'Tidak ada riwayat ditemukan';
   @override
-  String get historyFreeLimitNotice =>
-      'Free and guest accounts keep the 20 most recent history entries.';
-
-  @override
-  String get historyUnlimitedNotice =>
-      'Premium accounts can keep unlimited history.';
-
-  @override
   String get aiScanning => 'Memindai AI...';
 
   @override
@@ -1157,4 +1149,12 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get historyLimitReachedTitle => 'Informasi penyimpanan riwayat pemindaian';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return 'Riwayat pemindaian terbaru menyimpan hingga $limit entri. Saat entri baru disimpan melebihi batas ini, entri yang paling lama akan dihapus otomatis. Pengguna Premium dapat menyimpan riwayat pemindaian tanpa batas.';
+  }
 }

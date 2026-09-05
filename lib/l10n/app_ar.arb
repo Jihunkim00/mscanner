@@ -377,5 +377,7 @@
   "premiumStartCta": "Start Premium",
   "premiumGuestSectionTitle": "Connect your account before purchasing Premium in guest mode",
   "premiumGuestSectionMessage": "Premium subscriptions are linked to your account so purchases can be restored and used across devices.",
-  "premiumGuestConvertButton": "Convert account to continue"
+  "premiumGuestConvertButton": "Convert account to continue",
+  "historyLimitReachedTitle": "إشعار تخزين سجل عمليات المسح",
+  "historyLimitReachedMessage": "يتم الاحتفاظ بما يصل إلى {limit} من أحدث سجلات المسح. عند حفظ سجل جديد يتجاوز هذا الحد، يتم حذف أقدم سجل تلقائيًا. يمكن لمستخدمي Premium الاحتفاظ بسجل مسح غير محدود."
 }

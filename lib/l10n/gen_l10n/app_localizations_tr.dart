@@ -325,14 +325,6 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get noHistoryFound => 'Geçmiş bulunamadı';
   @override
-  String get historyFreeLimitNotice =>
-      'Free and guest accounts keep the 20 most recent history entries.';
-
-  @override
-  String get historyUnlimitedNotice =>
-      'Premium accounts can keep unlimited history.';
-
-  @override
   String get aiScanning => 'AI Tarama...';
 
   @override
@@ -1155,4 +1147,12 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get historyLimitReachedTitle => 'Tarama geçmişi depolama bildirimi';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return 'Son tarama geçmişinde en fazla $limit kayıt tutulur. Bu sınırı aşan yeni bir kayıt kaydedildiğinde en eski kayıt otomatik olarak silinir. Premium kullanıcıları sınırsız tarama geçmişi saklayabilir.';
+  }
 }

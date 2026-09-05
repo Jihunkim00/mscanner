@@ -319,14 +319,6 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get noHistoryFound => '履歴が見つかりません';
   @override
-  String get historyFreeLimitNotice =>
-      'Free and guest accounts keep the 20 most recent history entries.';
-
-  @override
-  String get historyUnlimitedNotice =>
-      'Premium accounts can keep unlimited history.';
-
-  @override
   String get aiScanning => 'AIスキャン中...';
 
   @override
@@ -1120,4 +1112,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get historyLimitReachedTitle => 'スキャン履歴の保存について';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return '最近のスキャン履歴は最大$limit件まで保存されます。新しい履歴がこの上限を超えて保存されると、最も古い履歴が自動的に削除されます。Premiumではスキャン履歴を無制限に保存できます。';
+  }
 }

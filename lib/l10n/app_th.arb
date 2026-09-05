@@ -377,5 +377,7 @@
   "premiumStartCta": "Start Premium",
   "premiumGuestSectionTitle": "Connect your account before purchasing Premium in guest mode",
   "premiumGuestSectionMessage": "Premium subscriptions are linked to your account so purchases can be restored and used across devices.",
-  "premiumGuestConvertButton": "Convert account to continue"
+  "premiumGuestConvertButton": "Convert account to continue",
+  "historyLimitReachedTitle": "แจ้งเตือนการจัดเก็บประวัติการสแกน",
+  "historyLimitReachedMessage": "ประวัติการสแกนล่าสุดจะเก็บไว้ได้สูงสุด {limit} รายการ เมื่อบันทึกรายการใหม่เกินขีดจำกัดนี้ รายการที่เก่าที่สุดจะถูกลบโดยอัตโนมัติ ผู้ใช้ Premium สามารถเก็บประวัติการสแกนได้ไม่จำกัด"
 }

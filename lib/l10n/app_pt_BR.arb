@@ -377,5 +377,7 @@
   "premiumStartCta": "Start Premium",
   "premiumGuestSectionTitle": "Connect your account before purchasing Premium in guest mode",
   "premiumGuestSectionMessage": "Premium subscriptions are linked to your account so purchases can be restored and used across devices.",
-  "premiumGuestConvertButton": "Convert account to continue"
+  "premiumGuestConvertButton": "Convert account to continue",
+  "historyLimitReachedTitle": "Aviso sobre o armazenamento do histórico de digitalizações",
+  "historyLimitReachedMessage": "O histórico de digitalizações recentes mantém até {limit} registros. Quando um novo registro é salvo além desse limite, o mais antigo é removido automaticamente. Usuários Premium podem manter um histórico ilimitado."
 }
