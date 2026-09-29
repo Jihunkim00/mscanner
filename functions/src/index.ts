@@ -8,7 +8,7 @@ import OpenAI from "openai";
 import { randomUUID } from "crypto";
 import sharp from "sharp";
 import {IMAGE_MODEL} from "./ai/aiConfig";
-import {handleAnalyzeVisionV2} from "./ai/visionService";
+import {handleAnalyzeVisionV2, handleAnalyzeVisionV3} from "./ai/visionService";
 
 if (admin.apps.length === 0) {
   admin.initializeApp();
@@ -512,4 +512,14 @@ export const analyzeVisionV2 = onCall(
     secrets: [OPENAI_API_KEY],
   },
   async (req) => handleAnalyzeVisionV2(req, OPENAI_API_KEY.value())
+);
+
+
+export const analyzeVisionV3 = onCall(
+  {
+    timeoutSeconds: 180,
+    memory: "1GiB",
+    secrets: [OPENAI_API_KEY],
+  },
+  async (req) => handleAnalyzeVisionV3(req, OPENAI_API_KEY.value())
 );

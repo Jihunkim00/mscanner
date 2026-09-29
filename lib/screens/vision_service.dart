@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
 import '/helpers/settings_helper.dart';
+import '/screens/vision_callable_config.dart';
 
 class VisionRequestTrace {
   static final math.Random _random = math.Random.secure();
@@ -95,7 +96,7 @@ class VisionV2RequestContract {
 }
 
 class VisionService {
-  // Keep the released callable as the default until V2 is explicitly enabled.
+  // Keep the current V2 request contract for both the default and opt-in V3 callable.
   static const bool _useVisionV2 = true;
   static const bool _useRag = false;
 
@@ -295,6 +296,7 @@ $header
     required String requestId,
     bool requestFullMenu = false,
   }) async {
+    final callableName = VisionCallableConfig.callableName;
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) {
@@ -302,20 +304,20 @@ $header
       }
 
       debugPrint(
-        '[Functions] analyzeVisionV2 call '
+        '[Functions] $callableName call '
         'scanMode=$scanMode responseMode=$responseMode '
         'maxTokens=$maxOutputTokens '
         'inputImageCount=${imagesBase64?.length ?? 1}',
       );
       VisionRequestTrace.log(
         requestId,
-        'callable=analyzeVisionV2 scanMode=$scanMode '
+        'callable=$callableName scanMode=$scanMode '
         'responseMode=$responseMode sourceImageCount=$sourceImageCount '
         'requestFullMenu=$requestFullMenu',
       );
 
       final callable = _functions.httpsCallable(
-        'analyzeVisionV2',
+        callableName,
         options: HttpsCallableOptions(
           timeout: const Duration(seconds: 180),
         ),
@@ -358,7 +360,7 @@ $header
       );
 
       debugPrint(
-        '[Functions] analyzeVisionV2 success '
+        '[Functions] $callableName success '
         'model=${meta['model'] ?? data['model']} '
         'scanMode=${meta['scanMode'] ?? data['scanMode']} '
         'responseMode=${meta['responseMode'] ?? data['responseMode']} '
@@ -368,7 +370,7 @@ $header
       if (vision is Map) {
         final visionMap = Map<String, dynamic>.from(vision);
         debugPrint(
-          '[VisionV2 Client] itemsCount=${_countVisionList(visionMap['items'])} '
+          '[$callableName Client] itemsCount=${_countVisionList(visionMap['items'])} '
           'recommendedCount=${_countVisionList(visionMap['recommended'])} '
           'fullMenuCount=${_countVisionFullMenu(visionMap['fullMenu'])} '
           'sourceCoverage=${_visionSourceCoverage(visionMap['recommended'], sourceImageCount)}',
@@ -383,7 +385,7 @@ $header
 
       final legacyResult = data['result']?.toString() ?? '';
       if (legacyResult.trim().isEmpty) {
-        throw const FormatException('Empty Vision V2 response');
+        throw const FormatException('Empty Vision response');
       }
       VisionRequestTrace.log(
         requestId,
@@ -393,7 +395,7 @@ $header
     } on FirebaseFunctionsException catch (e) {
       VisionRequestTrace.log(requestId, 'callable_error code=${e.code}');
       debugPrint(
-        '[Functions] analyzeVisionV2 failed '
+        '[Functions] $callableName failed '
         'code=${e.code} message=${e.message}',
       );
       rethrow;
@@ -402,13 +404,14 @@ $header
         requestId,
         'decode_error reason=${VisionRequestTrace.errorReason(e)}',
       );
-      debugPrint('[Functions] analyzeVisionV2 unknown error=$e');
+      debugPrint('[Functions] $callableName unknown error=$e');
       rethrow;
     }
   }
 
   static Future<List<String>> _encodeSeparateImages(
       List<File> sourceImages) async {
+    final callableName = VisionCallableConfig.callableName;
     if (sourceImages.length < 2 ||
         sourceImages.length > VisionV2RequestContract.maxMultiImageCount) {
       throw ArgumentError(
@@ -426,15 +429,16 @@ $header
       base64Lengths.add(encoded.length);
     }
 
-    debugPrint('[VisionV2 Client] transport=separate_images');
-    debugPrint('[VisionV2 Client] sourceImageCount=${sourceImages.length}');
-    debugPrint('[VisionV2 Client] compressedBytes=$byteLengths');
-    debugPrint('[VisionV2 Client] base64Lengths=$base64Lengths');
+    debugPrint('[$callableName Client] transport=separate_images');
     debugPrint(
-      '[VisionV2 Client] totalCompressedBytes=${byteLengths.fold<int>(0, (sum, value) => sum + value)} '
+        '[$callableName Client] sourceImageCount=${sourceImages.length}');
+    debugPrint('[$callableName Client] compressedBytes=$byteLengths');
+    debugPrint('[$callableName Client] base64Lengths=$base64Lengths');
+    debugPrint(
+      '[$callableName Client] totalCompressedBytes=${byteLengths.fold<int>(0, (sum, value) => sum + value)} '
       'totalBase64Length=${base64Lengths.fold<int>(0, (sum, value) => sum + value)}',
     );
-    debugPrint('[VisionV2 Client] callable=analyzeVisionV2');
+    debugPrint('[$callableName Client] callable=$callableName');
 
     return base64Images;
   }
@@ -446,6 +450,7 @@ $header
     required String responseMode,
     required String requestId,
   }) async {
+    final callableName = VisionCallableConfig.callableName;
     final sourceImageCount = sourceImages.length;
     final imagesBase64 = await _encodeSeparateImages(sourceImages);
     final scanMode = 'multi';
@@ -473,7 +478,7 @@ $header
       requestFullMenu: false,
     );
     debugPrint(
-      '[VisionV2 Client] separate_images response '
+      '[$callableName Client] separate_images response '
       'latencyMs=${DateTime.now().difference(startedAt).inMilliseconds} sourceImageCount=$sourceImageCount',
     );
     return text;
@@ -803,8 +808,8 @@ If it doesn’t seem food-related, just say so.
 
       debugPrint(
         '🚀 [Vision] functions request start ${tReq0.toIso8601String()} '
-        'maxTokens=$maxOutputTokens model=gpt-5.6-luna '
-        'callable=${_useVisionV2 ? 'analyzeVisionV2' : 'analyzeVision'} '
+        'maxTokens=$maxOutputTokens model=${VisionCallableConfig.expectedModelName} '
+        'callable=${VisionCallableConfig.callableName} '
         'scanMode=$scanMode rag=$_useRag',
       );
 
@@ -897,8 +902,8 @@ If it doesn’t seem food-related, just say so.
 
       debugPrint(
         '🚀 [VisionStream] functions request start ${tReq0.toIso8601String()} '
-        'maxTokens=$maxOutputTokens model=gpt-5.6-luna '
-        'callable=${_useVisionV2 ? 'analyzeVisionV2' : 'analyzeVision'} '
+        'maxTokens=$maxOutputTokens model=${VisionCallableConfig.expectedModelName} '
+        'callable=${VisionCallableConfig.callableName} '
         'scanMode=$scanMode rag=$_useRag',
       );
 

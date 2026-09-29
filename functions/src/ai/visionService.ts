@@ -1,7 +1,7 @@
 import {HttpsError} from "firebase-functions/v2/https";
 import OpenAI from "openai";
 
-import {ANALYSIS_MODEL} from "./aiConfig";
+import {ANALYSIS_MODEL, VISION_V3_MODEL} from "./aiConfig";
 import {
   VISION_MULTI_AI_RESPONSE_JSON_SCHEMA,
   VISION_RESPONSE_JSON_SCHEMA,
@@ -24,7 +24,7 @@ interface VisionCallableRequest {
   data?: unknown;
 }
 
-interface VisionV2Response {
+interface VisionAnalysisResponse {
   success: true;
   vision: VisionResponse;
   meta: {
@@ -64,8 +64,12 @@ function normalizeRequestId(value: unknown): string | null {
   return safe;
 }
 
-function visionLog(requestId: string | null, message: string): void {
-  console.log(`[VisionV2][${requestId ?? "no-request-id"}] ${message}`);
+function visionLog(
+  requestId: string | null,
+  message: string,
+  version: "VisionV2" | "VisionV3" = "VisionV2"
+): void {
+  console.log(`[${version}][${requestId ?? "no-request-id"}] ${message}`);
 }
 
 function normalizeResponseMode(value: unknown): "normal" | "stream" {
@@ -81,7 +85,7 @@ function normalizeMaxOutputTokens(
   return Math.min(Math.max(Math.floor(value), 1000), 9000);
 }
 
-function normalizeUsage(value: unknown): Record<string, unknown> {
+function normalizeUsage(value: unknown, includeReasoningTokens = false): Record<string, unknown> {
   if (!isRecord(value)) return {};
 
   const usage: Record<string, unknown> = {};
@@ -92,6 +96,13 @@ function normalizeUsage(value: unknown): Record<string, unknown> {
   const details = value.prompt_tokens_details;
   if (isRecord(details) && typeof details.cached_tokens === "number") {
     usage.prompt_tokens_details = {cached_tokens: details.cached_tokens};
+  }
+  const completionDetails = value.completion_tokens_details;
+  if (includeReasoningTokens && isRecord(completionDetails) &&
+      typeof completionDetails.reasoning_tokens === "number") {
+    usage.completion_tokens_details = {
+      reasoning_tokens: completionDetails.reasoning_tokens,
+    };
   }
   return usage;
 }
@@ -150,16 +161,19 @@ function sourceCoverage(
   return String(seen.size) + "/" + String(sourceImageCount ?? "?");
 }
 
-export async function handleAnalyzeVisionV2(
+async function handleAnalyzeVision(
   request: VisionCallableRequest,
-  apiKey: string
-): Promise<VisionV2Response> {
+  apiKey: string,
+  model: string,
+  version: "VisionV2" | "VisionV3"
+): Promise<VisionAnalysisResponse> {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "Login required.");
   }
 
   const data = isRecord(request.data) ? request.data : {};
   const requestId = normalizeRequestId(data.requestId);
+  const log = (message: string) => visionLog(requestId, message, version);
   const prompt = data.prompt;
   if (typeof prompt !== "string" || prompt.trim().length === 0) {
     throw new HttpsError("invalid-argument", "prompt required");
@@ -176,7 +190,7 @@ export async function handleAnalyzeVisionV2(
   try {
     normalizedImages = normalizeVisionImages(data, scanMode);
   } catch (error) {
-    visionLog(requestId, "input_normalization_failed");
+    log("input_normalization_failed");
     throw new HttpsError(
       "invalid-argument",
       error instanceof Error ? error.message : "Invalid vision image input"
@@ -187,19 +201,17 @@ export async function handleAnalyzeVisionV2(
     inputImageCount,
     sourceImageCount,
   } = normalizedImages;
-  visionLog(
-    requestId,
-    `request_received scanMode=${scanMode} inputImageCount=${inputImageCount} ` +
+  log(`request_received scanMode=${scanMode} inputImageCount=${inputImageCount} ` +
     `sourceImageCount=${sourceImageCount ?? "unknown"} requestFullMenu=${requestFullMenu}`
   );
   const openai = new OpenAI({apiKey});
   const startedAt = Date.now();
 
   let response: any;
-  visionLog(requestId, `openai_start model=${ANALYSIS_MODEL}`);
+  log(`openai_start model=${model}`);
   try {
     response = await openai.chat.completions.create({
-      model: ANALYSIS_MODEL,
+      model,
       messages: [
         {
           role: "user",
@@ -222,23 +234,23 @@ export async function handleAnalyzeVisionV2(
         },
       },
     } as any);
-    visionLog(requestId, `openai_success latencyMs=${Date.now() - startedAt}`);
+    log(`openai_success latencyMs=${Date.now() - startedAt}`);
   } catch (error) {
-    visionLog(requestId, "openai_failure");
-    console.error("[VisionV2] OpenAI request failed", safeOpenAiError(error));
+    log("openai_failure");
+    console.error("[" + version + "] OpenAI request failed", safeOpenAiError(error));
     throw new HttpsError("internal", "Vision analysis failed.");
   }
 
   const choice = response.choices?.[0];
   const refusal = choice?.message?.refusal;
   if (typeof refusal === "string" && refusal.trim()) {
-    visionLog(requestId, "openai_refusal");
+    log("openai_refusal");
     throw new HttpsError("internal", "Vision analysis was refused.");
   }
 
   const content = choice?.message?.content;
   if (typeof content !== "string" || content.trim().length === 0) {
-    visionLog(requestId, "openai_empty_response");
+    log("openai_empty_response");
     throw new HttpsError("internal", "OpenAI returned an empty result.");
   }
 
@@ -246,10 +258,10 @@ export async function handleAnalyzeVisionV2(
   try {
     parsed = JSON.parse(content);
   } catch {
-    visionLog(requestId, "json_parse_failure");
+    log("json_parse_failure");
     throw new HttpsError("internal", "Structured output parsing failed.");
   }
-  visionLog(requestId, "json_parse_success");
+  log("json_parse_success");
 
   let vision: VisionResponse;
   let fullMenuCount = 0;
@@ -284,91 +296,98 @@ export async function handleAnalyzeVisionV2(
         0,
       );
     }
-    visionLog(
-      requestId,
-      `validation_success stage=${validationStage} recommendedCount=${vision.recommended?.length ?? 0} ` +
+    log(`validation_success stage=${validationStage} recommendedCount=${vision.recommended?.length ?? 0} ` +
       `fullMenuCount=${fullMenuCount}`
     );
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
-    visionLog(requestId, `validation_failure stage=${validationStage}`);
-    console.error("[VisionV2] Structured response validation failed", {
+    log(`validation_failure stage=${validationStage}`);
+    console.error("[" + version + "] Structured response validation failed", {
       message: reason,
     });
-    console.error("[VisionV2] validationHardFailureReason=%s", reason);
+    console.error("[" + version + "] validationHardFailureReason=%s", reason);
     throw new HttpsError("internal", "Structured response validation failed.");
   }
 
   const recommendedCount = vision.recommended?.length ?? 0;
-  visionLog(
-    requestId,
-    `response_ready partial=${partial} recommendedCount=${recommendedCount} ` +
+  log(`response_ready partial=${partial} recommendedCount=${recommendedCount} ` +
     `fullMenuCount=${fullMenuCount}`
   );
   console.log(
-    "[VisionV2] scanMode=%s inputImageCount=%d sourceImageCount=%s",
+    "[" + version + "] scanMode=%s inputImageCount=%d sourceImageCount=%s",
     scanMode,
     inputImageCount,
     sourceImageCount ?? "unknown"
   );
-  console.log("[VisionV2] itemsCount=%d", vision.items.length);
+  console.log("[" + version + "] itemsCount=%d", vision.items.length);
   console.log(
-    "[VisionV2] recommendedCount=%d",
+    "[" + version + "] recommendedCount=%d",
     recommendedCount
   );
   if (aggregationDiagnostics !== undefined) {
-    console.log("[VisionV2] sourceCount=%d", inputImageCount);
-    console.log("[VisionV2] sourceStatuses=%s",
+    console.log("[" + version + "] sourceCount=%d", inputImageCount);
+    console.log("[" + version + "] sourceStatuses=%s",
       JSON.stringify(aggregationDiagnostics.sourceStatuses));
-    console.log("[VisionV2] perSourceRecommendedCounts=%s",
+    console.log("[" + version + "] perSourceRecommendedCounts=%s",
       JSON.stringify(aggregationDiagnostics.perSourceRecommendedCounts));
-    console.log("[VisionV2] perSourceMenuItemCounts=%s",
+    console.log("[" + version + "] perSourceMenuItemCounts=%s",
       JSON.stringify(aggregationDiagnostics.perSourceMenuItemCounts));
-    console.log("[VisionV2] rawInventoryCount=%d",
+    console.log("[" + version + "] rawInventoryCount=%d",
       aggregationDiagnostics.rawInventoryCount);
-    console.log("[VisionV2] recommendedInventoryOverlapCount=%d",
+    console.log("[" + version + "] recommendedInventoryOverlapCount=%d",
       aggregationDiagnostics.recommendedInventoryOverlapCount);
-    console.log("[VisionV2] finalFullMenuCount=%d",
+    console.log("[" + version + "] finalFullMenuCount=%d",
       aggregationDiagnostics.finalFullMenuCount);
   }
   console.log(
-    "[VisionV2] recommendedSourceCoverage=%s",
+    "[" + version + "] recommendedSourceCoverage=%s",
     aggregationDiagnostics?.recommendedSourceCoverage ??
       sourceCoverage(vision, inputImageCount)
   );
-  console.log("[VisionV2] fullMenuCount=%d", fullMenuCount);
+  console.log("[" + version + "] fullMenuCount=%d", fullMenuCount);
   if (requestFullMenu) {
-    visionLog(
-      requestId,
-      `single_full_menu rawCount=${rawSingleFullMenuCount} ` +
+    log(`single_full_menu rawCount=${rawSingleFullMenuCount} ` +
       `recommendedOverlapCount=${singleFullMenuOverlapCount} finalCount=${fullMenuCount}`
     );
   }
   console.log(
-    "[VisionV2] fullMenuByCategory=%s",
+    "[" + version + "] fullMenuByCategory=%s",
     JSON.stringify(fullMenuCounts(vision))
   );
   console.log(
-    "[VisionV2] fullMenuSummaryPresent=%s",
+    "[" + version + "] fullMenuSummaryPresent=%s",
     Boolean(vision.fullMenu?.summary?.trim())
   );
   if (declaredIsMenuMismatch) {
-    console.log("[VisionV2] declaredIsMenuMismatch=true");
+    console.log("[" + version + "] declaredIsMenuMismatch=true");
   }
   for (const warning of validationWarnings) {
-    console.log("[VisionV2] multiValidationWarning=%s", warning);
+    console.log("[" + version + "] multiValidationWarning=%s", warning);
   }
 
   const latencyMs = Date.now() - startedAt;
-  console.log("[VisionV2] latencyMs=%d", latencyMs);
-  const usage = normalizeUsage(response.usage);
+  const responseModel = version === "VisionV3" &&
+      typeof response.model === "string" && response.model.trim() ?
+    response.model : model;
+  console.log("[" + version + "] model=%s", responseModel);
+  console.log("[" + version + "] latencyMs=%d", latencyMs);
+  const usage = normalizeUsage(response.usage, version === "VisionV3");
+  if (version === "VisionV3") {
+    log(
+      `token_usage prompt=${usage.prompt_tokens ?? "unknown"} ` +
+      `completion=${usage.completion_tokens ?? "unknown"} ` +
+      `total=${usage.total_tokens ?? "unknown"} ` +
+      `reasoning=${isRecord(usage.completion_tokens_details) ?
+        usage.completion_tokens_details.reasoning_tokens ?? "unknown" : "unknown"}`
+    );
+  }
   const result = JSON.stringify(vision);
 
   return {
     success: true,
     vision,
     meta: {
-      model: ANALYSIS_MODEL,
+      model: responseModel,
       scanMode,
       responseMode,
       maxOutputTokens,
@@ -383,9 +402,24 @@ export async function handleAnalyzeVisionV2(
     },
     usage,
     result,
-    model: ANALYSIS_MODEL,
+    model: responseModel,
     scanMode,
     responseMode,
     maxOutputTokens,
   };
+}
+
+
+export async function handleAnalyzeVisionV2(
+  request: VisionCallableRequest,
+  apiKey: string
+): Promise<VisionAnalysisResponse> {
+  return handleAnalyzeVision(request, apiKey, ANALYSIS_MODEL, "VisionV2");
+}
+
+export async function handleAnalyzeVisionV3(
+  request: VisionCallableRequest,
+  apiKey: string
+): Promise<VisionAnalysisResponse> {
+  return handleAnalyzeVision(request, apiKey, VISION_V3_MODEL, "VisionV3");
 }
