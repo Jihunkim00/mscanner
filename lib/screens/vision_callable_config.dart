@@ -1,7 +1,7 @@
 class VisionCallableConfig {
   static const bool useVisionV3 = bool.fromEnvironment(
     'MSCANNER_VISION_V3',
-    defaultValue: false,
+    defaultValue: true,
   );
 
   static const String callableName =

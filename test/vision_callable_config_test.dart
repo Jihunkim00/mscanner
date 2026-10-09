@@ -4,7 +4,7 @@ import 'package:mscanner/screens/vision_callable_config.dart';
 void main() {
   const v3Enabled = bool.fromEnvironment(
     'MSCANNER_VISION_V3',
-    defaultValue: false,
+    defaultValue: true,
   );
 
   test('maps the default build to analyzeVisionV2', () {
