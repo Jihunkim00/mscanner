@@ -17,6 +17,7 @@ Future<void> showOrderPhraseBottomSheet({
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
+    constraints: const BoxConstraints(maxWidth: 640),
     backgroundColor: Colors.transparent,
     barrierColor: Colors.black.withValues(alpha: 0.18),
     builder: (context) => OrderPhraseBottomSheet(
@@ -123,7 +124,8 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
     } catch (e) {
       if (!mounted) return;
       setState(
-          () => _error = AppLocalizations.of(context)!.tts_generationFailed);
+        () => _error = AppLocalizations.of(context)!.tts_generationFailed,
+      );
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -144,7 +146,8 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
 
     try {
       debugPrint(
-          '[OrderPhraseBottomSheet] origin=${_result!.originLanguageCode.code}');
+        '[OrderPhraseBottomSheet] origin=${_result!.originLanguageCode.code}',
+      );
       debugPrint('[OrderPhraseBottomSheet] ttsText=${_result!.ttsText}');
 
       await _ttsService.speak(
@@ -179,9 +182,10 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
         border: Border.all(color: borderColor),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              blurRadius: 26,
-              offset: const Offset(0, 12)),
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 26,
+            offset: const Offset(0, 12),
+          ),
         ],
       ),
       child: SingleChildScrollView(
@@ -195,9 +199,10 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
                   Text(
                     l10n.tts_orderPhraseTitle,
                     style: TextStyle(
-                        fontFamily: 'SFPro',
-                        fontWeight: FontWeight.w700,
-                        fontSize: 17),
+                      fontFamily: 'SFPro',
+                      fontWeight: FontWeight.w700,
+                      fontSize: 17,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -293,8 +298,10 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
                 borderRadius: BorderRadius.circular(14),
                 onTap: _isLoading ? null : _generatePhrase,
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: isDark
                         ? const Color(0xFF2A2D33)
@@ -374,8 +381,10 @@ class _OrderPhraseBottomSheetState extends State<OrderPhraseBottomSheet> {
                         const SizedBox(width: 8),
                         _SheetActionButton(
                           onPressed: _isLoading ? null : _generatePhrase,
-                          icon: PhosphorIcon(PhosphorIcons.arrowsClockwise,
-                              size: 16),
+                          icon: PhosphorIcon(
+                            PhosphorIcons.arrowsClockwise,
+                            size: 16,
+                          ),
                           label: l10n.tts_regenerate,
                         ),
                       ],
@@ -428,7 +437,10 @@ class _SectionTitle extends StatelessWidget {
     return Text(
       text,
       style: const TextStyle(
-          fontFamily: 'SFPro', fontSize: 13, fontWeight: FontWeight.w700),
+        fontFamily: 'SFPro',
+        fontSize: 13,
+        fontWeight: FontWeight.w700,
+      ),
     );
   }
 }
@@ -455,8 +467,9 @@ class _ChoicePill extends StatelessWidget {
     final unselectedBorder =
         isDark ? Colors.white.withValues(alpha: 0.1) : const Color(0xFFE5E7EB);
     final selectedText = isDark ? Colors.white : const Color(0xFF111827);
-    final unselectedText =
-        theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.88);
+    final unselectedText = theme.textTheme.bodyMedium?.color?.withValues(
+      alpha: 0.88,
+    );
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),

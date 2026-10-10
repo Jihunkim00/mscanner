@@ -153,3 +153,26 @@ function/
 functions/
 
 strings.xml
+
+# Accidentally nested iOS project
+/ios/ios/
+
+# Sensitive native configuration
+**/Runner/AppDelegate.swift
+**/Runner/GoogleService-Info.plist
+
+# Private keys and build exports
+*.p8
+*.ipa
+
+# iOS build archives
+*.ipa
+**/Runner 20*/
+
+# Accidentally nested iOS project
+/ios/ios/
+
+# Sensitive configuration
+**/Runner/AppDelegate.swift
+**/Runner/GoogleService-Info.plist
+*.p8

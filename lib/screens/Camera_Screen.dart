@@ -1,3 +1,4 @@
+import '/widgets/adaptive_window.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'loading_screen.dart';
@@ -62,8 +63,6 @@ class _CameraScreenState extends State<CameraScreen> {
       final incoming = isMultiMode
           ? rawFiles
           : (rawFiles.isNotEmpty ? [rawFiles.first] : rawFiles);
-
-
 
       // 🔹 [LOG] ② 멀티 스캔: 사진 선택 후 전송
       if (isMultiMode && incoming.isNotEmpty) {
@@ -397,7 +396,8 @@ class _CameraScreenState extends State<CameraScreen> {
 // 네비게이션에서 넘긴 값으로만 멀티/싱글 결정
     final isMultiMode = widget.isMulti;
     final maxCount = isMultiMode ? 4 : 1;
-    return PopScope(
+    return AdaptivePage(
+        child: PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
@@ -416,6 +416,6 @@ class _CameraScreenState extends State<CameraScreen> {
           onCancel: widget.onCancel,
         ),
       ),
-    );
+    ));
   }
 }

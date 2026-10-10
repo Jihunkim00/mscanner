@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 
@@ -50,8 +51,10 @@ class PremiumAdOverlay extends StatelessWidget {
           final isNarrow = constraints.maxWidth < 560;
           final panelWidth = isNarrow
               ? constraints.maxWidth
-              : (constraints.maxWidth * rightPanelWidthRatio)
-                  .clamp(minPanelWidth, constraints.maxWidth * 0.6);
+              : (constraints.maxWidth * rightPanelWidthRatio).clamp(
+                  minPanelWidth,
+                  constraints.maxWidth * 0.6,
+                );
 
           return ClipRRect(
             borderRadius: BorderRadius.circular(16),
@@ -83,18 +86,22 @@ class PremiumAdOverlay extends StatelessWidget {
                     ),
                   ),
                 ),
-                Align(
-                  alignment:
-                      isNarrow ? Alignment.bottomCenter : Alignment.centerRight,
-                  child: Transform.translate(
-                    // ✅ 패널 위치 조정
-                    offset: Offset(0, panelOffsetY), // 음수면 위로
+                Positioned.fill(
+                  top: 56,
+                  child: Align(
+                    alignment: isNarrow
+                        ? Alignment.bottomCenter
+                        : Alignment.centerRight,
                     child: ConstrainedBox(
                       constraints: BoxConstraints(maxWidth: panelWidth),
-                      child: Padding(
-                        padding: isNarrow
-                            ? padding.copyWith(top: 12)
-                            : padding.copyWith(top: 24, bottom: 24, left: 24),
+                      child: SingleChildScrollView(
+                        padding: padding.copyWith(
+                          top: 12,
+                          bottom: 24 +
+                              (constraints.maxHeight >= 600
+                                  ? math.max(0.0, -panelOffsetY)
+                                  : 0),
+                        ),
                         child: _Panel(
                           strings: strings,
                           adFreePrice: adFreePrice,
@@ -164,10 +171,13 @@ class _Panel extends StatelessWidget {
           // 브랜드 텍스트 (불필요하다면 제거 가능)
           // Text("Mscanner", style: TextStyle(fontFamily: 'SFPro', color: Colors.white70, fontSize: 13, letterSpacing: 0.5)),
           SizedBox(height: isNarrow ? 6 : 10),
-          Text(strings.title, style: titleStyle, maxLines: 2),
+          Text(strings.title, style: titleStyle),
           SizedBox(height: isNarrow ? 8 : 12),
           _PriceRow(
-              icon: Icons.block, label: strings.adFree, price: adFreePrice),
+            icon: Icons.block,
+            label: strings.adFree,
+            price: adFreePrice,
+          ),
           const SizedBox(height: 6),
           _PriceRow(
             icon: Icons.star_rounded,
@@ -176,14 +186,15 @@ class _Panel extends StatelessWidget {
             trailing: strings.freeTrial,
           ),
           SizedBox(height: isNarrow ? 10 : 14),
-          SizedBox(
-            height: 44,
+          ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44),
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white70,
                 foregroundColor: Colors.black87,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 elevation: 0,
               ),
               onPressed: onPrimaryTap,
@@ -229,36 +240,57 @@ class _PriceRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: Colors.white, size: 24),
-        const SizedBox(width: 8),
-        Expanded(
-            child: Text(label,
+        Row(
+          children: [
+            Icon(icon, color: Colors.white, size: 24),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                label,
                 style: const TextStyle(
-                    fontFamily: 'SFPro',
-                    fontSize: 18,
-                    decoration: TextDecoration.none,
-                    color: Colors.white70))),
-        const SizedBox(width: 8),
-        Text(price,
-            style: const TextStyle(
+                  fontFamily: 'SFPro',
+                  fontSize: 18,
+                  decoration: TextDecoration.none,
+                  color: Colors.white70,
+                ),
+              ),
+            ),
+          ],
+        ),
+        Wrap(
+          spacing: 6,
+          runSpacing: 4,
+          children: [
+            Text(
+              price,
+              style: const TextStyle(
                 fontFamily: 'SFPro',
                 fontSize: 16,
-                decoration: TextDecoration.none,
                 color: Colors.white70,
-                fontWeight: FontWeight.w700)),
-        if (trailing != null) ...[
-          const SizedBox(width: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-                color: Colors.white12, borderRadius: BorderRadius.circular(8)),
-            child: Text(trailing!,
-                style: const TextStyle(
-                    fontFamily: 'SFPro', color: Colors.white70, fontSize: 15)),
-          ),
-        ],
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            if (trailing != null)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.white12,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  trailing!,
+                  style: const TextStyle(
+                    fontFamily: 'SFPro',
+                    color: Colors.white70,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ],
     );
   }
@@ -279,11 +311,7 @@ class _CloseButton extends StatelessWidget {
           color: Colors.black54,
           borderRadius: BorderRadius.circular(24),
         ),
-        child: const Icon(
-          Icons.close,
-          color: Colors.white70,
-          size: 22,
-        ),
+        child: const Icon(Icons.close, color: Colors.white70, size: 22),
       ),
     );
   }
@@ -544,7 +572,7 @@ String simpleLocalizedPrice(Locale locale) {
     'bg',
     'et',
     'lv',
-    'lt'
+    'lt',
   };
   if (euLangs.contains(lang)) return '€0.69';
 

@@ -14,6 +14,7 @@ class PhotoCaptureWidget extends StatefulWidget {
   final int maxCount;
   final void Function(List<File>) onCaptured;
   final VoidCallback onCancel;
+  final ImagePicker? picker;
 
   const PhotoCaptureWidget({
     super.key,
@@ -21,6 +22,7 @@ class PhotoCaptureWidget extends StatefulWidget {
     this.maxCount = 4,
     required this.onCaptured,
     required this.onCancel,
+    this.picker,
   });
 
   @override
@@ -28,49 +30,65 @@ class PhotoCaptureWidget extends StatefulWidget {
 }
 
 class _PhotoCaptureWidgetState extends State<PhotoCaptureWidget> {
-  final ImagePicker _picker = ImagePicker();
+  late final ImagePicker _picker;
+  bool _didStartPicker = false;
   List<File> _photos = [];
 
   @override
   void initState() {
     super.initState();
+    _picker = widget.picker ?? ImagePicker();
     // 화면이 뜨자마자 사진 선택/촬영 실행
     WidgetsBinding.instance.addPostFrameCallback((_) => _pickPhotos());
   }
 
   Future<void> _pickPhotos() async {
-    if (widget.isMulti) {
-      final List<XFile> pickedFiles = await _picker.pickMultiImage();
-      if (!mounted) return;
-      // 취소하거나 선택 없으면 바로 홈으로
-      if (pickedFiles.isEmpty) {
-        widget.onCancel();
-        return;
-      }
-      // ★ 5장 이상 선택 시, 스낵바 안내는 띄우되 앞의 4장만 사용
-      if (pickedFiles.length > widget.maxCount) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(AppLocalizations.of(context)!
-                  .maxScanImages(widget.maxCount))),
-        );
-      }
-      final files =
-          pickedFiles.take(widget.maxCount).map((pf) => File(pf.path)).toList();
-      setState(() => _photos = files);
-      widget.onCaptured(files);
-    } else {
-      final picked = await _picker.pickImage(source: ImageSource.camera);
-      if (!mounted) return;
-      // 취소했을 때 홈으로
-      if (picked == null) {
-        widget.onCancel();
-        return;
-      }
+    if (!mounted || _didStartPicker) return;
+    _didStartPicker = true;
+    try {
+      if (widget.isMulti) {
+        final List<XFile> pickedFiles = await _picker.pickMultiImage();
+        if (!mounted) return;
+        // 취소하거나 선택 없으면 바로 홈으로
+        if (pickedFiles.isEmpty) {
+          widget.onCancel();
+          return;
+        }
+        // ★ 5장 이상 선택 시, 스낵바 안내는 띄우되 앞의 4장만 사용
+        if (pickedFiles.length > widget.maxCount) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(AppLocalizations.of(context)!
+                    .maxScanImages(widget.maxCount))),
+          );
+        }
+        final files = pickedFiles
+            .take(widget.maxCount)
+            .map((pf) => File(pf.path))
+            .toList();
+        setState(() => _photos = files);
+        widget.onCaptured(files);
+      } else {
+        final picked = await _picker.pickImage(source: ImageSource.camera);
+        if (!mounted) return;
+        // 취소했을 때 홈으로
+        if (picked == null) {
+          widget.onCancel();
+          return;
+        }
 
-      final file = File(picked.path);
-      setState(() => _photos = [file]);
-      widget.onCaptured([file]);
+        final file = File(picked.path);
+        setState(() => _photos = [file]);
+        widget.onCaptured([file]);
+      }
+    } catch (error) {
+      if (!mounted) return;
+      debugPrint('Image picker failed: $error');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(
+            AppLocalizations.of(context)?.loadingError ?? '분석 중 오류가 발생했습니다.'),
+      ));
+      widget.onCancel();
     }
   }
 

@@ -18,6 +18,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import '/screens/image_merge_service.dart';
 import 'package:mscanner/utils/async_request_gate.dart';
+import '/widgets/adaptive_window.dart';
 
 /// ✅ LoadingScreen에서도 멀티 스캔 이미지를 1장으로 병합/압축해서 전송
 Future<Uint8List> mergeImages(List<Uint8List> bytesList) async {
@@ -41,6 +42,10 @@ class LoadingScreen extends StatefulWidget {
   final bool isTutorial;
   final int maxOutputTokens; // ✅ 이미지 1장당 최대 출력 토큰
 
+  /// Overrides platform work in widget tests; production uses VisionService.
+  @visibleForTesting
+  final Future<void> Function()? analysisTask;
+
   const LoadingScreen({
     super.key,
     this.image,
@@ -49,6 +54,7 @@ class LoadingScreen extends StatefulWidget {
     this.position,
     this.isTutorial = false,
     this.maxOutputTokens = 3000,
+    this.analysisTask,
   }) : assert(image != null || images != null,
             'image 또는 images 중 하나는 반드시 제공되어야 합니다.');
 
@@ -59,6 +65,8 @@ class LoadingScreen extends StatefulWidget {
 class _LoadingScreenState extends State<LoadingScreen> {
   late List<String> _loadingMessages;
   late String _currentMessage;
+  int _messageIndex = 0;
+  Timer? _messageTimer;
 
   bool _isLoadingError = false;
   bool _hasNavigated = false;
@@ -76,22 +84,25 @@ class _LoadingScreenState extends State<LoadingScreen> {
   @override
   void initState() {
     super.initState();
-    final sourceImageCount =
-        widget.images != null && widget.images!.isNotEmpty
-            ? widget.images!.length
-            : 1;
+    final sourceImageCount = widget.images != null && widget.images!.isNotEmpty
+        ? widget.images!.length
+        : 1;
     VisionRequestTrace.log(
       _visionRequestId,
       'capture_received sourceImageCount=$sourceImageCount '
       'scanMode=${VisionService.resolveScanModeForSourceImageCount(sourceImageCount)}',
     );
     // 위치 기반 RAG 컨텍스트를 포함한 분석 준비
-    _preparedFuture = _prepareVisionInput();
+    if (widget.analysisTask != null) {
+      unawaited(_gptRequestGate.run(widget.analysisTask!));
+    } else {
+      _preparedFuture = _prepareVisionInput();
+      _handleGptResult();
+    }
     _loadingWatchdog = Timer(const Duration(seconds: 40), () {
       if (!mounted || _hasNavigated || _isLoadingError) return;
       _showErrorUI(stage: 'loading_watchdog', reason: 'timeout');
     });
-    _handleGptResult();
   }
 
   @override
@@ -105,18 +116,22 @@ class _LoadingScreenState extends State<LoadingScreen> {
       loc.loadingFinalizing,
       loc.loadingWaiting,
     ];
-    _currentMessage = _loadingMessages.first;
+    _currentMessage = _loadingMessages[_messageIndex];
     _startLoadingMessages();
   }
 
   void _startLoadingMessages() {
-    for (int i = 1; i < _loadingMessages.length; i++) {
-      Future.delayed(Duration(seconds: i * 2), () {
-        if (mounted && !_isLoadingError && !_hasNavigated) {
-          setState(() => _currentMessage = _loadingMessages[i]);
-        }
-      });
-    }
+    if (_messageTimer != null) return;
+    _messageTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      if (!mounted ||
+          _isLoadingError ||
+          _hasNavigated ||
+          _messageIndex >= _loadingMessages.length - 1) {
+        timer.cancel();
+        return;
+      }
+      setState(() => _currentMessage = _loadingMessages[++_messageIndex]);
+    });
   }
 
   // 기존 클래스 내부에 추가
@@ -218,7 +233,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
           );
 
           if (!mounted) return;
-          VisionRequestTrace.log(_visionRequestId, 'navigation=result path=primary_stream');
+          VisionRequestTrace.log(
+              _visionRequestId, 'navigation=result path=primary_stream');
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (_) => ResultScreen(
@@ -260,7 +276,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
               latencyMs:
                   DateTime.now().difference(widget.captureTime).inMilliseconds,
             );
-            VisionRequestTrace.log(_visionRequestId, 'navigation=result path=fallback');
+            VisionRequestTrace.log(
+                _visionRequestId, 'navigation=result path=fallback');
             _navigateToResultScreen([resp], previewImage: prepared.visionFile);
           }
         } catch (fallbackError) {
@@ -292,14 +309,16 @@ class _LoadingScreenState extends State<LoadingScreen> {
       return;
     }
     if (_hasNavigated) {
-      VisionRequestTrace.log(_visionRequestId, 'already_navigated_skip_error_ui');
+      VisionRequestTrace.log(
+          _visionRequestId, 'already_navigated_skip_error_ui');
       return;
     }
     setState(() => _isLoadingError = true);
     Future.delayed(Duration(seconds: 5), () {
       if (mounted && !_hasNavigated) {
         _hasNavigated = true;
-        VisionRequestTrace.log(_visionRequestId, 'navigation=home after_analysis_failed');
+        VisionRequestTrace.log(
+            _visionRequestId, 'navigation=home after_analysis_failed');
         Navigator.of(context).pushReplacementNamed('/home');
       }
     });
@@ -333,6 +352,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
   @override
   void dispose() {
     _loadingWatchdog?.cancel();
+    _messageTimer?.cancel();
     super.dispose();
   }
 
@@ -342,47 +362,31 @@ class _LoadingScreenState extends State<LoadingScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final mediaQuery = MediaQuery.of(context); // 🔥 build 메서드 초반에!
 
-    return CupertinoPageScaffold(
+    return AdaptivePage(
+        child: CupertinoPageScaffold(
       backgroundColor: isDark ? Colors.black : Color(0xFFEFEFF4),
       child: Stack(
         children: [
           // 🔻 메시지 영역 (중앙)
-          Center(
-            child: _isLoadingError
-                ? Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        CupertinoIcons.exclamationmark_triangle,
-                        color: Colors.red,
-                        size: 40,
-                      ),
-                      SizedBox(height: 20),
-                      Text(
-                        loc.gptErrorMessage.replaceAll(r'\n', '\n'),
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: isDark
-                              ? Colors.white70
-                              : CupertinoColors.systemGrey,
-                          decoration: TextDecoration.none,
+          AdaptiveContent(
+            maxWidth: 640,
+            child: Center(
+                child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: _isLoadingError
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          CupertinoIcons.exclamationmark_triangle,
+                          color: Colors.red,
+                          size: 40,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  )
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CupertinoActivityIndicator(radius: 15),
-                      SizedBox(height: 20),
-                      AnimatedSwitcher(
-                        duration: Duration(milliseconds: 500),
-                        child: Text(
-                          _currentMessage,
-                          key: ValueKey(_currentMessage),
+                        SizedBox(height: 20),
+                        Text(
+                          loc.gptErrorMessage.replaceAll(r'\n', '\n'),
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 16,
                             color: isDark
                                 ? Colors.white70
                                 : CupertinoColors.systemGrey,
@@ -390,24 +394,46 @@ class _LoadingScreenState extends State<LoadingScreen> {
                           ),
                           textAlign: TextAlign.center,
                         ),
-                      ),
-                      SizedBox(height: 10),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Text(
-                          loc.aiLoadingMessage,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: isDark
-                                ? Colors.white60
-                                : CupertinoColors.systemGrey2,
-                            decoration: TextDecoration.none,
+                      ],
+                    )
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CupertinoActivityIndicator(radius: 15),
+                        SizedBox(height: 20),
+                        AnimatedSwitcher(
+                          duration: Duration(milliseconds: 500),
+                          child: Text(
+                            _currentMessage,
+                            key: ValueKey(_currentMessage),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: isDark
+                                  ? Colors.white70
+                                  : CupertinoColors.systemGrey,
+                              decoration: TextDecoration.none,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                          textAlign: TextAlign.center,
                         ),
-                      ),
-                    ],
-                  ),
+                        SizedBox(height: 10),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Text(
+                            loc.aiLoadingMessage,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark
+                                  ? Colors.white60
+                                  : CupertinoColors.systemGrey2,
+                              decoration: TextDecoration.none,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    ),
+            )),
           ),
           // ✅ 튜토리얼 모드 표시 (Visibility 로 감싸서 경고 제거)
           Visibility(
@@ -425,6 +451,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
           )
         ],
       ),
-    );
+    ));
   }
 }

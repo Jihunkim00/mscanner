@@ -15,7 +15,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'helpers/l10n.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:getwidget/getwidget.dart';
+import 'widgets/adaptive_window.dart';
 import 'dart:io';
 import 'dart:async';
 import '/screens/home_screen.dart';
@@ -39,6 +39,8 @@ enum GuestWelcomeAction {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // An empty list delegates orientation to the operating system.
+  await SystemChrome.setPreferredOrientations(const <DeviceOrientation>[]);
 
   await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(
@@ -93,21 +95,6 @@ Future<void> _initializeAfterLaunch() async {
         nonPersonalized: nonPersonalized,
       ),
     );
-
-    // ✅ 화면 방향 고정 (iPad 구분)
-    final binding = WidgetsBinding.instance;
-    binding.addPostFrameCallback((_) {
-      final context = binding.focusManager.primaryFocus?.context;
-      if (context != null) {
-        final isTablet = MediaQuery.of(context).size.shortestSide >= 600;
-        if (!isTablet) {
-          SystemChrome.setPreferredOrientations([
-            DeviceOrientation.portraitUp,
-            DeviceOrientation.portraitDown,
-          ]);
-        }
-      }
-    });
   } catch (e) {
     debugPrint("초기화 중 오류 발생: $e");
   }
@@ -305,7 +292,7 @@ class _IntroductionScreenPageState extends State<IntroductionScreenPage> {
       barrierColor: Colors.black.withValues(alpha: 0.18),
       filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
       builder: (context) {
-        return SafeArea(
+        return AdaptiveModalSurface(
           child: Align(
             alignment: Alignment.bottomCenter,
             child: Material(
@@ -374,9 +361,9 @@ class _IntroductionScreenPageState extends State<IntroductionScreenPage> {
                       ),
                     ),
                     const SizedBox(height: 28),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(
+                          minWidth: double.infinity, minHeight: 56),
                       child: DecoratedBox(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(28),
@@ -468,117 +455,97 @@ class _IntroductionScreenPageState extends State<IntroductionScreenPage> {
 
   @override
   Widget build(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context).size;
     final localizations = AppLocalizations.of(context);
-
-    return Scaffold(
-      body: Stack(
-        children: [
-          // ✅ GFImageOverlay 대신 기본 Container로 배경 이미지 설정
-          Container(
-            height: mediaQuery.height,
-            width: mediaQuery.width,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(
-                  Platform.isIOS
-                      ? 'assets/images/apple_sample.png'
-                      : 'assets/images/android_sample.png',
-                ),
-                fit: BoxFit.cover,
-              ),
+    return AdaptivePage(
+      child: Scaffold(
+        body: Stack(children: [
+          Positioned.fill(
+            child: Image.asset(
+              Platform.isIOS
+                  ? 'assets/images/apple_sample.png'
+                  : 'assets/images/android_sample.png',
+              fit: BoxFit.cover,
             ),
           ),
-
-          // ✅ 나머지 오버레이 요소들
-          Positioned(
-            top: mediaQuery.height * 0.88,
-            left: 20,
-            right: 20,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Semantics(
-                  label:
-                      '${localizations?.introductionTitle1 ?? 'Introduction'} ${localizations?.languagesdescprition1 ?? ''}',
-                  child: RichText(
-                    textAlign: TextAlign.center,
-                    text: TextSpan(
+          AdaptiveContent(
+            maxWidth: 640,
+            child: LayoutBuilder(builder: (context, constraints) {
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        TextSpan(
-                          text: localizations?.introductionTitle1 ??
-                              'Introduction',
-                          style: TextStyle(
-                            fontFamily: 'SF Pro Display',
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white54,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 24),
+                          child: Text(
+                            localizations?.languagesdescprition ??
+                                'Description',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontFamily: 'SF Pro Display',
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
+                        Column(mainAxisSize: MainAxisSize.min, children: [
+                          Semantics(
+                            label:
+                                '${localizations?.introductionTitle1 ?? 'Introduction'} ${localizations?.languagesdescprition1 ?? ''}',
+                            child: Text(
+                              localizations?.introductionTitle1 ??
+                                  'Introduction',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontFamily: 'SF Pro Display',
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white54,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            spacing: 24,
+                            runSpacing: 8,
+                            children: [
+                              TextButton(
+                                onPressed: _signInAsGuest,
+                                child: Text(
+                                    localizations?.browse ??
+                                        'Explore as a Guest',
+                                    style: const TextStyle(
+                                        fontFamily: 'SF Pro Display',
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold)),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pushReplacementNamed(
+                                    context, '/login'),
+                                child: Text(localizations?.login ?? 'Login',
+                                    style: const TextStyle(
+                                        fontFamily: 'SF Pro Display',
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                          ),
+                        ]),
                       ],
                     ),
                   ),
                 ),
-              ],
-            ),
+              );
+            }),
           ),
-
-          Positioned(
-            top: mediaQuery.height * 0.15,
-            left: 20,
-            right: 20,
-            child: Text(
-              localizations?.languagesdescprition ?? 'Description',
-              style: TextStyle(
-                fontFamily: 'SF Pro Display',
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-
-          Positioned(
-            left: 20,
-            bottom: 40,
-            child: GFButton(
-              onPressed: _signInAsGuest,
-              text: localizations?.browse ?? 'Explore as a Guest',
-              color: Colors.transparent,
-              textStyle: TextStyle(
-                fontFamily: 'SF Pro Display',
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-              type: GFButtonType.transparent,
-              highlightColor: Colors.transparent,
-              splashColor: Colors.transparent,
-            ),
-          ),
-
-          Positioned(
-            right: 20,
-            bottom: 40,
-            child: GFButton(
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, '/login');
-              },
-              text: localizations?.login ?? 'Login',
-              color: Colors.transparent,
-              textStyle: TextStyle(
-                fontFamily: 'SF Pro Display',
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-              type: GFButtonType.transparent,
-              highlightColor: Colors.transparent,
-              splashColor: Colors.transparent,
-            ),
-          ),
-        ],
+        ]),
       ),
     );
   }

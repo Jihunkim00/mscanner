@@ -1,3 +1,4 @@
+import '/widgets/adaptive_window.dart';
 import 'dart:io'; // 플랫폼을 감지하기 위해 dart:io 패키지 추가
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -218,7 +219,7 @@ class _LoginScreenState extends State<LoginScreen> {
       barrierColor: Colors.black.withValues(alpha: 0.18),
       filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
       builder: (context) {
-        return SafeArea(
+        return AdaptiveModalSurface(
           child: Align(
             alignment: Alignment.bottomCenter,
             child: Material(
@@ -286,9 +287,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 28),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(
+                          minWidth: double.infinity, minHeight: 56),
                       child: DecoratedBox(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(28),
@@ -477,7 +478,8 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
 
-    return Scaffold(
+    return AdaptivePage(
+        child: Scaffold(
       backgroundColor: bgColor,
       body: SafeArea(
         child: Center(
@@ -851,6 +853,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 }

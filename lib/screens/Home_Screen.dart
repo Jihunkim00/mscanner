@@ -21,7 +21,8 @@ import 'package:flutter_html/flutter_html.dart'; // flutter_html 패키지 impor
 import 'package:cached_network_image/cached_network_image.dart'; // CachedNetworkImage 추가
 import 'location_service.dart'; // LocationService 파일 가져오기
 import '/screens/custom_cache_manager.dart'; // CustomCacheManager import
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '/widgets/adaptive_banner.dart';
+import '/widgets/adaptive_window.dart';
 import '/widgets/comment_section.dart';
 import '/screens/geohash_service.dart';
 import 'package:provider/provider.dart';
@@ -60,10 +61,12 @@ class _HomeScreenState extends State<HomeScreen> {
   StreamSubscription<User?>? _authSub;
   bool _isOpeningPurchaseSheet = false;
   bool _isHandlingPremiumCta = false;
-  static const Duration _premiumPromptAutoShowDelay =
-      Duration(milliseconds: 900);
-  static const Duration _premiumPromptAfterInterstitialCooldown =
-      Duration(minutes: 5);
+  static const Duration _premiumPromptAutoShowDelay = Duration(
+    milliseconds: 900,
+  );
+  static const Duration _premiumPromptAfterInterstitialCooldown = Duration(
+    minutes: 5,
+  );
   static bool _premiumAutoPromptShownThisSession = false;
   static bool _premiumPromptManuallyOpenedThisSession = false;
 
@@ -211,7 +214,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ? PremiumAutoPromptAudience.guest
         : PremiumAutoPromptAudience.registeredFree;
     _logPremiumAutoPromptDebug(
-        'audience_resolved audience=${audience.analyticsValue}');
+      'audience_resolved audience=${audience.analyticsValue}',
+    );
     return audience;
   }
 
@@ -375,8 +379,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final lastShownAt = audience == PremiumAutoPromptAudience.registeredFree
         ? _readRegisteredPremiumLastShownAt(prefs, uid)
         : null;
-    final interstitialLastShownAt =
-        _readResultExitInterstitialLastShownAt(prefs);
+    final interstitialLastShownAt = _readResultExitInterstitialLastShownAt(
+      prefs,
+    );
     final recentInterstitial = _isRecentResultExitInterstitial(
       interstitialLastShownAt,
       now,
@@ -468,12 +473,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       _logPremiumAutoPromptDebug(
-          'scheduled delayMs=${_premiumPromptAutoShowDelay.inMilliseconds}');
+        'scheduled delayMs=${_premiumPromptAutoShowDelay.inMilliseconds}',
+      );
       await Future<void>.delayed(_premiumPromptAutoShowDelay);
 
       if (!mounted || !_isHomeRouteCurrent) {
         _logPremiumAutoPromptDebug(
-            'schedule_cancelled reason=route_not_current');
+          'schedule_cancelled reason=route_not_current',
+        );
         _logPremiumAutoPromptEvent(
           'premium_auto_prompt_skipped',
           reason: 'route_not_current',
@@ -488,7 +495,8 @@ class _HomeScreenState extends State<HomeScreen> {
           _isOpeningPurchaseSheet ||
           _isHandlingPremiumCta) {
         _logPremiumAutoPromptDebug(
-            'schedule_cancelled reason=route_not_current');
+          'schedule_cancelled reason=route_not_current',
+        );
         _logPremiumAutoPromptEvent(
           'premium_auto_prompt_skipped',
           reason: 'route_not_current',
@@ -513,8 +521,9 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       final latestAdProvider = context.read<AdRemoveProvider>();
-      final latestAudience =
-          _resolvePremiumAutoPromptAudience(latestAdProvider);
+      final latestAudience = _resolvePremiumAutoPromptAudience(
+        latestAdProvider,
+      );
       final latestLastShownAt =
           latestAudience == PremiumAutoPromptAudience.registeredFree
               ? _readRegisteredPremiumLastShownAt(prefs, uid)
@@ -529,7 +538,8 @@ class _HomeScreenState extends State<HomeScreen> {
         'interstitial_last_shown_at ${_formatPromptTime(latestInterstitialLastShownAt)}',
       );
       _logPremiumAutoPromptDebug(
-          'recent_interstitial $latestRecentInterstitial');
+        'recent_interstitial $latestRecentInterstitial',
+      );
 
       if (latestAudience != audience) {
         _logPremiumAutoPromptDebug('schedule_cancelled reason=not_guest');
@@ -573,11 +583,13 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() => _showPremiumOverlay = true);
       didShow = true;
       _logPremiumAutoPromptDebug(
-          'overlay_shown audience=${audience.analyticsValue}');
+        'overlay_shown audience=${audience.analyticsValue}',
+      );
 
       await prefs.setInt(countKey, 0);
       _logPremiumAutoPromptDebug(
-          'count_reset audience=${audience.analyticsValue}');
+        'count_reset audience=${audience.analyticsValue}',
+      );
       if (audience == PremiumAutoPromptAudience.registeredFree) {
         await prefs.setString(
           PremiumAutoPromptPolicy.registeredLastShownAtPrefsKey(uid),
@@ -603,9 +615,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _showPremiumOverlay = false);
   }
 
-  Future<void> _showPurchaseSheet({
-    bool triggeredAutomatically = false,
-  }) async {
+  Future<void> _showPurchaseSheet({bool triggeredAutomatically = false}) async {
     if (!triggeredAutomatically) {
       _premiumPromptManuallyOpenedThisSession = true;
       _logPremiumAutoPromptDebug('manually_opened_this_session');
@@ -617,32 +627,39 @@ class _HomeScreenState extends State<HomeScreen> {
       await showModalBottomSheet(
         context: context,
         isScrollControlled: true,
+        useSafeArea: true,
+        constraints: const BoxConstraints(maxWidth: 640),
         backgroundColor: Colors.transparent,
         builder: (_) {
-          return DraggableScrollableSheet(
-            initialChildSize: 0.7,
-            minChildSize: 0.5,
-            maxChildSize: 0.95,
-            builder: (ctx, scrollController) {
-              return Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: SingleChildScrollView(
-                    controller: scrollController,
-                    child: TestPurchaseWidget(
-                      onPurchased: () {
-                        Navigator.of(context).maybePop();
-                        _closePremiumOverlay();
-                      },
+          return AdaptiveModalSurface(
+            scrollable: false,
+            child: DraggableScrollableSheet(
+              initialChildSize: 0.7,
+              minChildSize: 0.5,
+              maxChildSize: 0.95,
+              builder: (ctx, scrollController) {
+                return Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(16),
                     ),
                   ),
-                ),
-              );
-            },
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      child: TestPurchaseWidget(
+                        onPurchased: () {
+                          Navigator.of(context).maybePop();
+                          _closePremiumOverlay();
+                        },
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
           );
         },
       );
@@ -678,8 +695,9 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       if (result.message != null && result.message!.isNotEmpty) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(result.message!)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(result.message!)));
       }
 
       if (result.shouldContinueToPurchase && mounted) {
@@ -732,9 +750,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _initializeHome() async {
-    await Future.wait([
-      _fetchLatestLikedData(),
-    ]);
+    await Future.wait([_fetchLatestLikedData()]);
 
     unawaited(LocationService().getCountryCodeFromGPS());
     await _loadInitialData();
@@ -761,9 +777,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // 병렬 호출로 메인, 도시 데이터 불러오기
   Future<void> _loadInitialData() async {
     // Future.wait를 사용해 병렬로 호출합니다.
-    final results = await Future.wait([
-      _getMainCardData(),
-    ]);
+    final results = await Future.wait([_getMainCardData()]);
     if (!mounted) return; // ← 이 줄 추가
     setState(() {
       _cachedMainCardData = results[0];
@@ -948,8 +962,9 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       _lastMultiScanTap = now;
 
-      await LogService()
-          .logCameraOpen(reason: 'multi_scan_tab'); // ① 변형(멀티스캔 진입 의도)
+      await LogService().logCameraOpen(
+        reason: 'multi_scan_tab',
+      ); // ① 변형(멀티스캔 진입 의도)
       if (!mounted) return;
 
       Navigator.of(context).push(
@@ -1020,9 +1035,10 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       String? country;
       try {
-        country = await LocationService()
-            .getCountryCodeFromGPS()
-            .timeout(Duration(seconds: 3), onTimeout: () => 'KR');
+        country = await LocationService().getCountryCodeFromGPS().timeout(
+              Duration(seconds: 3),
+              onTimeout: () => 'KR',
+            );
       } catch (_) {
         country = 'KR';
       }
@@ -1206,8 +1222,9 @@ class _HomeScreenState extends State<HomeScreen> {
     required String lang,
     int count = 2,
   }) async {
-    final collectionRef =
-        FirebaseFirestore.instance.collection('verified_data');
+    final collectionRef = FirebaseFirestore.instance.collection(
+      'verified_data',
+    );
     final docNames = _pickVerifiedDocNames(country)..shuffle();
     final picked = docNames.take(count).toList();
 
@@ -1266,201 +1283,215 @@ class _HomeScreenState extends State<HomeScreen> {
     final Color bottomNavBarColor =
         brightness == Brightness.dark ? Colors.black : Color(0xFFEFEFF4);
 
-    return PopScope(
-      canPop: _selectedIndex == 0,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        if (_selectedIndex != 0) {
-          setState(() => _selectedIndex = 0);
-        }
-      },
-      child: Stack(
-        children: [
-          Scaffold(
-            backgroundColor: backgroundColor,
-            resizeToAvoidBottomInset: true,
-            body: _selectedIndex == 0
-                ? HomeContent(
-                    key: _homeContentKey,
-                    latestLikedData: _latestLikedData,
-                    latestLikedDoc: _latestLikedDoc,
-                    onRefresh: _fetchLatestLikedData,
-                    mainCardDataFuture: _mainCardDataFuture,
-                    cityDataFuture: _cityDataFuture,
-                    userGeohash: _currentGeohash ?? 'zzzzzzzz', // ✅ 추가된 부분
-                    // ← ⑤ HomeContent 에 상태 전달
-                  )
-                : _getWidgetOptions().elementAt(_selectedIndex),
-            bottomNavigationBar: Theme(
-              data: Theme.of(context).copyWith(
-                canvasColor: bottomNavBarColor,
-              ),
-              child: BottomNavigationBar(
-                type: BottomNavigationBarType.fixed,
-                items: <BottomNavigationBarItem>[
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.home),
-                    label: localizations?.home ?? 'Home',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: AnimatedOpacity(
-                      opacity: _blinkState ? 1.0 : 0.8,
-                      duration: Duration(milliseconds: 400),
-                      child: Container(
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: _shouldHighlightCameraTab
-                              ? [
-                                  BoxShadow(
-                                    color: Colors.blueAccent
-                                        .withValues(alpha: 0.7),
-                                    blurRadius: 12,
-                                    spreadRadius: 4,
-                                  ),
-                                ]
-                              : [],
-                        ),
-                        child: Icon(Icons.camera, size: 24),
-                      ),
+    return AdaptivePage(
+      child: PopScope(
+        canPop: _selectedIndex == 0,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          if (_selectedIndex != 0) {
+            setState(() => _selectedIndex = 0);
+          }
+        },
+        child: Stack(
+          children: [
+            Scaffold(
+              backgroundColor: backgroundColor,
+              resizeToAvoidBottomInset: true,
+              body: _selectedIndex == 0
+                  ? HomeContent(
+                      key: _homeContentKey,
+                      latestLikedData: _latestLikedData,
+                      latestLikedDoc: _latestLikedDoc,
+                      onRefresh: _fetchLatestLikedData,
+                      mainCardDataFuture: _mainCardDataFuture,
+                      cityDataFuture: _cityDataFuture,
+                      userGeohash: _currentGeohash ?? 'zzzzzzzz', // ✅ 추가된 부분
+                      // ← ⑤ HomeContent 에 상태 전달
+                    )
+                  : _getWidgetOptions().elementAt(_selectedIndex),
+              bottomNavigationBar: Theme(
+                data: Theme.of(
+                  context,
+                ).copyWith(canvasColor: bottomNavBarColor),
+                child: BottomNavigationBar(
+                  type: BottomNavigationBarType.fixed,
+                  items: <BottomNavigationBarItem>[
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.home),
+                      label: localizations?.home ?? 'Home',
                     ),
-                    label: localizations?.camera ?? 'Camera',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.photo_library),
-                    label: localizations?.multiScan ?? 'Multi scan',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.history),
-                    label: localizations?.history ?? 'History',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.settings),
-                    label: localizations?.settings ?? 'Settings',
-                  ),
-                ],
-                currentIndex: _selectedIndex,
-                selectedItemColor: Colors.blue,
-                unselectedItemColor: Colors.grey,
-                onTap: _onItemTapped,
-                showUnselectedLabels: true,
-                selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold),
-                unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal),
-              ),
-            ),
-          ),
-          if (_emergencyMessage != null)
-            Positioned(
-              top: 20,
-              left: 0,
-              right: 0,
-              child: Container(
-                color: Colors.redAccent,
-                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                child: Row(
-                  children: [
-                    Icon(Icons.warning, color: Colors.white),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        _emergencyMessage!,
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                    BottomNavigationBarItem(
+                      icon: AnimatedOpacity(
+                        opacity: _blinkState ? 1.0 : 0.8,
+                        duration: Duration(milliseconds: 400),
+                        child: Container(
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: _shouldHighlightCameraTab
+                                ? [
+                                    BoxShadow(
+                                      color: Colors.blueAccent.withValues(
+                                        alpha: 0.7,
+                                      ),
+                                      blurRadius: 12,
+                                      spreadRadius: 4,
+                                    ),
+                                  ]
+                                : [],
+                          ),
+                          child: Icon(Icons.camera, size: 24),
                         ),
                       ),
+                      label: localizations?.camera ?? 'Camera',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.photo_library),
+                      label: localizations?.multiScan ?? 'Multi scan',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.history),
+                      label: localizations?.history ?? 'History',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.settings),
+                      label: localizations?.settings ?? 'Settings',
                     ),
                   ],
+                  currentIndex: _selectedIndex,
+                  selectedItemColor: Colors.blue,
+                  unselectedItemColor: Colors.grey,
+                  onTap: _onItemTapped,
+                  showUnselectedLabels: true,
+                  selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold),
+                  unselectedLabelStyle: TextStyle(
+                    fontWeight: FontWeight.normal,
+                  ),
                 ),
               ),
             ),
-          // 🔻 문구 보여주기 (깜빡임 애니메이션 포함)
-          if (_shouldHighlightCameraTab)
-            Positioned(
-              bottom: 70,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: AnimatedOpacity(
-                  opacity: _blinkState ? 1.0 : 0.3,
-                  duration: Duration(milliseconds: 600),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.8),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: Text(
-                        localizations!.cameraHint, // or 고정 문구
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontFamily: 'SFProText',
-                          fontWeight: FontWeight.w500,
+            if (_emergencyMessage != null)
+              Positioned(
+                top: 20,
+                left: 0,
+                right: 0,
+                child: Container(
+                  color: Colors.redAccent,
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                  child: Row(
+                    children: [
+                      Icon(Icons.warning, color: Colors.white),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          _emergencyMessage!,
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        softWrap: true,
-                        overflow: TextOverflow.visible,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            // 🔻 문구 보여주기 (깜빡임 애니메이션 포함)
+            if (_shouldHighlightCameraTab)
+              Positioned(
+                bottom: 70,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: AnimatedOpacity(
+                    opacity: _blinkState ? 1.0 : 0.3,
+                    duration: Duration(milliseconds: 600),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 16,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.8),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: Text(
+                          localizations!.cameraHint, // or 고정 문구
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontFamily: 'SFProText',
+                            fontWeight: FontWeight.w500,
+                          ),
+                          softWrap: true,
+                          overflow: TextOverflow.visible,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          // ✅ 프리미엄 광고 팝업
-          if (_showPremiumOverlay && !(isSubscribed || isAdRemoved))
-            Positioned.fill(
-              child: Container(
-                color: Colors.black54,
-                child: SafeArea(
-                  // 👈 추가
-                  child: Center(
+            // ✅ 프리미엄 광고 팝업
+            if (_showPremiumOverlay && !(isSubscribed || isAdRemoved))
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black54,
+                  child: SafeArea(
+                    // 👈 추가
+                    child: Center(
                       child: PremiumAdOverlay(
-                    // ⬇︎ 단말 폭 기준으로 적당히 리사이즈해서 디코딩
-                    image: ResizeImage(
-                      const AssetImage('assets/images/admscanner.png'),
-                      width: (MediaQuery.of(context).size.width * 2)
-                          .toInt(), // 선명도 확보용
-                    ),
-                    locale: Localizations.localeOf(context),
-                    adFreePrice:
-                        simpleLocalizedPrice(Localizations.localeOf(context)),
-                    premiumMonthlyPrice:
-                        simpleLocalizedPrice(Localizations.localeOf(context)),
-                    // ⬇︎ 화면 꽉 채우되, 중요한 왼쪽 영역이 보이게 정렬
-                    // ⬇️ 이미지 잘림 최소화
-                    imageFit: BoxFit.cover, // ✅ 세로 기준으로 꽉 차게
-                    imageAlignment: Alignment.topLeft, // ✅ 위쪽 기준
-                    panelOffsetY: -60, // ✅ 텍스트 위로 올리기
-                    isGuest: FirebaseAuth.instance.currentUser == null ||
-                        FirebaseAuth.instance.currentUser!.isAnonymous,
+                        // ⬇︎ 단말 폭 기준으로 적당히 리사이즈해서 디코딩
+                        image: ResizeImage(
+                          const AssetImage('assets/images/admscanner.png'),
+                          width: (MediaQuery.of(context).size.width * 2)
+                              .toInt(), // 선명도 확보용
+                        ),
+                        locale: Localizations.localeOf(context),
+                        adFreePrice: simpleLocalizedPrice(
+                          Localizations.localeOf(context),
+                        ),
+                        premiumMonthlyPrice: simpleLocalizedPrice(
+                          Localizations.localeOf(context),
+                        ),
+                        // ⬇︎ 화면 꽉 채우되, 중요한 왼쪽 영역이 보이게 정렬
+                        // ⬇️ 이미지 잘림 최소화
+                        imageFit: BoxFit.cover, // ✅ 세로 기준으로 꽉 차게
+                        imageAlignment: Alignment.topLeft, // ✅ 위쪽 기준
+                        panelOffsetY: -60, // ✅ 텍스트 위로 올리기
+                        isGuest: FirebaseAuth.instance.currentUser == null ||
+                            FirebaseAuth.instance.currentUser!.isAnonymous,
 
-                    onPrimaryTap: () async {
-                      await LogService().logPremiumCtaClick(
-                          placement: 'overlay',
-                          plan: 'subscription'); // ⑰ 프리미엄 CTA
-                      await AnalyticsService.instance.logPaywallView(
-                        source: 'home_overlay',
-                        trigger: 'overlay_cta',
-                      );
-                      final user = FirebaseAuth.instance.currentUser;
-                      final isGuest = user == null || user.isAnonymous;
-                      if (isGuest) {
-                        await _handleGuestUpgradeAndContinuePurchase(
-                          triggeredAutomatically: true,
-                        );
-                        return;
-                      }
-                      await _showPurchaseSheet(triggeredAutomatically: true);
-                    },
-                    onClose: _closePremiumOverlay,
-                  )),
+                        onPrimaryTap: () async {
+                          await LogService().logPremiumCtaClick(
+                            placement: 'overlay',
+                            plan: 'subscription',
+                          ); // ⑰ 프리미엄 CTA
+                          await AnalyticsService.instance.logPaywallView(
+                            source: 'home_overlay',
+                            trigger: 'overlay_cta',
+                          );
+                          final user = FirebaseAuth.instance.currentUser;
+                          final isGuest = user == null || user.isAnonymous;
+                          if (isGuest) {
+                            await _handleGuestUpgradeAndContinuePurchase(
+                              triggeredAutomatically: true,
+                            );
+                            return;
+                          }
+                          await _showPurchaseSheet(
+                            triggeredAutomatically: true,
+                          );
+                        },
+                        onClose: _closePremiumOverlay,
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            )
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1474,7 +1505,8 @@ class _HomeScreenState extends State<HomeScreen> {
         latestLikedDoc: _latestLikedDoc,
         onRefresh: _fetchLatestLikedData,
         mainCardDataFuture: _mainCardDataFuture,
-        cityDataFuture: _cityDataFuture, userGeohash: '',
+        cityDataFuture: _cityDataFuture,
+        userGeohash: '',
         // ← ⑤ HomeContent 에 상태 전달
       ),
 
@@ -1485,10 +1517,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _onItemTapped(0);
         },
       ),
-      CameraScreen(
-        onCancel: () => _onItemTapped(0),
-        isMulti: true,
-      ),
+      CameraScreen(onCancel: () => _onItemTapped(0), isMulti: true),
 
       // 히스토리
       HistoryScreen(),
@@ -1553,10 +1582,6 @@ class _MenuImageSuggestion {
 }
 
 class _HomeContentState extends State<HomeContent> {
-  BannerAd? _adaptiveBanner;
-  bool _isBannerLoaded = false;
-  bool _didLoadBanner = false;
-
   final TextEditingController _restaurantNameController =
       TextEditingController();
   final TextEditingController _topSearchController = TextEditingController();
@@ -1643,54 +1668,11 @@ class _HomeContentState extends State<HomeContent> {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_didLoadBanner) {
-      final adp = context.read<AdRemoveProvider>();
-      if (!(adp.isSubscribed || adp.isAdRemoved)) {
-        _loadAdaptiveBanner(); // 권리 없을 때만 로드
-      }
-      _didLoadBanner = true;
-    }
-  }
-
-  void _loadAdaptiveBanner() async {
-    final adp = context.read<AdRemoveProvider>();
-    if (adp.isSubscribed || adp.isAdRemoved) return; // 이중 가드
-
-    final AnchoredAdaptiveBannerAdSize? size =
-        await AdSize.getAnchoredAdaptiveBannerAdSize(
-      Orientation.portrait,
-      MediaQuery.of(context).size.width.truncate(),
-    );
-
-    if (size == null) return;
-
-    _adaptiveBanner = BannerAd(
-      size: size,
-      adUnitId: Platform.isAndroid
-          ? 'ca-app-pub-2942885230901008/6352101999' // ✅ 실제 Android 배너 ID
-          : 'ca-app-pub-2942885230901008/3614258015', // ✅ 실제 iOS 배너 ID
-      listener: BannerAdListener(
-        onAdLoaded: (_) => setState(() => _isBannerLoaded = true),
-        onAdFailedToLoad: (ad, error) {
-          debugPrint('배너 로드 실패: $error');
-          ad.dispose();
-        },
-      ),
-      request: AdRequest(),
-    );
-
-    await _adaptiveBanner!.load();
-  }
-
-  @override
   void dispose() {
     _restaurantNameController.dispose();
     _topSearchController.dispose();
     _topSearchFocusNode.dispose();
     _topSearchDebounce?.cancel();
-    _adaptiveBanner?.dispose();
     super.dispose();
   }
 
@@ -1763,10 +1745,10 @@ class _HomeContentState extends State<HomeContent> {
                 ? display
                 : (original.isNotEmpty ? original : translated);
 
-            final subtitle = [original, translated]
-                .where((e) => e.isNotEmpty && e != title)
-                .toSet()
-                .join(' · ');
+            final subtitle = [
+              original,
+              translated,
+            ].where((e) => e.isNotEmpty && e != title).toSet().join(' · ');
 
             return _MenuImageSuggestion(
               docId: doc.id,
@@ -1834,46 +1816,61 @@ class _HomeContentState extends State<HomeContent> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
+      constraints: const BoxConstraints(maxWidth: 640),
       backgroundColor: Colors.transparent,
       builder: (ctx) {
         final isDarkMode = Theme.of(ctx).brightness == Brightness.dark;
 
-        return Container(
-          decoration: BoxDecoration(
-            color: isDarkMode ? const Color(0xFF1C1C1E) : Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 42,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.withValues(alpha: 0.35),
-                        borderRadius: BorderRadius.circular(99),
+        return AdaptiveModalSurface(
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDarkMode ? const Color(0xFF1C1C1E) : Colors.white,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 42,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withValues(alpha: 0.35),
+                          borderRadius: BorderRadius.circular(99),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    height: MediaQuery.of(ctx).size.height * 0.30,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(18),
-                      child: item.imageUrl != null
-                          ? CachedNetworkImage(
-                              imageUrl: item.imageUrl!,
-                              fit: BoxFit.cover,
-                              placeholder: (_, __) => const Center(
-                                  child: CupertinoActivityIndicator()),
-                              errorWidget: (_, __, ___) => Container(
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      height: MediaQuery.of(ctx).size.height * 0.30,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(18),
+                        child: item.imageUrl != null
+                            ? CachedNetworkImage(
+                                imageUrl: item.imageUrl!,
+                                fit: BoxFit.cover,
+                                placeholder: (_, __) => const Center(
+                                  child: CupertinoActivityIndicator(),
+                                ),
+                                errorWidget: (_, __, ___) => Container(
+                                  color: isDarkMode
+                                      ? Colors.white10
+                                      : Colors.grey.shade200,
+                                  child: const Center(
+                                    child: Icon(Icons.restaurant, size: 44),
+                                  ),
+                                ),
+                              )
+                            : Container(
                                 color: isDarkMode
                                     ? Colors.white10
                                     : Colors.grey.shade200,
@@ -1881,48 +1878,40 @@ class _HomeContentState extends State<HomeContent> {
                                   child: Icon(Icons.restaurant, size: 44),
                                 ),
                               ),
-                            )
-                          : Container(
-                              color: isDarkMode
-                                  ? Colors.white10
-                                  : Colors.grey.shade200,
-                              child: const Center(
-                                child: Icon(Icons.restaurant, size: 44),
-                              ),
-                            ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    item.title,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'SFProDisplay',
-                    ),
-                  ),
-                  if (item.subtitle.isNotEmpty) ...[
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 16),
                     Text(
-                      item.subtitle,
+                      item.title,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'SFProDisplay',
+                      ),
+                    ),
+                    if (item.subtitle.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        item.subtitle,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDarkMode ? Colors.white70 : Colors.black54,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 12),
+                    Text(
+                      item.shortDesc.isNotEmpty
+                          ? item.shortDesc
+                          : 'No description available.',
                       style: TextStyle(
-                        fontSize: 13,
-                        color: isDarkMode ? Colors.white70 : Colors.black54,
+                        fontSize: 14,
+                        height: 1.45,
+                        color: isDarkMode ? Colors.white : Colors.black87,
                       ),
                     ),
                   ],
-                  const SizedBox(height: 12),
-                  Text(
-                    item.shortDesc.isNotEmpty
-                        ? item.shortDesc
-                        : 'No description available.',
-                    style: TextStyle(
-                      fontSize: 14,
-                      height: 1.45,
-                      color: isDarkMode ? Colors.white : Colors.black87,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
@@ -2063,8 +2052,10 @@ class _HomeContentState extends State<HomeContent> {
                   return ListTile(
                     dense: true,
                     visualDensity: const VisualDensity(vertical: -2),
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 0,
+                    ),
                     title: Text(
                       item.title,
                       style: const TextStyle(fontSize: 13),
@@ -2082,7 +2073,7 @@ class _HomeContentState extends State<HomeContent> {
                 },
               ),
             ),
-          )
+          ),
         ],
       ],
     );
@@ -2091,66 +2082,55 @@ class _HomeContentState extends State<HomeContent> {
   @override
   Widget build(BuildContext context) {
     // 구독(premium)이나 광고제거(adfree) 둘 중 하나라도 있으면 isAdRemoved=true
-    final isAdRemoved = context.watch<AdRemoveProvider>().isAdRemoved;
+    final adProvider = context.watch<AdRemoveProvider>();
+    final isAdRemoved = adProvider.isSubscribed || adProvider.isAdRemoved;
 
-    return Container(
-      margin: const EdgeInsets.only(top: 50), // 상단 여백
-      padding: const EdgeInsets.all(10),
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            // 상단 검색바
-            _buildSearchBar(context),
-            const SizedBox(height: 16),
+    return AdaptiveContent(
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // 상단 검색바
+              _buildSearchBar(context),
+              const SizedBox(height: 16),
 
-            // 최신 좋아요 콘텐츠 표시 (기존 유지)
-            if (widget.latestLikedData != null)
-              _buildLatestLikedContainer(context),
+              // 최신 좋아요 콘텐츠 표시 (기존 유지)
+              if (widget.latestLikedData != null)
+                _buildLatestLikedContainer(context),
 
-            // 메인 카드 (헤더 + 캐러셀)
-            _buildHeaderRow(),
-            _buildGFCardCarousel(),
+              // 메인 카드 (헤더 + 캐러셀)
+              _buildHeaderRow(),
+              _buildGFCardCarousel(),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            HowToUseMscannerCard(
-              onCardTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (ctx) => CameraScreen(
-                      onCancel: () => Navigator.of(ctx).pop(),
+              HowToUseMscannerCard(
+                onCardTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (ctx) =>
+                          CameraScreen(onCancel: () => Navigator.of(ctx).pop()),
                     ),
-                  ),
-                );
-              },
-            ),
-
-            const SizedBox(height: 16),
-
-            // AD 라벨 + 기존 배너 광고
-            if (!isAdRemoved) ...[
-              Consumer<AdRemoveProvider>(
-                builder: (context, adProvider, child) {
-                  if (adProvider.isSubscribed || adProvider.isAdRemoved) {
-                    return SizedBox.shrink();
-                  } else if (_isBannerLoaded && _adaptiveBanner != null) {
-                    return Container(
-                      width: _adaptiveBanner!.size.width.toDouble(),
-                      height: _adaptiveBanner!.size.height.toDouble(),
-                      alignment: Alignment.center,
-                      child: AdWidget(ad: _adaptiveBanner!),
-                    );
-                  } else {
-                    return SizedBox.shrink();
-                  }
+                  );
                 },
               ),
-              const SizedBox(height: 20),
-            ],
 
-            // 댓글 섹션 (기존 유지)
-            CommentSection(userGeohash: widget.userGeohash),
-          ],
+              const SizedBox(height: 16),
+
+              // AD 라벨 + 기존 배너 광고
+              AdaptiveBanner(
+                enabled: !isAdRemoved,
+                adUnitId: Platform.isAndroid
+                    ? 'ca-app-pub-2942885230901008/6352101999'
+                    : 'ca-app-pub-2942885230901008/3614258015',
+              ),
+              if (!isAdRemoved) const SizedBox(height: 20),
+
+              // 댓글 섹션 (기존 유지)
+              CommentSection(userGeohash: widget.userGeohash),
+            ],
+          ),
         ),
       ),
     );
@@ -2164,8 +2144,9 @@ class _HomeContentState extends State<HomeContent> {
     final Color textColor = isDarkMode ? Colors.white : Colors.black;
 
     final DateTime timestamp = DateTime.parse(data!['timestamp']);
-    final String formattedDate =
-        DateFormat('MMM dd, yyyy - h:mm a').format(timestamp);
+    final String formattedDate = DateFormat(
+      'MMM dd, yyyy - h:mm a',
+    ).format(timestamp);
 
     return Container(
       margin: EdgeInsets.all(10),
@@ -2186,7 +2167,7 @@ class _HomeContentState extends State<HomeContent> {
                 if (data['image_url'] != null)
                   CachedNetworkImage(
                     imageUrl: data['image_url'],
-                    width: MediaQuery.of(context).size.width * 0.20,
+                    width: 80,
                     fit: BoxFit.cover,
                     placeholder: (context, url) => CircularProgressIndicator(),
                     errorWidget: (context, url, error) => Icon(Icons.error),
@@ -2252,8 +2233,8 @@ class _HomeContentState extends State<HomeContent> {
             ),
             SizedBox(height: 10),
             // 별점
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            Wrap(
+              alignment: WrapAlignment.center,
               children: List.generate(5, (index) {
                 return IconButton(
                   icon: Icon(
@@ -2273,16 +2254,15 @@ class _HomeContentState extends State<HomeContent> {
             SizedBox(height: 10),
 
             // 저장 버튼
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 10,
+              runSpacing: 8,
               children: [
-                // 오른쪽으로 살짝 밀기 위한 Spacer
-                Spacer(flex: 1),
-
                 // 기존 스타일 유지한 Save 버튼
-                SizedBox(
-                  width: 90,
-                  height: 40,
+                ConstrainedBox(
+                  constraints:
+                      const BoxConstraints(minWidth: 90, minHeight: 40),
                   child: ElevatedButton(
                     onPressed: _isSaving ? null : () => _saveData(false),
                     style: ElevatedButton.styleFrom(
@@ -2297,12 +2277,10 @@ class _HomeContentState extends State<HomeContent> {
                   ),
                 ),
 
-                SizedBox(width: 10),
-
                 // 새로 추가된 Skip 버튼 (기존과 동일 스타일)
-                SizedBox(
-                  width: 110,
-                  height: 40,
+                ConstrainedBox(
+                  constraints:
+                      const BoxConstraints(minWidth: 110, minHeight: 40),
                   child: ElevatedButton(
                     onPressed: _isSaving ? null : () => _saveData(true),
                     style: ElevatedButton.styleFrom(
@@ -2385,8 +2363,9 @@ class _HomeContentState extends State<HomeContent> {
 
         final String location =
             widget.latestLikedData?['location'] ?? 'Unknown';
-        final List<String> responses =
-            List<String>.from(widget.latestLikedData?['responses'] ?? []);
+        final List<String> responses = List<String>.from(
+          widget.latestLikedData?['responses'] ?? [],
+        );
         final primary = _extractPrimaryMenuFromResponses(responses);
         final String timestamp = DateTime.now().toIso8601String();
         final String restaurantName = isSkip
@@ -2523,11 +2502,14 @@ class _HomeContentState extends State<HomeContent> {
     } catch (e) {
       messenger
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-          content: Text(
-              '${localizations?.home_errorSavingData ?? 'Error saving data'}: $e'),
-          backgroundColor: Colors.red,
-        ));
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              '${localizations?.home_errorSavingData ?? 'Error saving data'}: $e',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
     } finally {
       _isSaving = false;
       if (mounted) setState(() {});
@@ -2569,13 +2551,18 @@ class _HomeContentState extends State<HomeContent> {
           return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(
-              child: Text(
-                  AppLocalizations.of(context)?.home_errorLoadingCards ??
-                      'Error loading cards'));
+            child: Text(
+              AppLocalizations.of(context)?.home_errorLoadingCards ??
+                  'Error loading cards',
+            ),
+          );
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return Center(
-              child: Text(AppLocalizations.of(context)?.home_noDataAvailable ??
-                  'No data available'));
+            child: Text(
+              AppLocalizations.of(context)?.home_noDataAvailable ??
+                  'No data available',
+            ),
+          );
         } else {
           final cardData = snapshot.data!;
           if (!_sentMainCardsImpression && cardData.isNotEmpty) {
@@ -2606,10 +2593,8 @@ class _HomeContentState extends State<HomeContent> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => DetailScreen(
-                          items: cardData,
-                          initialIndex: index,
-                        ),
+                        builder: (context) =>
+                            DetailScreen(items: cardData, initialIndex: index),
                       ),
                     );
                   },
@@ -2619,8 +2604,8 @@ class _HomeContentState extends State<HomeContent> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(18),
                       child: GFImageOverlay(
-                        height: MediaQuery.of(context).size.height * 0.3,
-                        width: MediaQuery.of(context).size.width * 0.8,
+                        height: 260,
+                        width: double.infinity,
                         image: CachedNetworkImageProvider(
                           cardData[index]['image_url']!,
                           cacheManager: CustomCacheManager(),

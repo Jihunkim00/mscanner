@@ -20,31 +20,27 @@ class ImageGridViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Determine grid layout
-    final count = images.length;
-    final columns = count < 4 ? count : 4;
-    final totalPad = 16.0 * 2;
-    final spacing = 8.0 * (columns - 1);
-    final itemWidth =
-        (MediaQuery.of(context).size.width - totalPad - spacing) / columns;
-
-    // Calculate cache size based on devicePixelRatio
-    final dpr = MediaQuery.of(context).devicePixelRatio;
-    final cacheSize = (itemWidth * dpr).round();
-
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: List.generate(images.length, (i) {
-        return GestureDetector(
-          onTap: () => onTap(i),
-          child: FileThumbnail(
-            file: images[i],
-            size: itemWidth,
-            cacheSize: cacheSize,
-          ),
-        );
-      }),
-    );
+    if (images.isEmpty) return const SizedBox.shrink();
+    return LayoutBuilder(builder: (context, constraints) {
+      final columns =
+          (constraints.maxWidth / 100).floor().clamp(1, images.length);
+      final spacing = 8.0 * (columns - 1);
+      final itemWidth = (constraints.maxWidth - spacing) / columns;
+      final cacheSize =
+          (itemWidth * MediaQuery.devicePixelRatioOf(context)).round();
+      return Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: List.generate(
+            images.length,
+            (index) => GestureDetector(
+                  onTap: () => onTap(index),
+                  child: FileThumbnail(
+                      file: images[index],
+                      size: itemWidth,
+                      cacheSize: cacheSize),
+                )),
+      );
+    });
   }
 }

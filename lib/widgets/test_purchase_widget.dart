@@ -1,3 +1,4 @@
+import 'adaptive_window.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -529,43 +530,37 @@ class _TestPurchaseWidgetState extends State<TestPurchaseWidget> {
                 color: warmCardBg,
                 child: Padding(
                   padding: const EdgeInsets.all(12),
-                  child: Row(
-                    children: [
+                  child: AdaptiveActionRow(
+                    content: Row(children: [
                       Icon(Icons.star, size: 20, color: warmIcon),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildProductTitle(prod, warmText, warmTextSub),
-                            const SizedBox(height: 6),
-                            // 👉 여기 Builder(...) 부분 삭제!
-                            Text(
-                              prod.description,
+                          child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildProductTitle(prod, warmText, warmTextSub),
+                          const SizedBox(height: 6),
+                          Text(prod.description,
                               style:
-                                  TextStyle(fontSize: 12, color: warmTextSub),
-                            ),
-                          ],
-                        ),
+                                  TextStyle(fontSize: 12, color: warmTextSub)),
+                        ],
+                      )),
+                    ]),
+                    action: ElevatedButton(
+                      onPressed: () => _buy(prod),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: warmBtnBg,
+                        foregroundColor: warmText,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
-                      ElevatedButton(
-                        onPressed: () => _buy(prod),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: warmBtnBg,
-                          foregroundColor: warmText,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 10),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: Text(
-                          prod.price,
+                      child: Text(prod.price,
                           style: const TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ],
+                              fontSize: 14, fontWeight: FontWeight.w600)),
+                    ),
                   ),
                 ),
               );

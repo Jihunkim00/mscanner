@@ -1,3 +1,4 @@
+import '/widgets/adaptive_window.dart';
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -321,120 +322,129 @@ class _PresetSelectionScreenState extends State<PresetSelectionScreen> {
           : Colors.black45, // 다크 모드와 라이트 모드에 따라 다른 색상 적용
     );
 
-    return GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: _resetInactivityTimer,
-        onPanDown: (_) => _resetInactivityTimer(),
-        child: Scaffold(
-          backgroundColor: backgroundColor,
-          appBar: AppBar(
-            backgroundColor:
-                AdaptiveTheme.of(context).brightness == Brightness.dark
-                    ? Colors.black // 다크 모드일 때 검은색
-                    : Color(0xFFEFEFF4), // 라이트 모드일 때 기존 본문 배경색
-            elevation: 0, // 그림자 없애기
-            leading: CupertinoNavigationBarBackButton(
-              color: AdaptiveTheme.of(context).brightness == Brightness.dark
-                  ? Colors.white
-                  : Colors.black,
-              onPressed: () {
-                if (widget.isUpdateReview) {
-                  Navigator.pushReplacementNamed(context, '/home');
-                } else {
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-          ),
-          body: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildDropdown(
-                      localizations.targetLanguage,
-                      languages,
-                      _selectedLanguageCode,
-                      (value) => setState(() => _selectedLanguageCode = value),
-                      itemStyle,
-                      headingStyle,
-                    ),
-                    // 설명 텍스트에 패딩 추가
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 10, horizontal: 10.0), // 좌우 패딩 설정
-                      child: Text(
-                        localizations.languagesdescprition,
-                        style: descriptionStyle,
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    _buildDropdown(
-                      localizations.foodStyle,
-                      foodStyles,
-                      _selectedFoodStyle,
-                      (value) => setState(() => _selectedFoodStyle = value),
-                      itemStyle,
-                      headingStyle,
-                    ),
-                    // 설명 텍스트에 패딩 추가
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 10, horizontal: 10.0), // 좌우 패딩 설정
-                      child: Text(
-                        localizations.fooddescprition,
-                        style: descriptionStyle,
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    _buildDropdown(
-                      localizations.foodMenuMaxNumber,
-                      menuNumbers,
-                      _selectedMenuNumber,
-                      (value) => setState(() => _selectedMenuNumber = value),
-                      itemStyle,
-                      headingStyle,
-                    ),
-                    // 설명 텍스트에 패딩 추가
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 10, horizontal: 10.0), // 좌우 패딩 설정
-                      child: Text(
-                        localizations.menudescribe,
-                        // 설명 텍스트, 원하는 내용으로 수정하세요
-                        style: descriptionStyle,
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    Center(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor:
-                              Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.grey
-                                  : Colors.white,
-                          backgroundColor:
-                              Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.grey[800]
-                                  : Colors.grey,
-                          minimumSize: Size(40, 40),
-                          textStyle: TextStyle(
-                            fontFamily: 'SFPro',
-                            fontSize: 14,
-                          ),
-                        ),
-                        onPressed: _isSaving ? null : _savePresetAndNavigate,
-                        child: Text(localizations.saveAndContinue),
-                      ),
-                    ),
-                  ],
+    return AdaptivePage(
+        child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: _resetInactivityTimer,
+            onPanDown: (_) => _resetInactivityTimer(),
+            child: Scaffold(
+              backgroundColor: backgroundColor,
+              appBar: AppBar(
+                backgroundColor:
+                    AdaptiveTheme.of(context).brightness == Brightness.dark
+                        ? Colors.black // 다크 모드일 때 검은색
+                        : Color(0xFFEFEFF4), // 라이트 모드일 때 기존 본문 배경색
+                elevation: 0, // 그림자 없애기
+                leading: CupertinoNavigationBarBackButton(
+                  color: AdaptiveTheme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : Colors.black,
+                  onPressed: () {
+                    if (widget.isUpdateReview) {
+                      Navigator.pushReplacementNamed(context, '/home');
+                    } else {
+                      Navigator.of(context).pop();
+                    }
+                  },
                 ),
               ),
-            ),
-          ),
-        ));
+              body: AdaptiveContent(
+                  maxWidth: 720,
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildDropdown(
+                              localizations.targetLanguage,
+                              languages,
+                              _selectedLanguageCode,
+                              (value) =>
+                                  setState(() => _selectedLanguageCode = value),
+                              itemStyle,
+                              headingStyle,
+                            ),
+                            // 설명 텍스트에 패딩 추가
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 10, horizontal: 10.0), // 좌우 패딩 설정
+                              child: Text(
+                                localizations.languagesdescprition,
+                                style: descriptionStyle,
+                              ),
+                            ),
+                            SizedBox(height: 20),
+                            _buildDropdown(
+                              localizations.foodStyle,
+                              foodStyles,
+                              _selectedFoodStyle,
+                              (value) =>
+                                  setState(() => _selectedFoodStyle = value),
+                              itemStyle,
+                              headingStyle,
+                            ),
+                            // 설명 텍스트에 패딩 추가
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 10, horizontal: 10.0), // 좌우 패딩 설정
+                              child: Text(
+                                localizations.fooddescprition,
+                                style: descriptionStyle,
+                              ),
+                            ),
+                            SizedBox(height: 20),
+                            _buildDropdown(
+                              localizations.foodMenuMaxNumber,
+                              menuNumbers,
+                              _selectedMenuNumber,
+                              (value) =>
+                                  setState(() => _selectedMenuNumber = value),
+                              itemStyle,
+                              headingStyle,
+                            ),
+                            // 설명 텍스트에 패딩 추가
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 10, horizontal: 10.0), // 좌우 패딩 설정
+                              child: Text(
+                                localizations.menudescribe,
+                                // 설명 텍스트, 원하는 내용으로 수정하세요
+                                style: descriptionStyle,
+                              ),
+                            ),
+                            SizedBox(height: 20),
+                            Center(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  foregroundColor:
+                                      Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Colors.grey
+                                          : Colors.white,
+                                  backgroundColor:
+                                      Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Colors.grey[800]
+                                          : Colors.grey,
+                                  minimumSize: Size(40, 40),
+                                  textStyle: TextStyle(
+                                    fontFamily: 'SFPro',
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                onPressed:
+                                    _isSaving ? null : _savePresetAndNavigate,
+                                child: Text(localizations.saveAndContinue),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )),
+            )));
   }
 
   Widget _buildDropdown(

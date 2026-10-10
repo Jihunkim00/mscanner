@@ -1,3 +1,4 @@
+import '/widgets/adaptive_window.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
@@ -357,7 +358,8 @@ class _SettingScreenState extends State<SettingScreen> {
 
     bool isGuest = user != null && user!.isAnonymous;
 
-    return CupertinoPageScaffold(
+    return AdaptivePage(
+        child: CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: null, // title 텍스트 제거
         backgroundColor: backgroundColor,
@@ -374,502 +376,525 @@ class _SettingScreenState extends State<SettingScreen> {
         ),
       ),
       backgroundColor: backgroundColor,
-      child: ListView(
-        children: [
-          CupertinoFormSection.insetGrouped(
-            backgroundColor: backgroundColor,
-            header: Text(
-              localizations?.account ?? 'Account', // 계정 섹션 제목
-              style: TextStyle(
-                  fontFamily: 'SFProText', fontSize: 14, color: textColor),
-            ),
+      child: AdaptiveContent(
+          maxWidth: 800,
+          child: ListView(
             children: [
-              CupertinoFormRow(
-                prefix: SizedBox(
-                  width: 36,
-                  height: 36,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      CircleAvatar(
-                        radius: 18,
-                        backgroundColor: isGuest ? Colors.blue[300] : null,
-                        // ✅ 변경: photoURL 있을 때만 네트워크 이미지 사용
-                        backgroundImage: (!isGuest && _hasPhoto(user))
-                            ? NetworkImage(user!.photoURL!)
-                            : null,
-                        // ✅ 변경: 게스트는 "GUEST", 그 외 photo 없으면 이니셜 표시
-                        child: isGuest
-                            ? Text(
-                                'GUEST',
-                                style: TextStyle(
-                                  fontSize: 9,
-                                  color: _isDarkMode
-                                      ? CupertinoColors.white
-                                      : CupertinoColors.black,
-                                ),
-                              )
-                            : (!_hasPhoto(user))
+              CupertinoFormSection.insetGrouped(
+                backgroundColor: backgroundColor,
+                header: Text(
+                  localizations?.account ?? 'Account', // 계정 섹션 제목
+                  style: TextStyle(
+                      fontFamily: 'SFProText', fontSize: 14, color: textColor),
+                ),
+                children: [
+                  CupertinoFormRow(
+                    prefix: SizedBox(
+                      width: 36,
+                      height: 36,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          CircleAvatar(
+                            radius: 18,
+                            backgroundColor: isGuest ? Colors.blue[300] : null,
+                            // ✅ 변경: photoURL 있을 때만 네트워크 이미지 사용
+                            backgroundImage: (!isGuest && _hasPhoto(user))
+                                ? NetworkImage(user!.photoURL!)
+                                : null,
+                            // ✅ 변경: 게스트는 "GUEST", 그 외 photo 없으면 이니셜 표시
+                            child: isGuest
                                 ? Text(
-                                    _initialsFrom(
-                                        user?.displayName ?? user?.email),
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
+                                    'GUEST',
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      color: _isDarkMode
+                                          ? CupertinoColors.white
+                                          : CupertinoColors.black,
                                     ),
                                   )
-                                : null,
-                      ),
+                                : (!_hasPhoto(user))
+                                    ? Text(
+                                        _initialsFrom(
+                                            user?.displayName ?? user?.email),
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      )
+                                    : null,
+                          ),
 
-                      // PRO 배지 (구독자일 때만 표시)
-                      if (!isGuest && isSubscribed)
-                        Positioned(
-                          right: -2,
-                          bottom: -2,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 4, vertical: 1),
-                            decoration: BoxDecoration(
-                              color: CupertinoColors.activeBlue,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
+                          // PRO 배지 (구독자일 때만 표시)
+                          if (!isGuest && isSubscribed)
+                            Positioned(
+                              right: -2,
+                              bottom: -2,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 4, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: CupertinoColors.activeBlue,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: _isDarkMode
+                                        ? CupertinoColors.black
+                                        : CupertinoColors.white,
+                                    width: 1.0,
+                                  ),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                        blurRadius: 1,
+                                        offset: Offset(0, 1),
+                                        color: Colors.black26),
+                                  ],
+                                ),
+                                child: const Text(
+                                  'PRO',
+                                  style: TextStyle(
+                                    fontSize: 6,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        SizedBox(width: 8), // 프로필 사진과 텍스트 사이에 약간의 간격 추가
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Text(
+                            //   localizations?.hello ?? 'Hello, ${user?.displayName ?? 'User'}',
+                            //   style: TextStyle(
+                            //     color: textColor,
+                            //     fontWeight: FontWeight.bold,
+                            //     fontSize: 14,
+                            //   ),
+                            // ),
+                            //Text( //(포인트 기능 출시 위한 미구현)
+                            // '${_userPoints} points',
+                            //style: TextStyle(
+                            // color: _isDarkMode ? Colors.white70 : Colors.black54,
+                            // fontSize: 12,
+                            // ),
+                            //),
+                          ],
+                        ),
+                        Spacer(), // 로그아웃 버튼을 오른쪽 끝으로 밀기 위해 Spacer 사용
+                        Column(
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                CupertinoIcons.square_arrow_right,
                                 color: _isDarkMode
-                                    ? CupertinoColors.black
-                                    : CupertinoColors.white,
-                                width: 1.0,
+                                    ? CupertinoColors.white
+                                    : CupertinoColors.black,
+                                size: 24,
                               ),
-                              boxShadow: const [
-                                BoxShadow(
-                                    blurRadius: 1,
-                                    offset: Offset(0, 1),
-                                    color: Colors.black26),
-                              ],
+                              onPressed: _logout,
                             ),
-                            child: const Text(
-                              'PRO',
+                            Text(
+                              localizations?.logout ?? 'Logout',
                               style: TextStyle(
-                                fontSize: 6,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                                letterSpacing: 0.3,
+                                color: _isDarkMode
+                                    ? Colors.white70
+                                    : Colors.black54,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 10, // 텍스트 크기 작게 설정
                               ),
                             ),
-                          ),
+                          ],
                         ),
-                    ],
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    SizedBox(width: 8), // 프로필 사진과 텍스트 사이에 약간의 간격 추가
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Text(
-                        //   localizations?.hello ?? 'Hello, ${user?.displayName ?? 'User'}',
-                        //   style: TextStyle(
-                        //     color: textColor,
-                        //     fontWeight: FontWeight.bold,
-                        //     fontSize: 14,
-                        //   ),
-                        // ),
-                        //Text( //(포인트 기능 출시 위한 미구현)
-                        // '${_userPoints} points',
-                        //style: TextStyle(
-                        // color: _isDarkMode ? Colors.white70 : Colors.black54,
-                        // fontSize: 12,
-                        // ),
-                        //),
                       ],
                     ),
-                    Spacer(), // 로그아웃 버튼을 오른쪽 끝으로 밀기 위해 Spacer 사용
-                    Column(
+                  ),
+                ],
+              ),
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 30.0), // 좌우 패딩 설정 (포인트와 같이 출시위한 임시 비활성화
+              //   child: Text(
+              //     localizations?.activepoint ?? 'The points display the user activity index, and various rewards will be provided in the future.',
+              //     style: TextStyle(
+              //       fontFamily: 'SFProText',
+              //       fontSize: 12,
+              //       color: _isDarkMode ? Colors.white24 : Colors.black45,
+              //     ),
+              //   ),
+              // ),
+              CupertinoFormSection.insetGrouped(
+                backgroundColor: backgroundColor,
+                header: Text(localizations?.display ?? 'Display',
+                    style: TextStyle(
+                        fontFamily: 'SFProText',
+                        fontSize: 14,
+                        color: textColor)),
+                children: [
+                  CupertinoFormRow(
+                    prefix: Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Icon(
+                        CupertinoIcons.moon,
+                        color: textColor,
+                        size: 20.0,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        IconButton(
-                          icon: Icon(
-                            CupertinoIcons.square_arrow_right,
-                            color: _isDarkMode
-                                ? CupertinoColors.white
-                                : CupertinoColors.black,
-                            size: 24,
-                          ),
-                          onPressed: _logout,
-                        ),
                         Text(
-                          localizations?.logout ?? 'Logout',
+                          localizations?.darkMode ?? 'Dark Mode',
                           style: TextStyle(
-                            color:
-                                _isDarkMode ? Colors.white70 : Colors.black54,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 10, // 텍스트 크기 작게 설정
-                          ),
+                              fontFamily: 'SFProText',
+                              fontSize: 14,
+                              color: textColor),
+                        ),
+                        CupertinoSwitch(
+                          value: _isDarkMode,
+                          onChanged: _toggleDarkMode,
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          // Padding(
-          //   padding: const EdgeInsets.symmetric(horizontal: 30.0), // 좌우 패딩 설정 (포인트와 같이 출시위한 임시 비활성화
-          //   child: Text(
-          //     localizations?.activepoint ?? 'The points display the user activity index, and various rewards will be provided in the future.',
-          //     style: TextStyle(
-          //       fontFamily: 'SFProText',
-          //       fontSize: 12,
-          //       color: _isDarkMode ? Colors.white24 : Colors.black45,
-          //     ),
-          //   ),
-          // ),
-          CupertinoFormSection.insetGrouped(
-            backgroundColor: backgroundColor,
-            header: Text(localizations?.display ?? 'Display',
-                style: TextStyle(
-                    fontFamily: 'SFProText', fontSize: 14, color: textColor)),
-            children: [
-              CupertinoFormRow(
-                prefix: Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: Icon(
-                    CupertinoIcons.moon,
-                    color: textColor,
-                    size: 20.0,
                   ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      localizations?.darkMode ?? 'Dark Mode',
-                      style: TextStyle(
-                          fontFamily: 'SFProText',
-                          fontSize: 14,
-                          color: textColor),
-                    ),
-                    CupertinoSwitch(
-                      value: _isDarkMode,
-                      onChanged: _toggleDarkMode,
-                    ),
-                  ],
-                ),
+                ],
               ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30.0), // 좌우 패딩 설정
-            child: Text(
-              localizations?.darkdescp ??
-                  'Enable dark mode for a more comfortable viewing experience', // 설명 텍스트, 원하는 내용으로 수정하세요
-              style: TextStyle(
-                fontFamily: 'SFProText',
-                fontSize: 12,
-                color: _isDarkMode ? Colors.white24 : Colors.black45,
-              ),
-            ),
-          ),
-
-          // **Security 섹션을 게스트일 경우 숨기기**
-          if (!isGuest)
-            CupertinoFormSection.insetGrouped(
-              backgroundColor: backgroundColor,
-              header: Text(localizations?.security ?? 'Security',
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30.0), // 좌우 패딩 설정
+                child: Text(
+                  localizations?.darkdescp ??
+                      'Enable dark mode for a more comfortable viewing experience', // 설명 텍스트, 원하는 내용으로 수정하세요
                   style: TextStyle(
-                      fontFamily: 'SFProText', fontSize: 14, color: textColor)),
-              children: [
-                CupertinoFormRow(
-                  prefix: Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: Icon(
-                      CupertinoIcons.lock,
-                      color: textColor,
-                      size: 20.0,
-                    ),
+                    fontFamily: 'SFProText',
+                    fontSize: 12,
+                    color: _isDarkMode ? Colors.white24 : Colors.black45,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        localizations?.changePassword ?? 'Change Password',
-                        style: TextStyle(
-                            fontFamily: 'SFProText',
-                            fontSize: 14,
-                            color: textColor),
-                      ),
-                      CupertinoSwitch(
-                        value: _isPasswordChangeVisible,
-                        onChanged: (value) {
-                          setState(() {
-                            _isPasswordChangeVisible = value;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                if (_isPasswordChangeVisible)
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: [
-                        CupertinoTextField(
-                          controller: _currentPasswordController,
-                          placeholder:
-                              localizations?.password ?? 'Current Password',
-                          obscureText: true,
-                          style: TextStyle(
-                              fontFamily: 'SFProText',
-                              fontSize: 14,
-                              color: textColor),
-                          padding: EdgeInsets.symmetric(
-                              vertical: 12, horizontal: 16),
-                          decoration: BoxDecoration(
-                            color: _isDarkMode
-                                ? CupertinoColors.darkBackgroundGray
-                                : CupertinoColors.lightBackgroundGray,
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        CupertinoTextField(
-                          controller: _newPasswordController,
-                          placeholder:
-                              localizations?.newPassword ?? 'New Password',
-                          obscureText: true,
-                          style: TextStyle(
-                              fontFamily: 'SFProText',
-                              fontSize: 14,
-                              color: textColor),
-                          padding: EdgeInsets.symmetric(
-                              vertical: 12, horizontal: 16),
-                          decoration: BoxDecoration(
-                            color: _isDarkMode
-                                ? CupertinoColors.darkBackgroundGray
-                                : CupertinoColors.lightBackgroundGray,
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        CupertinoButton(
-                          onPressed: _changePassword,
-                          padding:
-                              EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-                          borderRadius: BorderRadius.circular(8.0),
-                          color: Colors.blue, // 원하는 색상으로 변경
-                          child: Text(
-                            localizations?.changePassword ?? 'Change Password',
-                            style: TextStyle(
-                                fontFamily: 'SFProText',
-                                fontSize: 14,
-                                color: CupertinoColors.white),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-          if (!isGuest)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30.0), // 좌우 패딩 설정
-              child: Text(
-                localizations?.changepassdescp ??
-                    'For security, regularly change your password and use a strong password that is easy to remember', // 설명 텍스트, 원하는 내용으로 수정하세요
-                style: TextStyle(
-                  fontFamily: 'SFProText',
-                  fontSize: 12,
-                  color: _isDarkMode ? Colors.white24 : Colors.black45,
                 ),
               ),
-            ),
 
-          CupertinoFormSection.insetGrouped(
-            backgroundColor: backgroundColor,
-            header: Text(localizations?.aiSetting ?? 'AI Setting',
-                style: TextStyle(
-                    fontFamily: 'SFProText', fontSize: 14, color: textColor)),
-            children: [
-              CupertinoFormRow(
-                prefix: Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: Icon(
-                    CupertinoIcons.slider_horizontal_below_rectangle,
-                    color: textColor,
-                    size: 20.0,
-                  ),
-                ),
-                child: CupertinoButton(
-                  onPressed: _resetPreset,
-                  padding: EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-                  child: Text(localizations?.changepreset ?? 'Change preset',
+              // **Security 섹션을 게스트일 경우 숨기기**
+              if (!isGuest)
+                CupertinoFormSection.insetGrouped(
+                  backgroundColor: backgroundColor,
+                  header: Text(localizations?.security ?? 'Security',
                       style: TextStyle(
                           fontFamily: 'SFProText',
                           fontSize: 14,
                           color: textColor)),
+                  children: [
+                    CupertinoFormRow(
+                      prefix: Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: Icon(
+                          CupertinoIcons.lock,
+                          color: textColor,
+                          size: 20.0,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            localizations?.changePassword ?? 'Change Password',
+                            style: TextStyle(
+                                fontFamily: 'SFProText',
+                                fontSize: 14,
+                                color: textColor),
+                          ),
+                          CupertinoSwitch(
+                            value: _isPasswordChangeVisible,
+                            onChanged: (value) {
+                              setState(() {
+                                _isPasswordChangeVisible = value;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (_isPasswordChangeVisible)
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          children: [
+                            CupertinoTextField(
+                              controller: _currentPasswordController,
+                              placeholder:
+                                  localizations?.password ?? 'Current Password',
+                              obscureText: true,
+                              style: TextStyle(
+                                  fontFamily: 'SFProText',
+                                  fontSize: 14,
+                                  color: textColor),
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 12, horizontal: 16),
+                              decoration: BoxDecoration(
+                                color: _isDarkMode
+                                    ? CupertinoColors.darkBackgroundGray
+                                    : CupertinoColors.lightBackgroundGray,
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                            ),
+                            SizedBox(height: 16),
+                            CupertinoTextField(
+                              controller: _newPasswordController,
+                              placeholder:
+                                  localizations?.newPassword ?? 'New Password',
+                              obscureText: true,
+                              style: TextStyle(
+                                  fontFamily: 'SFProText',
+                                  fontSize: 14,
+                                  color: textColor),
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 12, horizontal: 16),
+                              decoration: BoxDecoration(
+                                color: _isDarkMode
+                                    ? CupertinoColors.darkBackgroundGray
+                                    : CupertinoColors.lightBackgroundGray,
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                            ),
+                            SizedBox(height: 16),
+                            CupertinoButton(
+                              onPressed: _changePassword,
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 6, horizontal: 8),
+                              borderRadius: BorderRadius.circular(8.0),
+                              color: Colors.blue, // 원하는 색상으로 변경
+                              child: Text(
+                                localizations?.changePassword ??
+                                    'Change Password',
+                                style: TextStyle(
+                                    fontFamily: 'SFProText',
+                                    fontSize: 14,
+                                    color: CupertinoColors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              if (!isGuest)
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 30.0), // 좌우 패딩 설정
+                  child: Text(
+                    localizations?.changepassdescp ??
+                        'For security, regularly change your password and use a strong password that is easy to remember', // 설명 텍스트, 원하는 내용으로 수정하세요
+                    style: TextStyle(
+                      fontFamily: 'SFProText',
+                      fontSize: 12,
+                      color: _isDarkMode ? Colors.white24 : Colors.black45,
+                    ),
+                  ),
+                ),
+
+              CupertinoFormSection.insetGrouped(
+                backgroundColor: backgroundColor,
+                header: Text(localizations?.aiSetting ?? 'AI Setting',
+                    style: TextStyle(
+                        fontFamily: 'SFProText',
+                        fontSize: 14,
+                        color: textColor)),
+                children: [
+                  CupertinoFormRow(
+                    prefix: Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Icon(
+                        CupertinoIcons.slider_horizontal_below_rectangle,
+                        color: textColor,
+                        size: 20.0,
+                      ),
+                    ),
+                    child: CupertinoButton(
+                      onPressed: _resetPreset,
+                      padding: EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                      child: Text(
+                          localizations?.changepreset ?? 'Change preset',
+                          style: TextStyle(
+                              fontFamily: 'SFProText',
+                              fontSize: 14,
+                              color: textColor)),
+                    ),
+                  ),
+                ],
+              ),
+              // Reset Preset 섹션 밖에 텍스트 추가
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30.0), // 좌우 패딩 설정
+                child: Text(
+                  localizations?.aIresetdescp ??
+                      'You can reset the AI scan settings', // 설명 텍스트, 원하는 내용으로 수정하세요
+                  style: TextStyle(
+                    fontFamily: 'SFProText',
+                    fontSize: 12,
+                    color: _isDarkMode ? Colors.white24 : Colors.black45,
+                  ),
                 ),
               ),
-            ],
-          ),
-          // Reset Preset 섹션 밖에 텍스트 추가
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30.0), // 좌우 패딩 설정
-            child: Text(
-              localizations?.aIresetdescp ??
-                  'You can reset the AI scan settings', // 설명 텍스트, 원하는 내용으로 수정하세요
-              style: TextStyle(
-                fontFamily: 'SFProText',
-                fontSize: 12,
-                color: _isDarkMode ? Colors.white24 : Colors.black45,
-              ),
-            ),
-          ),
 // ─ Premium 섹션 ─
 
-          if (!isGuest)
-            CupertinoFormSection.insetGrouped(
-              backgroundColor: backgroundColor,
-              header: Text(
-                'Premium',
-                style: TextStyle(
-                    fontFamily: 'SFProText', fontSize: 14, color: textColor),
-              ),
-              children: const [
-                TestPurchaseWidget(),
-              ],
-            )
-          else
-            CupertinoFormSection.insetGrouped(
-              backgroundColor: backgroundColor,
-              header: Text(
-                'Premium',
-                style: TextStyle(
-                    fontFamily: 'SFProText', fontSize: 14, color: textColor),
-              ),
-              children: [
-                CupertinoFormRow(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0, vertical: 6),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              if (!isGuest)
+                CupertinoFormSection.insetGrouped(
+                  backgroundColor: backgroundColor,
+                  header: Text(
+                    'Premium',
+                    style: TextStyle(
+                        fontFamily: 'SFProText',
+                        fontSize: 14,
+                        color: textColor),
+                  ),
+                  children: const [
+                    TestPurchaseWidget(),
+                  ],
+                )
+              else
+                CupertinoFormSection.insetGrouped(
+                  backgroundColor: backgroundColor,
+                  header: Text(
+                    'Premium',
+                    style: TextStyle(
+                        fontFamily: 'SFProText',
+                        fontSize: 14,
+                        color: textColor),
+                  ),
+                  children: [
+                    CupertinoFormRow(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16.0, vertical: 6),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              AppLocalizations.of(context)!
+                                  .premiumGuestSectionTitle,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: textColor,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              AppLocalizations.of(context)!
+                                  .premiumGuestSectionMessage,
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  color: textColor.withValues(alpha: 0.85)),
+                            ),
+                            const SizedBox(height: 12),
+                            CupertinoButton.filled(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 10, horizontal: 14),
+                              onPressed: _convertAccount,
+                              borderRadius: BorderRadius.circular(10),
+                              child: Text(
+                                AppLocalizations.of(context)!
+                                    .premiumGuestConvertButton,
+                                style: const TextStyle(
+                                    fontSize: 14, fontFamily: 'SFProText'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+              CupertinoFormSection.insetGrouped(
+                backgroundColor: backgroundColor,
+                header: Text(localizations?.server ?? 'Server',
+                    style: TextStyle(
+                        fontFamily: 'SFProText',
+                        fontSize: 14,
+                        color: textColor)),
+                children: [
+                  CupertinoFormRow(
+                    prefix: Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Icon(
+                        CupertinoIcons.cloud_upload,
+                        color: textColor,
+                        size: 20.0,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          AppLocalizations.of(context)!
-                              .premiumGuestSectionTitle,
+                          localizations?.cloudSave ?? 'Cloud Save',
                           style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: textColor,
-                          ),
+                              fontFamily: 'SFProText',
+                              fontSize: 14,
+                              color: textColor),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          AppLocalizations.of(context)!
-                              .premiumGuestSectionMessage,
-                          style: TextStyle(
-                              fontSize: 13,
-                              color: textColor.withValues(alpha: 0.85)),
-                        ),
-                        const SizedBox(height: 12),
-                        CupertinoButton.filled(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 14),
-                          onPressed: _convertAccount,
-                          borderRadius: BorderRadius.circular(10),
-                          child: Text(
-                            AppLocalizations.of(context)!
-                                .premiumGuestConvertButton,
-                            style: const TextStyle(
-                                fontSize: 14, fontFamily: 'SFProText'),
-                          ),
+                        CupertinoSwitch(
+                          value: _isCloudSaveEnabled,
+                          onChanged: _toggleCloudSave,
                         ),
                       ],
                     ),
                   ),
-                ),
-              ],
-            ),
-
-          CupertinoFormSection.insetGrouped(
-            backgroundColor: backgroundColor,
-            header: Text(localizations?.server ?? 'Server',
-                style: TextStyle(
-                    fontFamily: 'SFProText', fontSize: 14, color: textColor)),
-            children: [
-              CupertinoFormRow(
-                prefix: Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: Icon(
-                    CupertinoIcons.cloud_upload,
-                    color: textColor,
-                    size: 20.0,
+                ],
+              ),
+              // Cloud Saving 섹션 밖에 텍스트 추가
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30.0), // 좌우 패딩 설정
+                child: Text(
+                  localizations?.savedescp ??
+                      'Save the output data to the server. Saving is required to enable additional features', // 설명 텍스트, 원하는 내용으로 수정하세요
+                  style: TextStyle(
+                    fontFamily: 'SFProText',
+                    fontSize: 12,
+                    color: _isDarkMode ? Colors.white24 : Colors.black45,
                   ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      localizations?.cloudSave ?? 'Cloud Save',
-                      style: TextStyle(
-                          fontFamily: 'SFProText',
-                          fontSize: 14,
-                          color: textColor),
-                    ),
-                    CupertinoSwitch(
-                      value: _isCloudSaveEnabled,
-                      onChanged: _toggleCloudSave,
-                    ),
-                  ],
-                ),
+              ),
+              SizedBox(height: 30),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: isGuest
+                    ? CupertinoButton(
+                        color: CupertinoColors.activeBlue,
+                        onPressed: _convertAccount,
+                        borderRadius: BorderRadius.circular(8.0),
+                        padding:
+                            EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                        child: Text(
+                          localizations?.convertAccount ?? 'Convert Account',
+                          style: TextStyle(
+                              fontFamily: 'SFProText',
+                              fontSize: 14,
+                              color: CupertinoColors.white),
+                        ),
+                      )
+                    : CupertinoButton(
+                        color: CupertinoColors.destructiveRed,
+                        onPressed: _confirmDeleteAccount,
+                        borderRadius: BorderRadius.circular(8.0),
+                        padding:
+                            EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                        child: Text(
+                          localizations?.deleteAccount ?? 'Delete Account',
+                          style: TextStyle(
+                              fontFamily: 'SFProText',
+                              fontSize: 14,
+                              color: CupertinoColors.white),
+                        ),
+                      ),
               ),
             ],
-          ),
-          // Cloud Saving 섹션 밖에 텍스트 추가
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30.0), // 좌우 패딩 설정
-            child: Text(
-              localizations?.savedescp ??
-                  'Save the output data to the server. Saving is required to enable additional features', // 설명 텍스트, 원하는 내용으로 수정하세요
-              style: TextStyle(
-                fontFamily: 'SFProText',
-                fontSize: 12,
-                color: _isDarkMode ? Colors.white24 : Colors.black45,
-              ),
-            ),
-          ),
-          SizedBox(height: 30),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: isGuest
-                ? CupertinoButton(
-                    color: CupertinoColors.activeBlue,
-                    onPressed: _convertAccount,
-                    borderRadius: BorderRadius.circular(8.0),
-                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                    child: Text(
-                      localizations?.convertAccount ?? 'Convert Account',
-                      style: TextStyle(
-                          fontFamily: 'SFProText',
-                          fontSize: 14,
-                          color: CupertinoColors.white),
-                    ),
-                  )
-                : CupertinoButton(
-                    color: CupertinoColors.destructiveRed,
-                    onPressed: _confirmDeleteAccount,
-                    borderRadius: BorderRadius.circular(8.0),
-                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                    child: Text(
-                      localizations?.deleteAccount ?? 'Delete Account',
-                      style: TextStyle(
-                          fontFamily: 'SFProText',
-                          fontSize: 14,
-                          color: CupertinoColors.white),
-                    ),
-                  ),
-          ),
-        ],
-      ),
-    );
+          )),
+    ));
   }
 }

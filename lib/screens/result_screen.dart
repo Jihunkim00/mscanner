@@ -28,7 +28,8 @@ import 'package:mscanner/widgets/fx_auto_converter_card.dart';
 import 'dart:math' as math;
 import '/widgets/ai_food_image_button.dart'; // 파일 경로 맞게
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter/rendering.dart';
+import '/widgets/adaptive_scan_panels.dart';
+import '/widgets/adaptive_window.dart';
 import '/analytics_service.dart';
 import 'package:provider/provider.dart';
 import '/ad_remove_provider.dart';
@@ -118,10 +119,7 @@ class _MenuNamePair {
     return base.trim().toLowerCase();
   }
 
-  Map<String, dynamic> toMap() => {
-        'original': _o,
-        'translated': _t,
-      };
+  Map<String, dynamic> toMap() => {'original': _o, 'translated': _t};
 }
 
 class _ResultScreenState extends State<ResultScreen> {
@@ -185,7 +183,8 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   List<double> _extractAmountsFromRecommendedPrices(
-      List<Map<String, dynamic>> items) {
+    List<Map<String, dynamic>> items,
+  ) {
     final out = <double>[];
     for (final item in items) {
       // new schema: prices.{single/small/medium/large}
@@ -213,7 +212,7 @@ class _ResultScreenState extends State<ResultScreen> {
 
   final Set<String> _aiButtonReadyKeys = <String>{};
 
-// ===== Streaming AI response =====
+  // ===== Streaming AI response =====
   StreamSubscription<String>? _aiStreamSub;
   final StringBuffer _aiStreamBuffer = StringBuffer();
   bool _aiStreamDone = false;
@@ -242,10 +241,10 @@ class _ResultScreenState extends State<ResultScreen> {
   bool get _canShowTerminalActions =>
       _aiJson != null || (_aiStreamDone && _hasPartialAiResult);
 
-// RECOMMEND: line fast chips
+  // RECOMMEND: line fast chips
   List<String> _fastRecommend = <String>[];
 
-// Reveal chips: 1 first, then others after stream done
+  // Reveal chips: 1 first, then others after stream done
   int _revealRecommendedCount = 1;
   Timer? _revealTimer;
 
@@ -318,8 +317,8 @@ class _ResultScreenState extends State<ResultScreen> {
     return ResultParsingService.extractCurrencySymbolFromText(text);
   }
   // ✅ NEW: parse JSON from responses
-// - 단일 스캔: 첫 번째 유효 JSON 사용
-// - 멀티 스캔: responses 안의 JSON들을 "추천메뉴/전체메뉴" 기준으로 병합(중복 제거)
+  // - 단일 스캔: 첫 번째 유효 JSON 사용
+  // - 멀티 스캔: responses 안의 JSON들을 "추천메뉴/전체메뉴" 기준으로 병합(중복 제거)
 
   String? _extractJsonObjectFromText(String input) {
     return ResultParsingService.extractJsonObjectFromText(input);
@@ -444,10 +443,7 @@ class _ResultScreenState extends State<ResultScreen> {
     return false;
   }
 
-  void _finishAiStreamNow({
-    bool hadError = false,
-    String? errorMessage,
-  }) {
+  void _finishAiStreamNow({bool hadError = false, String? errorMessage}) {
     if (_aiStreamDone) return;
     _completeAiStream(hadError: hadError, errorMessage: errorMessage);
     if (mounted) setState(() {});
@@ -478,9 +474,11 @@ class _ResultScreenState extends State<ResultScreen> {
     if (!_hasUsableFullMenu()) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(
-                AppLocalizations.of(context)?.result_fullMenuUnavailable ??
-                    'Full menu is not available yet.')),
+          content: Text(
+            AppLocalizations.of(context)?.result_fullMenuUnavailable ??
+                'Full menu is not available yet.',
+          ),
+        ),
       );
       return;
     }
@@ -518,6 +516,8 @@ class _ResultScreenState extends State<ResultScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
+      constraints: const BoxConstraints(maxWidth: 640),
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.18),
       builder: (_) {
@@ -534,135 +534,142 @@ class _ResultScreenState extends State<ResultScreen> {
                   top: Radius.circular(28),
                 ),
               ),
-              child: Column(
-                children: [
-                  const SizedBox(height: 12),
-                  Container(
-                    width: 44,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: subColor.withValues(alpha: 0.28),
-                      borderRadius: BorderRadius.circular(999),
+              child: SingleChildScrollView(
+                controller: scrollController,
+                child: Column(
+                  children: [
+                    const SizedBox(height: 12),
+                    Container(
+                      width: 44,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: subColor.withValues(alpha: 0.28),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 12, 10),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: summaryBg,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: borderColor),
-                          ),
-                          child: Icon(
-                            CupertinoIcons.square_list,
-                            size: 18,
-                            color: titleColor,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            AppLocalizations.of(context)?.result_viewFullMenu ??
-                                'Full Menu',
-                            style: TextStyle(
-                              fontFamily: 'SFPro',
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 12, 10),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: summaryBg,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: borderColor),
+                            ),
+                            child: Icon(
+                              CupertinoIcons.square_list,
+                              size: 18,
                               color: titleColor,
                             ),
                           ),
-                        ),
-                        IconButton(
-                          splashRadius: 20,
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: Icon(
-                            CupertinoIcons.xmark_circle_fill,
-                            color: subColor,
-                            size: 24,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: ListView(
-                      controller: scrollController,
-                      padding: const EdgeInsets.fromLTRB(20, 6, 20, 24),
-                      children: [
-                        if ((summary ?? '').isNotEmpty) ...[
-                          Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: summaryBg,
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(color: borderColor),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  truncated
-                                      ? (AppLocalizations.of(context)
-                                              ?.favorite_summaryTruncated ??
-                                          'Menu Summary')
-                                      : (AppLocalizations.of(context)
-                                              ?.favorite_summary ??
-                                          'Summary'),
-                                  style: TextStyle(
-                                    fontFamily: 'SFPro',
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: titleColor,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  summary!,
-                                  style: TextStyle(
-                                    fontFamily: 'SFPro',
-                                    fontSize: 13,
-                                    height: 1.45,
-                                    color: subColor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-                        ],
-                        ..._buildMenuSection('Main', itemsMap?['main']),
-                        ..._buildMenuSection('Side', itemsMap?['side']),
-                        ..._buildMenuSection('Meal', itemsMap?['meal']),
-                        ..._buildMenuSection('Drink', itemsMap?['drink']),
-                        ..._buildMenuSection('Beverage', itemsMap?['beverage']),
-                        ..._buildMenuSection('Other', itemsMap?['unknown']),
-                        if (!hasAnyContent)
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: cardBg,
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(color: borderColor),
-                            ),
+                          const SizedBox(width: 12),
+                          Expanded(
                             child: Text(
                               AppLocalizations.of(context)
-                                      ?.result_noMenuItemsFound ??
-                                  'No menu items found.',
+                                      ?.result_viewFullMenu ??
+                                  'Full Menu',
                               style: TextStyle(
                                 fontFamily: 'SFPro',
-                                fontSize: 13,
-                                color: subColor,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: titleColor,
                               ),
                             ),
                           ),
-                      ],
+                          IconButton(
+                            splashRadius: 20,
+                            onPressed: () => Navigator.of(context).pop(),
+                            icon: Icon(
+                              CupertinoIcons.xmark_circle_fill,
+                              color: subColor,
+                              size: 24,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 6, 20, 24),
+                      child: Column(
+                        children: [
+                          if ((summary ?? '').isNotEmpty) ...[
+                            Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: summaryBg,
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(color: borderColor),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    truncated
+                                        ? (AppLocalizations.of(
+                                              context,
+                                            )?.favorite_summaryTruncated ??
+                                            'Menu Summary')
+                                        : (AppLocalizations.of(
+                                              context,
+                                            )?.favorite_summary ??
+                                            'Summary'),
+                                    style: TextStyle(
+                                      fontFamily: 'SFPro',
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: titleColor,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    summary!,
+                                    style: TextStyle(
+                                      fontFamily: 'SFPro',
+                                      fontSize: 13,
+                                      height: 1.45,
+                                      color: subColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 18),
+                          ],
+                          ..._buildMenuSection('Main', itemsMap?['main']),
+                          ..._buildMenuSection('Side', itemsMap?['side']),
+                          ..._buildMenuSection('Meal', itemsMap?['meal']),
+                          ..._buildMenuSection('Drink', itemsMap?['drink']),
+                          ..._buildMenuSection(
+                              'Beverage', itemsMap?['beverage']),
+                          ..._buildMenuSection('Other', itemsMap?['unknown']),
+                          if (!hasAnyContent)
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: cardBg,
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(color: borderColor),
+                              ),
+                              child: Text(
+                                AppLocalizations.of(
+                                      context,
+                                    )?.result_noMenuItemsFound ??
+                                    'No menu items found.',
+                                style: TextStyle(
+                                  fontFamily: 'SFPro',
+                                  fontSize: 13,
+                                  color: subColor,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           },
@@ -731,11 +738,7 @@ class _ResultScreenState extends State<ResultScreen> {
             return Column(
               children: [
                 if (index > 0)
-                  Divider(
-                    height: 1,
-                    thickness: 1,
-                    color: borderColor,
-                  ),
+                  Divider(height: 1, thickness: 1, color: borderColor),
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,
@@ -821,7 +824,7 @@ class _ResultScreenState extends State<ResultScreen> {
     ];
   }
 
-// ===== Price label helpers =====
+  // ===== Price label helpers =====
   String? _currencyCodeFromItem(Map<String, dynamic> item) {
     String? code;
     final prices = item['prices'];
@@ -895,10 +898,12 @@ class _ResultScreenState extends State<ResultScreen> {
     return head;
   }
 
-  String _formatMoney(double amount,
-      {String? currencyCode,
-      String? symbolHint,
-      bool includeCodeIfAmbiguous = true}) {
+  String _formatMoney(
+    double amount, {
+    String? currencyCode,
+    String? symbolHint,
+    bool includeCodeIfAmbiguous = true,
+  }) {
     final sym = _symbolForCurrency(currencyCode) ?? symbolHint;
     final a = _formatAmount(amount);
     if (sym != null && sym.isNotEmpty) {
@@ -916,8 +921,12 @@ class _ResultScreenState extends State<ResultScreen> {
     return a;
   }
 
-  String _formatMoneyRange(double min, double max,
-      {String? currencyCode, String? symbolHint}) {
+  String _formatMoneyRange(
+    double min,
+    double max, {
+    String? currencyCode,
+    String? symbolHint,
+  }) {
     final sym = _symbolForCurrency(currencyCode) ?? symbolHint;
     final aMin = _formatAmount(min);
     final aMax = _formatAmount(max);
@@ -961,11 +970,15 @@ class _ResultScreenState extends State<ResultScreen> {
     if (vals.length == 1) {
       return _formatMoney(vals.first, currencyCode: code, symbolHint: hint);
     }
-    return _formatMoneyRange(vals.first, vals.last,
-        currencyCode: code, symbolHint: hint);
+    return _formatMoneyRange(
+      vals.first,
+      vals.last,
+      currencyCode: code,
+      symbolHint: hint,
+    );
   }
 
-// ===== FX: quick convert prices to "system" target currency (toggle) =====
+  // ===== FX: quick convert prices to "system" target currency (toggle) =====
   String? _targetCurrencyCode; // e.g., 'KRW','USD'
 
   bool _isBulkConvertingPrices = false;
@@ -1161,11 +1174,18 @@ class _ResultScreenState extends State<ResultScreen> {
 
     if (toU == fromU) {
       if (vals.length == 1) {
-        return _formatMoney(vals.first,
-            currencyCode: fromU, symbolHint: currencySymbol(fromU));
+        return _formatMoney(
+          vals.first,
+          currencyCode: fromU,
+          symbolHint: currencySymbol(fromU),
+        );
       }
-      return _formatMoneyRange(vals.first, vals.last,
-          currencyCode: fromU, symbolHint: currencySymbol(fromU));
+      return _formatMoneyRange(
+        vals.first,
+        vals.last,
+        currencyCode: fromU,
+        symbolHint: currencySymbol(fromU),
+      );
     }
 
     final bases = <String>{toU, 'USD', 'EUR', 'KRW', 'JPY', 'CNY'};
@@ -1174,20 +1194,35 @@ class _ResultScreenState extends State<ResultScreen> {
     if (baseDoc == null) return null;
 
     double? cMin = convertViaBase(
-        amount: vals.first, from: fromU, to: toU, baseDoc: baseDoc);
+      amount: vals.first,
+      from: fromU,
+      to: toU,
+      baseDoc: baseDoc,
+    );
     double? cMax = convertViaBase(
-        amount: vals.last, from: fromU, to: toU, baseDoc: baseDoc);
+      amount: vals.last,
+      from: fromU,
+      to: toU,
+      baseDoc: baseDoc,
+    );
     if (cMin == null || cMax == null) return null;
 
     cMin = double.parse(cMin.toStringAsFixed(2));
     cMax = double.parse(cMax.toStringAsFixed(2));
 
     if ((cMin - cMax).abs() < 0.000001) {
-      return _formatMoney(cMin,
-          currencyCode: toU, symbolHint: currencySymbol(toU));
+      return _formatMoney(
+        cMin,
+        currencyCode: toU,
+        symbolHint: currencySymbol(toU),
+      );
     }
-    return _formatMoneyRange(cMin, cMax,
-        currencyCode: toU, symbolHint: currencySymbol(toU));
+    return _formatMoneyRange(
+      cMin,
+      cMax,
+      currencyCode: toU,
+      symbolHint: currencySymbol(toU),
+    );
   }
 
   Future<void> _toggleBulkPriceConversion() async {
@@ -1240,8 +1275,11 @@ class _ResultScreenState extends State<ResultScreen> {
           final vals = _extractPriceValuesFromItem(item);
           if (vals.isEmpty) continue;
 
-          final label =
-              await _convertPriceValuesToLabel(vals: vals, from: from, to: to);
+          final label = await _convertPriceValuesToLabel(
+            vals: vals,
+            from: from,
+            to: to,
+          );
           if (label == null) continue;
 
           final nameOriginal = (item['nameOriginal'] ?? '').toString().trim();
@@ -1263,9 +1301,11 @@ class _ResultScreenState extends State<ResultScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(
-                AppLocalizations.of(context)?.result_fxRateLoadFailed ??
-                    '환율 정보를 불러오지 못했어요. 네트워크 상태를 확인해 주세요.')),
+          content: Text(
+            AppLocalizations.of(context)?.result_fxRateLoadFailed ??
+                '환율 정보를 불러오지 못했어요. 네트워크 상태를 확인해 주세요.',
+          ),
+        ),
       );
     } finally {
       if (mounted) setState(() => _isBulkConvertingPrices = false);
@@ -1307,15 +1347,20 @@ class _ResultScreenState extends State<ResultScreen> {
               ))
           .toUpperCase();
 
-      final label =
-          await _convertPriceValuesToLabel(vals: vals, from: from, to: to);
+      final label = await _convertPriceValuesToLabel(
+        vals: vals,
+        from: from,
+        to: to,
+      );
       if (label == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text(
-                    AppLocalizations.of(context)?.result_fxConvertFailed ??
-                        '해당 금액의 환율 변환에 실패했어요.')),
+              content: Text(
+                AppLocalizations.of(context)?.result_fxConvertFailed ??
+                    '해당 금액의 환율 변환에 실패했어요.',
+              ),
+            ),
           );
         }
         return;
@@ -1329,9 +1374,11 @@ class _ResultScreenState extends State<ResultScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(
-                AppLocalizations.of(context)?.result_fxRateLoadFailed ??
-                    '환율 정보를 불러오지 못했어요. 네트워크 상태를 확인해 주세요.')),
+          content: Text(
+            AppLocalizations.of(context)?.result_fxRateLoadFailed ??
+                '환율 정보를 불러오지 못했어요. 네트워크 상태를 확인해 주세요.',
+          ),
+        ),
       );
     } finally {
       if (mounted) setState(() => _singlePriceLoadingMenuKeys.remove(mk));
@@ -1403,10 +1450,7 @@ class _ResultScreenState extends State<ResultScreen> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20),
           child: InteractiveViewer(
-            child: Image.network(
-              imageUrl,
-              fit: BoxFit.contain,
-            ),
+            child: Image.network(imageUrl, fit: BoxFit.contain),
           ),
         ),
       ),
@@ -1575,10 +1619,7 @@ class _ResultScreenState extends State<ResultScreen> {
               ],
             ),
           ),
-          if (trailing != null) ...[
-            const SizedBox(width: 12),
-            trailing,
-          ],
+          if (trailing != null) ...[const SizedBox(width: 12), trailing],
         ],
       ),
     );
@@ -1602,8 +1643,10 @@ class _ResultScreenState extends State<ResultScreen> {
         ? (item['tags'] as List).map((e) => e.toString()).toList()
         : <String>[];
 
-    final pair =
-        _MenuNamePair(original: nameOriginal, translated: nameTranslated);
+    final pair = _MenuNamePair(
+      original: nameOriginal,
+      translated: nameTranslated,
+    );
     final menuKey = buildMenuKey(pair.original, pair.translated);
     final searchedMenuDocIdForThisRow =
         isPrimaryRecommended ? _searchedMenuDocId : null;
@@ -1712,8 +1755,10 @@ class _ResultScreenState extends State<ResultScreen> {
                   );
                 },
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 11,
+                    vertical: 8,
+                  ),
                   constraints: const BoxConstraints(minHeight: 32),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
@@ -1773,7 +1818,8 @@ class _ResultScreenState extends State<ResultScreen> {
     final canShowMenu = _hasUsableFullMenu();
     final canShowPartialActions = _canShowTerminalActions;
     debugPrint(
-        'FULLMENU state => selected=$_selectedMenuNumber, enabled=$_isFullMenuEnabled, hasFast=$hasFast, hasJsonRec=$hasJsonRec, usable=${_hasUsableFullMenu()}');
+      'FULLMENU state => selected=$_selectedMenuNumber, enabled=$_isFullMenuEnabled, hasFast=$hasFast, hasJsonRec=$hasJsonRec, usable=${_hasUsableFullMenu()}',
+    );
 
     if (!hasFast && !hasJsonRec) {
       final shouldHideRawAiText =
@@ -1862,7 +1908,7 @@ class _ResultScreenState extends State<ResultScreen> {
 
     // ✅ JSON UI
 
-// ✅ FX 버튼(중복 제거): 제목 라인(본문)에서만 노출
+    // ✅ FX 버튼(중복 제거): 제목 라인(본문)에서만 노출
     final jsonPriceAmounts = _extractAmountsFromRecommendedPrices(rec);
     final fxAmounts = <double>[
       ...jsonPriceAmounts,
@@ -1888,7 +1934,9 @@ class _ResultScreenState extends State<ResultScreen> {
               Text(
                 AppLocalizations.of(context)?.home_mscannerPicks ??
                     ResultUiCopy.text(
-                        context, ResultUiCopy.recommendationHeaderFallback),
+                      context,
+                      ResultUiCopy.recommendationHeaderFallback,
+                    ),
                 style: TextStyle(
                   fontFamily: 'SFPro',
                   fontWeight: FontWeight.bold,
@@ -1905,15 +1953,20 @@ class _ResultScreenState extends State<ResultScreen> {
                         splashRadius: 18,
                         padding: EdgeInsets.zero,
                         tooltip: _bulkPricesConverted
-                            ? (AppLocalizations.of(context)
-                                    ?.result_restoreOriginalCurrency ??
+                            ? (AppLocalizations.of(
+                                  context,
+                                )?.result_restoreOriginalCurrency ??
                                 '원래 통화로 되돌리기')
-                            : AppLocalizations.of(context)!
+                            : AppLocalizations.of(
+                                context,
+                              )!
                                 .result_convertToSystemCurrency(
-                                    _targetCurrencyCode ??
-                                        (AppLocalizations.of(context)
-                                                ?.result_auto ??
-                                            '자동')),
+                                _targetCurrencyCode ??
+                                    (AppLocalizations.of(
+                                          context,
+                                        )?.result_auto ??
+                                        '자동'),
+                              ),
                         icon: Icon(
                           Icons.currency_exchange,
                           color: _bulkPricesConverted
@@ -1979,7 +2032,9 @@ class _ResultScreenState extends State<ResultScreen> {
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 180),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 14),
+                        horizontal: 14,
+                        vertical: 14,
+                      ),
                       decoration: BoxDecoration(
                         color: canShowMenu
                             ? (_isDarkMode
@@ -2016,12 +2071,14 @@ class _ResultScreenState extends State<ResultScreen> {
                           Flexible(
                             child: Text(
                               canShowMenu
-                                  ? (AppLocalizations.of(context)
-                                          ?.result_viewFullMenu ??
+                                  ? (AppLocalizations.of(
+                                        context,
+                                      )?.result_viewFullMenu ??
                                       'View Full Menu')
                                   : (_isWaitingFullMenu
-                                      ? (AppLocalizations.of(context)
-                                              ?.result_preparingMenu ??
+                                      ? (AppLocalizations.of(
+                                            context,
+                                          )?.result_preparingMenu ??
                                           'Preparing...')
                                       : 'Menu details unavailable'),
                               maxLines: 1,
@@ -2113,7 +2170,7 @@ class _ResultScreenState extends State<ResultScreen> {
   /// AI 응답에서 1번 메뉴만 추출
   /// - "1.", "1)", "1).", "1]", "1:", "1-" 등 허용
   /// - "1." 형태가 없으면 null 반환(=저장 스킵)
-// (기존 1번 파싱 로직) legacy: "1. ..."에서만 메뉴명 추출
+  // (기존 1번 파싱 로직) legacy: "1. ..."에서만 메뉴명 추출
   String? _extractMenuFirstLineLegacy() {
     final joined = widget.responses.join('\n').replaceAll('\r', '');
     final lines = joined.split('\n');
@@ -2151,7 +2208,7 @@ class _ResultScreenState extends State<ResultScreen> {
     return first;
   }
 
-// ✅ JSON(recommended[0])에서 original+translated 추출
+  // ✅ JSON(recommended[0])에서 original+translated 추출
   _MenuNamePair? _extractPrimaryMenuPairFromJson() {
     final rec = _getRecommendedItems();
     if (rec.isEmpty) return null;
@@ -2165,7 +2222,7 @@ class _ResultScreenState extends State<ResultScreen> {
     return pair.hasAny ? pair : null;
   }
 
-// ✅ 최종 primary pair (JSON 우선, 없으면 legacy)
+  // ✅ 최종 primary pair (JSON 우선, 없으면 legacy)
   _MenuNamePair? _extractPrimaryMenuPair() {
     final jsonPair = _extractPrimaryMenuPairFromJson();
     if (jsonPair != null) return jsonPair;
@@ -2185,7 +2242,7 @@ class _ResultScreenState extends State<ResultScreen> {
     return _MenuNamePair(original: legacy, translated: '');
   }
 
-// (기존 시그니처 유지) 저장/표시용 문자열
+  // (기존 시그니처 유지) 저장/표시용 문자열
   String? _extractMenuOnlyFromAiResponses() {
     final pair = _extractPrimaryMenuPair();
     if (pair == null) return null;
@@ -2236,10 +2293,12 @@ class _ResultScreenState extends State<ResultScreen> {
   }) {
     final sourceKey = _normalizeMenuText(source.key);
     final sourceOriginal = _normalizeMenuText(source.original);
-    final candidateKey =
-        _normalizeMenuText((candidate['menu_key'] ?? '').toString());
-    final candidateOriginal =
-        _normalizeMenuText((candidate['menu_original'] ?? '').toString());
+    final candidateKey = _normalizeMenuText(
+      (candidate['menu_key'] ?? '').toString(),
+    );
+    final candidateOriginal = _normalizeMenuText(
+      (candidate['menu_original'] ?? '').toString(),
+    );
 
     if (sourceKey.isNotEmpty &&
         candidateKey.isNotEmpty &&
@@ -2564,18 +2623,19 @@ class _ResultScreenState extends State<ResultScreen> {
                     for (final t in tags)
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(999),
                           border: Border.all(width: 1),
                         ),
                         child: Text(
                           '#${t.name}(${t.count})',
-                          style:
-                              Theme.of(context).textTheme.labelSmall?.copyWith(
-                                    fontSize: 11,
-                                    height: 1.0,
-                                  ),
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelSmall
+                              ?.copyWith(fontSize: 11, height: 1.0),
                         ),
                       ),
                   ],
@@ -2613,7 +2673,8 @@ class _ResultScreenState extends State<ResultScreen> {
   String? _foodDetail; // Variable to store foodDetail
   List<File> _viewerImages = [];
   int _viewerInitialIndex = 0;
-  final GlobalKey _shareWidgetKey = GlobalKey();
+  final ScanCaptureController _scanCapture = ScanCaptureController();
+  int _selectedImageIndex = 0;
 
   void _completeAiStream({bool hadError = false, String? errorMessage}) {
     if (_aiStreamDone) return;
@@ -2652,7 +2713,8 @@ class _ResultScreenState extends State<ResultScreen> {
       if (!_analyticsViewedLogged) {
         _analyticsViewedLogged = true;
         AnalyticsService.instance.logResultViewed(
-            entryPoint: widget.isFromHistory ? 'history' : 'scan_result');
+          entryPoint: widget.isFromHistory ? 'history' : 'scan_result',
+        );
       }
     });
     _parseAiJson(); // ✅ NEW: parse JSON response (if any)
@@ -2661,7 +2723,7 @@ class _ResultScreenState extends State<ResultScreen> {
       _revealRecommendedCount = 1; // 첫 칩 선공개
     }
 
-// ✅ 스트리밍이 있으면: Result에서 바로 받아서 RECOMMEND 먼저 반영
+    // ✅ 스트리밍이 있으면: Result에서 바로 받아서 RECOMMEND 먼저 반영
     if (widget.responseStream != null) {
       _aiGotFirstChunk = false;
       _aiStreamStartedAt = DateTime.now();
@@ -2742,10 +2804,12 @@ class _ResultScreenState extends State<ResultScreen> {
             errorMessage: _hasPartialAiResult
                 ? null
                 : (e is TimeoutException
-                    ? AppLocalizations.of(context)
-                        ?.result_aiTimeoutFullMenuStream
-                    : AppLocalizations.of(context)
-                        ?.result_aiReceiveFailedFullMenuStream),
+                    ? AppLocalizations.of(
+                        context,
+                      )?.result_aiTimeoutFullMenuStream
+                    : AppLocalizations.of(
+                        context,
+                      )?.result_aiReceiveFailedFullMenuStream),
           );
         },
         onDone: () {
@@ -2784,8 +2848,9 @@ class _ResultScreenState extends State<ResultScreen> {
 
     if (widget.isTutorial) {
       Future.delayed(Duration.zero, () {
-        GestureBinding.instance.pointerRouter
-            .addGlobalRoute(_handleTutorialTap);
+        GestureBinding.instance.pointerRouter.addGlobalRoute(
+          _handleTutorialTap,
+        );
       });
     }
 
@@ -2799,7 +2864,8 @@ class _ResultScreenState extends State<ResultScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       debugPrint(
-          "✅ [ResultScreen] first frame rendered at ${DateTime.now().toIso8601String()}");
+        "✅ [ResultScreen] first frame rendered at ${DateTime.now().toIso8601String()}",
+      );
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_aiJson == null) {
@@ -2830,7 +2896,10 @@ class _ResultScreenState extends State<ResultScreen> {
         setState(() {
           _nearbyMenuTagsFuture = () async {
             final a = await _fetchNearbyMenuTags(
-                prefixLen: 6, days: 30, maxDocs: 200);
+              prefixLen: 6,
+              days: 30,
+              maxDocs: 200,
+            );
             if (a.isNotEmpty) return a;
             return _fetchNearbyMenuTags(prefixLen: 5, days: 30, maxDocs: 200);
           }();
@@ -2855,7 +2924,10 @@ class _ResultScreenState extends State<ResultScreen> {
         if (_geohash != null) {
           _nearbyMenuTagsFuture = () async {
             final a = await _fetchNearbyMenuTags(
-                prefixLen: 6, days: 30, maxDocs: 200);
+              prefixLen: 6,
+              days: 30,
+              maxDocs: 200,
+            );
             if (a.isNotEmpty) return a;
             return _fetchNearbyMenuTags(prefixLen: 5, days: 30, maxDocs: 200);
           }();
@@ -2912,10 +2984,7 @@ class _ResultScreenState extends State<ResultScreen> {
         _isAllowedUser &&
         (_ragDetail?.isNotEmpty ?? false)) {
       _sentRagImpression = true;
-      await LogService().logContentImpression(
-        contentType: 'rag',
-        count: 1,
-      );
+      await LogService().logContentImpression(contentType: 'rag', count: 1);
     }
   }
 
@@ -2983,8 +3052,9 @@ class _ResultScreenState extends State<ResultScreen> {
   @override
   void dispose() {
     if (widget.isTutorial) {
-      GestureBinding.instance.pointerRouter
-          .removeGlobalRoute(_handleTutorialTap);
+      GestureBinding.instance.pointerRouter.removeGlobalRoute(
+        _handleTutorialTap,
+      );
     }
     _mergedImageBytes = null;
     _timer?.cancel();
@@ -3008,7 +3078,7 @@ class _ResultScreenState extends State<ResultScreen> {
         'bVAaTXHSi1TTQGp7HPwT1whDUIS2',
         'QV9xmlGofQbMe9ZOOTFxlAjnqbI3',
         '01RLorc0WFWyxQIlae4wcXC9KJF3',
-        'pfJilWN46cPj9ikX0S8eXWNJCLe2'
+        'pfJilWN46cPj9ikX0S8eXWNJCLe2',
       ];
       setState(() {
         _isAllowedUser = allowedUidList.contains(user.uid);
@@ -3054,8 +3124,9 @@ class _ResultScreenState extends State<ResultScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              AppLocalizations.of(context)?.result_failedLoadSettings ??
-                  'Failed to load settings, cloud save enabled by default'),
+            AppLocalizations.of(context)?.result_failedLoadSettings ??
+                'Failed to load settings, cloud save enabled by default',
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -3393,7 +3464,7 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
-// NOTE(result-refactor): Keep the full save pipeline here for now because it coordinates
+  // NOTE(result-refactor): Keep the full save pipeline here for now because it coordinates
   // UI loading states, snackbars, timers, and navigation side-effects tightly coupled to this screen.
 
   Future<void> _saveScanResult() async {
@@ -3417,8 +3488,9 @@ class _ResultScreenState extends State<ResultScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              AppLocalizations.of(context)?.result_imageUploadFailed ??
-                  'Image upload failed, please try again.'),
+            AppLocalizations.of(context)?.result_imageUploadFailed ??
+                'Image upload failed, please try again.',
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -3465,8 +3537,10 @@ class _ResultScreenState extends State<ResultScreen> {
 
   Future<void> _getAddressFromLatLng(Position position) async {
     try {
-      List<Placemark> placemarks =
-          await placemarkFromCoordinates(position.latitude, position.longitude);
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
       Placemark place = placemarks[0];
 
       setState(() {
@@ -3484,60 +3558,58 @@ class _ResultScreenState extends State<ResultScreen> {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(AppLocalizations.of(context)?.textCopied ??
-            'Text copied to clipboard'),
+        content: Text(
+          AppLocalizations.of(context)?.textCopied ??
+              'Text copied to clipboard',
+        ),
         duration: Duration(seconds: 2),
       ),
     );
   }
 
   void _shareCapturedImage() async {
+    ui.Image? image;
     try {
       await LogService().logShareClick(dest: 'system', context: 'result');
       await AnalyticsService.instance.logShareResult(channel: 'system');
       unawaited(AnalyticsService.instance.logEvent('result_shared'));
-
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        final boundary = _shareWidgetKey.currentContext?.findRenderObject()
-            as RenderRepaintBoundary?;
-
-        if (boundary == null) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppLocalizations.of(context)?.favorite_renderNotReady ??
-                    'Error: RenderRepaintBoundary is not ready.',
-              ),
-              backgroundColor: Colors.red,
+      if (!mounted) return;
+      final shareText = AppLocalizations.of(context)?.checkOutContent ??
+          'Check out this content!';
+      final media = MediaQuery.of(context);
+      image = await _scanCapture.capture(
+        pixelRatio: math.min(media.devicePixelRatio * 2, 3),
+        background: _isDarkMode ? Colors.black : const Color(0xFFF5F6F8),
+      );
+      if (!mounted) return;
+      if (image == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)?.favorite_renderNotReady ??
+                  'Error: RenderRepaintBoundary is not ready.',
             ),
-          );
-          return;
-        }
-
-        if (!mounted) return;
-        final pixelRatio = MediaQuery.of(context).devicePixelRatio * 2;
-        final shareText = AppLocalizations.of(context)?.checkOutContent ??
-            'Check out this content!';
-        final image = await boundary.toImage(pixelRatio: pixelRatio);
-        final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-
-        if (byteData == null) return;
-
-        final pngBytes = byteData.buffer.asUint8List();
-
-        final tempDir = await getTemporaryDirectory();
-        final file =
-            await File('${tempDir.path}/result_shared_image.png').create();
-        await file.writeAsBytes(pngBytes);
-
-        await Share.shareXFiles(
-          [XFile(file.path)],
-          text: shareText,
+            backgroundColor: Colors.red,
+          ),
         );
-      });
+        return;
+      }
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      if (byteData == null || !mounted) return;
+      final origin = Rect.fromLTWH(20, media.padding.top + 20, 1, 1);
+      final tempDir = await getTemporaryDirectory();
+      final file = File('${tempDir.path}/result_shared_image.png');
+      await file.writeAsBytes(byteData.buffer.asUint8List());
+      if (!mounted) return;
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: shareText,
+        sharePositionOrigin: origin,
+      );
     } catch (e) {
       debugPrint('Error sharing captured image: $e');
+    } finally {
+      image?.dispose();
     }
   }
 
@@ -3681,8 +3753,9 @@ class _ResultScreenState extends State<ResultScreen> {
 
   Future<void> _fetchFoodDetail() async {
     try {
-      List<String> foodNames =
-          _extractAllFoodNames(widget.responses.join('\n'));
+      List<String> foodNames = _extractAllFoodNames(
+        widget.responses.join('\n'),
+      );
       if (foodNames.isEmpty) {
         debugPrint('No food names found in response.');
         return;
@@ -3767,43 +3840,46 @@ class _ResultScreenState extends State<ResultScreen> {
   void _showFullImage({required List<File> files, required int initialIndex}) {
     _viewerImages = files;
     _viewerInitialIndex = initialIndex;
+    final controller = PageController(initialPage: _viewerInitialIndex);
     showDialog(
       context: context,
       builder: (context) {
-        return Scaffold(
-          backgroundColor: Colors.black,
-          body: SafeArea(
-            child: Stack(
-              children: [
-                PageView.builder(
-                  controller: PageController(initialPage: _viewerInitialIndex),
-                  itemCount: _viewerImages.length,
-                  itemBuilder: (_, idx) => InteractiveViewer(
-                    panEnabled: true,
-                    minScale: 1.0,
-                    maxScale: 4.0,
-                    child: Center(
-                      child: Image.file(
-                        _viewerImages[idx],
-                        fit: BoxFit.contain,
+        return AdaptivePage(
+          child: Scaffold(
+            backgroundColor: Colors.black,
+            body: SafeArea(
+              child: Stack(
+                children: [
+                  PageView.builder(
+                    controller: controller,
+                    itemCount: _viewerImages.length,
+                    itemBuilder: (_, idx) => InteractiveViewer(
+                      panEnabled: true,
+                      minScale: 1.0,
+                      maxScale: 4.0,
+                      child: Center(
+                        child: Image.file(
+                          _viewerImages[idx],
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                Positioned(
-                  top: 16,
-                  right: 16,
-                  child: IconButton(
-                    icon: Icon(Icons.close, color: Colors.white, size: 30),
-                    onPressed: () => Navigator.of(context).pop(),
+                  Positioned(
+                    top: 16,
+                    right: 16,
+                    child: IconButton(
+                      icon: Icon(Icons.close, color: Colors.white, size: 30),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
       },
-    );
+    ).whenComplete(controller.dispose);
   }
 
   String _decisionTitle() {
@@ -3923,10 +3999,7 @@ class _ResultScreenState extends State<ResultScreen> {
       MenuTagRegistry.grill,
       MenuTagRegistry.stew,
     ];
-    const recognizedCodes = <String>{
-      ...groupAOrdered,
-      ...groupBOrdered,
-    };
+    const recognizedCodes = <String>{...groupAOrdered, ...groupBOrdered};
 
     final recognized = <String>[];
     final fallbackRaw = <String>[];
@@ -4029,13 +4102,15 @@ class _ResultScreenState extends State<ResultScreen> {
         if (_priceCardEventLogged) return;
         _priceCardEventLogged = true;
         unawaited(
-            AnalyticsService.instance.logEvent('result_price_card_opened'));
+          AnalyticsService.instance.logEvent('result_price_card_opened'),
+        );
       },
       onLocalInsightTap: () {
         if (_localInsightEventLogged) return;
         _localInsightEventLogged = true;
         unawaited(
-            AnalyticsService.instance.logEvent('result_local_insight_opened'));
+          AnalyticsService.instance.logEvent('result_local_insight_opened'),
+        );
       },
     );
   }
@@ -4043,7 +4118,8 @@ class _ResultScreenState extends State<ResultScreen> {
   @override
   Widget build(BuildContext context) {
     debugPrint(
-        "▶️ [ResultScreen] build() at ${DateTime.now().toIso8601String()}");
+      "▶️ [ResultScreen] build() at ${DateTime.now().toIso8601String()}",
+    );
     final localizations = AppLocalizations.of(context);
     final bool showResultActions = !_isWaitingFullMenu;
     final bool showDecisionArea =
@@ -4081,6 +4157,7 @@ class _ResultScreenState extends State<ResultScreen> {
       child: Scaffold(
         backgroundColor: backgroundColor,
         appBar: AppBar(
+          centerTitle: false,
           backgroundColor: backgroundColor,
           leading: widget.isTutorial
               ? null
@@ -4092,204 +4169,215 @@ class _ResultScreenState extends State<ResultScreen> {
                 ),
           title: widget.isTutorial ? TutorialIndicator() : null,
         ),
-        body: Stack(
-          children: [
-            SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: RepaintBoundary(
-                key: _shareWidgetKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ImageGridViewer(
-                      images: widget.images != null && widget.images!.isNotEmpty
-                          ? widget.images!
-                          : [widget.image],
-                      onTap: (i) {
-                        final files =
-                            widget.images != null && widget.images!.isNotEmpty
-                                ? widget.images!
-                                : [widget.image];
-                        _showFullImage(files: files, initialIndex: i);
-                      },
-                    ),
-                    SizedBox(height: 16),
-                    if (showDecisionArea) ...[
-                      _buildDecisionSummarySection(),
-                      SizedBox(height: 16),
-                    ],
+        body: AdaptiveScanPanels(
+          capture: _scanCapture,
+          backgroundColor: backgroundColor,
+          primary: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              GestureDetector(
+                onTap: () => _showFullImage(
+                  files: widget.images?.isNotEmpty == true
+                      ? widget.images!
+                      : [widget.image],
+                  initialIndex: _selectedImageIndex,
+                ),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 480),
+                  child: Image.file(
+                    (widget.images?.isNotEmpty == true
+                        ? widget.images!
+                        : [widget.image])[_selectedImageIndex],
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+              if ((widget.images?.length ?? 0) > 1) ...[
+                const SizedBox(height: 12),
+                ImageGridViewer(
+                  images: widget.images!,
+                  onTap: (index) => setState(() => _selectedImageIndex = index),
+                ),
+              ],
+            ],
+          ),
+          results: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (showDecisionArea) ...[
+                _buildDecisionSummarySection(),
+                SizedBox(height: 16),
+              ],
 
-                    // ✅ NEW UI (JSON-based) with fallback to old text
-                    _buildScanResultCard(
-                      localizations: localizations!,
-                      textColor: textColor,
-                      boxDecoration: boxDecoration,
-                    ),
+              // ✅ NEW UI (JSON-based) with fallback to old text
+              _buildScanResultCard(
+                localizations: localizations!,
+                textColor: textColor,
+                boxDecoration: boxDecoration,
+              ),
 
-                    // ✅ 여기! 결과 카드 바깥 바로 아래에 “근처 타인 메뉴 태그”
-                    _buildNearbyMenuTags(),
+              // ✅ 여기! 결과 카드 바깥 바로 아래에 “근처 타인 메뉴 태그”
+              _buildNearbyMenuTags(),
 
-                    // ✅ RAG Answer (허용 사용자만)
-                    if (_isAllowedUser &&
-                        (_ragDetail?.isNotEmpty ?? false) &&
-                        _decisionLocalInsights().length < 3) ...[
-                      SizedBox(height: 16),
-                      Container(
-                        decoration: boxDecoration,
-                        padding: EdgeInsets.all(8),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'RAG Answer',
-                              style: TextStyle(
-                                fontFamily: 'SFPro',
-                                fontWeight: FontWeight.bold,
-                                color: textColor,
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                            Text(
-                              _ragDetail!,
-                              style: TextStyle(
-                                fontFamily: 'SFPro',
-                                fontSize: 12,
-                                color: textColor,
-                              ),
-                            ),
-                          ],
+              // ✅ RAG Answer (허용 사용자만)
+              if (_isAllowedUser &&
+                  (_ragDetail?.isNotEmpty ?? false) &&
+                  _decisionLocalInsights().length < 3) ...[
+                SizedBox(height: 16),
+                Container(
+                  decoration: boxDecoration,
+                  padding: EdgeInsets.all(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'RAG Answer',
+                        style: TextStyle(
+                          fontFamily: 'SFPro',
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        _ragDetail!,
+                        style: TextStyle(
+                          fontFamily: 'SFPro',
+                          fontSize: 12,
+                          color: textColor,
                         ),
                       ),
                     ],
+                  ),
+                ),
+              ],
 
-                    if (showResultActions) ...[
-                      SizedBox(height: 16),
-                      Container(
-                        decoration: boxDecoration,
-                        padding: EdgeInsets.all(8),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              localizations.reviewTitle,
-                              style: TextStyle(
-                                fontFamily: 'SFPro',
-                                fontWeight: FontWeight.bold,
-                                color: textColor,
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            TextField(
-                              controller: _reviewController,
-                              maxLines: 3,
-                              style: TextStyle(
-                                fontFamily: 'SFPro',
-                                fontSize: 14,
-                                color: textColor,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: localizations.reviewHint,
-                                hintStyle: TextStyle(
-                                  fontFamily: 'SFPro',
-                                  fontSize: 14,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ),
-                          ],
+              if (showResultActions) ...[
+                SizedBox(height: 16),
+                Container(
+                  decoration: boxDecoration,
+                  padding: EdgeInsets.all(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        localizations.reviewTitle,
+                        style: TextStyle(
+                          fontFamily: 'SFPro',
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
                         ),
                       ),
-                    ],
-
-                    if (showResultActions)
-                      SafeArea(
-                        bottom: true,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16.0, vertical: 8.0),
-                          child: ElevatedButton(
-                            onPressed: _isLoading
-                                ? null
-                                : () {
-                                    final comment =
-                                        _reviewController.text.trim();
-                                    LogService().logSaveClick(
-                                      hasComment: comment.isNotEmpty,
-                                      contentLength: comment.length,
-                                      context: 'result',
-                                    );
-
-                                    if (!_isMergeDone) {
-                                      if (!_pendingSave) {
-                                        setState(() => _pendingSave = true);
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                                AppLocalizations.of(context)!
-                                                    .mergeInProgress),
-                                          ),
-                                        );
-                                      }
-                                      return;
-                                    }
-                                    _saveScanResult();
-                                  },
-                            style: ElevatedButton.styleFrom(
-                              foregroundColor: Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? Colors.grey
-                                  : Colors.white,
-                              backgroundColor: Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? Colors.grey[800]
-                                  : Colors.grey,
-                              minimumSize: Size(double.infinity, 48),
-                              textStyle:
-                                  TextStyle(fontFamily: 'SFPro', fontSize: 14),
-                            ),
-                            child: Text(localizations.save),
+                      SizedBox(height: 8),
+                      TextField(
+                        controller: _reviewController,
+                        maxLines: 3,
+                        style: TextStyle(
+                          fontFamily: 'SFPro',
+                          fontSize: 14,
+                          color: textColor,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: localizations.reviewHint,
+                          hintStyle: TextStyle(
+                            fontFamily: 'SFPro',
+                            fontSize: 14,
+                            color: Colors.grey,
                           ),
                         ),
                       ),
-                    if (_isLoading)
-                      Container(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        child: Center(
-                          child: CupertinoActivityIndicator(radius: 10.0),
-                        ),
-                      ),
-                    if (_isLoadingError)
-                      Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Icon(
-                              CupertinoIcons.exclamationmark_triangle,
-                              color:
-                                  _isDarkMode ? Colors.redAccent : Colors.red,
-                              size: 40.0,
-                            ),
-                            SizedBox(height: 20),
-                            Text(
-                              localizations.cloudsavingError,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontFamily: 'SFProText',
-                                color: _isDarkMode
-                                    ? Colors.white70
-                                    : CupertinoColors.systemGrey,
-                                decoration: TextDecoration.none,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ),
-          ],
+              ],
+
+              if (showResultActions)
+                SafeArea(
+                  bottom: true,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 8.0,
+                    ),
+                    child: ElevatedButton(
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              final comment = _reviewController.text.trim();
+                              LogService().logSaveClick(
+                                hasComment: comment.isNotEmpty,
+                                contentLength: comment.length,
+                                context: 'result',
+                              );
+
+                              if (!_isMergeDone) {
+                                if (!_pendingSave) {
+                                  setState(() => _pendingSave = true);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        AppLocalizations.of(
+                                          context,
+                                        )!
+                                            .mergeInProgress,
+                                      ),
+                                    ),
+                                  );
+                                }
+                                return;
+                              }
+                              _saveScanResult();
+                            },
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor:
+                            Theme.of(context).brightness == Brightness.dark
+                                ? Colors.grey
+                                : Colors.white,
+                        backgroundColor:
+                            Theme.of(context).brightness == Brightness.dark
+                                ? Colors.grey[800]
+                                : Colors.grey,
+                        minimumSize: Size(double.infinity, 48),
+                        textStyle: TextStyle(fontFamily: 'SFPro', fontSize: 14),
+                      ),
+                      child: Text(localizations.save),
+                    ),
+                  ),
+                ),
+              if (_isLoading)
+                Container(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  child: Center(
+                    child: CupertinoActivityIndicator(radius: 10.0),
+                  ),
+                ),
+              if (_isLoadingError)
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Icon(
+                        CupertinoIcons.exclamationmark_triangle,
+                        color: _isDarkMode ? Colors.redAccent : Colors.red,
+                        size: 40.0,
+                      ),
+                      SizedBox(height: 20),
+                      Text(
+                        localizations.cloudsavingError,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontFamily: 'SFProText',
+                          color: _isDarkMode
+                              ? Colors.white70
+                              : CupertinoColors.systemGrey,
+                          decoration: TextDecoration.none,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -4383,9 +4471,7 @@ class _AiSparkleIconButtonState extends State<AiSparkleIconButton>
                     animation: _c,
                     builder: (_, __) {
                       final t = _c.value; // 0..1
-                      return CustomPaint(
-                        painter: _SparkleTwinklePainter(t: t),
-                      );
+                      return CustomPaint(painter: _SparkleTwinklePainter(t: t));
                     },
                   ),
                 ),
@@ -4477,8 +4563,11 @@ class _SparkleTwinklePainter extends CustomPainter {
     final dotPaint = Paint()
       ..color = Colors.white.withValues(alpha: 0.75 * opacity)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
-    canvas.drawCircle(center.translate(rOuter * 0.35, -rOuter * 0.15),
-        rOuter * 0.12, dotPaint);
+    canvas.drawCircle(
+      center.translate(rOuter * 0.35, -rOuter * 0.15),
+      rOuter * 0.12,
+      dotPaint,
+    );
   }
 
   @override
