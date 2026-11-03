@@ -324,6 +324,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get noHistoryFound => 'Không tìm thấy lịch sử';
+
   @override
   String get aiScanning => 'Đang quét AI...';
 
@@ -1156,4 +1157,119 @@ class AppLocalizationsVi extends AppLocalizations {
   String historyLimitReachedMessage(int limit) {
     return 'Lịch sử quét gần đây được lưu tối đa $limit mục. Khi lưu mục mới vượt quá giới hạn này, mục cũ nhất sẽ tự động bị xóa. Người dùng Premium có thể lưu lịch sử quét không giới hạn.';
   }
+
+  @override
+  String get journeyTitle => 'Hành trình ẩm thực của tôi';
+
+  @override
+  String get journeyPassport => 'Hộ chiếu ẩm thực của tôi';
+
+  @override
+  String get journeyDna => 'DNA ẩm thực của tôi';
+
+  @override
+  String get journeyDescription => 'Các loại món đã khám phá đến nay';
+
+  @override
+  String journeyCountries(int count) {
+    return '$count quốc gia';
+  }
+
+  @override
+  String journeyRecords(int count) {
+    return '$count lượt quét đã lưu';
+  }
+
+  @override
+  String journeyClassified(int count) {
+    return '$count lượt quét đã phân loại';
+  }
+
+  @override
+  String journeyScope(int count) {
+    return 'Dựa trên $count lượt quét đã lưu';
+  }
+
+  @override
+  String journeyPartialScope(int count) {
+    return '$count lượt quét đã lưu gần nhất · còn nữa';
+  }
+
+  @override
+  String get journeyEmpty => 'Chưa có bản ghi';
+
+  @override
+  String get journeyStart => 'Quét thực đơn đầu tiên để bắt đầu';
+
+  @override
+  String get journeyLoading => 'Đang phân tích hành trình ẩm thực';
+
+  @override
+  String get journeyInsufficient => 'Chưa đủ bản ghi món ăn có thể phân loại';
+
+  @override
+  String get journeyError => 'Không thể tải hành trình';
+
+  @override
+  String get journeyCached => 'Đang hiển thị bản ghi lưu đệm. Hãy làm mới.';
+
+  @override
+  String get journeyLoadMore => 'Tải thêm bản ghi';
+
+  @override
+  String journeyFirst(String date) {
+    return 'Bản ghi đầu tiên: $date';
+  }
+
+  @override
+  String journeyLast(String date) {
+    return 'Bản ghi gần nhất: $date';
+  }
+
+  @override
+  String get journeyNoodles => 'Món mì';
+
+  @override
+  String get journeyRice => 'Món cơm';
+
+  @override
+  String get journeyMeat => 'Thịt';
+
+  @override
+  String get journeySeafood => 'Hải sản';
+
+  @override
+  String get journeySoup => 'Món súp';
+
+  @override
+  String get journeyVegetables => 'Món rau';
+
+  @override
+  String get journeyDessert => 'Tráng miệng';
+
+  @override
+  String get journeyDrinks => 'Đồ uống';
+
+  @override
+  String get journeyUnknown => 'Chưa phân loại';
+
+  @override
+  String journeyShare(int percent) {
+    return 'Tỷ lệ khám phá $percent%';
+  }
+
+  @override
+  String get journeyTopTypes => 'Loại món được khám phá nhiều nhất';
+
+  @override
+  String get journeyNoCountries => 'Chưa có bản ghi xác nhận được quốc gia';
+
+  @override
+  String get journeyRetry => 'Thử lại';
+
+  @override
+  String get journeyOpenPassport => 'Mở hộ chiếu';
+
+  @override
+  String get journeyDetails => 'Xem chi tiết';
 }

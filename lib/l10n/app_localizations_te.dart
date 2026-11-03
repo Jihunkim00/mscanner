@@ -1155,4 +1155,129 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get historyLimitReachedTitle => 'స్కాన్ చరిత్ర నిల్వ సమాచారం';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return 'ఇటీవలి స్కాన్ చరిత్రలో గరిష్ఠంగా $limit ఎంట్రీలు ఉంచబడతాయి. ఈ పరిమితిని మించి కొత్త ఎంట్రీని సేవ్ చేసినప్పుడు, అతి పాత ఎంట్రీ స్వయంచాలకంగా తొలగించబడుతుంది. Premium వినియోగదారులు అపరిమిత స్కాన్ చరిత్రను ఉంచుకోవచ్చు.';
+  }
+
+  @override
+  String get journeyTitle => 'నా ఆహార యాత్ర';
+
+  @override
+  String get journeyPassport => 'నా ఆహార పాస్‌పోర్ట్';
+
+  @override
+  String get journeyDna => 'నా ఆహార DNA';
+
+  @override
+  String get journeyDescription => 'ఇప్పటివరకు అన్వేషించిన ఆహార రకాలు';
+
+  @override
+  String journeyCountries(int count) {
+    return '$count దేశాలు';
+  }
+
+  @override
+  String journeyRecords(int count) {
+    return 'సేవ్ చేసిన స్కాన్‌లు $count';
+  }
+
+  @override
+  String journeyClassified(int count) {
+    return 'వర్గీకరించిన స్కాన్‌లు $count';
+  }
+
+  @override
+  String journeyScope(int count) {
+    return 'సేవ్ చేసిన $count స్కాన్‌ల ఆధారంగా';
+  }
+
+  @override
+  String journeyPartialScope(int count) {
+    return 'ఇటీవల సేవ్ చేసిన $count స్కాన్‌లు · ఇంకా ఉన్నాయి';
+  }
+
+  @override
+  String get journeyEmpty => 'ఇంకా రికార్డులు లేవు';
+
+  @override
+  String get journeyStart => 'ప్రారంభించడానికి మొదటి మెనూను స్కాన్ చేయండి';
+
+  @override
+  String get journeyLoading => 'మీ ఆహార యాత్రను విశ్లేషిస్తున్నాం';
+
+  @override
+  String get journeyInsufficient =>
+      'వర్గీకరించగల ఆహార రికార్డులు సరిపోవడం లేదు';
+
+  @override
+  String get journeyError => 'మీ యాత్రను లోడ్ చేయలేకపోయాం';
+
+  @override
+  String get journeyCached =>
+      'క్యాష్‌లోని రికార్డులు చూపిస్తున్నాం. నవీకరించడానికి రిఫ్రెష్ చేయండి.';
+
+  @override
+  String get journeyLoadMore => 'మరిన్ని రికార్డులు లోడ్ చేయండి';
+
+  @override
+  String journeyFirst(String date) {
+    return 'మొదటి రికార్డు: $date';
+  }
+
+  @override
+  String journeyLast(String date) {
+    return 'తాజా రికార్డు: $date';
+  }
+
+  @override
+  String get journeyNoodles => 'నూడుల్స్';
+
+  @override
+  String get journeyRice => 'అన్నం';
+
+  @override
+  String get journeyMeat => 'మాంసం';
+
+  @override
+  String get journeySeafood => 'సముద్ర ఆహారం';
+
+  @override
+  String get journeySoup => 'సూప్‌లు';
+
+  @override
+  String get journeyVegetables => 'కూరగాయలు';
+
+  @override
+  String get journeyDessert => 'తీపి వంటకాలు';
+
+  @override
+  String get journeyDrinks => 'పానీయాలు';
+
+  @override
+  String get journeyUnknown => 'వర్గీకరించనివి';
+
+  @override
+  String journeyShare(int percent) {
+    return 'అన్వేషణ వాటా $percent%';
+  }
+
+  @override
+  String get journeyTopTypes => 'ఎక్కువగా అన్వేషించిన ఆహార రకాలు';
+
+  @override
+  String get journeyNoCountries => 'దేశం నిర్ధారించిన రికార్డులు ఇంకా లేవు';
+
+  @override
+  String get journeyRetry => 'మళ్లీ ప్రయత్నించండి';
+
+  @override
+  String get journeyOpenPassport => 'పాస్‌పోర్ట్ తెరవండి';
+
+  @override
+  String get journeyDetails => 'వివరాలు చూడండి';
 }

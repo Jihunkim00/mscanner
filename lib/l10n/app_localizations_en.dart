@@ -1145,4 +1145,128 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get historyLimitReachedTitle => 'Scan history storage notice';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return 'Recent scan history is stored up to $limit entries. When a new history entry is saved beyond this limit, the oldest entry is automatically removed. Premium users can store unlimited history.';
+  }
+
+  @override
+  String get journeyTitle => 'My Food Journey';
+
+  @override
+  String get journeyPassport => 'My Food Passport';
+
+  @override
+  String get journeyDna => 'My Food DNA';
+
+  @override
+  String get journeyDescription => 'Food types explored so far';
+
+  @override
+  String journeyCountries(int count) {
+    return '$count countries';
+  }
+
+  @override
+  String journeyRecords(int count) {
+    return '$count saved scans';
+  }
+
+  @override
+  String journeyClassified(int count) {
+    return '$count classified scans';
+  }
+
+  @override
+  String journeyScope(int count) {
+    return 'Based on $count saved scans';
+  }
+
+  @override
+  String journeyPartialScope(int count) {
+    return 'Based on the $count most recent saved scans · more available';
+  }
+
+  @override
+  String get journeyEmpty => 'No records yet';
+
+  @override
+  String get journeyStart => 'Scan your first menu to begin your journey';
+
+  @override
+  String get journeyLoading => 'Analyzing your food journey';
+
+  @override
+  String get journeyInsufficient => 'Not enough classifiable food records yet';
+
+  @override
+  String get journeyError => 'Could not load your journey';
+
+  @override
+  String get journeyCached => 'Showing cached saved scans. Refresh to update.';
+
+  @override
+  String get journeyLoadMore => 'Load more saved scans';
+
+  @override
+  String journeyFirst(String date) {
+    return 'First saved scan: $date';
+  }
+
+  @override
+  String journeyLast(String date) {
+    return 'Latest saved scan: $date';
+  }
+
+  @override
+  String get journeyNoodles => 'Noodles';
+
+  @override
+  String get journeyRice => 'Rice';
+
+  @override
+  String get journeyMeat => 'Meat';
+
+  @override
+  String get journeySeafood => 'Seafood';
+
+  @override
+  String get journeySoup => 'Soups';
+
+  @override
+  String get journeyVegetables => 'Vegetables';
+
+  @override
+  String get journeyDessert => 'Desserts';
+
+  @override
+  String get journeyDrinks => 'Drinks';
+
+  @override
+  String get journeyUnknown => 'Unclassified';
+
+  @override
+  String journeyShare(int percent) {
+    return '$percent% explored';
+  }
+
+  @override
+  String get journeyTopTypes => 'Most explored food types';
+
+  @override
+  String get journeyNoCountries =>
+      'No saved scans with a confirmed country yet';
+
+  @override
+  String get journeyRetry => 'Retry';
+
+  @override
+  String get journeyOpenPassport => 'Open passport';
+
+  @override
+  String get journeyDetails => 'View details';
 }

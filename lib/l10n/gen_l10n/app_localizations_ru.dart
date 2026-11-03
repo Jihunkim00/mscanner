@@ -325,6 +325,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get noHistoryFound => 'История не найдена';
+
   @override
   String get aiScanning => 'Сканирование ИИ...';
 
@@ -1151,10 +1152,127 @@ class AppLocalizationsRu extends AppLocalizations {
   String get premiumGuestConvertButton => 'Convert account to continue';
 
   @override
-  String get historyLimitReachedTitle => 'Уведомление о хранении истории сканирования';
+  String get historyLimitReachedTitle =>
+      'Уведомление о хранении истории сканирования';
 
   @override
   String historyLimitReachedMessage(int limit) {
     return 'В истории недавних сканирований хранится не более $limit записей. При сохранении новой записи сверх этого лимита самая старая запись удаляется автоматически. Пользователи Premium могут хранить историю сканирования без ограничений.';
   }
+
+  @override
+  String get journeyTitle => 'Моё гастропутешествие';
+
+  @override
+  String get journeyPassport => 'Мой гастропаспорт';
+
+  @override
+  String get journeyDna => 'Моя гастро-ДНК';
+
+  @override
+  String get journeyDescription => 'Типы блюд, исследованные до сих пор';
+
+  @override
+  String journeyCountries(int count) {
+    return '$count стран';
+  }
+
+  @override
+  String journeyRecords(int count) {
+    return 'Сохранено сканирований: $count';
+  }
+
+  @override
+  String journeyClassified(int count) {
+    return 'Классифицировано: $count';
+  }
+
+  @override
+  String journeyScope(int count) {
+    return 'На основе $count сохранённых сканирований';
+  }
+
+  @override
+  String journeyPartialScope(int count) {
+    return 'Последние сохранённые сканирования: $count · есть ещё';
+  }
+
+  @override
+  String get journeyEmpty => 'Пока нет записей';
+
+  @override
+  String get journeyStart => 'Отсканируйте первое меню';
+
+  @override
+  String get journeyLoading => 'Анализируем ваше гастропутешествие';
+
+  @override
+  String get journeyInsufficient =>
+      'Пока недостаточно записей для классификации';
+
+  @override
+  String get journeyError => 'Не удалось загрузить путешествие';
+
+  @override
+  String get journeyCached => 'Показаны записи из кэша. Обновите данные.';
+
+  @override
+  String get journeyLoadMore => 'Загрузить ещё записи';
+
+  @override
+  String journeyFirst(String date) {
+    return 'Первая запись: $date';
+  }
+
+  @override
+  String journeyLast(String date) {
+    return 'Последняя запись: $date';
+  }
+
+  @override
+  String get journeyNoodles => 'Лапша';
+
+  @override
+  String get journeyRice => 'Рис';
+
+  @override
+  String get journeyMeat => 'Мясо';
+
+  @override
+  String get journeySeafood => 'Рыба и морепродукты';
+
+  @override
+  String get journeySoup => 'Супы';
+
+  @override
+  String get journeyVegetables => 'Овощи';
+
+  @override
+  String get journeyDessert => 'Десерты';
+
+  @override
+  String get journeyDrinks => 'Напитки';
+
+  @override
+  String get journeyUnknown => 'Без категории';
+
+  @override
+  String journeyShare(int percent) {
+    return 'Доля исследований: $percent%';
+  }
+
+  @override
+  String get journeyTopTypes => 'Чаще всего исследуемые типы блюд';
+
+  @override
+  String get journeyNoCountries => 'Пока нет записей с подтверждённой страной';
+
+  @override
+  String get journeyRetry => 'Повторить';
+
+  @override
+  String get journeyOpenPassport => 'Открыть паспорт';
+
+  @override
+  String get journeyDetails => 'Подробнее';
 }

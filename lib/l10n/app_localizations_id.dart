@@ -1150,4 +1150,131 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get historyLimitReachedTitle =>
+      'Informasi penyimpanan riwayat pemindaian';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return 'Riwayat pemindaian terbaru menyimpan hingga $limit entri. Saat entri baru disimpan melebihi batas ini, entri yang paling lama akan dihapus otomatis. Pengguna Premium dapat menyimpan riwayat pemindaian tanpa batas.';
+  }
+
+  @override
+  String get journeyTitle => 'Perjalanan kuliner saya';
+
+  @override
+  String get journeyPassport => 'Paspor kuliner saya';
+
+  @override
+  String get journeyDna => 'DNA kuliner saya';
+
+  @override
+  String get journeyDescription => 'Jenis makanan yang telah dijelajahi';
+
+  @override
+  String journeyCountries(int count) {
+    return '$count negara';
+  }
+
+  @override
+  String journeyRecords(int count) {
+    return '$count pemindaian tersimpan';
+  }
+
+  @override
+  String journeyClassified(int count) {
+    return '$count pemindaian terklasifikasi';
+  }
+
+  @override
+  String journeyScope(int count) {
+    return 'Berdasarkan $count pemindaian tersimpan';
+  }
+
+  @override
+  String journeyPartialScope(int count) {
+    return '$count pemindaian tersimpan terbaru · masih ada lagi';
+  }
+
+  @override
+  String get journeyEmpty => 'Belum ada catatan';
+
+  @override
+  String get journeyStart => 'Pindai menu pertama untuk memulai';
+
+  @override
+  String get journeyLoading => 'Menganalisis perjalanan kuliner';
+
+  @override
+  String get journeyInsufficient =>
+      'Belum cukup catatan makanan yang dapat diklasifikasi';
+
+  @override
+  String get journeyError => 'Gagal memuat perjalanan';
+
+  @override
+  String get journeyCached =>
+      'Menampilkan catatan cache. Segarkan untuk memperbarui.';
+
+  @override
+  String get journeyLoadMore => 'Muat catatan lainnya';
+
+  @override
+  String journeyFirst(String date) {
+    return 'Catatan pertama: $date';
+  }
+
+  @override
+  String journeyLast(String date) {
+    return 'Catatan terbaru: $date';
+  }
+
+  @override
+  String get journeyNoodles => 'Mi';
+
+  @override
+  String get journeyRice => 'Nasi';
+
+  @override
+  String get journeyMeat => 'Daging';
+
+  @override
+  String get journeySeafood => 'Hidangan laut';
+
+  @override
+  String get journeySoup => 'Sup';
+
+  @override
+  String get journeyVegetables => 'Sayuran';
+
+  @override
+  String get journeyDessert => 'Hidangan penutup';
+
+  @override
+  String get journeyDrinks => 'Minuman';
+
+  @override
+  String get journeyUnknown => 'Belum diklasifikasi';
+
+  @override
+  String journeyShare(int percent) {
+    return 'Porsi penjelajahan $percent%';
+  }
+
+  @override
+  String get journeyTopTypes => 'Jenis makanan paling sering dijelajahi';
+
+  @override
+  String get journeyNoCountries =>
+      'Belum ada catatan dengan negara terkonfirmasi';
+
+  @override
+  String get journeyRetry => 'Coba lagi';
+
+  @override
+  String get journeyOpenPassport => 'Buka paspor';
+
+  @override
+  String get journeyDetails => 'Lihat detail';
 }

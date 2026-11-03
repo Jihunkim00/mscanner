@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/features/food_journey/services/food_journey_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -561,10 +562,9 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
     var docs = querySnapshot.docs.toList();
     if (!isPremium && _currentSort == 'country') {
       docs.sort((a, b) {
-        final countryCompare =
-            (a.data()['country'] ?? '').toString().compareTo(
-                  (b.data()['country'] ?? '').toString(),
-                );
+        final countryCompare = (a.data()['country'] ?? '').toString().compareTo(
+              (b.data()['country'] ?? '').toString(),
+            );
         if (countryCompare != 0) return countryCompare;
         return (b.data()['timestamp'] ?? '').toString().compareTo(
               (a.data()['timestamp'] ?? '').toString(),
@@ -589,6 +589,8 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
         .collection('data')
         .doc(_favoriteResults[index].id)
         .delete();
+
+    FoodJourneyService.instance.invalidate(user.uid);
 
     setState(() {
       _favoriteResults.removeAt(index);

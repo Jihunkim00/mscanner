@@ -1159,4 +1159,131 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get historyLimitReachedTitle =>
+      'Information sur le stockage de l’historique des scans';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return 'L’historique des scans récents conserve jusqu’à $limit entrées. Lorsqu’une nouvelle entrée dépasse cette limite, la plus ancienne est automatiquement supprimée. Les utilisateurs Premium peuvent conserver un historique illimité.';
+  }
+
+  @override
+  String get journeyTitle => 'Mon voyage culinaire';
+
+  @override
+  String get journeyPassport => 'Mon passeport culinaire';
+
+  @override
+  String get journeyDna => 'Mon ADN culinaire';
+
+  @override
+  String get journeyDescription => 'Types de plats explorés jusqu’ici';
+
+  @override
+  String journeyCountries(int count) {
+    return '$count pays';
+  }
+
+  @override
+  String journeyRecords(int count) {
+    return '$count scans enregistrés';
+  }
+
+  @override
+  String journeyClassified(int count) {
+    return '$count scans classés';
+  }
+
+  @override
+  String journeyScope(int count) {
+    return 'D’après $count scans enregistrés';
+  }
+
+  @override
+  String journeyPartialScope(int count) {
+    return 'Les $count derniers scans enregistrés · d’autres disponibles';
+  }
+
+  @override
+  String get journeyEmpty => 'Aucun enregistrement';
+
+  @override
+  String get journeyStart => 'Scannez votre premier menu pour commencer';
+
+  @override
+  String get journeyLoading => 'Analyse de votre voyage culinaire';
+
+  @override
+  String get journeyInsufficient =>
+      'Pas encore assez de plats pouvant être classés';
+
+  @override
+  String get journeyError => 'Impossible de charger votre voyage';
+
+  @override
+  String get journeyCached =>
+      'Affichage des données en cache. Actualisez pour les mettre à jour.';
+
+  @override
+  String get journeyLoadMore => 'Charger plus de scans';
+
+  @override
+  String journeyFirst(String date) {
+    return 'Premier enregistrement : $date';
+  }
+
+  @override
+  String journeyLast(String date) {
+    return 'Dernier enregistrement : $date';
+  }
+
+  @override
+  String get journeyNoodles => 'Nouilles';
+
+  @override
+  String get journeyRice => 'Riz';
+
+  @override
+  String get journeyMeat => 'Viande';
+
+  @override
+  String get journeySeafood => 'Poissons et fruits de mer';
+
+  @override
+  String get journeySoup => 'Soupes';
+
+  @override
+  String get journeyVegetables => 'Légumes';
+
+  @override
+  String get journeyDessert => 'Desserts';
+
+  @override
+  String get journeyDrinks => 'Boissons';
+
+  @override
+  String get journeyUnknown => 'Non classé';
+
+  @override
+  String journeyShare(int percent) {
+    return '$percent% exploré';
+  }
+
+  @override
+  String get journeyTopTypes => 'Types de plats les plus explorés';
+
+  @override
+  String get journeyNoCountries =>
+      'Aucun scan avec un pays confirmé pour le moment';
+
+  @override
+  String get journeyRetry => 'Réessayer';
+
+  @override
+  String get journeyOpenPassport => 'Ouvrir le passeport';
+
+  @override
+  String get journeyDetails => 'Voir les détails';
 }

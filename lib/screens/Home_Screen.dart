@@ -36,6 +36,8 @@ import '/helpers/account_upgrade_helper.dart';
 import '/services/premium_auto_prompt_policy.dart';
 import '/services/result_exit_interstitial_policy.dart';
 import '/services/history_retention_service.dart';
+import '/features/food_journey/widgets/food_journey_home_card.dart';
+import '/features/food_journey/services/food_journey_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -2104,6 +2106,8 @@ class _HomeContentState extends State<HomeContent> {
               _buildGFCardCarousel(),
 
               const SizedBox(height: 16),
+              const FoodJourneyEntry(),
+              const SizedBox(height: 16),
 
               HowToUseMscannerCard(
                 onCardTap: () {
@@ -2466,6 +2470,8 @@ class _HomeContentState extends State<HomeContent> {
               );
             }
           }
+
+          FoodJourneyService.instance.invalidate(user.uid);
 
           // ✅ 저장 완료 메시지
           messenger

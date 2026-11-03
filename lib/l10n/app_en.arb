@@ -387,5 +387,94 @@
         "type": "int"
       }
     }
+  },
+  "journeyTitle": "My Food Journey",
+  "journeyPassport": "My Food Passport",
+  "journeyDna": "My Food DNA",
+  "journeyDescription": "Food types explored so far",
+  "journeyCountries": "{count} countries",
+  "journeyRecords": "{count} saved scans",
+  "journeyClassified": "{count} classified scans",
+  "journeyScope": "Based on {count} saved scans",
+  "journeyPartialScope": "Based on the {count} most recent saved scans · more available",
+  "journeyEmpty": "No records yet",
+  "journeyStart": "Scan your first menu to begin your journey",
+  "journeyLoading": "Analyzing your food journey",
+  "journeyInsufficient": "Not enough classifiable food records yet",
+  "journeyError": "Could not load your journey",
+  "journeyCached": "Showing cached saved scans. Refresh to update.",
+  "journeyLoadMore": "Load more saved scans",
+  "journeyFirst": "First saved scan: {date}",
+  "journeyLast": "Latest saved scan: {date}",
+  "journeyNoodles": "Noodles",
+  "journeyRice": "Rice",
+  "journeyMeat": "Meat",
+  "journeySeafood": "Seafood",
+  "journeySoup": "Soups",
+  "journeyVegetables": "Vegetables",
+  "journeyDessert": "Desserts",
+  "journeyDrinks": "Drinks",
+  "journeyUnknown": "Unclassified",
+  "journeyShare": "{percent}% explored",
+  "journeyTopTypes": "Most explored food types",
+  "journeyNoCountries": "No saved scans with a confirmed country yet",
+  "journeyRetry": "Retry",
+  "journeyOpenPassport": "Open passport",
+  "journeyDetails": "View details",
+  "@journeyCountries": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@journeyRecords": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@journeyClassified": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@journeyScope": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@journeyPartialScope": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@journeyFirst": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@journeyLast": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@journeyShare": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
   }
 }

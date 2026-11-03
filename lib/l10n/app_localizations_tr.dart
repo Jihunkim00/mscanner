@@ -1148,4 +1148,129 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get historyLimitReachedTitle => 'Tarama geçmişi depolama bildirimi';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return 'Son tarama geçmişinde en fazla $limit kayıt tutulur. Bu sınırı aşan yeni bir kayıt kaydedildiğinde en eski kayıt otomatik olarak silinir. Premium kullanıcıları sınırsız tarama geçmişi saklayabilir.';
+  }
+
+  @override
+  String get journeyTitle => 'Yemek yolculuğum';
+
+  @override
+  String get journeyPassport => 'Yemek pasaportum';
+
+  @override
+  String get journeyDna => 'Yemek DNA’m';
+
+  @override
+  String get journeyDescription => 'Şimdiye kadar keşfedilen yemek türleri';
+
+  @override
+  String journeyCountries(int count) {
+    return '$count ülke';
+  }
+
+  @override
+  String journeyRecords(int count) {
+    return '$count kayıtlı tarama';
+  }
+
+  @override
+  String journeyClassified(int count) {
+    return '$count sınıflandırılmış tarama';
+  }
+
+  @override
+  String journeyScope(int count) {
+    return '$count kayıtlı taramaya göre';
+  }
+
+  @override
+  String journeyPartialScope(int count) {
+    return 'En son $count kayıtlı tarama · daha fazlası var';
+  }
+
+  @override
+  String get journeyEmpty => 'Henüz kayıt yok';
+
+  @override
+  String get journeyStart => 'Başlamak için ilk menünüzü tarayın';
+
+  @override
+  String get journeyLoading => 'Yemek yolculuğunuz analiz ediliyor';
+
+  @override
+  String get journeyInsufficient =>
+      'Sınıflandırılabilir yemek kaydı henüz yetersiz';
+
+  @override
+  String get journeyError => 'Yolculuğunuz yüklenemedi';
+
+  @override
+  String get journeyCached =>
+      'Önbellekteki kayıtlar gösteriliyor. Güncellemek için yenileyin.';
+
+  @override
+  String get journeyLoadMore => 'Daha fazla kayıt yükle';
+
+  @override
+  String journeyFirst(String date) {
+    return 'İlk kayıt: $date';
+  }
+
+  @override
+  String journeyLast(String date) {
+    return 'Son kayıt: $date';
+  }
+
+  @override
+  String get journeyNoodles => 'Erişte';
+
+  @override
+  String get journeyRice => 'Pirinç';
+
+  @override
+  String get journeyMeat => 'Et';
+
+  @override
+  String get journeySeafood => 'Deniz ürünleri';
+
+  @override
+  String get journeySoup => 'Çorbalar';
+
+  @override
+  String get journeyVegetables => 'Sebzeler';
+
+  @override
+  String get journeyDessert => 'Tatlılar';
+
+  @override
+  String get journeyDrinks => 'İçecekler';
+
+  @override
+  String get journeyUnknown => 'Sınıflandırılmamış';
+
+  @override
+  String journeyShare(int percent) {
+    return 'Keşif payı %$percent';
+  }
+
+  @override
+  String get journeyTopTypes => 'En çok keşfedilen yemek türleri';
+
+  @override
+  String get journeyNoCountries => 'Ülkesi doğrulanmış kayıt henüz yok';
+
+  @override
+  String get journeyRetry => 'Tekrar dene';
+
+  @override
+  String get journeyOpenPassport => 'Pasaportu aç';
+
+  @override
+  String get journeyDetails => 'Ayrıntıları gör';
 }

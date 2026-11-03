@@ -1153,4 +1153,129 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get historyLimitReachedTitle => 'اسکین ہسٹری اسٹوریج کا نوٹس';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return 'حالیہ اسکین ہسٹری میں زیادہ سے زیادہ $limit اندراجات محفوظ رہتے ہیں۔ اس حد سے زیادہ نیا اندراج محفوظ ہونے پر سب سے پرانا اندراج خودکار طور پر حذف ہو جاتا ہے۔ Premium صارفین اسکین ہسٹری لامحدود محفوظ رکھ سکتے ہیں۔';
+  }
+
+  @override
+  String get journeyTitle => 'میرا کھانوں کا سفر';
+
+  @override
+  String get journeyPassport => 'میرا کھانوں کا پاسپورٹ';
+
+  @override
+  String get journeyDna => 'میرا غذائی DNA';
+
+  @override
+  String get journeyDescription => 'اب تک دریافت کردہ کھانوں کی اقسام';
+
+  @override
+  String journeyCountries(int count) {
+    return '$count ممالک';
+  }
+
+  @override
+  String journeyRecords(int count) {
+    return '$count محفوظ اسکین';
+  }
+
+  @override
+  String journeyClassified(int count) {
+    return '$count درجہ بند اسکین';
+  }
+
+  @override
+  String journeyScope(int count) {
+    return '$count محفوظ اسکین پر مبنی';
+  }
+
+  @override
+  String journeyPartialScope(int count) {
+    return 'حالیہ $count محفوظ اسکین · مزید دستیاب ہیں';
+  }
+
+  @override
+  String get journeyEmpty => 'ابھی کوئی ریکارڈ نہیں';
+
+  @override
+  String get journeyStart => 'آغاز کے لیے اپنا پہلا مینو اسکین کریں';
+
+  @override
+  String get journeyLoading => 'آپ کے کھانوں کے سفر کا تجزیہ ہو رہا ہے';
+
+  @override
+  String get journeyInsufficient =>
+      'درجہ بندی کے قابل کھانوں کے ریکارڈ ابھی ناکافی ہیں';
+
+  @override
+  String get journeyError => 'آپ کا سفر لوڈ نہیں ہو سکا';
+
+  @override
+  String get journeyCached =>
+      'کیش میں محفوظ ریکارڈ دکھائے جا رہے ہیں۔ تازہ کرنے کے لیے ریفریش کریں۔';
+
+  @override
+  String get journeyLoadMore => 'مزید ریکارڈ لوڈ کریں';
+
+  @override
+  String journeyFirst(String date) {
+    return 'پہلا ریکارڈ: $date';
+  }
+
+  @override
+  String journeyLast(String date) {
+    return 'تازہ ترین ریکارڈ: $date';
+  }
+
+  @override
+  String get journeyNoodles => 'نوڈلز';
+
+  @override
+  String get journeyRice => 'چاول';
+
+  @override
+  String get journeyMeat => 'گوشت';
+
+  @override
+  String get journeySeafood => 'سمندری غذا';
+
+  @override
+  String get journeySoup => 'سوپ';
+
+  @override
+  String get journeyVegetables => 'سبزیاں';
+
+  @override
+  String get journeyDessert => 'میٹھے';
+
+  @override
+  String get journeyDrinks => 'مشروبات';
+
+  @override
+  String get journeyUnknown => 'غیر درجہ بند';
+
+  @override
+  String journeyShare(int percent) {
+    return 'دریافت کا تناسب $percent%';
+  }
+
+  @override
+  String get journeyTopTypes => 'سب سے زیادہ دریافت کردہ کھانوں کی اقسام';
+
+  @override
+  String get journeyNoCountries => 'تصدیق شدہ ملک والا کوئی ریکارڈ ابھی نہیں';
+
+  @override
+  String get journeyRetry => 'دوبارہ کوشش کریں';
+
+  @override
+  String get journeyOpenPassport => 'پاسپورٹ کھولیں';
+
+  @override
+  String get journeyDetails => 'تفصیلات دیکھیں';
 }

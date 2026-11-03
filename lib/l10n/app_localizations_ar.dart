@@ -1140,4 +1140,128 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get historyLimitReachedTitle => 'إشعار تخزين سجل عمليات المسح';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return 'يتم الاحتفاظ بما يصل إلى $limit من أحدث سجلات المسح. عند حفظ سجل جديد يتجاوز هذا الحد، يتم حذف أقدم سجل تلقائيًا. يمكن لمستخدمي Premium الاحتفاظ بسجل مسح غير محدود.';
+  }
+
+  @override
+  String get journeyTitle => 'رحلتي مع الطعام';
+
+  @override
+  String get journeyPassport => 'جواز سفري الغذائي';
+
+  @override
+  String get journeyDna => 'بصمتي الغذائية';
+
+  @override
+  String get journeyDescription => 'أنواع الطعام التي استكشفتها حتى الآن';
+
+  @override
+  String journeyCountries(int count) {
+    return 'عدد البلدان: $count';
+  }
+
+  @override
+  String journeyRecords(int count) {
+    return 'عمليات مسح محفوظة: $count';
+  }
+
+  @override
+  String journeyClassified(int count) {
+    return 'عمليات مسح مصنفة: $count';
+  }
+
+  @override
+  String journeyScope(int count) {
+    return 'استنادًا إلى $count من عمليات المسح المحفوظة';
+  }
+
+  @override
+  String journeyPartialScope(int count) {
+    return 'أحدث $count من عمليات المسح المحفوظة · يتوفر المزيد';
+  }
+
+  @override
+  String get journeyEmpty => 'لا توجد سجلات بعد';
+
+  @override
+  String get journeyStart => 'امسح قائمتك الأولى لبدء الرحلة';
+
+  @override
+  String get journeyLoading => 'جارٍ تحليل رحلتك مع الطعام';
+
+  @override
+  String get journeyInsufficient => 'لا توجد سجلات طعام كافية للتصنيف بعد';
+
+  @override
+  String get journeyError => 'تعذر تحميل رحلتك';
+
+  @override
+  String get journeyCached =>
+      'تُعرض السجلات المخزنة مؤقتًا. حدّث لعرض التغييرات.';
+
+  @override
+  String get journeyLoadMore => 'تحميل المزيد من السجلات';
+
+  @override
+  String journeyFirst(String date) {
+    return 'أول سجل: $date';
+  }
+
+  @override
+  String journeyLast(String date) {
+    return 'أحدث سجل: $date';
+  }
+
+  @override
+  String get journeyNoodles => 'نودلز';
+
+  @override
+  String get journeyRice => 'أرز';
+
+  @override
+  String get journeyMeat => 'لحوم';
+
+  @override
+  String get journeySeafood => 'مأكولات بحرية';
+
+  @override
+  String get journeySoup => 'شوربات';
+
+  @override
+  String get journeyVegetables => 'خضروات';
+
+  @override
+  String get journeyDessert => 'حلويات';
+
+  @override
+  String get journeyDrinks => 'مشروبات';
+
+  @override
+  String get journeyUnknown => 'غير مصنف';
+
+  @override
+  String journeyShare(int percent) {
+    return 'نسبة الاستكشاف $percent٪';
+  }
+
+  @override
+  String get journeyTopTypes => 'أنواع الطعام الأكثر استكشافًا';
+
+  @override
+  String get journeyNoCountries => 'لا توجد سجلات ببلد مؤكد بعد';
+
+  @override
+  String get journeyRetry => 'إعادة المحاولة';
+
+  @override
+  String get journeyOpenPassport => 'فتح جواز السفر';
+
+  @override
+  String get journeyDetails => 'عرض التفاصيل';
 }

@@ -1109,4 +1109,127 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => '계정 전환 후 계속';
+
+  @override
+  String get historyLimitReachedTitle => '스캔 기록 보관 안내';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return '최근 스캔 기록은 최대 $limit개까지 저장됩니다. 새 기록이 저장되면 가장 오래된 기록이 자동으로 삭제됩니다. Premium에서는 스캔 기록을 제한 없이 보관할 수 있습니다.';
+  }
+
+  @override
+  String get journeyTitle => '나의 미식 여행';
+
+  @override
+  String get journeyPassport => '나의 미식 여권';
+
+  @override
+  String get journeyDna => '나의 미식 DNA';
+
+  @override
+  String get journeyDescription => '지금까지 탐색한 음식 유형';
+
+  @override
+  String journeyCountries(int count) {
+    return '탐험한 국가 $count개';
+  }
+
+  @override
+  String journeyRecords(int count) {
+    return '저장된 스캔 $count개';
+  }
+
+  @override
+  String journeyClassified(int count) {
+    return '분류된 기록 $count개';
+  }
+
+  @override
+  String journeyScope(int count) {
+    return '저장된 스캔 $count개 기준';
+  }
+
+  @override
+  String journeyPartialScope(int count) {
+    return '최근 저장된 스캔 $count개 기준 · 추가 기록 있음';
+  }
+
+  @override
+  String get journeyEmpty => '아직 기록이 없어요';
+
+  @override
+  String get journeyStart => '첫 메뉴를 스캔해 보세요';
+
+  @override
+  String get journeyLoading => '음식 탐험 기록을 분석하는 중입니다';
+
+  @override
+  String get journeyInsufficient => '분류할 수 있는 음식 기록이 부족합니다';
+
+  @override
+  String get journeyError => '미식 여행을 불러오지 못했어요';
+
+  @override
+  String get journeyCached => '캐시된 저장 기록입니다. 새로고침해 주세요.';
+
+  @override
+  String get journeyLoadMore => '저장 기록 더 보기';
+
+  @override
+  String journeyFirst(String date) {
+    return '첫 기록: $date';
+  }
+
+  @override
+  String journeyLast(String date) {
+    return '최근 기록: $date';
+  }
+
+  @override
+  String get journeyNoodles => '면 요리';
+
+  @override
+  String get journeyRice => '밥 요리';
+
+  @override
+  String get journeyMeat => '육류';
+
+  @override
+  String get journeySeafood => '해산물';
+
+  @override
+  String get journeySoup => '국물 요리';
+
+  @override
+  String get journeyVegetables => '채소 요리';
+
+  @override
+  String get journeyDessert => '디저트';
+
+  @override
+  String get journeyDrinks => '음료';
+
+  @override
+  String get journeyUnknown => '미분류';
+
+  @override
+  String journeyShare(int percent) {
+    return '탐색 비중 $percent%';
+  }
+
+  @override
+  String get journeyTopTypes => '자주 탐색한 음식 유형';
+
+  @override
+  String get journeyNoCountries => '국가가 확인된 저장 기록이 아직 없어요';
+
+  @override
+  String get journeyRetry => '다시 시도';
+
+  @override
+  String get journeyOpenPassport => '여권 열어보기';
+
+  @override
+  String get journeyDetails => '자세히 보기';
 }

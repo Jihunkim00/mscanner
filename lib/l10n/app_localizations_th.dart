@@ -1141,4 +1141,128 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get historyLimitReachedTitle => 'แจ้งเตือนการจัดเก็บประวัติการสแกน';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return 'ประวัติการสแกนล่าสุดจะเก็บไว้ได้สูงสุด $limit รายการ เมื่อบันทึกรายการใหม่เกินขีดจำกัดนี้ รายการที่เก่าที่สุดจะถูกลบโดยอัตโนมัติ ผู้ใช้ Premium สามารถเก็บประวัติการสแกนได้ไม่จำกัด';
+  }
+
+  @override
+  String get journeyTitle => 'เส้นทางอาหารของฉัน';
+
+  @override
+  String get journeyPassport => 'พาสปอร์ตอาหารของฉัน';
+
+  @override
+  String get journeyDna => 'DNA อาหารของฉัน';
+
+  @override
+  String get journeyDescription => 'ประเภทอาหารที่สำรวจจนถึงตอนนี้';
+
+  @override
+  String journeyCountries(int count) {
+    return '$count ประเทศ';
+  }
+
+  @override
+  String journeyRecords(int count) {
+    return 'บันทึกการสแกน $count รายการ';
+  }
+
+  @override
+  String journeyClassified(int count) {
+    return 'จัดหมวดหมู่แล้ว $count รายการ';
+  }
+
+  @override
+  String journeyScope(int count) {
+    return 'อิงจากการสแกนที่บันทึก $count รายการ';
+  }
+
+  @override
+  String journeyPartialScope(int count) {
+    return 'การสแกนที่บันทึกล่าสุด $count รายการ · ยังมีอีก';
+  }
+
+  @override
+  String get journeyEmpty => 'ยังไม่มีบันทึก';
+
+  @override
+  String get journeyStart => 'สแกนเมนูแรกเพื่อเริ่มต้น';
+
+  @override
+  String get journeyLoading => 'กำลังวิเคราะห์เส้นทางอาหาร';
+
+  @override
+  String get journeyInsufficient =>
+      'ยังมีบันทึกอาหารที่จัดหมวดหมู่ได้ไม่เพียงพอ';
+
+  @override
+  String get journeyError => 'โหลดเส้นทางอาหารไม่ได้';
+
+  @override
+  String get journeyCached => 'กำลังแสดงบันทึกจากแคช โปรดรีเฟรช';
+
+  @override
+  String get journeyLoadMore => 'โหลดบันทึกเพิ่มเติม';
+
+  @override
+  String journeyFirst(String date) {
+    return 'บันทึกแรก: $date';
+  }
+
+  @override
+  String journeyLast(String date) {
+    return 'บันทึกล่าสุด: $date';
+  }
+
+  @override
+  String get journeyNoodles => 'เมนูเส้น';
+
+  @override
+  String get journeyRice => 'เมนูข้าว';
+
+  @override
+  String get journeyMeat => 'เนื้อสัตว์';
+
+  @override
+  String get journeySeafood => 'อาหารทะเล';
+
+  @override
+  String get journeySoup => 'ซุป';
+
+  @override
+  String get journeyVegetables => 'เมนูผัก';
+
+  @override
+  String get journeyDessert => 'ของหวาน';
+
+  @override
+  String get journeyDrinks => 'เครื่องดื่ม';
+
+  @override
+  String get journeyUnknown => 'ยังไม่จัดหมวดหมู่';
+
+  @override
+  String journeyShare(int percent) {
+    return 'สัดส่วนการสำรวจ $percent%';
+  }
+
+  @override
+  String get journeyTopTypes => 'ประเภทอาหารที่สำรวจบ่อย';
+
+  @override
+  String get journeyNoCountries => 'ยังไม่มีบันทึกที่ยืนยันประเทศได้';
+
+  @override
+  String get journeyRetry => 'ลองอีกครั้ง';
+
+  @override
+  String get journeyOpenPassport => 'เปิดพาสปอร์ต';
+
+  @override
+  String get journeyDetails => 'ดูรายละเอียด';
 }

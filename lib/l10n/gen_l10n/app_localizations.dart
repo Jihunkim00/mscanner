@@ -35,7 +35,7 @@ import 'app_localizations_zh.dart';
 /// `supportedLocales` list. For example:
 ///
 /// ```dart
-/// import 'l10n/app_localizations.dart';
+/// import 'gen_l10n/app_localizations.dart';
 ///
 /// return MaterialApp(
 ///   localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -2282,6 +2282,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recent scan history is stored up to {limit} entries. When a new history entry is saved beyond this limit, the oldest entry is automatically removed. Premium users can store unlimited history.'**
   String historyLimitReachedMessage(int limit);
+
+  /// No description provided for @journeyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My Food Journey'**
+  String get journeyTitle;
+
+  /// No description provided for @journeyPassport.
+  ///
+  /// In en, this message translates to:
+  /// **'My Food Passport'**
+  String get journeyPassport;
+
+  /// No description provided for @journeyDna.
+  ///
+  /// In en, this message translates to:
+  /// **'My Food DNA'**
+  String get journeyDna;
+
+  /// No description provided for @journeyDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Food types explored so far'**
+  String get journeyDescription;
+
+  /// No description provided for @journeyCountries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} countries'**
+  String journeyCountries(int count);
+
+  /// No description provided for @journeyRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} saved scans'**
+  String journeyRecords(int count);
+
+  /// No description provided for @journeyClassified.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} classified scans'**
+  String journeyClassified(int count);
+
+  /// No description provided for @journeyScope.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on {count} saved scans'**
+  String journeyScope(int count);
+
+  /// No description provided for @journeyPartialScope.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on the {count} most recent saved scans · more available'**
+  String journeyPartialScope(int count);
+
+  /// No description provided for @journeyEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No records yet'**
+  String get journeyEmpty;
+
+  /// No description provided for @journeyStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan your first menu to begin your journey'**
+  String get journeyStart;
+
+  /// No description provided for @journeyLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing your food journey'**
+  String get journeyLoading;
+
+  /// No description provided for @journeyInsufficient.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough classifiable food records yet'**
+  String get journeyInsufficient;
+
+  /// No description provided for @journeyError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your journey'**
+  String get journeyError;
+
+  /// No description provided for @journeyCached.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing cached saved scans. Refresh to update.'**
+  String get journeyCached;
+
+  /// No description provided for @journeyLoadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load more saved scans'**
+  String get journeyLoadMore;
+
+  /// No description provided for @journeyFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'First saved scan: {date}'**
+  String journeyFirst(String date);
+
+  /// No description provided for @journeyLast.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest saved scan: {date}'**
+  String journeyLast(String date);
+
+  /// No description provided for @journeyNoodles.
+  ///
+  /// In en, this message translates to:
+  /// **'Noodles'**
+  String get journeyNoodles;
+
+  /// No description provided for @journeyRice.
+  ///
+  /// In en, this message translates to:
+  /// **'Rice'**
+  String get journeyRice;
+
+  /// No description provided for @journeyMeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Meat'**
+  String get journeyMeat;
+
+  /// No description provided for @journeySeafood.
+  ///
+  /// In en, this message translates to:
+  /// **'Seafood'**
+  String get journeySeafood;
+
+  /// No description provided for @journeySoup.
+  ///
+  /// In en, this message translates to:
+  /// **'Soups'**
+  String get journeySoup;
+
+  /// No description provided for @journeyVegetables.
+  ///
+  /// In en, this message translates to:
+  /// **'Vegetables'**
+  String get journeyVegetables;
+
+  /// No description provided for @journeyDessert.
+  ///
+  /// In en, this message translates to:
+  /// **'Desserts'**
+  String get journeyDessert;
+
+  /// No description provided for @journeyDrinks.
+  ///
+  /// In en, this message translates to:
+  /// **'Drinks'**
+  String get journeyDrinks;
+
+  /// No description provided for @journeyUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unclassified'**
+  String get journeyUnknown;
+
+  /// No description provided for @journeyShare.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% explored'**
+  String journeyShare(int percent);
+
+  /// No description provided for @journeyTopTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Most explored food types'**
+  String get journeyTopTypes;
+
+  /// No description provided for @journeyNoCountries.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved scans with a confirmed country yet'**
+  String get journeyNoCountries;
+
+  /// No description provided for @journeyRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get journeyRetry;
+
+  /// No description provided for @journeyOpenPassport.
+  ///
+  /// In en, this message translates to:
+  /// **'Open passport'**
+  String get journeyOpenPassport;
+
+  /// No description provided for @journeyDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'View details'**
+  String get journeyDetails;
 }
 
 class _AppLocalizationsDelegate

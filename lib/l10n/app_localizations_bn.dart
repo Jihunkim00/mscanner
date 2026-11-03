@@ -1151,4 +1151,130 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get premiumGuestConvertButton => 'Convert account to continue';
+
+  @override
+  String get historyLimitReachedTitle =>
+      'স্ক্যান ইতিহাস সংরক্ষণ সংক্রান্ত বিজ্ঞপ্তি';
+
+  @override
+  String historyLimitReachedMessage(int limit) {
+    return 'সাম্প্রতিক স্ক্যান ইতিহাসে সর্বাধিক $limitটি এন্ট্রি রাখা হয়। এই সীমার বেশি নতুন এন্ট্রি সংরক্ষণ করলে সবচেয়ে পুরোনো এন্ট্রিটি স্বয়ংক্রিয়ভাবে মুছে যায়। Premium ব্যবহারকারীরা সীমাহীন স্ক্যান ইতিহাস রাখতে পারেন।';
+  }
+
+  @override
+  String get journeyTitle => 'আমার খাবার ভ্রমণ';
+
+  @override
+  String get journeyPassport => 'আমার খাবার পাসপোর্ট';
+
+  @override
+  String get journeyDna => 'আমার খাবার DNA';
+
+  @override
+  String get journeyDescription => 'এখন পর্যন্ত অন্বেষণ করা খাবারের ধরন';
+
+  @override
+  String journeyCountries(int count) {
+    return '$countটি দেশ';
+  }
+
+  @override
+  String journeyRecords(int count) {
+    return '$countটি সংরক্ষিত স্ক্যান';
+  }
+
+  @override
+  String journeyClassified(int count) {
+    return '$countটি শ্রেণিবদ্ধ স্ক্যান';
+  }
+
+  @override
+  String journeyScope(int count) {
+    return '$countটি সংরক্ষিত স্ক্যানের ভিত্তিতে';
+  }
+
+  @override
+  String journeyPartialScope(int count) {
+    return 'সাম্প্রতিক $countটি সংরক্ষিত স্ক্যান · আরও আছে';
+  }
+
+  @override
+  String get journeyEmpty => 'এখনও কোনো রেকর্ড নেই';
+
+  @override
+  String get journeyStart => 'শুরু করতে প্রথম মেনু স্ক্যান করুন';
+
+  @override
+  String get journeyLoading => 'আপনার খাবার ভ্রমণ বিশ্লেষণ করা হচ্ছে';
+
+  @override
+  String get journeyInsufficient =>
+      'শ্রেণিবদ্ধ করার মতো খাবারের রেকর্ড এখনও যথেষ্ট নয়';
+
+  @override
+  String get journeyError => 'আপনার ভ্রমণ লোড করা যায়নি';
+
+  @override
+  String get journeyCached =>
+      'ক্যাশে সংরক্ষিত রেকর্ড দেখানো হচ্ছে। হালনাগাদ করতে রিফ্রেশ করুন।';
+
+  @override
+  String get journeyLoadMore => 'আরও রেকর্ড লোড করুন';
+
+  @override
+  String journeyFirst(String date) {
+    return 'প্রথম রেকর্ড: $date';
+  }
+
+  @override
+  String journeyLast(String date) {
+    return 'সর্বশেষ রেকর্ড: $date';
+  }
+
+  @override
+  String get journeyNoodles => 'নুডলস';
+
+  @override
+  String get journeyRice => 'ভাত';
+
+  @override
+  String get journeyMeat => 'মাংস';
+
+  @override
+  String get journeySeafood => 'সামুদ্রিক খাবার';
+
+  @override
+  String get journeySoup => 'স্যুপ';
+
+  @override
+  String get journeyVegetables => 'সবজি';
+
+  @override
+  String get journeyDessert => 'মিষ্টান্ন';
+
+  @override
+  String get journeyDrinks => 'পানীয়';
+
+  @override
+  String get journeyUnknown => 'অশ্রেণিবদ্ধ';
+
+  @override
+  String journeyShare(int percent) {
+    return 'অন্বেষণের অনুপাত $percent%';
+  }
+
+  @override
+  String get journeyTopTypes => 'সবচেয়ে বেশি অন্বেষণ করা খাবারের ধরন';
+
+  @override
+  String get journeyNoCountries => 'নিশ্চিত দেশসহ কোনো রেকর্ড এখনও নেই';
+
+  @override
+  String get journeyRetry => 'আবার চেষ্টা করুন';
+
+  @override
+  String get journeyOpenPassport => 'পাসপোর্ট খুলুন';
+
+  @override
+  String get journeyDetails => 'বিস্তারিত দেখুন';
 }

@@ -318,6 +318,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get noHistoryFound => '未找到历史记录';
+
   @override
   String get aiScanning => 'AI扫描中...';
 
@@ -1105,6 +1106,121 @@ class AppLocalizationsZh extends AppLocalizations {
   String historyLimitReachedMessage(int limit) {
     return '最近的扫描记录最多保存$limit条。超过此上限保存新记录时，系统会自动删除最早的记录。Premium用户可以无限保存扫描记录。';
   }
+
+  @override
+  String get journeyTitle => '我的美食之旅';
+
+  @override
+  String get journeyPassport => '我的美食护照';
+
+  @override
+  String get journeyDna => '我的美食DNA';
+
+  @override
+  String get journeyDescription => '至今探索过的食物类型';
+
+  @override
+  String journeyCountries(int count) {
+    return '探索了$count个国家';
+  }
+
+  @override
+  String journeyRecords(int count) {
+    return '已保存$count次扫描';
+  }
+
+  @override
+  String journeyClassified(int count) {
+    return '已分类$count条记录';
+  }
+
+  @override
+  String journeyScope(int count) {
+    return '基于已保存的$count次扫描';
+  }
+
+  @override
+  String journeyPartialScope(int count) {
+    return '基于最近保存的$count次扫描 · 还有更多';
+  }
+
+  @override
+  String get journeyEmpty => '还没有记录';
+
+  @override
+  String get journeyStart => '扫描第一份菜单，开启美食之旅';
+
+  @override
+  String get journeyLoading => '正在分析美食探索记录';
+
+  @override
+  String get journeyInsufficient => '可分类的食物记录不足';
+
+  @override
+  String get journeyError => '无法加载美食之旅';
+
+  @override
+  String get journeyCached => '正在显示缓存记录，请刷新。';
+
+  @override
+  String get journeyLoadMore => '加载更多保存记录';
+
+  @override
+  String journeyFirst(String date) {
+    return '首次记录：$date';
+  }
+
+  @override
+  String journeyLast(String date) {
+    return '最近记录：$date';
+  }
+
+  @override
+  String get journeyNoodles => '面食';
+
+  @override
+  String get journeyRice => '米饭料理';
+
+  @override
+  String get journeyMeat => '肉类';
+
+  @override
+  String get journeySeafood => '海鲜';
+
+  @override
+  String get journeySoup => '汤类';
+
+  @override
+  String get journeyVegetables => '蔬菜料理';
+
+  @override
+  String get journeyDessert => '甜点';
+
+  @override
+  String get journeyDrinks => '饮品';
+
+  @override
+  String get journeyUnknown => '未分类';
+
+  @override
+  String journeyShare(int percent) {
+    return '探索占比$percent%';
+  }
+
+  @override
+  String get journeyTopTypes => '最常探索的食物类型';
+
+  @override
+  String get journeyNoCountries => '暂无可确认国家的保存记录';
+
+  @override
+  String get journeyRetry => '重试';
+
+  @override
+  String get journeyOpenPassport => '打开护照';
+
+  @override
+  String get journeyDetails => '查看详情';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -1421,6 +1537,7 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get noHistoryFound => '未找到历史记录';
+
   @override
   String get aiScanning => 'AI扫描中...';
 
@@ -2208,6 +2325,121 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String historyLimitReachedMessage(int limit) {
     return '最近的扫描记录最多保存$limit条。超过此上限保存新记录时，系统会自动删除最早的记录。Premium用户可以无限保存扫描记录。';
   }
+
+  @override
+  String get journeyTitle => '我的美食之旅';
+
+  @override
+  String get journeyPassport => '我的美食护照';
+
+  @override
+  String get journeyDna => '我的美食DNA';
+
+  @override
+  String get journeyDescription => '至今探索过的食物类型';
+
+  @override
+  String journeyCountries(int count) {
+    return '探索了$count个国家';
+  }
+
+  @override
+  String journeyRecords(int count) {
+    return '已保存$count次扫描';
+  }
+
+  @override
+  String journeyClassified(int count) {
+    return '已分类$count条记录';
+  }
+
+  @override
+  String journeyScope(int count) {
+    return '基于已保存的$count次扫描';
+  }
+
+  @override
+  String journeyPartialScope(int count) {
+    return '基于最近保存的$count次扫描 · 还有更多';
+  }
+
+  @override
+  String get journeyEmpty => '还没有记录';
+
+  @override
+  String get journeyStart => '扫描第一份菜单，开启美食之旅';
+
+  @override
+  String get journeyLoading => '正在分析美食探索记录';
+
+  @override
+  String get journeyInsufficient => '可分类的食物记录不足';
+
+  @override
+  String get journeyError => '无法加载美食之旅';
+
+  @override
+  String get journeyCached => '正在显示缓存记录，请刷新。';
+
+  @override
+  String get journeyLoadMore => '加载更多保存记录';
+
+  @override
+  String journeyFirst(String date) {
+    return '首次记录：$date';
+  }
+
+  @override
+  String journeyLast(String date) {
+    return '最近记录：$date';
+  }
+
+  @override
+  String get journeyNoodles => '面食';
+
+  @override
+  String get journeyRice => '米饭料理';
+
+  @override
+  String get journeyMeat => '肉类';
+
+  @override
+  String get journeySeafood => '海鲜';
+
+  @override
+  String get journeySoup => '汤类';
+
+  @override
+  String get journeyVegetables => '蔬菜料理';
+
+  @override
+  String get journeyDessert => '甜点';
+
+  @override
+  String get journeyDrinks => '饮品';
+
+  @override
+  String get journeyUnknown => '未分类';
+
+  @override
+  String journeyShare(int percent) {
+    return '探索占比$percent%';
+  }
+
+  @override
+  String get journeyTopTypes => '最常探索的食物类型';
+
+  @override
+  String get journeyNoCountries => '暂无可确认国家的保存记录';
+
+  @override
+  String get journeyRetry => '重试';
+
+  @override
+  String get journeyOpenPassport => '打开护照';
+
+  @override
+  String get journeyDetails => '查看详情';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -2524,6 +2756,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get noHistoryFound => '未找到歷史記錄';
+
   @override
   String get aiScanning => 'AI掃描中...';
 
@@ -3310,4 +3543,119 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String historyLimitReachedMessage(int limit) {
     return '最近的掃描記錄最多儲存$limit筆。超過此上限儲存新記錄時，系統會自動刪除最早的記錄。Premium 使用者可以無限儲存掃描記錄。';
   }
+
+  @override
+  String get journeyTitle => '我的美食之旅';
+
+  @override
+  String get journeyPassport => '我的美食護照';
+
+  @override
+  String get journeyDna => '我的美食DNA';
+
+  @override
+  String get journeyDescription => '至今探索過的食物類型';
+
+  @override
+  String journeyCountries(int count) {
+    return '探索了$count個國家';
+  }
+
+  @override
+  String journeyRecords(int count) {
+    return '已儲存$count次掃描';
+  }
+
+  @override
+  String journeyClassified(int count) {
+    return '已分類$count筆紀錄';
+  }
+
+  @override
+  String journeyScope(int count) {
+    return '依據已儲存的$count次掃描';
+  }
+
+  @override
+  String journeyPartialScope(int count) {
+    return '依據最近儲存的$count次掃描 · 還有更多';
+  }
+
+  @override
+  String get journeyEmpty => '還沒有紀錄';
+
+  @override
+  String get journeyStart => '掃描第一份菜單，開啟美食之旅';
+
+  @override
+  String get journeyLoading => '正在分析美食探索紀錄';
+
+  @override
+  String get journeyInsufficient => '可分類的食物紀錄不足';
+
+  @override
+  String get journeyError => '無法載入美食之旅';
+
+  @override
+  String get journeyCached => '正在顯示快取紀錄，請重新整理。';
+
+  @override
+  String get journeyLoadMore => '載入更多儲存紀錄';
+
+  @override
+  String journeyFirst(String date) {
+    return '首次紀錄：$date';
+  }
+
+  @override
+  String journeyLast(String date) {
+    return '最近紀錄：$date';
+  }
+
+  @override
+  String get journeyNoodles => '麵食';
+
+  @override
+  String get journeyRice => '米飯料理';
+
+  @override
+  String get journeyMeat => '肉類';
+
+  @override
+  String get journeySeafood => '海鮮';
+
+  @override
+  String get journeySoup => '湯類';
+
+  @override
+  String get journeyVegetables => '蔬菜料理';
+
+  @override
+  String get journeyDessert => '甜點';
+
+  @override
+  String get journeyDrinks => '飲品';
+
+  @override
+  String get journeyUnknown => '未分類';
+
+  @override
+  String journeyShare(int percent) {
+    return '探索佔比$percent%';
+  }
+
+  @override
+  String get journeyTopTypes => '最常探索的食物類型';
+
+  @override
+  String get journeyNoCountries => '暫無可確認國家的儲存紀錄';
+
+  @override
+  String get journeyRetry => '重試';
+
+  @override
+  String get journeyOpenPassport => '開啟護照';
+
+  @override
+  String get journeyDetails => '查看詳情';
 }

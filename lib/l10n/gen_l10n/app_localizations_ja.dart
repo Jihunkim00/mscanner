@@ -318,6 +318,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get noHistoryFound => '履歴が見つかりません';
+
   @override
   String get aiScanning => 'AIスキャン中...';
 
@@ -1120,4 +1121,119 @@ class AppLocalizationsJa extends AppLocalizations {
   String historyLimitReachedMessage(int limit) {
     return '最近のスキャン履歴は最大$limit件まで保存されます。新しい履歴がこの上限を超えて保存されると、最も古い履歴が自動的に削除されます。Premiumではスキャン履歴を無制限に保存できます。';
   }
+
+  @override
+  String get journeyTitle => '私のグルメ旅';
+
+  @override
+  String get journeyPassport => '私のグルメパスポート';
+
+  @override
+  String get journeyDna => '私のグルメDNA';
+
+  @override
+  String get journeyDescription => 'これまでに探索した料理の種類';
+
+  @override
+  String journeyCountries(int count) {
+    return '探索した国：$count';
+  }
+
+  @override
+  String journeyRecords(int count) {
+    return '保存スキャン：$count件';
+  }
+
+  @override
+  String journeyClassified(int count) {
+    return '分類済み：$count件';
+  }
+
+  @override
+  String journeyScope(int count) {
+    return '保存スキャン$count件に基づく';
+  }
+
+  @override
+  String journeyPartialScope(int count) {
+    return '最近の保存スキャン$count件に基づく・続きあり';
+  }
+
+  @override
+  String get journeyEmpty => 'まだ記録がありません';
+
+  @override
+  String get journeyStart => '最初のメニューをスキャンしましょう';
+
+  @override
+  String get journeyLoading => '食の探索記録を分析中';
+
+  @override
+  String get journeyInsufficient => '分類できる料理の記録が不足しています';
+
+  @override
+  String get journeyError => 'グルメ旅を読み込めませんでした';
+
+  @override
+  String get journeyCached => 'キャッシュされた保存記録です。更新してください。';
+
+  @override
+  String get journeyLoadMore => '保存記録をもっと見る';
+
+  @override
+  String journeyFirst(String date) {
+    return '最初の記録：$date';
+  }
+
+  @override
+  String journeyLast(String date) {
+    return '最近の記録：$date';
+  }
+
+  @override
+  String get journeyNoodles => '麺料理';
+
+  @override
+  String get journeyRice => 'ご飯料理';
+
+  @override
+  String get journeyMeat => '肉料理';
+
+  @override
+  String get journeySeafood => '魚介料理';
+
+  @override
+  String get journeySoup => 'スープ';
+
+  @override
+  String get journeyVegetables => '野菜料理';
+
+  @override
+  String get journeyDessert => 'デザート';
+
+  @override
+  String get journeyDrinks => '飲み物';
+
+  @override
+  String get journeyUnknown => '未分類';
+
+  @override
+  String journeyShare(int percent) {
+    return '探索割合 $percent%';
+  }
+
+  @override
+  String get journeyTopTypes => 'よく探索した料理の種類';
+
+  @override
+  String get journeyNoCountries => '国を確認できる保存記録はまだありません';
+
+  @override
+  String get journeyRetry => '再試行';
+
+  @override
+  String get journeyOpenPassport => 'パスポートを開く';
+
+  @override
+  String get journeyDetails => '詳細を見る';
 }
