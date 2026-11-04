@@ -8,9 +8,14 @@ import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import 'food_journey_service_test.dart' show TestJourneySource, foodScan;
 
 Widget screenApp(FoodJourneyService service,
-        {Locale locale = const Locale('en'), double scale = 1}) =>
+        {Locale locale = const Locale('en'),
+        double scale = 1,
+        bool dark = true}) =>
     MaterialApp(
-        theme: ThemeData.dark(),
+        theme: dark
+            ? ThemeData.dark()
+            : ThemeData(
+                colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple)),
         locale: locale,
         supportedLocales: AppLocalizations.supportedLocales,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -21,6 +26,38 @@ Widget screenApp(FoodJourneyService service,
         home: FoodJourneyScreen(service: service));
 
 void main() {
+  testWidgets('journey uses gray page and warm cards even with a purple theme',
+      (tester) async {
+    final service = FoodJourneyService(
+        source: TestJourneySource()
+          ..answer =
+              (_, __) async => FoodJourneyPage([foodScan('a', 'Ramen')]));
+    addTearDown(service.dispose);
+    service.selectAccount('alice', isPremium: false);
+    await service.load();
+    await tester.pumpWidget(screenApp(service, dark: false));
+    await tester.pumpAndSettle();
+    expect(tester.widget<Scaffold>(find.byType(Scaffold)).backgroundColor,
+        const Color(0xFFEFEFF4));
+    final appBar = tester.widget<AppBar>(find.byType(AppBar));
+    expect(appBar.backgroundColor, const Color(0xFFEFEFF4));
+    expect(appBar.surfaceTintColor, Colors.transparent);
+    for (final surface in find.byType(JourneySectionSurface).evaluate()) {
+      final container = tester.widget<Container>(find
+          .descendant(
+              of: find.byWidget(surface.widget),
+              matching: find.byType(Container))
+          .first);
+      expect((container.decoration! as BoxDecoration).color,
+          const Color(0xFFFFF9F6));
+    }
+    final stamp =
+        tester.widget<Container>(find.byKey(const ValueKey('stamp-JP')));
+    expect((stamp.decoration! as BoxDecoration).color, Colors.white);
+    expect(service.summary!.percentages.values.single, 100);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
       'premium pagination is explicit and resize retains records, scroll and account isolation',
       (tester) async {
@@ -77,15 +114,19 @@ void main() {
     addTearDown(service.dispose);
     service.selectAccount('alice', isPremium: false);
     await service.load();
-    for (final locale in AppLocalizations.supportedLocales) {
-      await tester.pumpWidget(screenApp(service, locale: locale, scale: 2));
-      await tester.pumpAndSettle();
-      if (locale.languageCode == 'ar') {
-        expect(
-            Directionality.of(tester.element(find.byType(FoodPassportSection))),
-            TextDirection.rtl);
+    for (final dark in [false, true]) {
+      for (final locale in AppLocalizations.supportedLocales) {
+        await tester.pumpWidget(
+            screenApp(service, locale: locale, scale: 2, dark: dark));
+        await tester.pumpAndSettle();
+        if (locale.languageCode == 'ar') {
+          expect(
+              Directionality.of(
+                  tester.element(find.byType(FoodPassportSection))),
+              TextDirection.rtl);
+        }
+        expect(tester.takeException(), isNull, reason: locale.toString());
       }
-      expect(tester.takeException(), isNull, reason: locale.toString());
     }
     tester.view.physicalSize = const Size(1200, 800);
     await tester.pumpAndSettle();

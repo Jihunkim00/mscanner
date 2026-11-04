@@ -6,7 +6,9 @@ import '../../../ad_remove_provider.dart';
 import '../../../l10n/gen_l10n/app_localizations.dart';
 import '../screens/food_journey_screen.dart';
 import '../services/food_journey_service.dart';
+import 'food_journey_icons.dart';
 import 'food_journey_sections.dart';
+import 'food_journey_style.dart';
 
 /// Auth/entitlement wiring stays outside the presentation and aggregation code.
 class FoodJourneyEntry extends StatefulWidget {
@@ -79,10 +81,10 @@ class _FoodJourneyEntryState extends State<FoodJourneyEntry>
     // A newly mounted home can precede the first auth/entitlement callback.
     if (_entitlement?.isEntitlementLoaded != true ||
         _service.uid != FirebaseAuth.instance.currentUser?.uid) {
-      return Card(
-          child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(AppLocalizations.of(context)!.journeyLoading)));
+      return JourneySectionSurface(
+          child: JourneySectionHeading(
+              icon: FoodJourneyIconType.passport,
+              title: AppLocalizations.of(context)!.journeyLoading));
     }
     return FoodJourneyHomeCard(service: _service);
   }
@@ -96,6 +98,7 @@ class FoodJourneyHomeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final style = FoodJourneyStyle.of(context);
     return AnimatedBuilder(
         animation: service,
         builder: (context, _) {
@@ -104,122 +107,203 @@ class FoodJourneyHomeCard extends StatelessWidget {
             key: const ValueKey('food-journey-home-card'),
             margin: EdgeInsets.zero,
             elevation: 0,
-            color: theme.colorScheme.surface,
+            color: style.card,
+            surfaceTintColor: Colors.transparent,
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-                side: BorderSide(color: theme.colorScheme.outlineVariant)),
+                borderRadius: FoodJourneyStyle.radius,
+                side: BorderSide(color: style.border)),
             clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
-                  builder: (_) => FoodJourneyScreen(service: service))),
-              child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Row(children: [
-                          Expanded(
-                              child: Text(l10n.journeyTitle,
-                                  style: theme.textTheme.titleSmall
-                                      ?.copyWith(fontWeight: FontWeight.w700))),
-                          const SizedBox(width: 8),
-                          const Icon(Icons.chevron_right, size: 20),
-                        ]),
-                        const SizedBox(height: 10),
-                        if (service.loading && summary == null) ...[
-                          LinearProgressIndicator(
-                              semanticsLabel: l10n.journeyLoading),
-                          const SizedBox(height: 8),
-                          Text(l10n.journeyLoading),
-                        ] else if (summary != null &&
-                            summary.savedScanCount > 0)
-                          LayoutBuilder(builder: (context, constraints) {
-                            final passport = Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(l10n.journeyPassport,
-                                      style: theme.textTheme.labelMedium),
-                                  Text(
-                                      l10n.journeyCountries(
-                                          summary.stamps.length),
-                                      style: theme.textTheme.titleMedium),
-                                  if (summary.stamps.isNotEmpty)
-                                    Semantics(
-                                        excludeSemantics: true,
-                                        label: l10n.journeyOpenPassport,
-                                        child: Text(summary.stamps
-                                            .take(3)
-                                            .map((stamp) => stamp.flag)
-                                            .join(' '))),
-                                ]);
-                            final top = summary.rankedCategories.firstOrNull;
-                            final dna = Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(l10n.journeyDna,
-                                      style: theme.textTheme.labelMedium),
-                                  if (top == null)
-                                    Text(l10n.journeyInsufficient)
-                                  else ...[
-                                    Text(foodCategoryLabel(top, l10n),
-                                        style: theme.textTheme.titleMedium),
-                                    Text(
-                                        l10n.journeyShare(
-                                            summary.percentages[top]!),
-                                        style: theme.textTheme.bodySmall),
-                                  ],
-                                ]);
-                            final scale =
-                                MediaQuery.textScalerOf(context).scale(14) / 14;
-                            if (constraints.maxWidth < 260 * scale) {
-                              return Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    passport,
-                                    const SizedBox(height: 12),
-                                    dna
-                                  ]);
-                            }
-                            return Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(child: passport),
-                                  const SizedBox(width: 16),
-                                  Expanded(child: dna)
-                                ]);
-                          })
-                        else if (!service.hasError) ...[
-                          Text(l10n.journeyEmpty,
-                              style: theme.textTheme.titleSmall),
-                          Text(l10n.journeyStart,
-                              style: theme.textTheme.bodySmall),
-                        ],
-                        if (summary != null && summary.savedScanCount > 0) ...[
-                          const SizedBox(height: 8),
-                          Text(
-                              service.hasMore
-                                  ? l10n.journeyPartialScope(
-                                      summary.savedScanCount)
-                                  : l10n.journeyScope(summary.savedScanCount),
-                              style: theme.textTheme.labelSmall),
-                        ],
-                        if (service.hasError) ...[
-                          Text(service.showingCachedData
-                              ? l10n.journeyCached
-                              : l10n.journeyError),
-                          Align(
-                              alignment: AlignmentDirectional.centerStart,
-                              child: TextButton(
-                                  onPressed: service.loading
-                                      ? null
-                                      : () => service.load(refresh: true),
-                                  child: Text(l10n.journeyRetry))),
-                        ],
-                      ])),
-            ),
+            child: DefaultTextStyle.merge(
+                style: TextStyle(color: style.primary),
+                child: InkWell(
+                  splashColor: style.accent.withValues(alpha: 0.12),
+                  highlightColor: style.accent.withValues(alpha: 0.06),
+                  onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                          builder: (_) => FoodJourneyScreen(service: service))),
+                  child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(children: [
+                              const FoodJourneyIcon(
+                                  type: FoodJourneyIconType.passport, size: 22),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                  child: Text(l10n.journeyTitle,
+                                      style: theme.textTheme.titleSmall
+                                          ?.copyWith(
+                                              color: style.primary,
+                                              fontWeight: FontWeight.w700))),
+                              const SizedBox(width: 8),
+                              Icon(
+                                  Directionality.of(context) ==
+                                          TextDirection.rtl
+                                      ? Icons.chevron_left
+                                      : Icons.chevron_right,
+                                  size: 20,
+                                  color: style.emphasis),
+                            ]),
+                            const SizedBox(height: 10),
+                            if (service.loading && summary == null) ...[
+                              LinearProgressIndicator(
+                                  color: style.accent,
+                                  backgroundColor: style.soft,
+                                  semanticsLabel: l10n.journeyLoading),
+                              const SizedBox(height: 8),
+                              Text(l10n.journeyLoading),
+                            ] else if (summary != null &&
+                                summary.savedScanCount > 0)
+                              LayoutBuilder(builder: (context, constraints) {
+                                final passport = _HomeJourneyMetric(
+                                    icon: FoodJourneyIconType.globe,
+                                    label: l10n.journeyPassport,
+                                    child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                              l10n.journeyCountries(
+                                                  summary.stamps.length),
+                                              style: theme.textTheme.titleSmall
+                                                  ?.copyWith(
+                                                      color: style.primary,
+                                                      fontWeight:
+                                                          FontWeight.w700)),
+                                          if (summary.stamps.isNotEmpty)
+                                            Semantics(
+                                                excludeSemantics: true,
+                                                label: l10n.journeyOpenPassport,
+                                                child: Text(summary.stamps
+                                                    .take(3)
+                                                    .map((stamp) => stamp.flag)
+                                                    .join(' '))),
+                                        ]));
+                                final top =
+                                    summary.rankedCategories.firstOrNull;
+                                final dna = _HomeJourneyMetric(
+                                    icon: top == null
+                                        ? FoodJourneyIconType.dna
+                                        : FoodJourneyIconType.forCategory(top),
+                                    label: l10n.journeyDna,
+                                    child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          if (top == null)
+                                            Text(l10n.journeyInsufficient)
+                                          else ...[
+                                            Text(foodCategoryLabel(top, l10n),
+                                                style: theme
+                                                    .textTheme.titleSmall
+                                                    ?.copyWith(
+                                                        color: style.primary,
+                                                        fontWeight:
+                                                            FontWeight.w700)),
+                                            Text(
+                                                l10n.journeyShare(
+                                                    summary.percentages[top]!),
+                                                style: theme.textTheme.bodySmall
+                                                    ?.copyWith(
+                                                        color: style.emphasis,
+                                                        fontWeight:
+                                                            FontWeight.w700)),
+                                          ],
+                                        ]));
+                                final scale =
+                                    MediaQuery.textScalerOf(context).scale(14) /
+                                        14;
+                                if (constraints.maxWidth < 280 * scale) {
+                                  return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        passport,
+                                        Divider(
+                                            height: 17, color: style.border),
+                                        dna
+                                      ]);
+                                }
+                                return Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(child: passport),
+                                      Container(
+                                          width: 1,
+                                          height: 52,
+                                          margin: const EdgeInsets.symmetric(
+                                              horizontal: 12),
+                                          color: style.border),
+                                      Expanded(child: dna)
+                                    ]);
+                              })
+                            else if (!service.hasError) ...[
+                              Text(l10n.journeyEmpty,
+                                  style: theme.textTheme.titleSmall),
+                              Text(l10n.journeyStart,
+                                  style: theme.textTheme.bodySmall),
+                            ],
+                            if (summary != null &&
+                                summary.savedScanCount > 0) ...[
+                              const SizedBox(height: 8),
+                              Align(
+                                  alignment: AlignmentDirectional.centerStart,
+                                  child: JourneyScopePill(
+                                      label: service.hasMore
+                                          ? l10n.journeyPartialScope(
+                                              summary.savedScanCount)
+                                          : l10n.journeyScope(
+                                              summary.savedScanCount))),
+                            ],
+                            if (service.hasError) ...[
+                              Text(service.showingCachedData
+                                  ? l10n.journeyCached
+                                  : l10n.journeyError),
+                              Align(
+                                  alignment: AlignmentDirectional.centerStart,
+                                  child: TextButton(
+                                      style: TextButton.styleFrom(
+                                          foregroundColor: style.emphasis),
+                                      onPressed: service.loading
+                                          ? null
+                                          : () => service.load(refresh: true),
+                                      child: Text(l10n.journeyRetry))),
+                            ],
+                          ])),
+                )),
           );
         });
   }
+}
+
+class _HomeJourneyMetric extends StatelessWidget {
+  const _HomeJourneyMetric({
+    required this.icon,
+    required this.label,
+    required this.child,
+  });
+
+  final FoodJourneyIconType icon;
+  final String label;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            FoodJourneyIcon(type: icon, size: 18),
+            const SizedBox(width: 6),
+            Expanded(
+                child: Text(label,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: FoodJourneyStyle.of(context).secondary))),
+          ]),
+          const SizedBox(height: 2),
+          child,
+        ],
+      );
 }

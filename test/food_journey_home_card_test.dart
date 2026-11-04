@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mscanner/features/food_journey/services/food_journey_repository.dart';
 import 'package:mscanner/features/food_journey/services/food_journey_service.dart';
 import 'package:mscanner/features/food_journey/widgets/food_journey_home_card.dart';
+import 'package:mscanner/features/food_journey/widgets/food_journey_icons.dart';
 import 'package:mscanner/features/food_journey/screens/food_journey_screen.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import 'food_journey_service_test.dart' show TestJourneySource, foodScan;
@@ -41,6 +42,12 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('My Food Journey'), findsOneWidget);
     expect(find.text('4 countries'), findsOneWidget);
+    final card = tester
+        .widget<Card>(find.byKey(const ValueKey('food-journey-home-card')));
+    expect(card.color, const Color(0xFFFFF9F6));
+    expect((card.shape! as RoundedRectangleBorder).side.color,
+        const Color(0xFFFFD9C7));
+    expect(find.byType(FoodJourneyIcon), findsNWidgets(3));
     final flagText = tester
         .widgetList<Text>(find.byType(Text))
         .where((text) => text.data?.contains('🇯🇵') ?? false)
@@ -70,14 +77,19 @@ void main() {
     await tester.pumpWidget(journeyApp(FoodJourneyHomeCard(service: service)));
     await tester.pump();
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    void expectWarmCard() => expect(
+        tester.widget<Card>(find.byType(Card)).color, const Color(0xFFFFF9F6));
+    expectWarmCard();
     completer.completeError(StateError('offline'));
     await request;
     await tester.pumpAndSettle();
     expect(find.text('Could not load your journey'), findsOneWidget);
+    expectWarmCard();
     source.answer = (_, __) async => const FoodJourneyPage([]);
     await tester.tap(find.text('Retry'));
     await tester.pumpAndSettle();
     expect(find.text('No records yet'), findsOneWidget);
+    expectWarmCard();
     expect(find.text('Scan your first menu to begin your journey'),
         findsOneWidget);
     expect(source.requests, hasLength(2));
@@ -97,11 +109,19 @@ void main() {
     addTearDown(service.dispose);
     service.selectAccount('alice', isPremium: false);
     await service.load();
-    for (final locale in AppLocalizations.supportedLocales) {
-      await tester.pumpWidget(journeyApp(FoodJourneyHomeCard(service: service),
-          locale: locale, dark: true, textScale: 2));
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull, reason: locale.toString());
+    for (final dark in [false, true]) {
+      for (final locale in AppLocalizations.supportedLocales) {
+        await tester.pumpWidget(journeyApp(
+            FoodJourneyHomeCard(service: service),
+            locale: locale,
+            dark: dark,
+            textScale: 2));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull, reason: locale.toString());
+        final card = tester.widget<Card>(find.byType(Card));
+        expect(card.color!.computeLuminance(),
+            dark ? lessThan(0.1) : greaterThan(0.9));
+      }
     }
   });
 }

@@ -41,6 +41,7 @@ import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import 'package:mscanner/widgets/result/result_decision_skeleton.dart';
 import 'package:mscanner/widgets/result/result_decision_cards.dart';
 import 'package:mscanner/widgets/result/result_ui_copy.dart';
+import 'package:mscanner/widgets/result/scan_image_preview.dart';
 import 'package:mscanner/widgets/menu_tag_registry.dart';
 import 'package:mscanner/screens/result/result_parsing_service.dart';
 import 'package:mscanner/screens/result/result_action_service.dart';
@@ -4182,20 +4183,17 @@ class _ResultScreenState extends State<ResultScreen> {
                       : [widget.image],
                   initialIndex: _selectedImageIndex,
                 ),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 480),
-                  child: Image.file(
-                    (widget.images?.isNotEmpty == true
+                child: ScanImagePreview(
+                    image: (widget.images?.isNotEmpty == true
                         ? widget.images!
-                        : [widget.image])[_selectedImageIndex],
-                    fit: BoxFit.contain,
-                  ),
-                ),
+                        : [widget.image])[_selectedImageIndex]),
               ),
               if ((widget.images?.length ?? 0) > 1) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 ImageGridViewer(
                   images: widget.images!,
+                  compact: true,
+                  selectedIndex: _selectedImageIndex,
                   onTap: (index) => setState(() => _selectedImageIndex = index),
                 ),
               ],
