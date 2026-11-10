@@ -45,13 +45,11 @@ class _ResultDecisionSkeletonCardState extends State<ResultDecisionSkeletonCard>
     final cardColor =
         widget.isDarkMode ? const Color(0xFF1F1F22) : Colors.white;
 
-    final baseColor = widget.isDarkMode
-        ? Colors.white.withValues(alpha: 0.08)
-        : const Color(0xFFE8EBF0);
+    final baseColor =
+        widget.isDarkMode ? const Color(0xFF303036) : const Color(0xFFE8EBF0);
 
-    final highlightColor = widget.isDarkMode
-        ? Colors.white.withValues(alpha: 0.16)
-        : const Color(0xFFF5F7FA);
+    final highlightColor =
+        widget.isDarkMode ? const Color(0xFF4A4A52) : const Color(0xFFF5F7FA);
 
     Widget line(double width, {double height = 12}) {
       return _ShimmerBox(

@@ -1,0 +1,4 @@
+# Keep TODO notes in this vendored package out of editor Problems.
+analyzer:
+  errors:
+    todo: ignore

@@ -4155,226 +4155,260 @@ class _ResultScreenState extends State<ResultScreen> {
         if (didPop || _isResultExitBlocked) return;
         unawaited(_exitResultWithInterstitial());
       },
-      child: Scaffold(
-        backgroundColor: backgroundColor,
-        appBar: AppBar(
-          centerTitle: false,
-          backgroundColor: backgroundColor,
-          leading: widget.isTutorial
-              ? null
-              : IconButton(
-                  icon: Icon(CupertinoIcons.back, color: textColor, size: 30),
-                  onPressed: _isResultExitBlocked
-                      ? null
-                      : () => unawaited(_exitResultWithInterstitial()),
-                ),
-          title: widget.isTutorial ? TutorialIndicator() : null,
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
         ),
-        body: AdaptiveScanPanels(
-          capture: _scanCapture,
+        child: Scaffold(
           backgroundColor: backgroundColor,
-          primary: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              GestureDetector(
-                onTap: () => _showFullImage(
-                  files: widget.images?.isNotEmpty == true
-                      ? widget.images!
-                      : [widget.image],
-                  initialIndex: _selectedImageIndex,
-                ),
-                child: ScanImagePreview(
+          body: AdaptiveScanPanels(
+            capture: _scanCapture,
+            backgroundColor: backgroundColor,
+            contentPadding: EdgeInsets.zero,
+            resultsContentPadding: const EdgeInsets.only(top: 16),
+            resultsPanelPadding: const EdgeInsets.symmetric(horizontal: 16),
+            primary: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                GestureDetector(
+                  onTap: () => _showFullImage(
+                    files: widget.images?.isNotEmpty == true
+                        ? widget.images!
+                        : [widget.image],
+                    initialIndex: _selectedImageIndex,
+                  ),
+                  child: ScanImagePreview(
                     image: (widget.images?.isNotEmpty == true
                         ? widget.images!
-                        : [widget.image])[_selectedImageIndex]),
-              ),
-              if ((widget.images?.length ?? 0) > 1) ...[
-                const SizedBox(height: 8),
-                ImageGridViewer(
-                  images: widget.images!,
-                  compact: true,
-                  selectedIndex: _selectedImageIndex,
-                  onTap: (index) => setState(() => _selectedImageIndex = index),
-                ),
-              ],
-            ],
-          ),
-          results: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (showDecisionArea) ...[
-                _buildDecisionSummarySection(),
-                SizedBox(height: 16),
-              ],
-
-              // ✅ NEW UI (JSON-based) with fallback to old text
-              _buildScanResultCard(
-                localizations: localizations!,
-                textColor: textColor,
-                boxDecoration: boxDecoration,
-              ),
-
-              // ✅ 여기! 결과 카드 바깥 바로 아래에 “근처 타인 메뉴 태그”
-              _buildNearbyMenuTags(),
-
-              // ✅ RAG Answer (허용 사용자만)
-              if (_isAllowedUser &&
-                  (_ragDetail?.isNotEmpty ?? false) &&
-                  _decisionLocalInsights().length < 3) ...[
-                SizedBox(height: 16),
-                Container(
-                  decoration: boxDecoration,
-                  padding: EdgeInsets.all(8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'RAG Answer',
-                        style: TextStyle(
-                          fontFamily: 'SFPro',
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
+                        : [widget.image])[_selectedImageIndex],
+                    overlay: SafeArea(
+                      bottom: false,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 8, 16, 0),
+                        child: Row(
+                          children: [
+                            if (widget.isTutorial)
+                              const TutorialIndicator()
+                            else
+                              IconButton(
+                                key: const ValueKey('scan-result-back'),
+                                tooltip: MaterialLocalizations.of(context)
+                                    .backButtonTooltip,
+                                style: IconButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                  backgroundColor:
+                                      Colors.black.withValues(alpha: 0.48),
+                                  shape: const CircleBorder(),
+                                ),
+                                icon: const Icon(
+                                  CupertinoIcons.back,
+                                  size: 28,
+                                ),
+                                onPressed: _isResultExitBlocked
+                                    ? null
+                                    : () => unawaited(
+                                          _exitResultWithInterstitial(),
+                                        ),
+                              ),
+                            const Spacer(),
+                          ],
                         ),
                       ),
-                      SizedBox(height: 10),
-                      Text(
-                        _ragDetail!,
-                        style: TextStyle(
-                          fontFamily: 'SFPro',
-                          fontSize: 12,
-                          color: textColor,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
+                if ((widget.images?.length ?? 0) > 1) ...[
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ImageGridViewer(
+                      images: widget.images!,
+                      compact: true,
+                      selectedIndex: _selectedImageIndex,
+                      onTap: (index) =>
+                          setState(() => _selectedImageIndex = index),
+                    ),
+                  ),
+                ],
               ],
+            ),
+            results: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (showDecisionArea) ...[
+                  _buildDecisionSummarySection(),
+                  SizedBox(height: 16),
+                ],
 
-              if (showResultActions) ...[
-                SizedBox(height: 16),
-                Container(
-                  decoration: boxDecoration,
-                  padding: EdgeInsets.all(8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        localizations.reviewTitle,
-                        style: TextStyle(
-                          fontFamily: 'SFPro',
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      TextField(
-                        controller: _reviewController,
-                        maxLines: 3,
-                        style: TextStyle(
-                          fontFamily: 'SFPro',
-                          fontSize: 14,
-                          color: textColor,
-                        ),
-                        decoration: InputDecoration(
-                          hintText: localizations.reviewHint,
-                          hintStyle: TextStyle(
+                // ✅ NEW UI (JSON-based) with fallback to old text
+                _buildScanResultCard(
+                  localizations: localizations!,
+                  textColor: textColor,
+                  boxDecoration: boxDecoration,
+                ),
+
+                // ✅ 여기! 결과 카드 바깥 바로 아래에 “근처 타인 메뉴 태그”
+                _buildNearbyMenuTags(),
+
+                // ✅ RAG Answer (허용 사용자만)
+                if (_isAllowedUser &&
+                    (_ragDetail?.isNotEmpty ?? false) &&
+                    _decisionLocalInsights().length < 3) ...[
+                  SizedBox(height: 16),
+                  Container(
+                    decoration: boxDecoration,
+                    padding: EdgeInsets.all(8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'RAG Answer',
+                          style: TextStyle(
                             fontFamily: 'SFPro',
-                            fontSize: 14,
-                            color: Colors.grey,
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-
-              if (showResultActions)
-                SafeArea(
-                  bottom: true,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 8.0,
-                    ),
-                    child: ElevatedButton(
-                      onPressed: _isLoading
-                          ? null
-                          : () {
-                              final comment = _reviewController.text.trim();
-                              LogService().logSaveClick(
-                                hasComment: comment.isNotEmpty,
-                                contentLength: comment.length,
-                                context: 'result',
-                              );
-
-                              if (!_isMergeDone) {
-                                if (!_pendingSave) {
-                                  setState(() => _pendingSave = true);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        AppLocalizations.of(
-                                          context,
-                                        )!
-                                            .mergeInProgress,
-                                      ),
-                                    ),
-                                  );
-                                }
-                                return;
-                              }
-                              _saveScanResult();
-                            },
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor:
-                            Theme.of(context).brightness == Brightness.dark
-                                ? Colors.grey
-                                : Colors.white,
-                        backgroundColor:
-                            Theme.of(context).brightness == Brightness.dark
-                                ? Colors.grey[800]
-                                : Colors.grey,
-                        minimumSize: Size(double.infinity, 48),
-                        textStyle: TextStyle(fontFamily: 'SFPro', fontSize: 14),
-                      ),
-                      child: Text(localizations.save),
-                    ),
-                  ),
-                ),
-              if (_isLoading)
-                Container(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  child: Center(
-                    child: CupertinoActivityIndicator(radius: 10.0),
-                  ),
-                ),
-              if (_isLoadingError)
-                Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Icon(
-                        CupertinoIcons.exclamationmark_triangle,
-                        color: _isDarkMode ? Colors.redAccent : Colors.red,
-                        size: 40.0,
-                      ),
-                      SizedBox(height: 20),
-                      Text(
-                        localizations.cloudsavingError,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontFamily: 'SFProText',
-                          color: _isDarkMode
-                              ? Colors.white70
-                              : CupertinoColors.systemGrey,
-                          decoration: TextDecoration.none,
+                        SizedBox(height: 10),
+                        Text(
+                          _ragDetail!,
+                          style: TextStyle(
+                            fontFamily: 'SFPro',
+                            fontSize: 12,
+                            color: textColor,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-            ],
+                ],
+
+                if (showResultActions) ...[
+                  SizedBox(height: 16),
+                  Container(
+                    decoration: boxDecoration,
+                    padding: EdgeInsets.all(8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          localizations.reviewTitle,
+                          style: TextStyle(
+                            fontFamily: 'SFPro',
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        TextField(
+                          controller: _reviewController,
+                          maxLines: 3,
+                          style: TextStyle(
+                            fontFamily: 'SFPro',
+                            fontSize: 14,
+                            color: textColor,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: localizations.reviewHint,
+                            hintStyle: TextStyle(
+                              fontFamily: 'SFPro',
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                if (showResultActions)
+                  SafeArea(
+                    bottom: true,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: ElevatedButton(
+                        onPressed: _isLoading
+                            ? null
+                            : () {
+                                final comment = _reviewController.text.trim();
+                                LogService().logSaveClick(
+                                  hasComment: comment.isNotEmpty,
+                                  contentLength: comment.length,
+                                  context: 'result',
+                                );
+
+                                if (!_isMergeDone) {
+                                  if (!_pendingSave) {
+                                    setState(() => _pendingSave = true);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          AppLocalizations.of(
+                                            context,
+                                          )!
+                                              .mergeInProgress,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  return;
+                                }
+                                _saveScanResult();
+                              },
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor:
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey
+                                  : Colors.white,
+                          backgroundColor:
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey[800]
+                                  : Colors.grey,
+                          minimumSize: Size(double.infinity, 48),
+                          textStyle:
+                              TextStyle(fontFamily: 'SFPro', fontSize: 14),
+                        ),
+                        child: Text(localizations.save),
+                      ),
+                    ),
+                  ),
+                if (_isLoading)
+                  Container(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    child: Center(
+                      child: CupertinoActivityIndicator(radius: 10.0),
+                    ),
+                  ),
+                if (_isLoadingError)
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Icon(
+                          CupertinoIcons.exclamationmark_triangle,
+                          color: _isDarkMode ? Colors.redAccent : Colors.red,
+                          size: 40.0,
+                        ),
+                        SizedBox(height: 20),
+                        Text(
+                          localizations.cloudsavingError,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontFamily: 'SFProText',
+                            color: _isDarkMode
+                                ? Colors.white70
+                                : CupertinoColors.systemGrey,
+                            decoration: TextDecoration.none,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

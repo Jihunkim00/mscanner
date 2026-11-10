@@ -127,7 +127,7 @@ class AccountUpgradeService {
 
       final credential = GoogleAuthProvider.credential(idToken: idToken);
       if (before != null && before.isAnonymous) {
-        return _linkAnonymousOrSwitch(
+        return await _linkAnonymousOrSwitch(
           anonymousUser: before,
           credential: credential,
           signInExisting: () => _auth.signInWithCredential(credential),
@@ -187,7 +187,7 @@ class AccountUpgradeService {
       );
 
       if (before != null && before.isAnonymous) {
-        return _linkAnonymousOrSwitch(
+        return await _linkAnonymousOrSwitch(
           anonymousUser: before,
           credential: credential,
           signInExisting: () => _auth.signInWithCredential(credential),

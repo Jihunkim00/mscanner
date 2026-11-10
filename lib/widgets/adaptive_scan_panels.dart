@@ -92,11 +92,21 @@ class AdaptiveScanPanels extends StatefulWidget {
     required this.results,
     required this.capture,
     this.backgroundColor = Colors.white,
+    this.contentPadding = const EdgeInsets.all(16),
+    this.stackedContentPadding,
+    this.primaryContentPadding,
+    this.resultsContentPadding,
+    this.resultsPanelPadding = EdgeInsets.zero,
   });
   final Widget primary;
   final Widget results;
   final ScanCaptureController capture;
   final Color backgroundColor;
+  final EdgeInsetsGeometry contentPadding;
+  final EdgeInsetsGeometry? stackedContentPadding;
+  final EdgeInsetsGeometry? primaryContentPadding;
+  final EdgeInsetsGeometry? resultsContentPadding;
+  final EdgeInsetsGeometry resultsPanelPadding;
 
   @override
   State<AdaptiveScanPanels> createState() => _AdaptiveScanPanelsState();
@@ -147,15 +157,25 @@ class _AdaptiveScanPanelsState extends State<AdaptiveScanPanels> {
             media: MediaQuery.of(context),
           );
           final primary = _panel(_primaryKey, widget.primary);
-          final results = _panel(_resultsKey, widget.results);
-          Widget scroll(Widget child, ScrollController controller) =>
+          final results = _panel(
+            _resultsKey,
+            Padding(
+              padding: widget.resultsPanelPadding,
+              child: widget.results,
+            ),
+          );
+          Widget scroll(
+            Widget child,
+            ScrollController controller, {
+            EdgeInsetsGeometry? padding,
+          }) =>
               SingleChildScrollView(
                 key: controller == _mainScroll
                     ? _mainViewportKey
                     : _imageViewportKey,
                 controller: controller,
                 primary: false,
-                padding: const EdgeInsets.all(16),
+                padding: padding ?? widget.contentPadding,
                 child: child,
               );
           Rect local(Rect rect) => rect.shift(-bounds.topLeft);
@@ -177,11 +197,26 @@ class _AdaptiveScanPanelsState extends State<AdaptiveScanPanels> {
                                 results
                               ]),
                           _mainScroll,
+                          padding: widget.stackedContentPadding,
                         ))
                   ]
                 : [
-                    positioned(geometry.primary, scroll(primary, _imageScroll)),
-                    positioned(geometry.results!, scroll(results, _mainScroll)),
+                    positioned(
+                      geometry.primary,
+                      scroll(
+                        primary,
+                        _imageScroll,
+                        padding: widget.primaryContentPadding,
+                      ),
+                    ),
+                    positioned(
+                      geometry.results!,
+                      scroll(
+                        results,
+                        _mainScroll,
+                        padding: widget.resultsContentPadding,
+                      ),
+                    ),
                   ],
           );
         }),

@@ -51,11 +51,11 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     await loadImages(tester);
     for (final (size, expectedHeight) in [
-      (const Size(320, 568), 180.0),
-      (const Size(390, 844), 253.2),
-      (const Size(430, 932), 260.0),
-      (const Size(1100, 800), 320.0),
-      (const Size(844, 390), 180.0),
+      (const Size(320, 568), 272.64),
+      (const Size(390, 844), 405.12),
+      (const Size(430, 932), 447.36),
+      (const Size(1100, 800), 384.0),
+      (const Size(844, 390), 220.0),
     ]) {
       tester.view.physicalSize = size;
       for (final file in files.take(2)) {
@@ -63,19 +63,86 @@ void main() {
             home: Scaffold(
                 body: AdaptiveScanPanels(
                     capture: ScanCaptureController(),
+                    contentPadding: EdgeInsets.zero,
+                    resultsContentPadding: const EdgeInsets.only(top: 16),
                     primary: ScanImagePreview(image: file),
                     results: const Text('First recommendation')))));
         await tester.pumpAndSettle();
         expect(tester.getSize(find.byType(ScanImagePreview)).height,
             closeTo(expectedHeight, 0.01));
-        final image = tester.widget<Image>(find.descendant(
-            of: find.byType(ScanImagePreview), matching: find.byType(Image)));
+        final image = tester.widget<Image>(
+          find.byKey(const ValueKey('scan-image-preview-original')),
+        );
         expect(image.fit, BoxFit.contain);
-        expect(tester.getBottomLeft(find.text('First recommendation')).dy,
-            lessThan(size.height));
+        final resultTop = tester
+            .getTopLeft(
+              find.text('First recommendation'),
+            )
+            .dy;
+        if (size.width >= 844) {
+          expect(resultTop, closeTo(16, 0.01));
+        } else {
+          expect(resultTop, closeTo(expectedHeight + 16, 0.01));
+        }
+        expect(resultTop, lessThan(size.height));
         expect(tester.takeException(), isNull);
       }
     }
+  });
+
+  testWidgets('edge-to-edge image and back overlay scroll away together',
+      (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    await loadImages(tester);
+
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: AdaptiveScanPanels(
+          capture: ScanCaptureController(),
+          contentPadding: EdgeInsets.zero,
+          primary: ScanImagePreview(
+            image: files.first,
+            overlay: SafeArea(
+              bottom: false,
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: IconButton(
+                  key: const ValueKey('scan-back-overlay'),
+                  onPressed: () {},
+                  icon: const Icon(Icons.arrow_back),
+                ),
+              ),
+            ),
+          ),
+          results: const SizedBox(
+            height: 1200,
+            child: Text('Result content'),
+          ),
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final hero = find.byType(ScanImagePreview);
+    final back = find.byKey(const ValueKey('scan-back-overlay'));
+    expect(tester.getTopLeft(hero).dy, 0);
+    expect(tester.getSize(hero).width, 390);
+    expect(back.hitTestable(), findsOneWidget);
+
+    final scrollView = find.byType(SingleChildScrollView);
+    await tester.drag(scrollView, const Offset(0, -500));
+    await tester.pumpAndSettle();
+    expect(tester.getBottomLeft(hero).dy, lessThan(0));
+    expect(back.hitTestable(), findsNothing);
+
+    await tester.drag(scrollView, const Offset(0, 1000));
+    await tester.pumpAndSettle();
+    expect(tester.getTopLeft(hero).dy, 0);
+    expect(back.hitTestable(), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('one thumbnail row scrolls, selects and exports both panels',
