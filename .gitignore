@@ -176,3 +176,6 @@ strings.xml
 **/Runner/AppDelegate.swift
 **/Runner/GoogleService-Info.plist
 *.p8
+
+# Keep the app dependency graph consistent across Windows and macOS.
+!pubspec.lock
