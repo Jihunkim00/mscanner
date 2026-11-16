@@ -1,10 +1,12 @@
+import 'dart:math' as math;
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:adaptive_theme/adaptive_theme.dart';
+import '../styles/app_theme.dart';
+import '../widgets/adaptive_window.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:share_plus/share_plus.dart';
@@ -175,7 +177,7 @@ class _MapScreenState extends State<MapScreen> {
 
   void _onMapCreated(GoogleMapController controller) {
     _mapController = controller;
-    _isDarkMode = AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark;
+    _isDarkMode = Theme.of(context).brightness == Brightness.dark;
   }
 
   // ---------- filter core ----------
@@ -395,6 +397,8 @@ class _MapScreenState extends State<MapScreen> {
         Marker(
           markerId: MarkerId(id),
           position: pos,
+          icon:
+              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
           onTap: () => setState(() => _selectedId = id),
           infoWindow: InfoWindow(
             title: _norm(item['restaurantName']).isEmpty
@@ -481,30 +485,22 @@ class _MapScreenState extends State<MapScreen> {
     final picked = await showCupertinoModalPopup<DateTimeRange?>(
       context: context,
       builder: (popupContext) {
-        final isDark =
-            AdaptiveTheme.of(popupContext).mode == AdaptiveThemeMode.dark;
+        final isDark = Theme.of(popupContext).brightness == Brightness.dark;
 
-        final bgColor = isDark ? const Color(0xFF1C1C1E) : Colors.white;
-        final titleColor = isDark ? Colors.white : const Color(0xFF111827);
-        final subColor = isDark ? Colors.white70 : const Color(0xFF6B7280);
-        final lineColor = isDark
-            ? Colors.white.withValues(alpha: 0.08)
-            : const Color(0xFFE5E7EB);
-        final cardColor =
-            isDark ? const Color(0xFF2A2A2E) : const Color(0xFFF6F7F9);
-        final selectedCardColor =
-            isDark ? const Color(0xFF34343A) : const Color(0xFFFFF4EC);
+        final colors = AppColors.of(popupContext);
+        final bgColor = colors.surface;
+        final titleColor = colors.text;
+        final subColor = colors.secondaryText;
+        final lineColor = colors.border;
+        final cardColor = colors.subtleSurface;
+        final selectedCardColor = colors.subtleSurface;
 
         return StatefulBuilder(
           builder: (context, setModalState) {
             final currentDate = editingStart ? tempStart : tempEnd;
 
-            return MediaQuery(
-              data: MediaQuery.of(context).copyWith(
-                textScaler: const TextScaler.linear(0.92),
-              ),
+            return AdaptiveModalSurface(
               child: Container(
-                height: 390,
                 decoration: BoxDecoration(
                   color: bgColor,
                   borderRadius: const BorderRadius.vertical(
@@ -514,6 +510,7 @@ class _MapScreenState extends State<MapScreen> {
                 child: SafeArea(
                   top: false,
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       const SizedBox(height: 10),
                       Container(
@@ -528,7 +525,8 @@ class _MapScreenState extends State<MapScreen> {
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
                         child: Row(
                           children: [
-                            CupertinoButton(
+                            Expanded(
+                                child: CupertinoButton(
                               padding: EdgeInsets.zero,
                               minimumSize: const Size.square(30),
                               onPressed: () => Navigator.pop(popupContext),
@@ -540,7 +538,7 @@ class _MapScreenState extends State<MapScreen> {
                                   decoration: TextDecoration.none,
                                 ),
                               ),
-                            ),
+                            )),
                             Expanded(
                               child: Text(
                                 AppLocalizations.of(context)?.map_date ?? '날짜',
@@ -554,7 +552,8 @@ class _MapScreenState extends State<MapScreen> {
                                 ),
                               ),
                             ),
-                            CupertinoButton(
+                            Expanded(
+                                child: CupertinoButton(
                               padding: EdgeInsets.zero,
                               minimumSize: const Size.square(30),
                               onPressed: () {
@@ -587,7 +586,7 @@ class _MapScreenState extends State<MapScreen> {
                                   decoration: TextDecoration.none,
                                 ),
                               ),
-                            ),
+                            )),
                           ],
                         ),
                       ),
@@ -615,14 +614,15 @@ class _MapScreenState extends State<MapScreen> {
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
                                       color: editingStart
-                                          ? const Color(0xFFD86A2F)
+                                          ? colors.primary
                                           : lineColor,
                                     ),
                                   ),
                                   child: Column(
                                     children: [
                                       Text(
-                                        'Start',
+                                        MaterialLocalizations.of(context)
+                                            .dateRangeStartLabel,
                                         style: TextStyle(
                                           fontFamily: 'SFPro',
                                           fontSize: 12,
@@ -668,14 +668,15 @@ class _MapScreenState extends State<MapScreen> {
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
                                       color: !editingStart
-                                          ? const Color(0xFFD86A2F)
+                                          ? colors.primary
                                           : lineColor,
                                     ),
                                   ),
                                   child: Column(
                                     children: [
                                       Text(
-                                        'End',
+                                        MaterialLocalizations.of(context)
+                                            .dateRangeEndLabel,
                                         style: TextStyle(
                                           fontFamily: 'SFPro',
                                           fontSize: 12,
@@ -704,9 +705,11 @@ class _MapScreenState extends State<MapScreen> {
                           ],
                         ),
                       ),
-                      Expanded(
+                      SizedBox(
+                        height: 216,
                         child: CupertinoTheme(
                           data: CupertinoThemeData(
+                            primaryColor: colors.primary,
                             brightness:
                                 isDark ? Brightness.dark : Brightness.light,
                           ),
@@ -800,160 +803,136 @@ class _MapScreenState extends State<MapScreen> {
   // ---------- UI ----------
   @override
   Widget build(BuildContext context) {
-    _isDarkMode = AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark;
-    final pageBg = _isDarkMode
-        ? CupertinoColors.black
-        : const Color(0xFFEFEFF4); // ✅ 여기로 통일
-
-    // layout constants
-    const double topControlsHeight = 120;
-    const double bottomCardsHeight = 210;
-
-    return CupertinoPageScaffold(
-      backgroundColor: pageBg,
-      child: Stack(
-        children: [
-          // MAP
-          Positioned.fill(
-            top: topControlsHeight,
-            bottom: bottomCardsHeight - 30,
-            child: _locationLoaded
-                ? ClipRRect(
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(18)),
-                    child: GoogleMap(
-                      initialCameraPosition:
-                          CameraPosition(target: _initialPosition, zoom: 14),
-                      markers: _markers,
-                      onMapCreated: _onMapCreated,
-                      style: _isDarkMode ? _darkMapStyle : null,
-                      myLocationEnabled: true,
-                      myLocationButtonEnabled: false,
-                    ),
-                  )
-                : const Center(child: CupertinoActivityIndicator()),
-          ),
-
-          // TOP CONTROLS
-          SafeArea(
-            bottom: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: Column(
+    _isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final colors = AppColors.of(context);
+    return Scaffold(
+      backgroundColor: colors.background,
+      body: SafeArea(
+        child: Column(children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              MScannerSearchField(
+                placeholder: AppLocalizations.of(context)?.map_searchHistory ??
+                    'Search History',
+                onChanged: (v) {
+                  setState(() => _searchText = v);
+                  _applyAllFiltersAndRebuild();
+                },
+              ),
+              const SizedBox(height: 10),
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  MScannerSearchField(
-                    placeholder:
-                        AppLocalizations.of(context)?.map_searchHistory ??
-                            'Search History',
-                    onChanged: (v) {
-                      setState(() => _searchText = v);
-                      _applyAllFiltersAndRebuild();
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            MScannerPillChip(
-                              label: AppLocalizations.of(context)?.map_recent ??
-                                  'Recent',
-                              selected: _activeFilter == _FilterType.recent,
-                              scheme: MScannerAccent.orange,
-                              onTap: () {
-                                setState(
-                                    () => _activeFilter = _FilterType.recent);
-                                _applyAllFiltersAndRebuild();
-                                if (_filteredItems.isNotEmpty) {
-                                  final id = _norm(_filteredItems.first['id']);
-                                  if (id.isNotEmpty) _focusToItem(id);
-                                }
-                              },
-                            ),
-                            MScannerPillChip(
-                              label:
-                                  AppLocalizations.of(context)?.map_topRated ??
-                                      'Top Rated',
-                              selected: _activeFilter == _FilterType.topRated,
-                              scheme: MScannerAccent.orange,
-                              onTap: () {
-                                setState(
-                                    () => _activeFilter = _FilterType.topRated);
-                                _applyAllFiltersAndRebuild();
-                                if (_filteredItems.isNotEmpty) {
-                                  final id = _norm(_filteredItems.first['id']);
-                                  if (id.isNotEmpty) _focusToItem(id);
-                                }
-                              },
-                            ),
-                            MScannerPillChip(
-                              label: AppLocalizations.of(context)?.map_date ??
-                                  'Date',
-                              selected: _selectedDateRange != null,
-                              scheme: MScannerAccent.orange,
-                              onTap: _openDatePicker,
-                            ),
-                            MScannerPillChip(
-                              label:
-                                  AppLocalizations.of(context)?.map_location ??
-                                      'Location',
-                              selected: _selectedLocation != null,
-                              scheme: MScannerAccent.orange,
-                              onTap: _openLocationSheet,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  )
-                ],
-              ),
-            ),
-          ),
-
-          // BOTTOM CARDS
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 14,
-            height: bottomCardsHeight,
-            child: _filteredItems.isEmpty
-                ? Center(
-                    child: Text(
-                      AppLocalizations.of(context)?.map_noResults ??
-                          'No results',
-                      style: TextStyle(
-                        color: _isDarkMode ? Colors.white70 : Colors.black45,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                  SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
-                    itemCount: _filteredItems.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 12),
-                    itemBuilder: (context, index) {
-                      final item = _filteredItems[index];
-                      final id = _norm(item['id']);
-                      final selected = id.isNotEmpty && id == _selectedId;
-
-                      return _HistoryCard(
-                        data: item,
-                        selected: selected,
-                        onTap: () {
-                          if (id.isNotEmpty) _focusToItem(id);
-                        },
-                      );
-                    },
+                    child: Row(
+                      children: [
+                        MScannerPillChip(
+                          label: AppLocalizations.of(context)?.map_recent ??
+                              'Recent',
+                          selected: _activeFilter == _FilterType.recent,
+                          scheme: MScannerAccent.orange,
+                          onTap: () {
+                            setState(() => _activeFilter = _FilterType.recent);
+                            _applyAllFiltersAndRebuild();
+                            if (_filteredItems.isNotEmpty) {
+                              final id = _norm(_filteredItems.first['id']);
+                              if (id.isNotEmpty) _focusToItem(id);
+                            }
+                          },
+                        ),
+                        MScannerPillChip(
+                          label: AppLocalizations.of(context)?.map_topRated ??
+                              'Top Rated',
+                          selected: _activeFilter == _FilterType.topRated,
+                          scheme: MScannerAccent.orange,
+                          onTap: () {
+                            setState(
+                                () => _activeFilter = _FilterType.topRated);
+                            _applyAllFiltersAndRebuild();
+                            if (_filteredItems.isNotEmpty) {
+                              final id = _norm(_filteredItems.first['id']);
+                              if (id.isNotEmpty) _focusToItem(id);
+                            }
+                          },
+                        ),
+                        MScannerPillChip(
+                          label:
+                              AppLocalizations.of(context)?.map_date ?? 'Date',
+                          selected: _selectedDateRange != null,
+                          scheme: MScannerAccent.orange,
+                          onTap: _openDatePicker,
+                        ),
+                        MScannerPillChip(
+                          label: AppLocalizations.of(context)?.map_location ??
+                              'Location',
+                          selected: _selectedLocation != null,
+                          scheme: MScannerAccent.orange,
+                          onTap: _openLocationSheet,
+                        ),
+                      ],
+                    ),
                   ),
+                ],
+              )
+            ]),
           ),
-        ],
+          Expanded(child: LayoutBuilder(builder: (context, constraints) {
+            final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
+            final cardsHeight = math.min(
+                132.0 * math.max(1.0, scale), constraints.maxHeight * 0.45);
+            return Column(children: [
+              Expanded(
+                  child: ClipRRect(
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(16)),
+                child: _locationLoaded
+                    ? GoogleMap(
+                        initialCameraPosition:
+                            CameraPosition(target: _initialPosition, zoom: 14),
+                        markers: _markers,
+                        onMapCreated: _onMapCreated,
+                        style: _isDarkMode ? _darkMapStyle : null,
+                        myLocationEnabled: true,
+                        myLocationButtonEnabled: false,
+                      )
+                    : const Center(child: CupertinoActivityIndicator()),
+              )),
+              SizedBox(
+                height: cardsHeight,
+                child: _filteredItems.isEmpty
+                    ? Center(
+                        child: Text(
+                        AppLocalizations.of(context)?.map_noResults ??
+                            'No results',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(color: colors.secondaryText),
+                      ))
+                    : ListView.separated(
+                        padding: const EdgeInsets.all(12),
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _filteredItems.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 12),
+                        itemBuilder: (context, index) {
+                          final item = _filteredItems[index];
+                          final id = _norm(item['id']);
+                          return MapHistoryCard(
+                            data: item,
+                            selected: id.isNotEmpty && id == _selectedId,
+                            onTap: () {
+                              if (id.isNotEmpty) _focusToItem(id);
+                            },
+                          );
+                        },
+                      ),
+              ),
+            ]);
+          })),
+        ]),
       ),
     );
   }
@@ -979,8 +958,8 @@ class _OptionSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark;
-    final bg = isDark ? const Color(0xFF111113) : Colors.white;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = AppColors.of(context).surface;
     final accent =
         MScannerSearchUi.accent(context, scheme: MScannerAccent.orange);
 
@@ -1002,15 +981,9 @@ class _OptionSheet extends StatelessWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: isDark ? Colors.white : Colors.black,
-                  ),
-                ),
-                const Spacer(),
+                Expanded(
+                    child: Text(title,
+                        style: Theme.of(context).textTheme.titleMedium)),
                 TextButton(
                   onPressed: () =>
                       Navigator.pop(context, ''), // clear this filter
@@ -1037,7 +1010,7 @@ class _OptionSheet extends StatelessWidget {
                     title: Text(
                       v,
                       style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black,
+                        color: AppColors.of(context).text,
                         fontWeight:
                             selected ? FontWeight.w800 : FontWeight.w600,
                       ),
@@ -1058,8 +1031,9 @@ class _OptionSheet extends StatelessWidget {
 }
 
 // ---------- card ----------
-class _HistoryCard extends StatelessWidget {
-  const _HistoryCard({
+class MapHistoryCard extends StatelessWidget {
+  const MapHistoryCard({
+    super.key,
     required this.data,
     required this.onTap,
     required this.selected,
@@ -1079,132 +1053,90 @@ class _HistoryCard extends StatelessWidget {
             'Unknown')
         .toString();
     final restaurant = (data['restaurantName'] ?? '').toString();
-    final dateText = _formatDate(data['timestamp']);
+    final dateText = _formatDate(
+        data['timestamp'], AppLocalizations.of(context)!.localeName);
     final rating = (data['rate'] as num?)?.toDouble() ?? 4.0;
 
-    final isDark = AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark;
-
-    final cardColor = isDark ? const Color(0xFF1C1C1E) : Colors.white;
-    final titleColor = isDark ? Colors.white : Colors.black;
-    final subColor = isDark ? Colors.white70 : Colors.black54;
-    final metaColor = isDark ? Colors.white60 : Colors.black45;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 160),
-        curve: Curves.easeOut,
-        width: 200,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(22),
-          boxShadow: [
-            BoxShadow(
-              color: isDark
-                  ? Colors.black.withValues(alpha: 0.45)
-                  : const Color(0x14000000),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
-          border: Border.all(
-            color: selected
-                ? const Color(0xFF2D6CDF).withValues(alpha: isDark ? 0.9 : 0.8)
-                : (isDark
-                    ? Colors.white.withValues(alpha: 0.06)
-                    : Colors.transparent),
-            width: selected ? 1.6 : 1.0,
-          ),
+    final colors = AppColors.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    final width = math.min(360.0, MediaQuery.sizeOf(context).width - 32);
+    return SizedBox(
+      width: width,
+      child: Material(
+        color: colors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: AppTheme.cardRadius,
+          side: BorderSide(
+              color: selected ? colors.primary : colors.border,
+              width: selected ? 1.5 : 1),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(14),
-              child: AspectRatio(
-                aspectRatio: 16 / 9,
-                child: imageUrl.startsWith('http')
-                    ? CachedNetworkImage(
-                        imageUrl: imageUrl,
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) => Container(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.06)
-                              : CupertinoColors.systemGrey5,
-                        ),
-                        errorWidget: (_, __, ___) => Container(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.06)
-                              : CupertinoColors.systemGrey5,
-                          child: Icon(CupertinoIcons.photo, color: metaColor),
-                        ),
-                      )
-                    : Container(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.06)
-                            : CupertinoColors.systemGrey5,
-                        child: Icon(CupertinoIcons.photo, color: metaColor),
-                      ),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                color: titleColor,
-                letterSpacing: -0.2,
-              ),
-            ),
-            const SizedBox(height: 2),
-            if (restaurant.isNotEmpty)
-              Text(
-                restaurant,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: subColor,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(12),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              ClipRRect(
+                borderRadius: AppTheme.controlRadius,
+                child: SizedBox.square(
+                  dimension: 64,
+                  child: imageUrl.startsWith('http')
+                      ? CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) =>
+                              ColoredBox(color: colors.subtleSurface),
+                          errorWidget: (_, __, ___) => Icon(
+                              CupertinoIcons.photo,
+                              color: colors.secondaryText),
+                        )
+                      : ColoredBox(
+                          color: colors.subtleSurface,
+                          child: Icon(CupertinoIcons.photo,
+                              color: colors.secondaryText)),
                 ),
               ),
-            const Spacer(),
-            Row(
-              children: [
-                Text(
-                  dateText,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: metaColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ...List.generate(5, (index) {
-                  final filled = index < rating.round();
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 2),
-                    child: Icon(
-                      filled ? Icons.star_rounded : Icons.star_outline_rounded,
-                      color: const Color(0xFFF8B637),
-                      size: 16,
+              const SizedBox(width: 12),
+              Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                    Text(title, style: textTheme.titleMedium),
+                    if (restaurant.trim().isNotEmpty &&
+                        restaurant.trim().toLowerCase() !=
+                            title.trim().toLowerCase()) ...[
+                      const SizedBox(height: 2),
+                      Text(restaurant,
+                          style: textTheme.bodySmall
+                              ?.copyWith(color: colors.secondaryText)),
+                    ],
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(dateText,
+                            style: textTheme.labelSmall
+                                ?.copyWith(color: colors.secondaryText)),
+                        Row(mainAxisSize: MainAxisSize.min, children: [
+                          Icon(Icons.star_rounded,
+                              color: colors.primary, size: 16),
+                          const SizedBox(width: 3),
+                          Text(rating.toStringAsFixed(1),
+                              style: textTheme.labelSmall),
+                        ]),
+                      ],
                     ),
-                  );
-                }),
-              ],
-            ),
-          ],
+                  ])),
+            ]),
+          ),
         ),
       ),
     );
   }
 
-  String _formatDate(dynamic timestamp) {
+  String _formatDate(dynamic timestamp, String locale) {
     if (timestamp == null) return '';
     DateTime? dt;
     if (timestamp is String) {
@@ -1213,6 +1145,6 @@ class _HistoryCard extends StatelessWidget {
       dt = timestamp.toDate();
     }
     if (dt == null) return '';
-    return DateFormat('MMM d').format(dt);
+    return DateFormat.MMMd(locale).format(dt);
   }
 }

@@ -69,7 +69,7 @@ class FoodPassportSection extends StatelessWidget {
                                     label: FoodPassportService.displayName(
                                         stamp, l10n.localeName),
                                     child: Text(stamp.flag,
-                                        style: const TextStyle(fontSize: 32))),
+                                        style: const TextStyle(fontSize: 26))),
                                 const SizedBox(width: 10),
                                 Expanded(
                                     child: Column(
@@ -81,7 +81,7 @@ class FoodPassportSection extends StatelessWidget {
                                         style: theme.textTheme.titleMedium
                                             ?.copyWith(
                                                 color: style.primary,
-                                                fontWeight: FontWeight.w700)),
+                                                fontWeight: FontWeight.w600)),
                                     Text(
                                         l10n.journeyRecords(
                                             stamp.savedScanCount),
@@ -92,7 +92,10 @@ class FoodPassportSection extends StatelessWidget {
                                   ],
                                 )),
                               ]),
-                          const SizedBox(height: 8),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            child: Divider(height: 1, color: style.border),
+                          ),
                           if (stamp.firstScanDate != null)
                             _JourneyIconLabel(
                                 icon: FoodJourneyIconType.calendar,
@@ -159,25 +162,22 @@ class FoodDnaSection extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 decoration: BoxDecoration(
-                    color: style.soft,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: style.border)),
+                    color: style.soft, borderRadius: BorderRadius.circular(12)),
                 child: _JourneyIconLabel(
                     icon: FoodJourneyIconType.forCategory(category),
                     compact: true,
                     label:
                         '${foodCategoryLabel(category, l10n)} · ${l10n.journeyShare(percentages[category]!)}',
                     textStyle: theme.textTheme.labelLarge?.copyWith(
-                        color: style.emphasis, fontWeight: FontWeight.w700)),
+                        color: style.emphasis, fontWeight: FontWeight.w500)),
               ),
           ]),
           const SizedBox(height: 12),
         ],
-        // Every class is present; unknown is a count, never part of the chart denominator.
-        for (final category
-            in FoodCategory.values.where((c) => c != FoodCategory.unknown))
+        // Keep all classes visible without filling a small history with empty bars.
+        for (final category in summary.rankedCategories)
           Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
+              padding: const EdgeInsets.symmetric(vertical: 5),
               child: Semantics(
                   label: '${foodCategoryLabel(category, l10n)}, '
                       '${l10n.journeyRecords(summary.counts[category] ?? 0)}, '
@@ -205,12 +205,25 @@ class FoodDnaSection extends StatelessWidget {
                         const SizedBox(height: 6),
                         LinearProgressIndicator(
                           value: (percentages[category] ?? 0) / 100,
-                          minHeight: 7,
+                          minHeight: 5,
                           borderRadius: BorderRadius.circular(8),
-                          color: style.accent,
+                          color: summary.rankedCategories
+                                  .take(3)
+                                  .contains(category)
+                              ? style.accent
+                              : style.secondary.withValues(alpha: 0.6),
                           backgroundColor: style.soft,
                         ),
                       ]))),
+        Wrap(spacing: 12, runSpacing: 6, children: [
+          for (final category in FoodCategory.values.where((c) =>
+              c != FoodCategory.unknown && (summary.counts[c] ?? 0) == 0))
+            Text(
+              '${foodCategoryLabel(category, l10n)} · ${l10n.journeyShare(0)}',
+              style:
+                  theme.textTheme.bodySmall?.copyWith(color: style.secondary),
+            ),
+        ]),
         const SizedBox(height: 8),
         Text(
             '${l10n.journeyUnknown} · ${l10n.journeyRecords(summary.counts[FoodCategory.unknown] ?? 0)}',
@@ -254,7 +267,7 @@ class JourneySectionHeading extends StatelessWidget {
               child: Text(title,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: FoodJourneyStyle.of(context).primary,
-                      fontWeight: FontWeight.w700))),
+                      fontWeight: FontWeight.w600))),
         ],
       );
 }

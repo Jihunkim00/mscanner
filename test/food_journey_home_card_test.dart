@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:mscanner/styles/app_theme.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mscanner/features/food_journey/services/food_journey_repository.dart';
 import 'package:mscanner/features/food_journey/services/food_journey_service.dart';
@@ -17,7 +18,7 @@ Widget journeyApp(Widget child,
         locale: locale,
         supportedLocales: AppLocalizations.supportedLocales,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
-        theme: dark ? ThemeData.dark() : ThemeData.light(),
+        theme: dark ? AppTheme.dark() : AppTheme.light(),
         builder: (context, child) => MediaQuery(
             data: MediaQuery.of(context)
                 .copyWith(textScaler: TextScaler.linear(textScale)),
@@ -44,9 +45,9 @@ void main() {
     expect(find.text('4 countries'), findsOneWidget);
     final card = tester
         .widget<Card>(find.byKey(const ValueKey('food-journey-home-card')));
-    expect(card.color, const Color(0xFFFFF9F6));
+    expect(card.color, AppColors.light.surface);
     expect((card.shape! as RoundedRectangleBorder).side.color,
-        const Color(0xFFFFD9C7));
+        AppColors.light.border);
     expect(find.byType(FoodJourneyIcon), findsNWidgets(3));
     final flagText = tester
         .widgetList<Text>(find.byType(Text))
@@ -78,7 +79,7 @@ void main() {
     await tester.pump();
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
     void expectWarmCard() => expect(
-        tester.widget<Card>(find.byType(Card)).color, const Color(0xFFFFF9F6));
+        tester.widget<Card>(find.byType(Card)).color, AppColors.light.surface);
     expectWarmCard();
     completer.completeError(StateError('offline'));
     await request;

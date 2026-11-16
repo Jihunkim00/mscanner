@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import '../../../l10n/gen_l10n/app_localizations.dart';
 import '../../../widgets/adaptive_window.dart';
 import '../services/food_journey_service.dart';
@@ -21,7 +22,14 @@ class FoodJourneyScreen extends StatelessWidget {
           backgroundColor: style.page,
           surfaceTintColor: Colors.transparent,
           foregroundColor: style.primary,
-          title: Text(l10n.journeyTitle)),
+          // Cupertino draws its chevron as a font glyph. Keep the existing
+          // navigation icon size stable while page text follows accessibility.
+          leading: MediaQuery.withNoTextScaling(
+            child: CupertinoNavigationBarBackButton(
+              color: style.primary,
+              onPressed: () => Navigator.of(context).maybePop(),
+            ),
+          )),
       body: AdaptiveContent(
           child: AnimatedBuilder(
         animation: service,

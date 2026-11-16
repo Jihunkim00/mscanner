@@ -12,7 +12,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import 'mapscreen.dart';
-import 'package:getwidget/getwidget.dart'; // GetWidget 패키지 임포트
 import 'dart:convert';
 import 'package:mscanner/utils/ai_result_copy_formatter.dart';
 import 'package:mscanner/widgets/result/result_decision_cards.dart';
@@ -1262,6 +1261,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     // ✅ responses 정규화(구버전 호환) + 텍스트 fallback
     final normalized = _normalizedResponses;
     final String responseText = normalized.join('\n\n');
+    final imageUrl = (_favoriteData!['image_url'] ?? '').toString().trim();
 
     if (_favoriteData == null) {
       return Scaffold(
@@ -1302,16 +1302,25 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                   Stack(
                     children: [
                       GestureDetector(
-                        onTap: _showFullImage, // 이미지 클릭 시 전체 화면 표시
-                        child: GFImageOverlay(
+                        onTap: imageUrl.isEmpty ? null : _showFullImage,
+                        child: Container(
                           height: MediaQuery.of(context).size.height / 2,
                           width: double.infinity,
-                          image: NetworkImage(_favoriteData!['image_url']),
-                          colorFilter: ColorFilter.mode(
-                            Colors.black.withValues(alpha: 0.3),
-                            BlendMode.darken,
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            borderRadius: BorderRadius.circular(16),
+                            image: imageUrl.isEmpty
+                                ? null
+                                : DecorationImage(
+                                    image: NetworkImage(imageUrl),
+                                    fit: BoxFit.fill,
+                                    colorFilter: ColorFilter.mode(
+                                      Colors.black.withValues(alpha: 0.3),
+                                      BlendMode.darken,
+                                    ),
+                                    onError: (error, stackTrace) {},
+                                  ),
                           ),
-                          borderRadius: BorderRadius.circular(16),
                           child: Padding(
                             padding: const EdgeInsets.all(12.0),
                             child: Column(
@@ -1399,13 +1408,27 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
+                                    shadows: const [
+                                      Shadow(
+                                        color: Colors.black54,
+                                        offset: Offset(0, 1),
+                                        blurRadius: 3,
+                                      ),
+                                    ],
                                   ),
                                   decoration: InputDecoration(
+                                    filled: false,
+                                    fillColor: Colors.transparent,
+                                    isDense: true,
+                                    contentPadding: EdgeInsets.zero,
                                     hintText: AppLocalizations.of(context)
                                             ?.favorite_restaurantNameHint ??
                                         '레스토랑 이름',
                                     hintStyle: TextStyle(color: Colors.white70),
                                     border: InputBorder.none,
+                                    enabledBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                    disabledBorder: InputBorder.none,
                                   ),
                                   maxLines: 1,
                                 ),

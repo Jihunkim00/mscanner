@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
+import '../styles/app_theme.dart';
 
 class HowToUseMscannerCard extends StatelessWidget {
   final String url;
@@ -19,192 +20,132 @@ class HowToUseMscannerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
-    final detailColor = isDarkMode ? Colors.white54 : const Color(0xFF8A8A8A);
-
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: isDarkMode ? Colors.white10 : const Color(0xFFFFF3ED),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isDarkMode ? Colors.white12 : const Color(0xFFFFD9C7),
-          width: 1,
-        ),
+    final colors = AppColors.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
+    return Material(
+      color: colors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: AppTheme.cardRadius,
+        side: BorderSide(color: colors.border),
       ),
-      child: Column(
-        children: [
-          InkWell(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-            onTap: onCardTap,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(18, 18, 18, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      clipBehavior: Clip.antiAlias,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        InkWell(
+          onTap: onCardTap,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: isDarkMode
-                              ? Colors.white12
-                              : const Color(0xFFFFE2D5),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.lightbulb_outline,
-                          size: 18,
-                          color: isDarkMode
-                              ? Colors.white70
-                              : const Color(0xFFE35D2F),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        AppLocalizations.of(context)?.howto_title ??
-                            'How to use Mscanner',
-                        style: TextStyle(
-                          fontFamily: 'SFProDisplay',
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: isDarkMode
-                              ? Colors.white
-                              : const Color(0xFF1E1E1E),
-                        ),
-                      ),
-                    ],
-                  ),
+                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Icon(Icons.lightbulb_outline,
+                        size: 22, color: colors.primary),
+                    const SizedBox(width: 8),
+                    Expanded(
+                        child: Text(l10n?.howto_title ?? 'How to use Mscanner',
+                            style: textTheme.titleMedium)),
+                  ]),
                   const SizedBox(height: 16),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: _HowToStep(
+                  LayoutBuilder(builder: (context, constraints) {
+                    final scale =
+                        MediaQuery.textScalerOf(context).scale(14) / 14;
+                    final stacked = constraints.maxWidth < 360 * scale;
+                    final steps = [
+                      _HowToStep(
                           icon: PhosphorIconsRegular.camera,
-                          step: AppLocalizations.of(context)?.howto_step1 ??
-                              '1. SCAN',
-                          desc: AppLocalizations.of(context)?.howto_desc1 ??
-                              'Menu or Dish',
-                          isDarkMode: isDarkMode,
-                        ),
-                      ),
-                      Expanded(
-                        child: _HowToStep(
+                          step: l10n?.howto_step1 ?? '1. SCAN',
+                          desc: l10n?.howto_desc1 ?? 'Menu or Dish',
+                          horizontal: stacked),
+                      _HowToStep(
                           icon: PhosphorIconsRegular.sparkle,
-                          step: AppLocalizations.of(context)?.howto_step2 ??
-                              '2. ANALYZE',
-                          desc: AppLocalizations.of(context)?.howto_desc2 ??
-                              'AI identifies\nitems',
-                          isDarkMode: isDarkMode,
-                        ),
-                      ),
-                      Expanded(
-                        child: _HowToStep(
+                          step: l10n?.howto_step2 ?? '2. ANALYZE',
+                          desc: l10n?.howto_desc2 ?? 'AI identifies\nitems',
+                          horizontal: stacked),
+                      _HowToStep(
                           icon: PhosphorIconsRegular.forkKnife,
-                          step: AppLocalizations.of(context)?.howto_step3 ??
-                              '3. ENJOY',
-                          desc: AppLocalizations.of(context)?.howto_desc3 ??
-                              'Discover\nfavorites',
-                          isDarkMode: isDarkMode,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+                          step: l10n?.howto_step3 ?? '3. ENJOY',
+                          desc: l10n?.howto_desc3 ?? 'Discover\nfavorites',
+                          horizontal: stacked),
+                    ];
+                    if (stacked) {
+                      return Column(children: [
+                        for (var i = 0; i < steps.length; i++) ...[
+                          if (i > 0) const SizedBox(height: 12),
+                          steps[i],
+                        ],
+                      ]);
+                    }
+                    return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (var i = 0; i < steps.length; i++) ...[
+                            if (i > 0) const SizedBox(width: 8),
+                            Expanded(child: steps[i]),
+                          ],
+                        ]);
+                  }),
+                ]),
           ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 14, left: 12, right: 12),
-            child: Center(
-              child: GestureDetector(
-                onTap: _open,
-                behavior: HitTestBehavior.opaque,
-                child: Text(
-                  AppLocalizations.of(context)?.howto_detail_link ??
-                      'See more details',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'SFProText',
-                    fontSize: 13,
-                    color: detailColor,
-                    fontWeight: FontWeight.w500,
-                    decoration: TextDecoration.none,
-                  ),
-                ),
-              ),
-            ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
+          child: TextButton(
+            onPressed: _open,
+            child: Text(l10n?.howto_detail_link ?? 'See more details',
+                textAlign: TextAlign.center,
+                style: textTheme.labelMedium
+                    ?.copyWith(color: colors.secondaryText)),
           ),
-        ],
-      ),
+        ),
+      ]),
     );
   }
 }
 
 class _HowToStep extends StatelessWidget {
+  const _HowToStep(
+      {required this.icon,
+      required this.step,
+      required this.desc,
+      required this.horizontal});
+
   final IconData icon;
   final String step;
   final String desc;
-  final bool isDarkMode;
-
-  const _HowToStep({
-    required this.icon,
-    required this.step,
-    required this.desc,
-    required this.isDarkMode,
-  });
+  final bool horizontal;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    final colors = AppColors.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    final symbol = Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+          color: colors.subtleSurface, borderRadius: AppTheme.controlRadius),
+      child: PhosphorIcon(icon, size: 22, color: colors.primary),
+    );
+    final labels = Column(
+      crossAxisAlignment:
+          horizontal ? CrossAxisAlignment.start : CrossAxisAlignment.center,
       children: [
-        Container(
-          width: 46,
-          height: 46,
-          decoration: BoxDecoration(
-            color: isDarkMode ? Colors.white12 : const Color(0xFFFF7A45),
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: PhosphorIcon(
-              icon,
-              size: 22,
-              color: Colors.white,
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-        SizedBox(
-          height: 18,
-          child: Center(
-            child: Text(
-              step,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'SFProText',
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                color: isDarkMode ? Colors.white : const Color(0xFF1E1E1E),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          desc,
-          textAlign: TextAlign.center,
-          softWrap: true,
-          style: TextStyle(
-            fontFamily: 'SFProText',
-            fontSize: 11,
-            height: 1.2,
-            color: isDarkMode ? Colors.white70 : const Color(0xFF6B6B6B),
-          ),
-        ),
+        Text(step,
+            textAlign: horizontal ? TextAlign.start : TextAlign.center,
+            style: textTheme.labelMedium),
+        const SizedBox(height: 4),
+        Text(desc,
+            textAlign: horizontal ? TextAlign.start : TextAlign.center,
+            style: textTheme.bodySmall?.copyWith(color: colors.secondaryText)),
       ],
     );
+    if (horizontal) {
+      return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        symbol,
+        const SizedBox(width: 12),
+        Expanded(child: labels)
+      ]);
+    }
+    return Column(children: [symbol, const SizedBox(height: 8), labels]);
   }
 }

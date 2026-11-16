@@ -6,7 +6,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:adaptive_theme/adaptive_theme.dart';
+import '../styles/app_theme.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:mscanner/l10n/gen_l10n/app_localizations.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -1274,16 +1274,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final isAdRemoved = context.watch<AdRemoveProvider>().isAdRemoved;
 
     // 현재 테마 밝기
-    final brightness = AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark
-        ? Brightness.dark
-        : Brightness.light;
-
-    // 배경색 및 텍스트 색상
-    final Color backgroundColor = brightness == Brightness.dark
-        ? CupertinoColors.black
-        : Color(0xFFEFEFF4);
-    final Color bottomNavBarColor =
-        brightness == Brightness.dark ? Colors.black : Color(0xFFEFEFF4);
+    final colors = AppColors.of(context);
+    final backgroundColor = colors.background;
 
     return AdaptivePage(
       child: PopScope(
@@ -1311,65 +1303,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       // ← ⑤ HomeContent 에 상태 전달
                     )
                   : _getWidgetOptions().elementAt(_selectedIndex),
-              bottomNavigationBar: Theme(
-                data: Theme.of(
-                  context,
-                ).copyWith(canvasColor: bottomNavBarColor),
-                child: BottomNavigationBar(
-                  type: BottomNavigationBarType.fixed,
-                  items: <BottomNavigationBarItem>[
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.home),
-                      label: localizations?.home ?? 'Home',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: AnimatedOpacity(
-                        opacity: _blinkState ? 1.0 : 0.8,
-                        duration: Duration(milliseconds: 400),
-                        child: Container(
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: _shouldHighlightCameraTab
-                                ? [
-                                    BoxShadow(
-                                      color: Colors.blueAccent.withValues(
-                                        alpha: 0.7,
-                                      ),
-                                      blurRadius: 12,
-                                      spreadRadius: 4,
-                                    ),
-                                  ]
-                                : [],
-                          ),
-                          child: Icon(Icons.camera, size: 24),
-                        ),
-                      ),
-                      label: localizations?.camera ?? 'Camera',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.photo_library),
-                      label: localizations?.multiScan ?? 'Multi scan',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.history),
-                      label: localizations?.history ?? 'History',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.settings),
-                      label: localizations?.settings ?? 'Settings',
-                    ),
-                  ],
-                  currentIndex: _selectedIndex,
-                  selectedItemColor: Colors.blue,
-                  unselectedItemColor: Colors.grey,
-                  onTap: _onItemTapped,
-                  showUnselectedLabels: true,
-                  selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold),
-                  unselectedLabelStyle: TextStyle(
-                    fontWeight: FontWeight.normal,
-                  ),
-                ),
+              bottomNavigationBar: MscannerBottomNavigation(
+                selectedIndex: _selectedIndex,
+                blinkState: _blinkState,
+                highlightCamera: _shouldHighlightCameraTab,
+                onTap: _onItemTapped,
               ),
             ),
             if (_emergencyMessage != null)
@@ -1923,29 +1861,28 @@ class _HomeContentState extends State<HomeContent> {
   }
 
   Widget _buildSearchBar(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final colors = AppColors.of(context);
+    final textTheme = Theme.of(context).textTheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          height: 48,
+          constraints: const BoxConstraints(minHeight: 48),
           padding: const EdgeInsets.symmetric(horizontal: 6),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: isDarkMode ? Colors.white10 : Colors.white,
+            color: colors.subtleSurface,
             borderRadius: BorderRadius.vertical(
-              top: const Radius.circular(18),
+              top: const Radius.circular(12),
               bottom: Radius.circular(
                 (_showTopSearchSuggestions && _topSearchSuggestions.isNotEmpty)
                     ? 8
-                    : 18,
+                    : 12,
               ),
             ),
             border: Border.all(
-              color: isDarkMode
-                  ? Colors.white.withValues(alpha: 0.08)
-                  : Colors.grey.shade300,
+              color: colors.border,
             ),
           ),
           child: TextField(
@@ -1958,24 +1895,18 @@ class _HomeContentState extends State<HomeContent> {
               _onTopSearchChanged(_topSearchController.text);
             },
             onSubmitted: _performTopSearch,
-            style: TextStyle(
-              fontSize: 14,
-              height: 1.2,
-              color: isDarkMode ? Colors.white : Colors.black87,
-              fontFamily: 'SFProText',
-            ),
+            style: textTheme.bodyMedium?.copyWith(color: colors.text),
             decoration: InputDecoration(
               isDense: true,
+              filled: false,
               border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(vertical: 12),
               hintText: AppLocalizations.of(context)?.home_searchAiFoodImage ??
                   'Search Ai food image...',
-              hintStyle: TextStyle(
-                fontSize: 14,
-                height: 1.2,
-                color: isDarkMode ? Colors.white70 : Colors.black54,
-                fontFamily: 'SFProText',
-              ),
+              hintStyle:
+                  textTheme.bodyMedium?.copyWith(color: colors.secondaryText),
               prefixIconConstraints: const BoxConstraints(
                 minWidth: 36,
                 minHeight: 36,
@@ -1985,7 +1916,7 @@ class _HomeContentState extends State<HomeContent> {
                 child: Icon(
                   CupertinoIcons.search,
                   size: 18,
-                  color: isDarkMode ? Colors.white70 : Colors.black54,
+                  color: colors.secondaryText,
                 ),
               ),
               suffixIcon: _isSearchingTopSuggestions
@@ -2008,7 +1939,7 @@ class _HomeContentState extends State<HomeContent> {
                           icon: Icon(
                             CupertinoIcons.clear_circled_solid,
                             size: 18,
-                            color: isDarkMode ? Colors.white54 : Colors.black38,
+                            color: colors.secondaryText,
                           ),
                           onPressed: () {
                             _topSearchController.clear();
@@ -2028,15 +1959,13 @@ class _HomeContentState extends State<HomeContent> {
               width: double.infinity,
               constraints: const BoxConstraints(maxHeight: 220),
               decoration: BoxDecoration(
-                color: isDarkMode ? const Color(0xFF1C1C1E) : Colors.white,
+                color: colors.surface,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(8),
                   bottom: Radius.circular(16),
                 ),
                 border: Border.all(
-                  color: isDarkMode
-                      ? Colors.white.withValues(alpha: 0.08)
-                      : Colors.grey.shade300,
+                  color: colors.border,
                 ),
               ),
               child: ListView.separated(
@@ -2044,9 +1973,7 @@ class _HomeContentState extends State<HomeContent> {
                 itemCount: _topSearchSuggestions.length,
                 separatorBuilder: (_, __) => Divider(
                   height: 1,
-                  color: isDarkMode
-                      ? Colors.white.withValues(alpha: 0.06)
-                      : Colors.grey.shade200,
+                  color: colors.border,
                 ),
                 itemBuilder: (_, index) {
                   final item = _topSearchSuggestions[index];
@@ -2060,14 +1987,15 @@ class _HomeContentState extends State<HomeContent> {
                     ),
                     title: Text(
                       item.title,
-                      style: const TextStyle(fontSize: 13),
+                      style: textTheme.bodyMedium,
                     ),
                     subtitle: item.subtitle.isNotEmpty
                         ? Text(
                             item.subtitle,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 11),
+                            style: textTheme.bodySmall
+                                ?.copyWith(color: colors.secondaryText),
                           )
                         : null,
                     onTap: () => _openMenuPreviewSheet(item),
@@ -2089,7 +2017,7 @@ class _HomeContentState extends State<HomeContent> {
 
     return AdaptiveContent(
       child: Container(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(AppTheme.pagePadding),
         child: SingleChildScrollView(
           child: Column(
             children: [
@@ -2144,8 +2072,8 @@ class _HomeContentState extends State<HomeContent> {
   Widget _buildLatestLikedContainer(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final data = widget.latestLikedData;
-    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final Color textColor = isDarkMode ? Colors.white : Colors.black;
+    final colors = AppColors.of(context);
+    final Color textColor = colors.text;
 
     final DateTime timestamp = DateTime.parse(data!['timestamp']);
     final String formattedDate = DateFormat(
@@ -2156,8 +2084,9 @@ class _HomeContentState extends State<HomeContent> {
       margin: EdgeInsets.all(10),
       padding: EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: isDarkMode ? Colors.white10 : Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        color: colors.surface,
+        borderRadius: AppTheme.cardRadius,
+        border: Border.all(color: colors.border),
       ),
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -2187,8 +2116,7 @@ class _HomeContentState extends State<HomeContent> {
                         data: data['title'] ?? 'No Title',
                         style: {
                           'body': Style(
-                            color:
-                                isDarkMode ? Colors.white54 : Colors.grey[800],
+                            color: colors.text,
                             fontSize: FontSize(14),
                             fontFamily: 'SF Pro Display',
                             fontWeight: FontWeight.w500,
@@ -2199,7 +2127,7 @@ class _HomeContentState extends State<HomeContent> {
                       Text(
                         formattedDate,
                         style: TextStyle(
-                          color: isDarkMode ? Colors.white54 : Colors.grey[800],
+                          color: colors.secondaryText,
                           fontSize: 12,
                         ),
                       ),
@@ -2207,7 +2135,7 @@ class _HomeContentState extends State<HomeContent> {
                       Text(
                         data['location'] ?? 'No Location',
                         style: TextStyle(
-                          color: isDarkMode ? Colors.white54 : Colors.grey[800],
+                          color: colors.secondaryText,
                           fontSize: 12,
                         ),
                       ),
@@ -2226,10 +2154,10 @@ class _HomeContentState extends State<HomeContent> {
                   localizations?.enterRestaurantName ?? 'Enter restaurant name',
               padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
               decoration: BoxDecoration(
-                color: isDarkMode ? Colors.grey[800] : Colors.white54,
-                borderRadius: BorderRadius.circular(8),
+                color: colors.subtleSurface,
+                borderRadius: AppTheme.controlRadius,
                 border: Border.all(
-                  color: isDarkMode ? Colors.grey[700]! : Colors.grey[300]!,
+                  color: colors.border,
                   width: 1,
                 ),
               ),
@@ -2245,7 +2173,8 @@ class _HomeContentState extends State<HomeContent> {
                     index < _rating
                         ? CupertinoIcons.star_fill
                         : CupertinoIcons.star,
-                    color: index < _rating ? Colors.amber : Colors.grey,
+                    color:
+                        index < _rating ? colors.primary : colors.secondaryText,
                   ),
                   onPressed: () {
                     setState(() {
@@ -2270,11 +2199,10 @@ class _HomeContentState extends State<HomeContent> {
                   child: ElevatedButton(
                     onPressed: _isSaving ? null : () => _saveData(false),
                     style: ElevatedButton.styleFrom(
-                      foregroundColor: isDarkMode ? Colors.grey : Colors.white,
-                      backgroundColor:
-                          isDarkMode ? Colors.grey[800] : Colors.grey,
+                      foregroundColor: colors.onPrimary,
+                      backgroundColor: colors.primary,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: AppTheme.cardRadius,
                       ),
                     ),
                     child: Text(localizations?.save ?? 'Save'),
@@ -2288,11 +2216,10 @@ class _HomeContentState extends State<HomeContent> {
                   child: ElevatedButton(
                     onPressed: _isSaving ? null : () => _saveData(true),
                     style: ElevatedButton.styleFrom(
-                      foregroundColor: isDarkMode ? Colors.grey : Colors.white,
-                      backgroundColor:
-                          isDarkMode ? Colors.grey[800] : Colors.grey,
+                      foregroundColor: colors.secondaryText,
+                      backgroundColor: colors.subtleSurface,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: AppTheme.cardRadius,
                       ),
                     ),
                     child: Text(localizations?.skip ?? 'Skip'),
@@ -2525,31 +2452,22 @@ class _HomeContentState extends State<HomeContent> {
   /// 메인 카드 섹션 헤더 (Mscanner's Picks + View All)
   Widget _buildHeaderRow() {
     return Padding(
-      padding: EdgeInsets.only(
-        top: Platform.isIOS ? 18.0 : 12.0,
-        left: 6.0,
-        right: 6.0,
-      ),
-      child: Row(
-        children: [
-          Text(
-            AppLocalizations.of(context)?.home_trendingNearYou ??
-                "home_trendingNearYou",
-            style: TextStyle(
-              fontFamily: 'SFProDisplay',
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).textTheme.titleLarge?.color,
-            ),
-          ),
-          const Spacer(),
-        ],
+      padding: const EdgeInsets.only(top: 8, bottom: 12),
+      child: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: Text(
+          AppLocalizations.of(context)?.home_trendingNearYou ??
+              'home_trendingNearYou',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
       ),
     );
   }
 
-  /// 메인 카드 캐러셀 (PageView 아님, 그냥 ListView)
   Widget _buildGFCardCarousel() {
+    final carouselHeight = 260.0 +
+        math.max(0.0, MediaQuery.textScalerOf(context).scale(14) / 14 - 1) *
+            100;
     return FutureBuilder<List<Map<String, String>>>(
       future: widget.mainCardDataFuture, // HomeScreen에서 넘겨준 Future
       builder: (context, snapshot) {
@@ -2587,7 +2505,7 @@ class _HomeContentState extends State<HomeContent> {
           }
 
           return SizedBox(
-            height: 260,
+            height: carouselHeight,
             child: ListView.builder(
               shrinkWrap: true, // ✅ 추가 필요
               scrollDirection: Axis.horizontal,
@@ -2608,9 +2526,9 @@ class _HomeContentState extends State<HomeContent> {
                     width: 260,
                     margin: const EdgeInsets.symmetric(horizontal: 5),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: AppTheme.cardRadius,
                       child: GFImageOverlay(
-                        height: 260,
+                        height: carouselHeight,
                         width: double.infinity,
                         image: CachedNetworkImageProvider(
                           cardData[index]['image_url']!,
@@ -2632,7 +2550,10 @@ class _HomeContentState extends State<HomeContent> {
                                   'body': Style(
                                     fontFamily: 'SFProText',
                                     color: GFColors.LIGHT,
-                                    fontSize: FontSize(14),
+                                    fontSize: FontSize(Theme.of(context)
+                                        .textTheme
+                                        .titleMedium!
+                                        .fontSize!),
                                     fontWeight: FontWeight.bold,
                                   ),
                                 },
@@ -2644,7 +2565,10 @@ class _HomeContentState extends State<HomeContent> {
                                   'body': Style(
                                     fontFamily: 'SFProText',
                                     color: GFColors.LIGHT,
-                                    fontSize: FontSize(12),
+                                    fontSize: FontSize(Theme.of(context)
+                                        .textTheme
+                                        .bodySmall!
+                                        .fontSize!),
                                     fontWeight: FontWeight.bold,
                                   ),
                                 },
@@ -2661,6 +2585,86 @@ class _HomeContentState extends State<HomeContent> {
           );
         }
       },
+    );
+  }
+}
+
+/// The existing five destinations, with the same actions supplied by HomeScreen.
+class MscannerBottomNavigation extends StatelessWidget {
+  const MscannerBottomNavigation({
+    super.key,
+    required this.selectedIndex,
+    required this.onTap,
+    this.blinkState = true,
+    this.highlightCamera = false,
+  });
+
+  final int selectedIndex;
+  final ValueChanged<int> onTap;
+  final bool blinkState;
+  final bool highlightCamera;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final localizations = AppLocalizations.of(context);
+    return BottomNavigationBar(
+      type: BottomNavigationBarType.fixed,
+      items: <BottomNavigationBarItem>[
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: localizations?.home ?? 'Home',
+        ),
+        BottomNavigationBarItem(
+          icon: AnimatedOpacity(
+            opacity: blinkState ? 1.0 : 0.8,
+            duration: Duration(milliseconds: 400),
+            child: Container(
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: highlightCamera
+                    ? [
+                        BoxShadow(
+                          color: colors.primary.withValues(
+                            alpha: 0.3,
+                          ),
+                          blurRadius: 12,
+                          spreadRadius: 4,
+                        ),
+                      ]
+                    : [],
+              ),
+              child: Icon(Icons.camera, size: 24),
+            ),
+          ),
+          label: localizations?.camera ?? 'Camera',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.photo_library),
+          label: localizations?.multiScan ?? 'Multi scan',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.history),
+          label: localizations?.history ?? 'History',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.settings),
+          label: localizations?.settings ?? 'Settings',
+        ),
+      ],
+      currentIndex: selectedIndex,
+      selectedItemColor: colors.primary,
+      unselectedItemColor: colors.secondaryText,
+      backgroundColor: colors.surface,
+      iconSize: 24,
+      selectedFontSize: 12,
+      unselectedFontSize: 12,
+      elevation: 0,
+      onTap: onTap,
+      showUnselectedLabels: true,
+      selectedLabelStyle: Theme.of(context).textTheme.labelSmall,
+      unselectedLabelStyle: Theme.of(context).textTheme.labelSmall,
     );
   }
 }

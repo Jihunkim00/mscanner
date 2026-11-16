@@ -1,21 +1,19 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:adaptive_theme/adaptive_theme.dart';
+import '../styles/app_theme.dart';
 
-/// 어떤 포인트 컬러로 칩/버튼을 칠할지 선택
+/// Legacy names remain compatible; both use the shared brand accent.
 enum MScannerAccent { blue, orange }
 
 class MScannerSearchUi {
   static bool isDark(BuildContext context) =>
-      AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark;
+      Theme.of(context).brightness == Brightness.dark;
 
-  // ✅ iOS System Blue 톤
   static Color primaryBlue(BuildContext context) =>
-      isDark(context) ? const Color(0xFF0A84FF) : const Color(0xFF007AFF);
+      AppColors.of(context).primary;
 
-  // ✅ iOS System Orange 톤 (How to use 카드 느낌)
   static Color accentOrange(BuildContext context) =>
-      isDark(context) ? const Color(0xFF6D311C) : const Color(0xFFE35D2F);
+      AppColors.of(context).primary;
 
   static Color accent(BuildContext context,
       {MScannerAccent scheme = MScannerAccent.blue}) {
@@ -28,10 +26,7 @@ class MScannerSearchUi {
   }
 
   static Color searchBg(BuildContext context) {
-    final dark = isDark(context);
-    return dark
-        ? CupertinoColors.systemGrey5.withValues(alpha: 0.25)
-        : CupertinoColors.systemGrey6;
+    return AppColors.of(context).subtleSurface;
   }
 
   /// Pill/Chip 배경
@@ -43,15 +38,7 @@ class MScannerSearchUi {
     final p = accent(context, scheme: scheme);
     if (selected) return p;
 
-    // unselected는 tint 느낌
-    if (scheme == MScannerAccent.orange) {
-      return isDark(context)
-          ? p.withValues(alpha: 0.18)
-          : p.withValues(alpha: 0.12);
-    }
-    return isDark(context)
-        ? p.withValues(alpha: 0.28)
-        : p.withValues(alpha: 0.22);
+    return AppColors.of(context).surface;
   }
 
   /// Pill/Chip 텍스트/아이콘 색
@@ -60,13 +47,8 @@ class MScannerSearchUi {
     required bool selected,
     MScannerAccent scheme = MScannerAccent.blue,
   }) {
-    if (selected) return Colors.white;
-
-    // unselected는 accent 색 또는 다크에서 화이트 톤
-    final p = accent(context, scheme: scheme);
-    return isDark(context)
-        ? Colors.white.withValues(alpha: 0.92)
-        : p.withValues(alpha: 0.92);
+    final colors = AppColors.of(context);
+    return selected ? colors.onPrimary : colors.secondaryText;
   }
 
   /// Pill/Chip 테두리 색
@@ -74,10 +56,8 @@ class MScannerSearchUi {
     BuildContext context, {
     required bool selected,
   }) {
-    if (selected) return Colors.white.withValues(alpha: 0.14);
-    return isDark(context)
-        ? Colors.white.withValues(alpha: 0.10)
-        : Colors.black.withValues(alpha: 0.06);
+    final colors = AppColors.of(context);
+    return selected ? colors.primary : colors.border;
   }
 }
 
@@ -95,23 +75,17 @@ class MScannerSearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dark = MScannerSearchUi.isDark(context);
+    final colors = AppColors.of(context);
+    final textTheme = Theme.of(context).textTheme;
 
     return CupertinoSearchTextField(
       controller: controller,
       placeholder: placeholder,
       backgroundColor: MScannerSearchUi.searchBg(context),
-      style: TextStyle(
-        color: dark ? Colors.white : Colors.black87,
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-      ),
-      placeholderStyle: TextStyle(
-        color: dark ? Colors.white54 : Colors.black38,
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-      ),
-      borderRadius: BorderRadius.circular(16),
+      style: textTheme.bodyMedium?.copyWith(color: colors.text),
+      placeholderStyle:
+          textTheme.bodyMedium?.copyWith(color: colors.secondaryText),
+      borderRadius: AppTheme.controlRadius,
       onChanged: onChanged,
     );
   }
@@ -139,57 +113,60 @@ class MScannerPillChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 10),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            curve: Curves.easeOut,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: MScannerSearchUi.chipBg(
-                context,
-                selected: selected,
-                scheme: scheme,
-              ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: MScannerSearchUi.chipBorder(context, selected: selected),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (leading != null) ...[
-                  Icon(
-                    leading,
-                    size: 14,
-                    color: MScannerSearchUi.chipFg(
-                      context,
-                      selected: selected,
-                      scheme: scheme,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                ],
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: MScannerSearchUi.chipFg(
-                      context,
-                      selected: selected,
-                      scheme: scheme,
-                    ),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    height: 1.0,
-                  ),
+      padding: const EdgeInsetsDirectional.only(end: 8),
+      child: Semantics(
+        button: true,
+        selected: selected,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: AppTheme.controlRadius,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOut,
+              constraints: const BoxConstraints(minHeight: 44),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: MScannerSearchUi.chipBg(
+                  context,
+                  selected: selected,
+                  scheme: scheme,
                 ),
-              ],
+                borderRadius: AppTheme.controlRadius,
+                border: Border.all(
+                  color:
+                      MScannerSearchUi.chipBorder(context, selected: selected),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (leading != null) ...[
+                    Icon(
+                      leading,
+                      size: 14,
+                      color: MScannerSearchUi.chipFg(
+                        context,
+                        selected: selected,
+                        scheme: scheme,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                  ],
+                  Text(
+                    label,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          color: MScannerSearchUi.chipFg(
+                            context,
+                            selected: selected,
+                            scheme: scheme,
+                          ),
+                        ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -230,9 +207,9 @@ class MScannerCircleIconButton extends StatelessWidget {
             color: bg,
             shape: BoxShape.circle,
           ),
-          child: const Icon(
-            Icons.tune, // 기본값(원하면 외부에서 icon 변경)
-            color: Colors.white,
+          child: Icon(
+            icon,
+            color: AppColors.of(context).onPrimary,
             size: 20,
           ),
         ),

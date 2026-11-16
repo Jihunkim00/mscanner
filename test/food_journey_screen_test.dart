@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:mscanner/styles/app_theme.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mscanner/features/food_journey/services/food_journey_repository.dart';
 import 'package:mscanner/features/food_journey/services/food_journey_service.dart';
@@ -12,10 +14,7 @@ Widget screenApp(FoodJourneyService service,
         double scale = 1,
         bool dark = true}) =>
     MaterialApp(
-        theme: dark
-            ? ThemeData.dark()
-            : ThemeData(
-                colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple)),
+        theme: dark ? AppTheme.dark() : AppTheme.light(),
         locale: locale,
         supportedLocales: AppLocalizations.supportedLocales,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -26,7 +25,50 @@ Widget screenApp(FoodJourneyService service,
         home: FoodJourneyScreen(service: service));
 
 void main() {
-  testWidgets('journey uses gray page and warm cards even with a purple theme',
+  testWidgets(
+      'journey reuses the Preset back button and pops on both platforms and RTL',
+      (tester) async {
+    final service = FoodJourneyService(source: TestJourneySource());
+    addTearDown(service.dispose);
+    for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
+      for (final locale in [const Locale('en'), const Locale('ar')]) {
+        await tester.pumpWidget(MaterialApp(
+          key: ValueKey('$platform-$locale'),
+          theme: AppTheme.light().copyWith(platform: platform),
+          locale: locale,
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          home: Builder(
+              builder: (context) => Scaffold(
+                    body: TextButton(
+                        onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                                builder: (_) =>
+                                    FoodJourneyScreen(service: service))),
+                        child: const Text('Open journey')),
+                  )),
+        ));
+        await tester.tap(find.text('Open journey'));
+        await tester.pumpAndSettle();
+        expect(find.byType(CupertinoNavigationBarBackButton), findsOneWidget);
+        final appBar = tester.widget<AppBar>(find.byType(AppBar));
+        expect(appBar.title, isNull);
+        expect(appBar.preferredSize.height, kToolbarHeight);
+        expect(
+            Directionality.of(tester.element(find.byType(FoodJourneyScreen))),
+            locale.languageCode == 'ar'
+                ? TextDirection.rtl
+                : TextDirection.ltr);
+        await tester.tap(find.byType(CupertinoNavigationBarBackButton));
+        await tester.pumpAndSettle();
+        expect(find.byType(FoodJourneyScreen), findsNothing);
+        expect(find.text('Open journey'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      }
+    }
+  });
+
+  testWidgets('journey uses the shared off-white page and white cards',
       (tester) async {
     final service = FoodJourneyService(
         source: TestJourneySource()
@@ -38,9 +80,9 @@ void main() {
     await tester.pumpWidget(screenApp(service, dark: false));
     await tester.pumpAndSettle();
     expect(tester.widget<Scaffold>(find.byType(Scaffold)).backgroundColor,
-        const Color(0xFFEFEFF4));
+        AppColors.light.background);
     final appBar = tester.widget<AppBar>(find.byType(AppBar));
-    expect(appBar.backgroundColor, const Color(0xFFEFEFF4));
+    expect(appBar.backgroundColor, AppColors.light.background);
     expect(appBar.surfaceTintColor, Colors.transparent);
     for (final surface in find.byType(JourneySectionSurface).evaluate()) {
       final container = tester.widget<Container>(find
@@ -49,7 +91,7 @@ void main() {
               matching: find.byType(Container))
           .first);
       expect((container.decoration! as BoxDecoration).color,
-          const Color(0xFFFFF9F6));
+          AppColors.light.surface);
     }
     final stamp =
         tester.widget<Container>(find.byKey(const ValueKey('stamp-JP')));
@@ -150,7 +192,8 @@ void main() {
     expect(
         find.text('Not enough classifiable food records yet'), findsOneWidget);
     expect(find.byKey(const ValueKey('stamp-JP')), findsOneWidget);
-    expect(find.byType(LinearProgressIndicator), findsNWidgets(8));
+    expect(find.byType(LinearProgressIndicator), findsNothing);
+    expect(find.textContaining('Noodles'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

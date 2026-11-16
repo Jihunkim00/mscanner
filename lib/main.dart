@@ -31,6 +31,7 @@ import 'ad_remove_provider.dart';
 import 'analytics_service.dart';
 import 'helpers/preset_update_review_service.dart';
 import 'services/interstitial_ad_service.dart';
+import 'styles/app_theme.dart';
 
 enum GuestWelcomeAction {
   continueGuest,
@@ -109,14 +110,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AdaptiveTheme(
-      light: ThemeData(
-        primarySwatch: Colors.blue,
-        brightness: Brightness.light,
-      ),
-      dark: ThemeData(
-        primarySwatch: Colors.blue,
-        brightness: Brightness.dark,
-      ),
+      light: AppTheme.light(),
+      dark: AppTheme.dark(),
       initial: savedThemeMode,
       builder: (theme, darkTheme) => MaterialApp(
         title: 'Navigation App',

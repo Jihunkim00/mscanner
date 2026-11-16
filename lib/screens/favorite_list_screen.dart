@@ -3,7 +3,7 @@ import '/features/food_journey/services/food_journey_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:adaptive_theme/adaptive_theme.dart';
+import '../styles/app_theme.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:convert';
@@ -29,7 +29,6 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
   final Set<String> _selectedIds = {}; // ← 추가
   // ✅ 이미지 토글: true면 menu(촬영본), false면 food(대표 음식 사진)
   final Set<String> _showMenuPhotoIds = {};
-  bool _isDarkMode = false;
   String _currentSort = 'latest'; // 기본 정렬: 최신순
   String _searchText = '';
   final TextEditingController _searchController = TextEditingController();
@@ -261,7 +260,7 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
     return groups;
   }
 
-  Widget _buildTopControls(Color backgroundColor, Color textColor) {
+  Widget _buildTopControls() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -338,7 +337,6 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
   Widget _historyCard({
     required DocumentSnapshot doc,
     required Map<String, dynamic> data,
-    required Color textColor,
     required bool isSelected,
   }) {
     final menuName = _primaryMenuName(data);
@@ -346,176 +344,46 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
     final rating = _parseRating(data);
     final dt = _parseTimestamp(data);
     final dateText = dt != null
-        ? DateFormat('MMM d, h:mm a').format(dt)
+        ? DateFormat('MMM d, h:mm a', AppLocalizations.of(context)!.localeName)
+            .format(dt)
         : AppLocalizations.of(context)?.favoriteList_noDate ?? 'No date';
 
     final showMenu = _showMenuPhotoIds.contains(doc.id);
     final img = showMenu ? _menuImageUrl(data) : _foodImageUrl(data);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Container(
-        decoration: BoxDecoration(
-          color: _isDarkMode ? Colors.grey[850] : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              offset: const Offset(0, 6),
-              blurRadius: 18,
-            ),
-          ],
-        ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            final ageDays = _calcItemAgeDays(data);
-            final itemType = _inferItemType(data);
-            LogService()
-                .logHistoryDetailView(itemAgeDays: ageDays, itemType: itemType);
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => FavoriteScreen(documentId: doc.id)),
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                // ✅ 대표 음식 이미지(클릭하면 메뉴 촬영본과 토글)
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      if (_showMenuPhotoIds.contains(doc.id)) {
-                        _showMenuPhotoIds.remove(doc.id);
-                      } else {
-                        _showMenuPhotoIds.add(doc.id);
-                      }
-                    });
-                  },
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: SizedBox(
-                      width: 56,
-                      height: 56,
-                      child: CachedNetworkImage(
-                        imageUrl: img,
-                        placeholder: (_, __) =>
-                            const CupertinoActivityIndicator(),
-                        errorWidget: (_, __, ___) =>
-                            const Icon(Icons.image_not_supported),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: 12),
-
-                // ✅ 텍스트
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              menuName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: textColor,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          if (rating > 0) ...[
-                            const Icon(
-                              Icons.star,
-                              size: 14,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              rating.toStringAsFixed(1),
-                              style: TextStyle(
-                                fontWeight: FontWeight.w700,
-                                color: textColor,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        restaurant,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: MScannerSearchUi.accentOrange(context),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          Icon(CupertinoIcons.calendar,
-                              size: 12,
-                              color: textColor.withValues(alpha: 0.6)),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              dateText,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                  color: textColor.withValues(alpha: 0.7),
-                                  fontSize: 11),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(width: 8),
-
-                // ✅ 기존 선택 기능 유지 (지도 기능 호환)
-                Checkbox(
-                  value: isSelected,
-                  onChanged: (val) {
-                    setState(() {
-                      if (val == true) {
-                        _selectedIds.add(doc.id);
-                      } else {
-                        _selectedIds.remove(doc.id);
-                      }
-                    });
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+    return SavedHistoryCard(
+      menuName: menuName,
+      restaurant: restaurant,
+      rating: rating,
+      dateText: dateText,
+      imageUrl: img,
+      isSelected: isSelected,
+      onTap: () {
+        final ageDays = _calcItemAgeDays(data);
+        final itemType = _inferItemType(data);
+        LogService()
+            .logHistoryDetailView(itemAgeDays: ageDays, itemType: itemType);
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => FavoriteScreen(documentId: doc.id),
+            ));
+      },
+      onImageTap: () => setState(() {
+        if (_showMenuPhotoIds.contains(doc.id)) {
+          _showMenuPhotoIds.remove(doc.id);
+        } else {
+          _showMenuPhotoIds.add(doc.id);
+        }
+      }),
+      onSelected: (val) => setState(() {
+        if (val == true) {
+          _selectedIds.add(doc.id);
+        } else {
+          _selectedIds.remove(doc.id);
+        }
+      }),
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _checkDarkMode();
-  }
-
-  Future<void> _checkDarkMode() async {
-    final savedThemeMode = await AdaptiveTheme.getThemeMode();
-    setState(() {
-      _isDarkMode = savedThemeMode == AdaptiveThemeMode.dark;
-    });
   }
 
   Future<void> _loadFavoriteResults() async {
@@ -618,9 +486,9 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor =
-        _isDarkMode ? Colors.black : const Color(0xFFEFEFF4);
-    final textColor = _isDarkMode ? Colors.white : Colors.black;
+    final colors = AppColors.of(context);
+    final backgroundColor = colors.background;
+    final textColor = colors.text;
 
     final loc = AppLocalizations.of(context)!; // ← 추가
 
@@ -632,7 +500,7 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
             // ✅ NEW: 상단 필터 + 섹션 리스트
             Column(
               children: [
-                _buildTopControls(backgroundColor, textColor),
+                _buildTopControls(),
                 Expanded(
                   child: _favoriteResults.isEmpty
                       ? Center(
@@ -666,7 +534,11 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
                                   ? (AppLocalizations.of(context)
                                           ?.favoriteList_thisWeek ??
                                       'This Week')
-                                  : key;
+                                  : key == 'UNKNOWN'
+                                      ? key
+                                      : DateFormat.MMMM(loc.localeName).format(
+                                          _parseTimestamp(items.first.data()
+                                              as Map<String, dynamic>)!);
 
                               return Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -679,25 +551,25 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
                                         Expanded(
                                           child: Text(
                                             title,
-                                            style: TextStyle(
-                                              color: textColor,
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w800,
-                                            ),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleSmall,
                                           ),
                                         ),
-                                        Text(
+                                        const SizedBox(width: 8),
+                                        Flexible(
+                                            child: Text(
                                           AppLocalizations.of(context)!
                                               .favoriteList_entries(
-                                                  items.length)
-                                              .toUpperCase(),
-                                          style: TextStyle(
-                                            color: textColor.withValues(
-                                                alpha: 0.45),
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 12,
-                                          ),
-                                        ),
+                                                  items.length),
+                                          textAlign: TextAlign.end,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelSmall
+                                              ?.copyWith(
+                                                color: colors.secondaryText,
+                                              ),
+                                        )),
                                       ],
                                     ),
                                   ),
@@ -716,7 +588,8 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
                                         color: Colors.redAccent,
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 20),
-                                        alignment: Alignment.centerRight,
+                                        alignment:
+                                            AlignmentDirectional.centerEnd,
                                         child: const Icon(CupertinoIcons.delete,
                                             color: Colors.white, size: 30),
                                       ),
@@ -728,7 +601,6 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
                                       child: _historyCard(
                                         doc: doc,
                                         data: data,
-                                        textColor: textColor,
                                         isSelected: isSelected,
                                       ),
                                     );
@@ -762,6 +634,136 @@ class _FavoriteListScreenState extends State<FavoriteListScreen> {
                 ),
               ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Presentation of an existing saved record; actions stay with the list state.
+class SavedHistoryCard extends StatelessWidget {
+  const SavedHistoryCard({
+    super.key,
+    required this.menuName,
+    required this.restaurant,
+    required this.rating,
+    required this.dateText,
+    required this.imageUrl,
+    required this.isSelected,
+    required this.onTap,
+    required this.onImageTap,
+    required this.onSelected,
+  });
+
+  final String menuName;
+  final String restaurant;
+  final double rating;
+  final String dateText;
+  final String imageUrl;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final VoidCallback onImageTap;
+  final ValueChanged<bool?> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    final details = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(menuName, style: textTheme.titleMedium),
+        if (restaurant.trim().isNotEmpty &&
+            restaurant.trim().toLowerCase() !=
+                menuName.trim().toLowerCase()) ...[
+          const SizedBox(height: 2),
+          Text(restaurant,
+              style:
+                  textTheme.bodySmall?.copyWith(color: colors.secondaryText)),
+        ],
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 10,
+          runSpacing: 4,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text(dateText,
+                style: textTheme.labelSmall
+                    ?.copyWith(color: colors.secondaryText)),
+            if (rating > 0)
+              Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(Icons.star_rounded, size: 16, color: colors.primary),
+                const SizedBox(width: 3),
+                Text(rating.toStringAsFixed(1), style: textTheme.labelSmall),
+              ]),
+          ],
+        ),
+      ],
+    );
+    final image = Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: onImageTap,
+        child: ClipRRect(
+          borderRadius: AppTheme.controlRadius,
+          child: SizedBox.square(
+            dimension: 64,
+            child: imageUrl.isEmpty
+                ? Icon(Icons.image_not_supported_outlined,
+                    color: colors.secondaryText)
+                : CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    placeholder: (_, __) => const CupertinoActivityIndicator(),
+                    errorWidget: (_, __, ___) =>
+                        const Icon(Icons.image_not_supported_outlined),
+                    fit: BoxFit.cover,
+                  ),
+          ),
+        ),
+      ),
+    );
+    final checkbox = Checkbox(
+      value: isSelected,
+      activeColor: colors.primary,
+      checkColor: colors.onPrimary,
+      semanticLabel: menuName,
+      onChanged: onSelected,
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      child: Material(
+        color: colors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: AppTheme.cardRadius,
+          side: BorderSide(color: isSelected ? colors.primary : colors.border),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: LayoutBuilder(builder: (context, constraints) {
+              final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
+              if (constraints.maxWidth < 220 * scale) {
+                return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(children: [image, const Spacer(), checkbox]),
+                      const SizedBox(height: 8),
+                      details,
+                    ]);
+              }
+              return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    image,
+                    const SizedBox(width: 12),
+                    Expanded(child: details),
+                    checkbox,
+                  ]);
+            }),
+          ),
         ),
       ),
     );

@@ -133,10 +133,10 @@ class FoodJourneyHomeCard extends StatelessWidget {
                               const SizedBox(width: 8),
                               Expanded(
                                   child: Text(l10n.journeyTitle,
-                                      style: theme.textTheme.titleSmall
+                                      style: theme.textTheme.titleMedium
                                           ?.copyWith(
                                               color: style.primary,
-                                              fontWeight: FontWeight.w700))),
+                                              fontWeight: FontWeight.w600))),
                               const SizedBox(width: 8),
                               Icon(
                                   Directionality.of(context) ==
