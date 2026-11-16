@@ -85,6 +85,12 @@ class MScannerSearchField extends StatelessWidget {
       style: textTheme.bodyMedium?.copyWith(color: colors.text),
       placeholderStyle:
           textTheme.bodyMedium?.copyWith(color: colors.secondaryText),
+
+  // 검색 아이콘과 텍스트의 수직 중앙 정렬 보정
+      padding: const EdgeInsetsDirectional.fromSTEB(
+        5.5, 5.0, 5.5, 11.0,
+      ),
+
       borderRadius: AppTheme.controlRadius,
       onChanged: onChanged,
     );
